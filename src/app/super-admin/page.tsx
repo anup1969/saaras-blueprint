@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import BlueprintLayout from '@/components/BlueprintLayout';
 import { StatCard, TabBar, StatusBadge, SearchBar, DataTable, Toggle } from '@/components/shared';
+import OnboardingWizard from '@/components/OnboardingWizard';
 import { type Theme } from '@/lib/themes';
 import {
   Home, Building2, CreditCard, Users, Layers, UserPlus, Headphones, BarChart3, Settings, FileText,
@@ -99,7 +100,7 @@ const modules = [
 ];
 
 // ─── DASHBOARD VIEW ────────────────────────────────────
-function DashboardView({ theme, setActiveModule }: { theme: Theme; setActiveModule: (m: string) => void }) {
+function DashboardView({ theme, setActiveModule, onStartWizard }: { theme: Theme; setActiveModule: (m: string) => void; onStartWizard: () => void }) {
   return (
     <div className="space-y-6">
       <div>
@@ -122,12 +123,12 @@ function DashboardView({ theme, setActiveModule }: { theme: Theme; setActiveModu
           <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Quick Actions</h3>
           <div className="space-y-2">
             {[
-              { label: 'Onboard New School', icon: Plus, action: 'onboarding' },
+              { label: 'Onboard New School', icon: Plus, action: 'wizard' },
               { label: 'View Support Tickets', icon: Headphones, action: 'support' },
               { label: 'Platform Analytics', icon: BarChart3, action: 'analytics' },
               { label: 'System Health Check', icon: Activity, action: 'config' },
             ].map(a => (
-              <button key={a.label} onClick={() => setActiveModule(a.action)} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium ${theme.secondaryBg} ${theme.highlight} ${theme.buttonHover} transition-all`}>
+              <button key={a.label} onClick={() => a.action === 'wizard' ? onStartWizard() : setActiveModule(a.action)} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium ${theme.secondaryBg} ${theme.highlight} ${theme.buttonHover} transition-all`}>
                 <a.icon size={14} className={theme.primaryText} />
                 {a.label}
                 <ArrowRight size={12} className={`ml-auto ${theme.iconColor}`} />
@@ -205,7 +206,7 @@ function DashboardView({ theme, setActiveModule }: { theme: Theme; setActiveModu
 }
 
 // ─── SCHOOLS VIEW ──────────────────────────────────────
-function SchoolsView({ theme }: { theme: Theme }) {
+function SchoolsView({ theme, onStartWizard }: { theme: Theme; onStartWizard: () => void }) {
   const [selectedSchool, setSelectedSchool] = useState<string | null>(null);
   const [tab, setTab] = useState('All');
 
@@ -264,7 +265,7 @@ function SchoolsView({ theme }: { theme: Theme }) {
           <h2 className={`text-lg font-bold ${theme.highlight}`}>Schools</h2>
           <p className={`text-xs ${theme.iconColor}`}>{schools.length} total schools on platform</p>
         </div>
-        <button className={`flex items-center gap-2 px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>
+        <button onClick={onStartWizard} className={`flex items-center gap-2 px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>
           <Plus size={14} /> Add School
         </button>
       </div>
@@ -456,7 +457,7 @@ function ModulesConfigView({ theme }: { theme: Theme }) {
 }
 
 // ─── ONBOARDING PIPELINE VIEW ──────────────────────────
-function OnboardingView({ theme }: { theme: Theme }) {
+function OnboardingView({ theme, onStartWizard }: { theme: Theme; onStartWizard: () => void }) {
   const stages = ['Demo Done', 'Proposal Sent', 'Data Migration', 'Training', 'Go-Live'];
 
   return (
@@ -466,9 +467,14 @@ function OnboardingView({ theme }: { theme: Theme }) {
           <h2 className={`text-lg font-bold ${theme.highlight}`}>School Onboarding Pipeline</h2>
           <p className={`text-xs ${theme.iconColor}`}>{onboardingPipeline.length} schools in pipeline</p>
         </div>
-        <button className={`flex items-center gap-2 px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>
-          <Plus size={14} /> Add Lead
-        </button>
+        <div className="flex gap-2">
+          <button onClick={onStartWizard} className={`flex items-center gap-2 px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>
+            <Plus size={14} /> Start Onboarding
+          </button>
+          <button className={`flex items-center gap-2 px-4 py-2 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.highlight}`}>
+            <Plus size={14} /> Add Lead
+          </button>
+        </div>
       </div>
 
       {/* Pipeline stages */}
@@ -745,21 +751,32 @@ function AuditLogsView({ theme }: { theme: Theme }) {
 // ─── MAIN PAGE ─────────────────────────────────────────
 function SuperAdminDashboard({ theme }: { theme?: Theme }) {
   const [activeModule, setActiveModule] = useState('dashboard');
+  const [showWizard, setShowWizard] = useState(false);
   if (!theme) return null;
+
+  if (showWizard) {
+    return (
+      <div className="flex gap-4 -m-6">
+        <div className="flex-1 p-6 overflow-y-auto">
+          <OnboardingWizard theme={theme} onBack={() => setShowWizard(false)} />
+        </div>
+      </div>
+    );
+  }
 
   const renderContent = () => {
     switch (activeModule) {
-      case 'dashboard': return <DashboardView theme={theme} setActiveModule={setActiveModule} />;
-      case 'schools': return <SchoolsView theme={theme} />;
+      case 'dashboard': return <DashboardView theme={theme} setActiveModule={setActiveModule} onStartWizard={() => setShowWizard(true)} />;
+      case 'schools': return <SchoolsView theme={theme} onStartWizard={() => setShowWizard(true)} />;
       case 'plans': return <PlansView theme={theme} />;
       case 'users': return <UsersView theme={theme} />;
       case 'modules': return <ModulesConfigView theme={theme} />;
-      case 'onboarding': return <OnboardingView theme={theme} />;
+      case 'onboarding': return <OnboardingView theme={theme} onStartWizard={() => setShowWizard(true)} />;
       case 'support': return <SupportView theme={theme} />;
       case 'analytics': return <AnalyticsView theme={theme} />;
       case 'config': return <SystemConfigView theme={theme} />;
       case 'audit': return <AuditLogsView theme={theme} />;
-      default: return <DashboardView theme={theme} setActiveModule={setActiveModule} />;
+      default: return <DashboardView theme={theme} setActiveModule={setActiveModule} onStartWizard={() => setShowWizard(true)} />;
     }
   };
 
