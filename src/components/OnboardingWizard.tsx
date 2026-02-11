@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { type Theme } from '@/lib/themes';
 import { StatCard, Toggle } from '@/components/shared';
 import {
   Building2, GraduationCap, Users, Shield, MessageSquare,
   Banknote, Briefcase, Bus, Check, ChevronRight, ChevronLeft, Save, Rocket,
-  Upload, Plus, X, Eye, AlertTriangle, CheckCircle, Lock,
-  Layers, ArrowRight, Download, Megaphone
+  Upload, Plus, X, Eye, AlertTriangle, CheckCircle, Lock, Circle,
+  Layers, ArrowRight, Download, Megaphone, Clock
 } from 'lucide-react';
 
 // ─── WIZARD STEPS ─────────────────────────────────────
@@ -153,6 +153,7 @@ const HOUSE_COLOR_PALETTE = [
 ];
 
 type HouseEntry = { id: string; name: string; colorIndex: number; mascot: string };
+type ShiftEntry = { id: string; name: string; startTime: string; endTime: string; periods: number; periodDuration: number };
 
 // ─── STEP 2: ACADEMIC STRUCTURE ───────────────────────
 function Step2Academic({ theme }: { theme: Theme }) {
@@ -216,6 +217,33 @@ function Step2Academic({ theme }: { theme: Theme }) {
     { id: 'h4', name: 'Yellow House', colorIndex: 3, mascot: '' },
   ]);
   const [colorPickerOpen, setColorPickerOpen] = useState<string | null>(null);
+
+  // State-managed shifts
+  const [workingDays, setWorkingDays] = useState('Monday - Saturday');
+  const [shifts, setShifts] = useState<ShiftEntry[]>([
+    { id: 's1', name: 'Pre-Primary', startTime: '08:00', endTime: '12:00', periods: 5, periodDuration: 35 },
+    { id: 's2', name: 'Primary', startTime: '08:00', endTime: '14:00', periods: 7, periodDuration: 40 },
+    { id: 's3', name: 'Secondary', startTime: '08:00', endTime: '14:30', periods: 8, periodDuration: 40 },
+  ]);
+
+  const addShift = () => {
+    const name = window.prompt('Enter shift name (e.g. Pre-Primary Morning, Senior Afternoon):');
+    if (name && name.trim()) {
+      setShifts(prev => [...prev, { id: `s${Date.now()}`, name: name.trim(), startTime: '08:00', endTime: '14:00', periods: 7, periodDuration: 40 }]);
+    }
+  };
+
+  const removeShift = (id: string) => {
+    if (shifts.length <= 1) {
+      window.alert('At least one shift is required.');
+      return;
+    }
+    setShifts(prev => prev.filter(s => s.id !== id));
+  };
+
+  const updateShift = (id: string, field: keyof ShiftEntry, value: string | number) => {
+    setShifts(prev => prev.map(s => s.id === id ? { ...s, [field]: value } : s));
+  };
 
   const addHouse = () => {
     const newId = `h${Date.now()}`;
@@ -393,17 +421,89 @@ function Step2Academic({ theme }: { theme: Theme }) {
       </div>
 
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <SectionTitle title="School Timings" theme={theme} />
-        <div className="grid grid-cols-3 gap-3">
-          <SelectField label="Working Days" options={['Monday - Friday', 'Monday - Saturday', 'Custom']} value="Monday - Saturday" theme={theme} required />
-          <FormField label="School Start Time" value="08:00" type="time" theme={theme} required />
-          <FormField label="School End Time" value="14:30" type="time" theme={theme} required />
+        <SectionTitle title="School Timings & Shifts" subtitle="Schools can have multiple shifts — e.g. Pre-Primary, Primary, Secondary with different timings" theme={theme} />
+        <div className="mb-4">
+          <SelectField label="Working Days (applies to all shifts)" options={['Monday - Friday', 'Monday - Saturday', 'Custom']} value={workingDays} onChange={setWorkingDays} theme={theme} required />
         </div>
-        <div className="grid grid-cols-3 gap-3 mt-3">
-          <FormField label="Periods per Day" value="8" type="number" theme={theme} />
-          <FormField label="Period Duration (mins)" value="40" type="number" theme={theme} />
-          <SelectField label="Shift Pattern" options={['Single Shift', 'Double Shift (Morning + Afternoon)', 'Staggered']} value="Single Shift" theme={theme} />
+
+        <div className="space-y-3">
+          {shifts.map((shift, idx) => (
+            <div key={shift.id} className={`p-4 rounded-xl ${theme.secondaryBg} relative`}>
+              <button
+                onClick={() => removeShift(shift.id)}
+                className={`absolute top-3 right-3 w-5 h-5 rounded-full flex items-center justify-center border ${theme.border} hover:bg-red-100 transition-colors`}
+                title="Remove shift"
+              >
+                <X size={10} className="text-red-500" />
+              </button>
+
+              <div className="flex items-center gap-2 mb-3">
+                <Clock size={14} className={theme.primaryText} />
+                <span className={`text-xs font-bold ${theme.highlight}`}>Shift {idx + 1}</span>
+              </div>
+
+              <div className="grid grid-cols-5 gap-3">
+                <div className="col-span-1">
+                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>
+                    Shift Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    value={shift.name}
+                    onChange={(e) => updateShift(shift.id, 'name', e.target.value)}
+                    className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none focus:ring-2 focus:ring-slate-300 ${theme.highlight}`}
+                    placeholder="e.g. Pre-Primary"
+                  />
+                </div>
+                <div>
+                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Start Time</label>
+                  <input
+                    type="time"
+                    value={shift.startTime}
+                    onChange={(e) => updateShift(shift.id, 'startTime', e.target.value)}
+                    className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none ${theme.highlight}`}
+                  />
+                </div>
+                <div>
+                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>End Time</label>
+                  <input
+                    type="time"
+                    value={shift.endTime}
+                    onChange={(e) => updateShift(shift.id, 'endTime', e.target.value)}
+                    className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none ${theme.highlight}`}
+                  />
+                </div>
+                <div>
+                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Periods/Day</label>
+                  <input
+                    type="number"
+                    value={shift.periods}
+                    onChange={(e) => updateShift(shift.id, 'periods', parseInt(e.target.value) || 0)}
+                    className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none ${theme.highlight}`}
+                  />
+                </div>
+                <div>
+                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Period (mins)</label>
+                  <input
+                    type="number"
+                    value={shift.periodDuration}
+                    onChange={(e) => updateShift(shift.id, 'periodDuration', parseInt(e.target.value) || 0)}
+                    className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none ${theme.highlight}`}
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
+
+        <button
+          onClick={addShift}
+          className={`w-full mt-3 flex items-center justify-center gap-2 p-2.5 rounded-xl border-2 border-dashed ${theme.border} ${theme.iconColor} text-xs font-bold hover:bg-slate-50 transition-colors`}
+        >
+          <Plus size={12} /> Add Shift
+        </button>
+        <p className={`text-[10px] ${theme.iconColor} mt-2`}>
+          {shifts.length} shift{shifts.length !== 1 ? 's' : ''} configured. Each shift can have its own class range, timings, and period structure.
+        </p>
       </div>
     </div>
   );
@@ -1039,6 +1139,15 @@ function Step9Review({ theme, goToStep }: { theme: Theme; goToStep: (s: number) 
 // ─── MAIN WIZARD COMPONENT ────────────────────────────
 export default function OnboardingWizard({ theme, onBack }: { theme: Theme; onBack: () => void }) {
   const [currentStep, setCurrentStep] = useState(1);
+  const [visitedSteps, setVisitedSteps] = useState<Set<number>>(new Set([1]));
+
+  useEffect(() => {
+    setVisitedSteps(prev => {
+      const next = new Set(prev);
+      next.add(currentStep);
+      return next;
+    });
+  }, [currentStep]);
 
   const renderStep = () => {
     switch (currentStep) {
@@ -1070,27 +1179,55 @@ export default function OnboardingWizard({ theme, onBack }: { theme: Theme; onBa
 
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-3`}>
         <div className="flex items-center gap-1">
-          {steps.map((step, i) => (
-            <React.Fragment key={step.id}>
-              <button
-                onClick={() => setCurrentStep(step.id)}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
-                  currentStep === step.id
-                    ? `${theme.primary} text-white`
-                    : currentStep > step.id
-                    ? 'bg-emerald-100 text-emerald-700'
-                    : `${theme.secondaryBg} ${theme.iconColor}`
-                }`}
-              >
-                {currentStep > step.id ? <CheckCircle size={10} /> : <step.icon size={10} />}
-                <span className="hidden lg:inline">{step.short}</span>
-                <span className="lg:hidden">{step.id}</span>
-              </button>
-              {i < steps.length - 1 && (
-                <div className={`flex-1 h-0.5 rounded ${currentStep > step.id ? 'bg-emerald-400' : theme.secondaryBg}`} />
-              )}
-            </React.Fragment>
-          ))}
+          {steps.map((step, i) => {
+            const isCurrent = currentStep === step.id;
+            const isVisited = visitedSteps.has(step.id) && !isCurrent;
+            const isPast = step.id < currentStep;
+            // Visited past steps = complete (green), skipped past steps = warning (amber), future unvisited = gray
+            const btnClass = isCurrent
+              ? `${theme.primary} text-white`
+              : isPast && isVisited
+              ? 'bg-emerald-100 text-emerald-700'
+              : isPast && !isVisited
+              ? 'bg-amber-100 text-amber-700'
+              : isVisited
+              ? 'bg-blue-100 text-blue-600'
+              : `${theme.secondaryBg} ${theme.iconColor}`;
+
+            const StepIcon = isCurrent
+              ? step.icon
+              : isPast && isVisited
+              ? CheckCircle
+              : isPast && !isVisited
+              ? AlertTriangle
+              : isVisited
+              ? CheckCircle
+              : Circle;
+
+            const lineColor = isPast && visitedSteps.has(step.id) ? 'bg-emerald-400' : isPast ? 'bg-amber-300' : theme.secondaryBg;
+
+            return (
+              <React.Fragment key={step.id}>
+                <button
+                  onClick={() => setCurrentStep(step.id)}
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all ${btnClass}`}
+                  title={isCurrent ? 'Current step' : isVisited ? 'Visited' : isPast ? 'Skipped — not yet filled' : 'Not started'}
+                >
+                  <StepIcon size={10} />
+                  <span className="hidden lg:inline">{step.short}</span>
+                  <span className="lg:hidden">{step.id}</span>
+                </button>
+                {i < steps.length - 1 && (
+                  <div className={`flex-1 h-0.5 rounded ${lineColor}`} />
+                )}
+              </React.Fragment>
+            );
+          })}
+        </div>
+        <div className={`flex items-center gap-4 mt-2 px-1`}>
+          <span className="flex items-center gap-1 text-[9px] text-emerald-600"><CheckCircle size={8} /> Completed</span>
+          <span className="flex items-center gap-1 text-[9px] text-amber-600"><AlertTriangle size={8} /> Skipped</span>
+          <span className={`flex items-center gap-1 text-[9px] ${theme.iconColor}`}><Circle size={8} /> Not started</span>
         </div>
       </div>
 
