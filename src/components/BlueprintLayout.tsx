@@ -1,15 +1,17 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Building2, GraduationCap, BookOpen, User, Users, Shield, Eye,
   UserCheck, Briefcase, Calculator, Phone, Bus, ShieldCheck, Headphones,
-  Palette, Home, ChevronLeft, Menu, MessageSquarePlus
+  Home, ChevronLeft, Menu, LogOut
 } from 'lucide-react';
 import { themes, type Theme } from '@/lib/themes';
+import { getLoggedInUser, logoutUser, type TeamMember } from '@/lib/auth';
 import FeedbackSystem from './FeedbackSystem';
+import LoginPage from './LoginPage';
 
 const navItems = [
   { href: '/', label: 'Home', icon: Home },
@@ -29,14 +31,38 @@ const navItems = [
   { href: '/account-manager', label: 'Account Manager', icon: Headphones },
 ];
 
-const reviewerNames = ['Piush', 'Dhavalbhai', 'Manishbhai', 'Farheen', 'Kunjal'];
-
 export default function BlueprintLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [themeIdx, setThemeIdx] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [reviewer, setReviewer] = useState('Piush');
+  const [currentUser, setCurrentUser] = useState<TeamMember | null>(null);
+  const [loading, setLoading] = useState(true);
   const theme = themes[themeIdx];
+
+  useEffect(() => {
+    const user = getLoggedInUser();
+    setCurrentUser(user);
+    setLoading(false);
+  }, []);
+
+  const handleLogin = (user: TeamMember) => {
+    setCurrentUser(user);
+  };
+
+  const handleLogout = () => {
+    logoutUser();
+    setCurrentUser(null);
+  };
+
+  if (loading) {
+    return <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+      <div className="text-slate-500 text-sm">Loading...</div>
+    </div>;
+  }
+
+  if (!currentUser) {
+    return <LoginPage onLogin={handleLogin} />;
+  }
 
   return (
     <div className={`min-h-screen ${theme.bodyBg} flex`}>
@@ -66,7 +92,7 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
           })}
         </nav>
 
-        {/* Theme + Reviewer selectors */}
+        {/* Theme selector + User info */}
         <div className={`p-3 border-t ${theme.border} space-y-2`}>
           <div>
             <p className={`text-[10px] ${theme.iconColor} mb-1 font-bold uppercase`}>Theme</p>
@@ -85,15 +111,19 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
               ))}
             </div>
           </div>
-          <div>
-            <p className={`text-[10px] ${theme.iconColor} mb-1 font-bold uppercase`}>Reviewer</p>
-            <select
-              value={reviewer}
-              onChange={e => setReviewer(e.target.value)}
-              className={`w-full text-xs px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} ${theme.highlight} outline-none`}
+          {/* Logged-in user */}
+          <div className={`flex items-center justify-between p-2 rounded-xl ${theme.secondaryBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>{currentUser.name}</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>{currentUser.role}</p>
+            </div>
+            <button
+              onClick={handleLogout}
+              className={`p-1.5 rounded-lg hover:bg-red-500/20 ${theme.iconColor} hover:text-red-400 transition-all`}
+              title="Sign out"
             >
-              {reviewerNames.map(n => <option key={n} value={n}>{n}</option>)}
-            </select>
+              <LogOut size={14} />
+            </button>
           </div>
         </div>
       </aside>
@@ -114,7 +144,7 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
             <span className={`text-[10px] px-2 py-1 rounded-lg ${theme.secondaryBg} ${theme.iconColor}`}>
               BLUEPRINT MODE — Not a live system
             </span>
-            <span className={`text-xs font-bold ${theme.primaryText}`}>{reviewer}</span>
+            <span className={`text-xs font-bold ${theme.primaryText}`}>{currentUser.name}</span>
           </div>
         </div>
 
@@ -130,7 +160,7 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
       </main>
 
       {/* Feedback system */}
-      <FeedbackSystem currentPage={pathname} currentUser={reviewer} />
+      <FeedbackSystem currentPage={pathname} currentUser={currentUser.name} />
     </div>
   );
 }
