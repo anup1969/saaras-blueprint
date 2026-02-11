@@ -2,954 +2,440 @@
 
 import React, { useState } from 'react';
 import BlueprintLayout from '@/components/BlueprintLayout';
-import { StatCard, TabBar, StatusBadge, SearchBar, DataTable } from '@/components/shared';
 import { type Theme } from '@/lib/themes';
 import {
-  Home, Users, UserPlus, Briefcase, Calendar, Clock, Settings, Search, Plus,
-  Eye, Edit, Download, Filter, Check, X,
-  Banknote, DollarSign, TrendingUp, AlertTriangle, FileText,
-  Mail, Star, Award, ArrowRight,
-  ClipboardCheck, UserCheck, CheckCircle, XCircle,
-  FolderOpen, FileCheck, FilePlus, Printer, CalendarDays, BadgeCheck,
-  BarChart3, Building2
+  Users, Home, UserPlus, Calendar, Clock, Banknote, Star, FileText, UserMinus, BarChart3,
+  Settings, Bell, ChevronLeft, ChevronRight, Check, X, Plus,
+  Eye, Edit, Phone, Mail, Trash2, Camera, Award, CheckCircle, XCircle,
+  GripVertical, Cake, Briefcase, Upload, MinusCircle, Wallet, GitBranch, Shield
 } from 'lucide-react';
 
-// ─── MODULE SIDEBAR ────────────────────────────────
+// ─── MOCK DATA ────────────────────────────────────────
+const employees = [
+  { id: 'EMP001', name: 'Priya Sharma', init: 'PS', dept: 'Teaching', designation: 'PGT Mathematics', phone: '+91 98765 43210', email: 'priya.sharma@school.edu', joinDate: '15-Jun-2019', status: 'Active' },
+  { id: 'EMP002', name: 'Rajesh Kumar', init: 'RK', dept: 'Teaching', designation: 'TGT Science', phone: '+91 98765 43211', email: 'rajesh.kumar@school.edu', joinDate: '01-Apr-2020', status: 'Active' },
+  { id: 'EMP003', name: 'Sunita Patel', init: 'SP', dept: 'Administration', designation: 'Office Assistant', phone: '+91 98765 43212', email: 'sunita.patel@school.edu', joinDate: '10-Aug-2018', status: 'Active' },
+  { id: 'EMP004', name: 'Mohammed Irfan', init: 'MI', dept: 'Transport', designation: 'Driver', phone: '+91 98765 43213', email: 'mohammed.irfan@school.edu', joinDate: '05-Jan-2021', status: 'Active' },
+  { id: 'EMP005', name: 'Kavitha Nair', init: 'KN', dept: 'Teaching', designation: 'PRT English', phone: '+91 98765 43214', email: 'kavitha.nair@school.edu', joinDate: '20-Nov-2024', status: 'Probation' },
+  { id: 'EMP006', name: 'Deepak Verma', init: 'DV', dept: 'Security', designation: 'Security Guard', phone: '+91 98765 43215', email: 'deepak.verma@school.edu', joinDate: '15-Mar-2019', status: 'Active' },
+];
+
+// ─── MODULE SIDEBAR ───────────────────────────────────
 const modules = [
   { id: 'dashboard', label: 'Dashboard', icon: Home },
-  { id: 'directory', label: 'Staff Directory', icon: Users },
-  { id: 'recruitment', label: 'Recruitment', icon: UserPlus },
-  { id: 'leave', label: 'Leave Mgmt', icon: Calendar },
+  { id: 'employees', label: 'Employees', icon: Users },
+  { id: 'onboarding', label: 'Onboarding', icon: UserPlus },
+  { id: 'attendance', label: 'Attendance', icon: Clock },
+  { id: 'leave', label: 'Leave', icon: Calendar },
   { id: 'payroll', label: 'Payroll', icon: Banknote },
-  { id: 'attendance', label: 'Attendance', icon: ClipboardCheck },
-  { id: 'documents', label: 'Documents', icon: FolderOpen },
+  { id: 'performance', label: 'Performance', icon: Star },
+  { id: 'letters', label: 'HR Letters', icon: FileText },
+  { id: 'offboarding', label: 'Offboarding', icon: UserMinus },
+  { id: 'reports', label: 'Reports', icon: BarChart3 },
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
-// ─── MOCK DATA ─────────────────────────────────────
-const mockStaff = [
-  { id: 'EMP001', name: 'Dr. Rajesh Kumar', dept: 'Teaching', designation: 'PGT Mathematics', status: 'Active', phone: '9876543210' },
-  { id: 'EMP002', name: 'Ms. Priya Sharma', dept: 'Teaching', designation: 'TGT English', status: 'Active', phone: '9876543211' },
-  { id: 'EMP003', name: 'Mr. Amit Verma', dept: 'Admin', designation: 'Office Manager', status: 'Active', phone: '9876543212' },
-  { id: 'EMP004', name: 'Mrs. Sunita Patel', dept: 'Teaching', designation: 'PRT Science', status: 'Probation', phone: '9876543213' },
-  { id: 'EMP005', name: 'Mr. Ramesh Gupta', dept: 'Transport', designation: 'Fleet Supervisor', status: 'Active', phone: '9876543214' },
-  { id: 'EMP006', name: 'Ms. Kavita Singh', dept: 'Teaching', designation: 'TGT Hindi', status: 'Active', phone: '9876543215' },
-  { id: 'EMP007', name: 'Mr. Suresh Nair', dept: 'IT & Lab', designation: 'Lab Technician', status: 'Notice Period', phone: '9876543216' },
-  { id: 'EMP008', name: 'Mr. Deepak Joshi', dept: 'Security', designation: 'Security Head', status: 'Active', phone: '9876543217' },
-];
+// ─── SHARED HELPERS ───────────────────────────────────
+const fmt = (n: number) => n.toLocaleString('en-IN');
 
-const mockPositions = [
-  { title: 'PGT Mathematics', dept: 'Teaching', posted: '15-Jan-2026', applications: 12, status: 'Open' },
-  { title: 'TGT English', dept: 'Teaching', posted: '18-Jan-2026', applications: 8, status: 'Urgent' },
-  { title: 'Lab Assistant', dept: 'IT & Lab', posted: '20-Jan-2026', applications: 5, status: 'Open' },
-  { title: 'Sports Coach', dept: 'Teaching', posted: '10-Jan-2026', applications: 15, status: 'Closed' },
-  { title: 'Accountant', dept: 'Admin', posted: '22-Jan-2026', applications: 9, status: 'Open' },
-];
+function SC({ icon: Icon, label, value, color, sub, theme }: { icon: React.ElementType; label: string; value: string; color: string; sub?: string; theme: Theme }) {
+  return (
+    <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-3 flex items-center gap-3`}>
+      <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${color}`}><Icon size={18} className="text-white" /></div>
+      <div><p className={`text-lg font-bold ${theme.highlight}`}>{value}</p><p className={`text-xs ${theme.iconColor}`}>{label}</p>{sub && <p className="text-xs text-emerald-500">{sub}</p>}</div>
+    </div>
+  );
+}
 
-const mockApplications = [
-  { name: 'Ravi Shankar', position: 'PGT Mathematics', applied: '20-Jan-2026', experience: '5 years', status: 'Shortlisted' },
-  { name: 'Neha Gupta', position: 'TGT English', applied: '22-Jan-2026', experience: '3 years', status: 'New' },
-  { name: 'Vikram Mehta', position: 'Lab Assistant', applied: '25-Jan-2026', experience: '2 years', status: 'Interview Scheduled' },
-  { name: 'Anita Rao', position: 'PGT Mathematics', applied: '21-Jan-2026', experience: '8 years', status: 'Shortlisted' },
-  { name: 'Manoj Tiwari', position: 'Accountant', applied: '24-Jan-2026', experience: '4 years', status: 'New' },
-  { name: 'Priti Das', position: 'Sports Coach', applied: '12-Jan-2026', experience: '6 years', status: 'Rejected' },
-  { name: 'Sanjay Mishra', position: 'TGT English', applied: '23-Jan-2026', experience: '7 years', status: 'Interview Scheduled' },
-];
+function Tgl({ on, theme }: { on: boolean; theme: Theme }) {
+  return (
+    <button className={`w-9 h-5 rounded-full relative ${on ? theme.primary : 'bg-slate-600'}`}>
+      <div className={`w-4 h-4 bg-white rounded-full absolute top-0.5 transition-all ${on ? 'translate-x-4' : 'translate-x-0.5'}`} />
+    </button>
+  );
+}
 
-const mockLeaveRequests = [
-  { name: 'Ms. Priya Sharma', type: 'Casual Leave', from: '12-Feb-2026', to: '14-Feb-2026', days: 3, reason: 'Family function in hometown', dept: 'Teaching' },
-  { name: 'Mr. Amit Verma', type: 'Sick Leave', from: '11-Feb-2026', to: '12-Feb-2026', days: 2, reason: 'Fever and cold', dept: 'Admin' },
-  { name: 'Mrs. Sunita Patel', type: 'Earned Leave', from: '15-Feb-2026', to: '22-Feb-2026', days: 6, reason: 'Annual vacation with family', dept: 'Teaching' },
-  { name: 'Mr. Ramesh Gupta', type: 'Casual Leave', from: '13-Feb-2026', to: '13-Feb-2026', days: 1, reason: 'Personal work — bank visit', dept: 'Transport' },
-  { name: 'Ms. Kavita Singh', type: 'Maternity Leave', from: '01-Mar-2026', to: '28-May-2026', days: 89, reason: 'Maternity leave as per policy', dept: 'Teaching' },
-];
+// ─── DASHBOARD ────────────────────────────────────────
+function DashboardModule({ theme, setActive }: { theme: Theme; setActive: (s: string) => void }) {
+  const weekData = [{ d: 'Mon', p: 125 }, { d: 'Tue', p: 130 }, { d: 'Wed', p: 128 }, { d: 'Thu', p: 126 }, { d: 'Fri', p: 132 }, { d: 'Sat', p: 118 }];
+  return (
+    <div className="space-y-4">
+      <h1 className={`text-xl font-bold ${theme.highlight}`}>HR Dashboard</h1>
+      <div className="grid grid-cols-6 gap-3">
+        <SC icon={Users} label="Total Staff" value="142" sub="+5 this month" color="bg-indigo-600" theme={theme} />
+        <SC icon={CheckCircle} label="Present" value="128" color="bg-emerald-500" theme={theme} />
+        <SC icon={Calendar} label="On Leave" value="8" color="bg-amber-500" theme={theme} />
+        <SC icon={XCircle} label="Absent" value="6" color="bg-red-500" theme={theme} />
+        <SC icon={Briefcase} label="Open Positions" value="3" color="bg-indigo-500" theme={theme} />
+        <SC icon={Clock} label="Pending" value="12" color="bg-orange-500" theme={theme} />
+      </div>
+      <div className="grid grid-cols-5 gap-4">
+        <div className={`col-span-3 ${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
+          <h3 className={`font-semibold mb-3 ${theme.highlight}`}>Weekly Attendance</h3>
+          <div className="flex items-end gap-3 h-32">{weekData.map((d, i) => (
+            <div key={i} className="flex-1 flex flex-col items-center">
+              <div className="w-full bg-emerald-500 rounded-t" style={{ height: (d.p - 100) * 2 + 'px' }} />
+              <span className={`text-xs ${theme.iconColor} mt-1`}>{d.d}</span>
+            </div>
+          ))}</div>
+        </div>
+        <div className={`col-span-2 ${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
+          <h3 className={`font-semibold mb-3 ${theme.highlight}`}>Today&apos;s Highlights</h3>
+          <div className="space-y-2">
+            <div className={`flex items-center gap-2 p-2 rounded-lg text-sm ${theme.secondaryBg}`}><Cake size={14} className="text-pink-500" /><span className={theme.highlight}>Ravi Shankar&apos;s Birthday</span></div>
+            <div className={`flex items-center gap-2 p-2 rounded-lg text-sm ${theme.secondaryBg}`}><Award size={14} className="text-amber-500" /><span className={theme.highlight}>Vijay Kumar - 5 years</span></div>
+          </div>
+        </div>
+      </div>
+      <div className="grid grid-cols-3 gap-4">
+        <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
+          <h3 className={`font-semibold mb-3 ${theme.highlight}`}>Quick Actions</h3>
+          <div className="space-y-2">
+            <button onClick={() => setActive('addemployee')} className={`w-full flex items-center gap-2 px-3 py-2 ${theme.primary} text-white rounded-lg text-sm`}><UserPlus size={14} />Add Employee</button>
+            <button onClick={() => setActive('attendance')} className={`w-full flex items-center gap-2 px-3 py-2 border ${theme.border} rounded-lg text-sm ${theme.highlight}`}><Clock size={14} />Mark Attendance</button>
+            <button onClick={() => setActive('payroll')} className={`w-full flex items-center gap-2 px-3 py-2 border ${theme.border} rounded-lg text-sm ${theme.highlight}`}><Banknote size={14} />Process Payroll</button>
+          </div>
+        </div>
+        <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
+          <h3 className={`font-semibold mb-3 ${theme.highlight}`}>Pending Leaves</h3>
+          {[{ n: 'Amit Saxena', t: 'Casual' }, { n: 'Meera Iyer', t: 'Sick' }].map((r, i) => (
+            <div key={i} className={`flex items-center justify-between p-2 ${theme.secondaryBg} rounded-lg mb-2`}>
+              <div><p className={`text-sm font-medium ${theme.highlight}`}>{r.n}</p><p className={`text-xs ${theme.iconColor}`}>{r.t}</p></div>
+              <div className="flex gap-1">
+                <button className="p-1 bg-emerald-500/20 text-emerald-400 rounded"><Check size={12} /></button>
+                <button className="p-1 bg-red-500/20 text-red-400 rounded"><X size={12} /></button>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
+          <h3 className={`font-semibold mb-3 ${theme.highlight}`}>Department Strength</h3>
+          {[{ n: 'Teaching', c: 68 }, { n: 'Admin', c: 22 }, { n: 'Transport', c: 18 }].map((d) => (
+            <div key={d.n} className="flex items-center gap-2 mb-2">
+              <span className={`text-xs w-16 ${theme.iconColor}`}>{d.n}</span>
+              <div className={`flex-1 ${theme.secondaryBg} rounded-full h-2`}><div className={`${theme.primary} h-2 rounded-full`} style={{ width: (d.c / 68) * 100 + '%' }} /></div>
+              <span className={`text-xs w-6 ${theme.highlight}`}>{d.c}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
-const mockLeaveBalance = [
-  { name: 'Dr. Rajesh Kumar', cl: 8, sl: 6, el: 15, used: 7, remaining: 22 },
-  { name: 'Ms. Priya Sharma', cl: 5, sl: 6, el: 12, used: 10, remaining: 13 },
-  { name: 'Mr. Amit Verma', cl: 7, sl: 4, el: 14, used: 8, remaining: 17 },
-  { name: 'Mrs. Sunita Patel', cl: 10, sl: 6, el: 0, used: 2, remaining: 14 },
-  { name: 'Mr. Ramesh Gupta', cl: 6, sl: 5, el: 10, used: 9, remaining: 12 },
-  { name: 'Ms. Kavita Singh', cl: 4, sl: 6, el: 8, used: 12, remaining: 6 },
-  { name: 'Mr. Suresh Nair', cl: 3, sl: 2, el: 5, used: 14, remaining: -4 },
-  { name: 'Mr. Deepak Joshi', cl: 9, sl: 6, el: 12, used: 5, remaining: 22 },
-];
+// ─── EMPLOYEE LIST ────────────────────────────────────
+function EmployeeList({ theme, setActive, setSelectedEmp }: { theme: Theme; setActive: (s: string) => void; setSelectedEmp: (e: typeof employees[0]) => void }) {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className={`text-xl font-bold ${theme.highlight}`}>Employee Management</h1>
+        <button onClick={() => setActive('addemployee')} className={`flex items-center gap-2 px-3 py-2 ${theme.primary} text-white rounded-lg text-sm`}><Plus size={14} />Add Employee</button>
+      </div>
+      <div className={`${theme.cardBg} rounded-xl border ${theme.border} overflow-hidden`}>
+        <table className="w-full text-sm">
+          <thead><tr className={theme.secondaryBg}><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Employee</th><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Department</th><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Contact</th><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Status</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Actions</th></tr></thead>
+          <tbody>{employees.map((emp) => (
+            <tr key={emp.id} className={`border-t ${theme.border} ${theme.buttonHover} cursor-pointer`} onClick={() => { setSelectedEmp(emp); setActive('profile'); }}>
+              <td className="p-3"><div className="flex items-center gap-2"><div className={`w-8 h-8 ${theme.secondaryBg} rounded-full flex items-center justify-center text-xs font-medium ${theme.primaryText}`}>{emp.init}</div><div><p className={`font-medium ${theme.highlight}`}>{emp.name}</p><p className={`text-xs ${theme.iconColor}`}>{emp.id}</p></div></div></td>
+              <td className="p-3"><p className={theme.highlight}>{emp.dept}</p><p className={`text-xs ${theme.iconColor}`}>{emp.designation}</p></td>
+              <td className={`p-3 ${theme.iconColor}`}>{emp.phone}</td>
+              <td className="p-3"><span className={`px-2 py-1 text-xs rounded-full font-bold ${emp.status === 'Active' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>{emp.status}</span></td>
+              <td className="p-3 text-center"><Eye size={14} className={theme.iconColor} /></td>
+            </tr>
+          ))}</tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
 
-const mockPayslips = [
-  { name: 'Dr. Rajesh Kumar', basic: 45000, hra: 18000, da: 9000, deductions: 8500, net: 63500 },
-  { name: 'Ms. Priya Sharma', basic: 35000, hra: 14000, da: 7000, deductions: 6200, net: 49800 },
-  { name: 'Mr. Amit Verma', basic: 30000, hra: 12000, da: 6000, deductions: 5400, net: 42600 },
-  { name: 'Mrs. Sunita Patel', basic: 28000, hra: 11200, da: 5600, deductions: 4800, net: 40000 },
-  { name: 'Mr. Ramesh Gupta', basic: 25000, hra: 10000, da: 5000, deductions: 4200, net: 35800 },
-  { name: 'Ms. Kavita Singh', basic: 32000, hra: 12800, da: 6400, deductions: 5600, net: 45600 },
-  { name: 'Mr. Suresh Nair', basic: 22000, hra: 8800, da: 4400, deductions: 3800, net: 31400 },
-  { name: 'Mr. Deepak Joshi', basic: 20000, hra: 8000, da: 4000, deductions: 3200, net: 28800 },
-];
+// ─── EMPLOYEE PROFILE ─────────────────────────────────
+function EmployeeProfile({ theme, emp, setActive }: { theme: Theme; emp: typeof employees[0]; setActive: (s: string) => void }) {
+  return (
+    <div className="space-y-4">
+      <button onClick={() => setActive('employees')} className={`flex items-center gap-1 text-sm ${theme.iconColor}`}><ChevronLeft size={14} />Back</button>
+      <div className={`${theme.cardBg} rounded-xl border ${theme.border} overflow-hidden`}>
+        <div className={`h-20 ${theme.primary}`} />
+        <div className="px-4 pb-4 -mt-8 flex items-end gap-4">
+          <div className={`w-16 h-16 ${theme.secondaryBg} rounded-full border-4 ${theme.cardBg} flex items-center justify-center text-xl font-bold ${theme.primaryText}`}>{emp.init}</div>
+          <div className="pb-1 flex-1"><h2 className={`text-lg font-bold ${theme.highlight}`}>{emp.name}</h2><p className={`text-sm ${theme.iconColor}`}>{emp.designation} &bull; {emp.dept}</p></div>
+          <span className="px-2 py-1 bg-emerald-500/20 text-emerald-400 text-xs rounded-full font-bold">{emp.status}</span>
+        </div>
+      </div>
+      <div className="grid grid-cols-3 gap-4">
+        <div className={`col-span-2 ${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
+          <h3 className={`font-semibold mb-2 ${theme.highlight}`}>About</h3>
+          <p className={`text-sm ${theme.iconColor}`}>Dedicated educator with expertise in teaching and curriculum development.</p>
+          <h3 className={`font-semibold mt-4 mb-2 ${theme.highlight}`}>Skills</h3>
+          <div className="flex flex-wrap gap-2">{['Mathematics', 'Vedic Maths', 'CBSE Curriculum', 'Student Mentoring'].map((s) => <span key={s} className={`px-2 py-1 ${theme.secondaryBg} ${theme.primaryText} text-xs rounded-full font-medium`}>{s}</span>)}</div>
+        </div>
+        <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
+          <h3 className={`font-semibold mb-3 ${theme.highlight}`}>Quick Info</h3>
+          <div className="space-y-2 text-sm">
+            <div className={`flex items-center gap-2 ${theme.iconColor}`}><Phone size={14} />{emp.phone}</div>
+            <div className={`flex items-center gap-2 ${theme.iconColor}`}><Mail size={14} />{emp.email}</div>
+            <div className={`flex items-center gap-2 ${theme.iconColor}`}><Calendar size={14} />{emp.joinDate}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-const mockAttendanceGrid = [
-  { name: 'Dr. Rajesh Kumar', dept: 'Teaching', status: 'present' },
-  { name: 'Ms. Priya Sharma', dept: 'Teaching', status: 'present' },
-  { name: 'Mr. Amit Verma', dept: 'Admin', status: 'present' },
-  { name: 'Mrs. Sunita Patel', dept: 'Teaching', status: 'late' },
-  { name: 'Mr. Ramesh Gupta', dept: 'Transport', status: 'present' },
-  { name: 'Ms. Kavita Singh', dept: 'Teaching', status: 'absent' },
-  { name: 'Mr. Suresh Nair', dept: 'IT & Lab', status: 'half-day' },
-  { name: 'Mr. Deepak Joshi', dept: 'Security', status: 'present' },
-  { name: 'Ms. Asha Rani', dept: 'Teaching', status: 'present' },
-  { name: 'Mr. Vijay Patil', dept: 'Teaching', status: 'present' },
-  { name: 'Ms. Rekha Devi', dept: 'Admin', status: 'present' },
-  { name: 'Mr. Mohan Das', dept: 'Transport', status: 'absent' },
-  { name: 'Ms. Sneha Roy', dept: 'Teaching', status: 'present' },
-  { name: 'Mr. Anil Kapoor', dept: 'Teaching', status: 'late' },
-  { name: 'Ms. Pooja Mehta', dept: 'Teaching', status: 'present' },
-  { name: 'Mr. Kiran Yadav', dept: 'Security', status: 'half-day' },
-  { name: 'Ms. Lata Iyer', dept: 'Teaching', status: 'present' },
-  { name: 'Mr. Prakash Jain', dept: 'Admin', status: 'present' },
-  { name: 'Ms. Geeta Bose', dept: 'Teaching', status: 'present' },
-  { name: 'Mr. Rajan Pillai', dept: 'IT & Lab', status: 'present' },
-  { name: 'Ms. Nisha Agarwal', dept: 'Teaching', status: 'absent' },
-  { name: 'Mr. Saurav Sinha', dept: 'Transport', status: 'present' },
-  { name: 'Ms. Divya Nair', dept: 'Teaching', status: 'present' },
-  { name: 'Mr. Harsh Pandey', dept: 'Teaching', status: 'late' },
-];
+// ─── ADD EMPLOYEE (4-step wizard) ─────────────────────
+function AddEmployee({ theme, setActive }: { theme: Theme; setActive: (s: string) => void }) {
+  const [step, setStep] = useState(1);
+  const steps = ['Personal', 'Professional', 'Salary', 'Documents'];
+  return (
+    <div className="space-y-4">
+      <button onClick={() => setActive('employees')} className={`flex items-center gap-1 text-sm ${theme.iconColor}`}><ChevronLeft size={14} />Back</button>
+      <h1 className={`text-xl font-bold ${theme.highlight}`}>Add New Employee</h1>
+      <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-6`}>
+        <div className="flex items-center justify-center mb-6">
+          {steps.map((s, i) => (
+            <React.Fragment key={i}>
+              <div className="flex items-center">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${i + 1 < step ? 'bg-emerald-500 text-white' : i + 1 === step ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.iconColor}`}`}>{i + 1 < step ? <Check size={14} /> : i + 1}</div>
+                <span className={`ml-2 text-sm ${i + 1 === step ? `${theme.primaryText} font-medium` : theme.iconColor}`}>{s}</span>
+              </div>
+              {i < 3 && <div className={`w-12 h-1 mx-2 rounded ${i + 1 < step ? 'bg-emerald-500' : theme.secondaryBg}`} />}
+            </React.Fragment>
+          ))}
+        </div>
+        {step === 1 && <div className="grid grid-cols-2 gap-4"><div className="col-span-2 flex justify-center"><div className={`w-16 h-16 ${theme.secondaryBg} rounded-full flex items-center justify-center border-2 border-dashed ${theme.border}`}><Camera size={18} className={theme.iconColor} /></div></div>{['First Name *', 'Last Name *', 'Email *', 'Phone *', 'Date of Birth', 'Gender'].map(f => <div key={f}><label className={`block text-sm mb-1 ${theme.iconColor}`}>{f}</label><input className={`w-full px-3 py-2 border ${theme.border} rounded-lg text-sm ${theme.inputBg} ${theme.highlight} outline-none`} placeholder={f.replace(' *', '')} /></div>)}</div>}
+        {step === 2 && <div className="grid grid-cols-2 gap-4">{[['Employee ID *', 'EMP143'], ['Department *', ''], ['Designation *', ''], ['Joining Date', ''], ['Reporting To', ''], ['Probation Period', '']].map(([f, v]) => <div key={f}><label className={`block text-sm mb-1 ${theme.iconColor}`}>{f}</label><input defaultValue={v} className={`w-full px-3 py-2 border ${theme.border} rounded-lg text-sm ${theme.inputBg} ${theme.highlight} outline-none`} /></div>)}</div>}
+        {step === 3 && <div className="grid grid-cols-2 gap-4">{['Basic Salary *', 'Bank Name *', 'Account Number *', 'IFSC Code *', 'PAN *', 'UAN (PF)'].map(f => <div key={f}><label className={`block text-sm mb-1 ${theme.iconColor}`}>{f}</label><input className={`w-full px-3 py-2 border ${theme.border} rounded-lg text-sm ${theme.inputBg} ${theme.highlight} outline-none`} /></div>)}</div>}
+        {step === 4 && <div className="grid grid-cols-3 gap-4">{['Photo', 'Aadhaar Card', 'PAN Card', '10th Marksheet', '12th Marksheet', 'Graduation'].map(d => <div key={d} className={`border-2 border-dashed ${theme.border} rounded-xl p-4 text-center ${theme.buttonHover} cursor-pointer`}><Upload size={18} className={`mx-auto ${theme.iconColor}`} /><p className={`text-xs ${theme.iconColor} mt-1`}>{d}</p></div>)}</div>}
+        <div className={`flex justify-between mt-6 pt-4 border-t ${theme.border}`}>
+          <button className={`text-sm ${theme.iconColor}`}>Cancel</button>
+          <div className="flex gap-2">
+            {step > 1 && <button onClick={() => setStep(step - 1)} className={`px-4 py-2 border ${theme.border} rounded-lg text-sm ${theme.highlight}`}>Previous</button>}
+            {step < 4 ? <button onClick={() => setStep(step + 1)} className={`px-4 py-2 ${theme.primary} text-white rounded-lg text-sm`}>Next</button> : <button onClick={() => setActive('employees')} className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm">Submit</button>}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-// ─── MAIN COMPONENT ────────────────────────────────
+// ─── ONBOARDING (Kanban) ──────────────────────────────
+function OnboardingModule({ theme }: { theme: Theme }) {
+  const cols = [
+    { t: 'Applied', c: 'bg-slate-500', cards: [{ n: 'Meena Devi', r: 'PRT Hindi' }, { n: 'Arjun Rao', r: 'TGT Social Studies' }] },
+    { t: 'Interview', c: 'bg-blue-500', cards: [{ n: 'Neha Saxena', r: 'PGT Chemistry' }] },
+    { t: 'Selected', c: 'bg-emerald-500', cards: [{ n: 'Pooja Mehta', r: 'Office Assistant' }] },
+    { t: 'Documentation', c: 'bg-amber-500', cards: [{ n: 'Ravi Tiwari', r: 'Lab Assistant' }] },
+    { t: 'Onboarded', c: 'bg-emerald-600', cards: [{ n: 'Sanjay Mishra', r: 'TGT English' }] },
+  ];
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center"><h1 className={`text-xl font-bold ${theme.highlight}`}>Staff Onboarding</h1><button className={`px-3 py-2 ${theme.primary} text-white rounded-lg text-sm`}>Add Candidate</button></div>
+      <div className="flex gap-3 overflow-x-auto pb-4">{cols.map((col, i) => (
+        <div key={i} className="flex-shrink-0 w-52">
+          <div className={`${col.c} text-white px-3 py-2 rounded-t-xl text-sm font-bold`}>{col.t} <span className="opacity-70">({col.cards.length})</span></div>
+          <div className={`${theme.secondaryBg} rounded-b-xl p-2 min-h-[160px] space-y-2`}>{col.cards.map((c, j) => (
+            <div key={j} className={`${theme.cardBg} rounded-xl p-3 border ${theme.border}`}><p className={`text-sm font-medium ${theme.highlight}`}>{c.n}</p><p className={`text-xs ${theme.iconColor}`}>{c.r}</p></div>
+          ))}</div>
+        </div>
+      ))}</div>
+    </div>
+  );
+}
+
+// ─── ATTENDANCE ───────────────────────────────────────
+function AttendanceModule({ theme }: { theme: Theme }) {
+  const data = [{ n: 'Priya Sharma', i: 'PS', d: 'Teaching', in_: '7:45 AM', out: '2:10 PM', s: 'Present' }, { n: 'Rajesh Kumar', i: 'RK', d: 'Teaching', in_: '7:52 AM', out: '2:05 PM', s: 'Present' }, { n: 'Sunita Patel', i: 'SP', d: 'Admin', in_: '9:15 AM', out: '-', s: 'Late' }, { n: 'Kavitha Nair', i: 'KN', d: 'Teaching', in_: '-', out: '-', s: 'Absent' }, { n: 'Deepak Verma', i: 'DV', d: 'Security', in_: '-', out: '-', s: 'On Leave' }, { n: 'Mohammed Irfan', i: 'MI', d: 'Transport', in_: '6:30 AM', out: '1:45 PM', s: 'Present' }];
+  const sc: Record<string, string> = { Present: 'bg-emerald-500/20 text-emerald-400', Late: 'bg-amber-500/20 text-amber-400', Absent: 'bg-red-500/20 text-red-400', 'On Leave': 'bg-blue-500/20 text-blue-400' };
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center"><h1 className={`text-xl font-bold ${theme.highlight}`}>Attendance</h1><button className={`px-3 py-2 ${theme.primary} text-white rounded-lg text-sm`}>Mark Attendance</button></div>
+      <div className="grid grid-cols-4 gap-3"><SC icon={Users} label="Total" value="142" color="bg-indigo-600" theme={theme} /><SC icon={CheckCircle} label="Present" value="128" color="bg-emerald-500" theme={theme} /><SC icon={Calendar} label="Leave" value="8" color="bg-amber-500" theme={theme} /><SC icon={XCircle} label="Absent" value="6" color="bg-red-500" theme={theme} /></div>
+      <div className={`${theme.cardBg} rounded-xl border ${theme.border} overflow-hidden`}>
+        <table className="w-full text-sm"><thead><tr className={theme.secondaryBg}><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Employee</th><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Dept</th><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Check In</th><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Check Out</th><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Status</th></tr></thead>
+        <tbody>{data.map((e, i) => <tr key={i} className={`border-t ${theme.border}`}><td className="p-3"><div className="flex items-center gap-2"><div className={`w-7 h-7 ${theme.secondaryBg} rounded-full flex items-center justify-center text-xs font-bold ${theme.primaryText}`}>{e.i}</div><span className={theme.highlight}>{e.n}</span></div></td><td className={`p-3 ${theme.iconColor}`}>{e.d}</td><td className={`p-3 ${theme.highlight}`}>{e.in_}</td><td className={`p-3 ${theme.highlight}`}>{e.out}</td><td className="p-3"><span className={`px-2 py-1 text-xs rounded-full font-bold ${sc[e.s]}`}>{e.s}</span></td></tr>)}</tbody></table>
+      </div>
+    </div>
+  );
+}
+
+// ─── LEAVE MANAGEMENT ─────────────────────────────────
+function LeaveModule({ theme }: { theme: Theme }) {
+  const [showModal, setShowModal] = useState(false);
+  const [filter, setFilter] = useState(0);
+  const data = [{ n: 'Priya Sharma', t: 'Casual', f: '03-Feb', to: '03-Feb', d: 1, s: 'Pending' }, { n: 'Kavitha Nair', t: 'Sick', f: '31-Jan', to: '31-Jan', d: 1, s: 'Pending' }, { n: 'Anjali Gupta', t: 'Casual', f: '10-Feb', to: '10-Feb', d: 1, s: 'Approved' }, { n: 'Deepak Verma', t: 'LWP', f: '20-Feb', to: '22-Feb', d: 3, s: 'Rejected' }, { n: 'Amit Saxena', t: 'Earned', f: '25-Feb', to: '28-Feb', d: 4, s: 'Pending' }];
+  const sc: Record<string, string> = { Pending: 'bg-amber-500/20 text-amber-400', Approved: 'bg-emerald-500/20 text-emerald-400', Rejected: 'bg-red-500/20 text-red-400' };
+  const filters = ['All (25)', 'Pending (8)', 'Approved (14)', 'Rejected (3)'];
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center"><h1 className={`text-xl font-bold ${theme.highlight}`}>Leave Management</h1><button onClick={() => setShowModal(true)} className={`px-3 py-2 ${theme.primary} text-white rounded-lg text-sm`}>Apply Leave</button></div>
+      <div className={`${theme.cardBg} rounded-xl border ${theme.border} overflow-hidden`}>
+        <div className={`p-3 border-b ${theme.border} flex gap-2`}>{filters.map((f, i) => <button key={f} onClick={() => setFilter(i)} className={`px-3 py-1 text-xs rounded-full font-bold ${i === filter ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.iconColor}`}`}>{f}</button>)}</div>
+        <table className="w-full text-sm"><thead><tr className={theme.secondaryBg}><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Employee</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Type</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>From</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>To</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Days</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Status</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Actions</th></tr></thead>
+        <tbody>{data.map((r, i) => <tr key={i} className={`border-t ${theme.border}`}><td className={`p-3 font-medium ${theme.highlight}`}>{r.n}</td><td className={`p-3 text-center ${theme.iconColor}`}>{r.t}</td><td className={`p-3 text-center ${theme.highlight}`}>{r.f}</td><td className={`p-3 text-center ${theme.highlight}`}>{r.to}</td><td className={`p-3 text-center ${theme.highlight}`}>{r.d}</td><td className="p-3 text-center"><span className={`px-2 py-1 text-xs rounded-full font-bold ${sc[r.s]}`}>{r.s}</span></td><td className="p-3 text-center">{r.s === 'Pending' && <><button className="p-1 bg-emerald-500/20 text-emerald-400 rounded mr-1"><Check size={12} /></button><button className="p-1 bg-red-500/20 text-red-400 rounded"><X size={12} /></button></>}</td></tr>)}</tbody></table>
+      </div>
+      {showModal && <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className={`${theme.cardBg} rounded-2xl p-6 w-96 border ${theme.border}`}><div className="flex justify-between mb-4"><h3 className={`font-semibold ${theme.highlight}`}>Apply Leave</h3><button onClick={() => setShowModal(false)} className={theme.iconColor}><X size={18} /></button></div><div className="space-y-3"><div><label className={`block text-sm mb-1 ${theme.iconColor}`}>Leave Type *</label><select className={`w-full px-3 py-2 border ${theme.border} rounded-lg text-sm ${theme.inputBg} ${theme.highlight}`}><option>Casual</option><option>Sick</option><option>Earned</option><option>LWP</option></select></div><div className="grid grid-cols-2 gap-2"><div><label className={`block text-sm mb-1 ${theme.iconColor}`}>From *</label><input type="date" className={`w-full px-3 py-2 border ${theme.border} rounded-lg text-sm ${theme.inputBg} ${theme.highlight}`} /></div><div><label className={`block text-sm mb-1 ${theme.iconColor}`}>To *</label><input type="date" className={`w-full px-3 py-2 border ${theme.border} rounded-lg text-sm ${theme.inputBg} ${theme.highlight}`} /></div></div><div><label className={`block text-sm mb-1 ${theme.iconColor}`}>Reason *</label><textarea rows={2} className={`w-full px-3 py-2 border ${theme.border} rounded-lg text-sm ${theme.inputBg} ${theme.highlight}`} /></div></div><div className="flex justify-end gap-2 mt-4"><button onClick={() => setShowModal(false)} className={`px-4 py-2 border ${theme.border} rounded-lg text-sm ${theme.highlight}`}>Cancel</button><button className={`px-4 py-2 ${theme.primary} text-white rounded-lg text-sm`}>Submit</button></div></div></div>}
+    </div>
+  );
+}
+
+// ─── PAYROLL ──────────────────────────────────────────
+function PayrollModule({ theme }: { theme: Theme }) {
+  const data = [{ id: 'EMP001', n: 'Priya Sharma', i: 'PS', b: 35000, g: 57500, de: 6900, net: 50600, s: 'Processed' }, { id: 'EMP002', n: 'Rajesh Kumar', i: 'RK', b: 28000, g: 46000, de: 4760, net: 41240, s: 'Processed' }, { id: 'EMP003', n: 'Sunita Patel', i: 'SP', b: 18000, g: 29000, de: 2360, net: 26640, s: 'Pending' }, { id: 'EMP004', n: 'Mohammed Irfan', i: 'MI', b: 22000, g: 36000, de: 3200, net: 32800, s: 'Processed' }, { id: 'EMP005', n: 'Kavitha Nair', i: 'KN', b: 25000, g: 41000, de: 4100, net: 36900, s: 'Pending' }];
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center"><h1 className={`text-xl font-bold ${theme.highlight}`}>Payroll</h1><div className="flex gap-2"><div className={`flex items-center gap-1 border ${theme.border} rounded-lg px-2 py-1 ${theme.highlight}`}><ChevronLeft size={14} /><span className="text-sm">Jan 2026</span><ChevronRight size={14} /></div><button className={`px-3 py-2 ${theme.primary} text-white rounded-lg text-sm`}>Process Payroll</button></div></div>
+      <div className="grid grid-cols-4 gap-3"><SC icon={Banknote} label="Total Payroll" value={'₹'+fmt(2845000)} color="bg-indigo-600" theme={theme} /><SC icon={MinusCircle} label="Deductions" value={'₹'+fmt(412000)} color="bg-red-500" theme={theme} /><SC icon={Wallet} label="Net Payout" value={'₹'+fmt(2433000)} color="bg-emerald-500" theme={theme} /><SC icon={Users} label="Employees" value="142" color="bg-blue-500" theme={theme} /></div>
+      <div className={`${theme.cardBg} rounded-xl border ${theme.border} overflow-x-auto`}>
+        <table className="w-full text-sm"><thead><tr className={theme.secondaryBg}><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Employee</th><th className={`p-3 text-right text-xs font-bold ${theme.iconColor}`}>Basic</th><th className={`p-3 text-right text-xs font-bold ${theme.iconColor}`}>Gross</th><th className={`p-3 text-right text-xs font-bold ${theme.iconColor}`}>Deductions</th><th className={`p-3 text-right text-xs font-bold ${theme.iconColor}`}>Net</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Status</th></tr></thead>
+        <tbody>{data.map((e) => <tr key={e.id} className={`border-t ${theme.border}`}><td className="p-3"><div className="flex items-center gap-2"><div className={`w-7 h-7 ${theme.secondaryBg} rounded-full flex items-center justify-center text-xs font-bold ${theme.primaryText}`}>{e.i}</div><div><p className={`font-medium ${theme.highlight}`}>{e.n}</p><p className={`text-xs ${theme.iconColor}`}>{e.id}</p></div></div></td><td className={`p-3 text-right ${theme.highlight}`}>₹{fmt(e.b)}</td><td className={`p-3 text-right ${theme.primaryText} font-medium`}>₹{fmt(e.g)}</td><td className="p-3 text-right text-red-400">₹{fmt(e.de)}</td><td className="p-3 text-right text-emerald-400 font-bold">₹{fmt(e.net)}</td><td className="p-3 text-center"><span className={`px-2 py-1 text-xs rounded-full font-bold ${e.s === 'Processed' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>{e.s}</span></td></tr>)}</tbody></table>
+      </div>
+    </div>
+  );
+}
+
+// ─── PERFORMANCE ──────────────────────────────────────
+function PerformanceModule({ theme }: { theme: Theme }) {
+  return (
+    <div className="space-y-4">
+      <h1 className={`text-xl font-bold ${theme.highlight}`}>Performance &amp; Appraisal</h1>
+      <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
+        <div className="flex justify-between mb-3"><div><h3 className={`font-semibold ${theme.highlight}`}>Annual Appraisal 2025-26</h3><p className={`text-sm ${theme.iconColor}`}>Apr 2025 - Mar 2026</p></div><span className="px-2 py-1 bg-emerald-500/20 text-emerald-400 text-xs rounded-full font-bold h-fit">In Progress</span></div>
+        <div className="mb-3"><div className="flex justify-between text-sm mb-1"><span className={theme.iconColor}>Progress</span><span className={theme.highlight}>65%</span></div><div className={`h-2 ${theme.secondaryBg} rounded-full`}><div className={`h-2 ${theme.primary} rounded-full`} style={{ width: '65%' }} /></div></div>
+        <div className="flex items-center gap-1 flex-wrap">{['Self Review', 'Peer Review', 'HOD Review', 'Principal', 'Final'].map((s, i) => <React.Fragment key={i}><span className={`px-2 py-1 rounded-full text-xs font-bold ${i < 1 ? 'bg-emerald-500/20 text-emerald-400' : i === 1 ? 'bg-blue-500/20 text-blue-400' : `${theme.secondaryBg} ${theme.iconColor}`}`}>{s}</span>{i < 4 && <ChevronRight size={12} className={theme.iconColor} />}</React.Fragment>)}</div>
+      </div>
+      <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
+        <h4 className={`font-medium mb-3 ${theme.highlight}`}>Department Completion</h4>
+        {[{ n: 'Teaching', s: 45, t: 68 }, { n: 'Admin', s: 18, t: 22 }, { n: 'Transport', s: 10, t: 18 }, { n: 'Security', s: 6, t: 12 }].map((d) => <div key={d.n} className="flex items-center gap-3 mb-2"><span className={`text-sm w-20 ${theme.iconColor}`}>{d.n}</span><div className={`flex-1 h-2 ${theme.secondaryBg} rounded-full`}><div className={`h-2 ${theme.primary} rounded-full`} style={{ width: (d.s / d.t) * 100 + '%' }} /></div><span className={`text-sm w-20 ${theme.highlight}`}>{d.s}/{d.t}</span></div>)}
+      </div>
+    </div>
+  );
+}
+
+// ─── HR LETTERS ───────────────────────────────────────
+function LettersModule({ theme }: { theme: Theme }) {
+  const [showModal, setShowModal] = useState(false);
+  const templates = ['Appointment Letter', 'Experience Letter', 'Salary Certificate', 'Relieving Letter', 'Warning Letter', 'NOC'];
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center"><h1 className={`text-xl font-bold ${theme.highlight}`}>HR Letters</h1><button onClick={() => setShowModal(true)} className={`px-3 py-2 ${theme.primary} text-white rounded-lg text-sm`}>Generate Letter</button></div>
+      <div className="grid grid-cols-3 gap-4">{templates.map((t) => <div key={t} className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}><div className="flex items-center gap-3 mb-3"><div className={`w-10 h-10 ${theme.secondaryBg} rounded-lg flex items-center justify-center`}><FileText size={18} className={theme.primaryText} /></div><h4 className={`font-medium ${theme.highlight}`}>{t}</h4></div><button onClick={() => setShowModal(true)} className={`w-full py-1.5 ${theme.primary} text-white rounded-lg text-xs font-bold`}>Generate</button></div>)}</div>
+      {showModal && <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className={`${theme.cardBg} rounded-2xl p-6 w-96 border ${theme.border}`}><div className="flex justify-between mb-4"><h3 className={`font-semibold ${theme.highlight}`}>Generate Letter</h3><button onClick={() => setShowModal(false)} className={theme.iconColor}><X size={18} /></button></div><div className="space-y-3"><div><label className={`block text-sm mb-1 ${theme.iconColor}`}>Template *</label><select className={`w-full px-3 py-2 border ${theme.border} rounded-lg text-sm ${theme.inputBg} ${theme.highlight}`}>{templates.map((t) => <option key={t}>{t}</option>)}</select></div><div><label className={`block text-sm mb-1 ${theme.iconColor}`}>Employee *</label><select className={`w-full px-3 py-2 border ${theme.border} rounded-lg text-sm ${theme.inputBg} ${theme.highlight}`}>{employees.map((e) => <option key={e.id}>{e.name}</option>)}</select></div></div><div className="flex justify-end gap-2 mt-4"><button onClick={() => setShowModal(false)} className={`px-4 py-2 border ${theme.border} rounded-lg text-sm ${theme.highlight}`}>Cancel</button><button className={`px-4 py-2 ${theme.primary} text-white rounded-lg text-sm`}>Generate</button></div></div></div>}
+    </div>
+  );
+}
+
+// ─── OFFBOARDING ──────────────────────────────────────
+function OffboardingModule({ theme }: { theme: Theme }) {
+  const exits = [{ id: 'EMP101', n: 'Amit Shah', i: 'AS', d: 'Teaching', r: '15-Jan-2026', l: '15-Feb-2026', c: 3, t: 8 }, { id: 'EMP102', n: 'Rekha Bose', i: 'RB', d: 'Admin', r: '20-Jan-2026', l: '19-Feb-2026', c: 5, t: 8 }];
+  return (
+    <div className="space-y-4">
+      <h1 className={`text-xl font-bold ${theme.highlight}`}>Offboarding</h1>
+      <div className="grid grid-cols-3 gap-4">
+        <div className={`${theme.cardBg} border border-amber-500/30 rounded-xl p-4 flex items-center gap-3`}><Clock size={20} className="text-amber-400" /><div><p className={`text-xl font-bold ${theme.highlight}`}>2</p><p className={`text-sm ${theme.iconColor}`}>Pending Exits</p></div></div>
+        <div className={`${theme.cardBg} border border-blue-500/30 rounded-xl p-4 flex items-center gap-3`}><Calendar size={20} className="text-blue-400" /><div><p className={`text-xl font-bold ${theme.highlight}`}>3</p><p className={`text-sm ${theme.iconColor}`}>Notice Period</p></div></div>
+        <div className={`${theme.cardBg} border border-red-500/30 rounded-xl p-4 flex items-center gap-3`}><XCircle size={20} className="text-red-400" /><div><p className={`text-xl font-bold ${theme.highlight}`}>1</p><p className={`text-sm ${theme.iconColor}`}>Pending Clearance</p></div></div>
+      </div>
+      <div className={`${theme.cardBg} rounded-xl border ${theme.border} overflow-hidden`}>
+        <table className="w-full text-sm"><thead><tr className={theme.secondaryBg}><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Employee</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Resignation</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Last Day</th><th className={`p-3 text-xs font-bold ${theme.iconColor}`}>Clearance</th></tr></thead>
+        <tbody>{exits.map((e) => <tr key={e.id} className={`border-t ${theme.border}`}><td className="p-3"><div className="flex items-center gap-2"><div className={`w-7 h-7 ${theme.secondaryBg} rounded-full flex items-center justify-center text-xs font-bold ${theme.primaryText}`}>{e.i}</div><div><p className={`font-medium ${theme.highlight}`}>{e.n}</p><p className={`text-xs ${theme.iconColor}`}>{e.d}</p></div></div></td><td className={`p-3 text-center ${theme.highlight}`}>{e.r}</td><td className={`p-3 text-center ${theme.highlight}`}>{e.l}</td><td className="p-3"><div className="flex items-center gap-2"><div className={`flex-1 h-2 ${theme.secondaryBg} rounded-full`}><div className="h-2 bg-amber-500 rounded-full" style={{ width: (e.c / e.t) * 100 + '%' }} /></div><span className={`text-xs ${theme.highlight}`}>{e.c}/{e.t}</span></div></td></tr>)}</tbody></table>
+      </div>
+    </div>
+  );
+}
+
+// ─── REPORTS ──────────────────────────────────────────
+function ReportsModule({ theme }: { theme: Theme }) {
+  const depts = [{ n: 'Teaching', v: 68, c: '#6366F1' }, { n: 'Admin', v: 22, c: '#3B82F6' }, { n: 'Transport', v: 18, c: '#F59E0B' }, { n: 'Security', v: 12, c: '#EF4444' }, { n: 'Support', v: 15, c: '#6B7280' }];
+  return (
+    <div className="space-y-4">
+      <h1 className={`text-xl font-bold ${theme.highlight}`}>Reports &amp; Analytics</h1>
+      <div className="grid grid-cols-2 gap-4">
+        <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}><h4 className={`font-medium mb-3 ${theme.highlight}`}>Department Distribution</h4>{depts.map((d) => <div key={d.n} className="flex items-center gap-2 mb-2"><div className="w-3 h-3 rounded" style={{ backgroundColor: d.c }} /><span className={`text-sm flex-1 ${theme.highlight}`}>{d.n}</span><div className={`w-24 h-2 ${theme.secondaryBg} rounded-full`}><div className="h-2 rounded-full" style={{ width: (d.v / 68) * 100 + '%', backgroundColor: d.c }} /></div><span className={`text-sm w-6 ${theme.highlight}`}>{d.v}</span></div>)}</div>
+        <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}><h4 className={`font-medium mb-3 ${theme.highlight}`}>Gender Diversity</h4><div className="flex items-center justify-center gap-6 py-4"><div className="text-center"><p className="text-2xl font-bold text-indigo-400">58%</p><p className={`text-sm ${theme.iconColor}`}>Male</p></div><div className="w-20 h-20 rounded-full border-8 border-indigo-500" style={{ borderRightColor: '#10B981', borderBottomColor: '#10B981' }} /><div className="text-center"><p className="text-2xl font-bold text-emerald-400">42%</p><p className={`text-sm ${theme.iconColor}`}>Female</p></div></div></div>
+      </div>
+      <div className="grid grid-cols-4 gap-4">{['Muster Roll', 'Staff Directory', 'Salary Statement', 'Leave Report'].map((r) => <div key={r} className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}><h5 className={`font-medium mb-2 ${theme.highlight}`}>{r}</h5><p className={`text-xs ${theme.iconColor} mb-3`}>Generate detailed {r.toLowerCase()}</p><button className={`w-full py-2 ${theme.primary} text-white rounded-lg text-sm font-bold`}>Generate</button></div>)}</div>
+    </div>
+  );
+}
+
+// ─── SETTINGS (7 sub-sections) ────────────────────────
+function SettingsModule({ theme }: { theme: Theme }) {
+  const [section, setSection] = useState('general');
+  const [selectedDept, setSelectedDept] = useState('Teaching');
+  const navItems = [{ id: 'general', icon: Settings, label: 'General' }, { id: 'employee', icon: Users, label: 'Employee Info' }, { id: 'attendance', icon: Clock, label: 'Attendance' }, { id: 'leave', icon: Calendar, label: 'Leave Tracker' }, { id: 'workflows', icon: GitBranch, label: 'Workflows' }, { id: 'approvals', icon: Shield, label: 'Approvals' }, { id: 'notifications', icon: Bell, label: 'Notifications' }];
+  const departments = [{ n: 'Teaching', c: 68 }, { n: 'Administration', c: 22 }, { n: 'Transport', c: 18 }, { n: 'Security', c: 12 }, { n: 'Support Staff', c: 15 }, { n: 'Lab & Library', c: 7 }];
+  const designations: Record<string, string[]> = { Teaching: ['Principal', 'Vice Principal', 'HOD', 'PGT', 'TGT', 'PRT'], Administration: ['Admin Head', 'Accountant', 'Office Assistant'], Transport: ['Driver', 'Helper'], Security: ['Security Guard'], 'Support Staff': ['Peon', 'Sweeper'], 'Lab & Library': ['Lab Assistant', 'Librarian'] };
+  const leaves = [{ t: 'Casual Leave', p: 'Paid', d: '12', cf: 'No', e: 'No', a: 'All' }, { t: 'Earned Leave', p: 'Paid', d: '12', cf: 'Yes', e: 'Yes', a: 'Confirmed' }, { t: 'Sick Leave', p: 'Paid', d: '12', cf: 'No', e: 'No', a: 'All' }, { t: 'Maternity', p: 'Paid', d: '180', cf: 'No', e: 'No', a: 'Female' }, { t: 'Paternity', p: 'Paid', d: '15', cf: 'No', e: 'No', a: 'Male' }, { t: 'LWP', p: 'Unpaid', d: '∞', cf: 'No', e: 'No', a: 'All' }];
+  const holidays = [{ d: '26-Jan-2026', n: 'Republic Day' }, { d: '14-Mar-2026', n: 'Holi' }, { d: '14-Apr-2026', n: 'Ambedkar Jayanti' }, { d: '15-Aug-2026', n: 'Independence Day' }, { d: '02-Oct-2026', n: 'Gandhi Jayanti' }, { d: '20-Oct-2026', n: 'Dussehra' }, { d: '08-Nov-2026', n: 'Diwali' }, { d: '25-Dec-2026', n: 'Christmas' }];
+  const shifts = [{ n: 'Morning', s: '7:00 AM', e: '2:00 PM', a: 'Teaching' }, { n: 'Regular', s: '9:00 AM', e: '6:00 PM', a: 'Admin' }, { n: 'Night', s: '10:00 PM', e: '6:00 AM', a: 'Security' }];
+  const workflows = [{ n: 'New Employee', f: 'Employee', t: 'On Create', a: 'Mail HR' }, { n: 'Leave Applied', f: 'Leave', t: 'On Create', a: 'Mail Manager' }, { n: 'Leave Approved', f: 'Leave', t: 'On Approval', a: 'Mail Employee' }, { n: 'Absent Marked', f: 'Attendance', t: 'Auto', a: 'Mail Employee' }];
+  const approvals = [{ n: 'Leave', l: 2, f: ['Employee', 'Manager', 'HOD', 'Auto'] }, { n: 'Regularization', l: 1, f: ['Employee', 'Manager'] }, { n: 'Letter Request', l: 2, f: ['Employee', 'HR', 'Principal'] }, { n: 'Resignation', l: 3, f: ['Employee', 'HOD', 'HR', 'Principal'] }];
+  const notifs = [{ n: 'New employee onboarded', to: 'HR, Admin' }, { n: 'Leave request', to: 'Manager' }, { n: 'Leave approved/rejected', to: 'Employee' }, { n: 'Absent marked', to: 'Employee, Manager' }, { n: 'Salary processed', to: 'Employee' }, { n: 'Birthday reminder', to: 'All Staff' }, { n: 'Work anniversary', to: 'HR, All' }, { n: 'Probation ending', to: 'HR, Manager' }];
+
+  return (
+    <div className="space-y-4">
+      <h1 className={`text-xl font-bold ${theme.highlight}`}>Settings</h1>
+      <div className="flex gap-4">
+        <div className={`w-44 ${theme.cardBg} rounded-xl border ${theme.border} p-2 shrink-0`}>{navItems.map((item) => <button key={item.id} onClick={() => setSection(item.id)} className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm mb-1 ${section === item.id ? `${theme.primary} text-white` : `${theme.iconColor} ${theme.buttonHover}`}`}><item.icon size={16} />{item.label}</button>)}</div>
+        <div className="flex-1 space-y-4">
+          {section === 'general' && <>
+            <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}><h3 className={`font-semibold mb-3 ${theme.highlight}`}>School Information</h3><div className="grid grid-cols-2 gap-4"><div><label className={`block text-sm ${theme.iconColor} mb-1`}>School Name</label><input defaultValue="Delhi Public School, Ahmedabad" className={`w-full px-3 py-2 border ${theme.border} rounded-lg text-sm ${theme.inputBg} ${theme.highlight}`} /></div><div><label className={`block text-sm ${theme.iconColor} mb-1`}>Academic Year</label><select className={`w-full px-3 py-2 border ${theme.border} rounded-lg text-sm ${theme.inputBg} ${theme.highlight}`}><option>2025-26</option></select></div></div></div>
+            <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}><h3 className={`font-semibold mb-3 ${theme.highlight}`}>Employee ID Configuration</h3><div className="flex items-center justify-between mb-3"><span className={`text-sm ${theme.highlight}`}>Auto-generate Employee ID</span><Tgl on={true} theme={theme} /></div><div className="grid grid-cols-3 gap-4"><div><label className={`block text-sm ${theme.iconColor} mb-1`}>Prefix</label><input defaultValue="EMP" className={`w-full px-3 py-2 border ${theme.border} rounded-lg text-sm ${theme.inputBg} ${theme.highlight}`} /></div><div><label className={`block text-sm ${theme.iconColor} mb-1`}>Format</label><select className={`w-full px-3 py-2 border ${theme.border} rounded-lg text-sm ${theme.inputBg} ${theme.highlight}`}><option>Sequential</option></select></div><div><label className={`block text-sm ${theme.iconColor} mb-1`}>Starting #</label><input defaultValue="001" className={`w-full px-3 py-2 border ${theme.border} rounded-lg text-sm ${theme.inputBg} ${theme.highlight}`} /></div></div></div>
+            <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}><h3 className={`font-semibold mb-3 ${theme.highlight}`}>Employee Statuses</h3><table className="w-full text-sm"><thead><tr className={theme.secondaryBg}><th className={`p-2 text-left text-xs ${theme.iconColor}`}>Status</th><th className={`p-2 text-center text-xs ${theme.iconColor}`}>Type</th><th className={`p-2 text-center text-xs ${theme.iconColor}`}>Actions</th></tr></thead><tbody>{[{ n: 'Active', t: 'Active' }, { n: 'Probation', t: 'Active' }, { n: 'Notice Period', t: 'Active' }, { n: 'Terminated', t: 'Inactive' }, { n: 'Resigned', t: 'Inactive' }].map((s, i) => <tr key={i} className={`border-t ${theme.border}`}><td className={`p-2 ${theme.highlight}`}>{s.n}</td><td className="p-2 text-center"><span className={`px-2 py-0.5 text-xs rounded-full font-bold ${s.t === 'Active' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>{s.t}</span></td><td className="p-2 text-center"><Edit size={14} className={`inline ${theme.iconColor} mr-1`} /><Trash2 size={14} className={`inline ${theme.iconColor}`} /></td></tr>)}</tbody></table></div>
+          </>}
+          {section === 'employee' && <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}><h3 className={`font-semibold mb-3 ${theme.highlight}`}>Departments &amp; Designations</h3><div className="grid grid-cols-2 gap-6"><div><h4 className={`text-sm font-medium ${theme.iconColor} mb-2`}>Departments</h4>{departments.map((d) => <div key={d.n} onClick={() => setSelectedDept(d.n)} className={`flex items-center justify-between p-2 rounded-lg mb-1 cursor-pointer ${selectedDept === d.n ? `${theme.secondaryBg} border ${theme.border}` : theme.buttonHover}`}><div className="flex items-center gap-2"><GripVertical size={12} className={theme.iconColor} /><span className={`text-sm ${theme.highlight}`}>{d.n}</span><span className={`text-xs ${theme.iconColor}`}>({d.c})</span></div><div><Edit size={12} className={`inline ${theme.iconColor} mr-1`} /><Trash2 size={12} className={`inline ${theme.iconColor}`} /></div></div>)}<button className={`flex items-center gap-1 text-sm ${theme.primaryText} mt-2`}><Plus size={14} />Add Dept</button></div><div><h4 className={`text-sm font-medium ${theme.iconColor} mb-2`}>Designations — {selectedDept}</h4>{(designations[selectedDept] || []).map((d) => <div key={d} className={`flex items-center justify-between p-2 ${theme.secondaryBg} rounded-lg mb-1`}><span className={`text-sm ${theme.highlight}`}>{d}</span><div><Edit size={12} className={`inline ${theme.iconColor} mr-1`} /><Trash2 size={12} className={`inline ${theme.iconColor}`} /></div></div>)}<button className={`flex items-center gap-1 text-sm ${theme.primaryText} mt-2`}><Plus size={14} />Add Designation</button></div></div></div>}
+          {section === 'attendance' && <>
+            <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}><h3 className={`font-semibold mb-3 ${theme.highlight}`}>Attendance Methods</h3>{[{ n: 'Biometric Integration', on: false }, { n: 'Manual Check-in (Web)', on: true }, { n: 'Manual Check-in (Mobile)', on: true }, { n: 'Kiosk Mode', on: false }].map((m, i) => <div key={i} className={`flex items-center justify-between p-2 ${theme.secondaryBg} rounded-lg mb-2`}><span className={`text-sm ${theme.highlight}`}>{m.n}</span><Tgl on={m.on} theme={theme} /></div>)}</div>
+            <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}><h3 className={`font-semibold mb-3 ${theme.highlight}`}>Shifts / Schedules</h3><table className="w-full text-sm"><thead><tr className={theme.secondaryBg}><th className={`p-2 text-left text-xs ${theme.iconColor}`}>Shift</th><th className={`p-2 text-center text-xs ${theme.iconColor}`}>Start</th><th className={`p-2 text-center text-xs ${theme.iconColor}`}>End</th><th className={`p-2 text-left text-xs ${theme.iconColor}`}>For</th></tr></thead><tbody>{shifts.map((s, i) => <tr key={i} className={`border-t ${theme.border}`}><td className={`p-2 font-medium ${theme.highlight}`}>{s.n}</td><td className={`p-2 text-center ${theme.highlight}`}>{s.s}</td><td className={`p-2 text-center ${theme.highlight}`}>{s.e}</td><td className={`p-2 ${theme.iconColor}`}>{s.a}</td></tr>)}</tbody></table></div>
+          </>}
+          {section === 'leave' && <>
+            <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}><h3 className={`font-semibold mb-3 ${theme.highlight}`}>Leave Policies</h3><div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className={theme.secondaryBg}><th className={`p-2 text-left text-xs ${theme.iconColor}`}>Leave Type</th><th className={`p-2 text-center text-xs ${theme.iconColor}`}>Type</th><th className={`p-2 text-center text-xs ${theme.iconColor}`}>Days</th><th className={`p-2 text-center text-xs ${theme.iconColor}`}>Carry</th><th className={`p-2 text-center text-xs ${theme.iconColor}`}>Encash</th><th className={`p-2 text-left text-xs ${theme.iconColor}`}>For</th><th className={`p-2 text-center text-xs ${theme.iconColor}`}>Active</th></tr></thead><tbody>{leaves.map((l, i) => <tr key={i} className={`border-t ${theme.border}`}><td className={`p-2 font-medium ${theme.highlight}`}>{l.t}</td><td className="p-2 text-center"><span className={`px-2 py-0.5 text-xs rounded-full font-bold ${l.p === 'Paid' ? 'bg-emerald-500/20 text-emerald-400' : `${theme.secondaryBg} ${theme.iconColor}`}`}>{l.p}</span></td><td className={`p-2 text-center ${theme.highlight}`}>{l.d}</td><td className={`p-2 text-center ${theme.highlight}`}>{l.cf}</td><td className={`p-2 text-center ${theme.highlight}`}>{l.e}</td><td className={`p-2 ${theme.iconColor}`}>{l.a}</td><td className="p-2 text-center"><Tgl on={true} theme={theme} /></td></tr>)}</tbody></table></div></div>
+            <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}><h3 className={`font-semibold mb-3 ${theme.highlight}`}>Holidays 2025-26</h3><table className="w-full text-sm"><thead><tr className={theme.secondaryBg}><th className={`p-2 text-left text-xs ${theme.iconColor}`}>Date</th><th className={`p-2 text-left text-xs ${theme.iconColor}`}>Holiday</th><th className={`p-2 text-center text-xs ${theme.iconColor}`}>Actions</th></tr></thead><tbody>{holidays.map((h, i) => <tr key={i} className={`border-t ${theme.border}`}><td className={`p-2 ${theme.highlight}`}>{h.d}</td><td className={`p-2 font-medium ${theme.highlight}`}>{h.n}</td><td className="p-2 text-center"><Edit size={14} className={`inline ${theme.iconColor} mr-1`} /><Trash2 size={14} className={`inline ${theme.iconColor}`} /></td></tr>)}</tbody></table></div>
+          </>}
+          {section === 'workflows' && <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}><h3 className={`font-semibold mb-3 ${theme.highlight}`}>Configured Workflows</h3><table className="w-full text-sm"><thead><tr className={theme.secondaryBg}><th className={`p-2 text-left text-xs ${theme.iconColor}`}>Workflow</th><th className={`p-2 text-left text-xs ${theme.iconColor}`}>Form</th><th className={`p-2 text-left text-xs ${theme.iconColor}`}>Trigger</th><th className={`p-2 text-left text-xs ${theme.iconColor}`}>Action</th><th className={`p-2 text-center text-xs ${theme.iconColor}`}>Active</th></tr></thead><tbody>{workflows.map((w, i) => <tr key={i} className={`border-t ${theme.border}`}><td className={`p-2 font-medium ${theme.highlight}`}>{w.n}</td><td className={`p-2 ${theme.iconColor}`}>{w.f}</td><td className={`p-2 ${theme.iconColor}`}>{w.t}</td><td className={`p-2 ${theme.iconColor}`}>{w.a}</td><td className="p-2 text-center"><Tgl on={true} theme={theme} /></td></tr>)}</tbody></table></div>}
+          {section === 'approvals' && <div className="space-y-4">{approvals.map((a, i) => <div key={i} className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}><h3 className={`font-semibold mb-3 ${theme.highlight}`}>{a.n} Approval</h3><div className="flex items-center gap-1 mb-3 flex-wrap">{a.f.map((s, j) => <React.Fragment key={j}><span className={`px-2 py-1 rounded-full text-xs font-bold ${j === 0 ? 'bg-blue-500/20 text-blue-400' : j === a.f.length - 1 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>{s}</span>{j < a.f.length - 1 && <ChevronRight size={12} className={theme.iconColor} />}</React.Fragment>)}</div><div className="flex items-center gap-4"><label className={`text-sm ${theme.iconColor}`}>Levels: <select className={`px-2 py-1 border ${theme.border} rounded-lg text-sm ${theme.inputBg} ${theme.highlight} ml-1`}><option>{a.l}</option></select></label><label className={`text-sm ${theme.iconColor}`}>Auto-approve: <select className={`px-2 py-1 border ${theme.border} rounded-lg text-sm ${theme.inputBg} ${theme.highlight} ml-1`}><option>3 days</option></select></label></div></div>)}</div>}
+          {section === 'notifications' && <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}><h3 className={`font-semibold mb-3 ${theme.highlight}`}>Email Notifications</h3><table className="w-full text-sm"><thead><tr className={theme.secondaryBg}><th className={`p-2 text-left text-xs ${theme.iconColor}`}>Notification</th><th className={`p-2 text-left text-xs ${theme.iconColor}`}>Recipients</th><th className={`p-2 text-center text-xs ${theme.iconColor}`}>Enabled</th></tr></thead><tbody>{notifs.map((n, i) => <tr key={i} className={`border-t ${theme.border}`}><td className={`p-2 ${theme.highlight}`}>{n.n}</td><td className={`p-2 ${theme.iconColor}`}>{n.to}</td><td className="p-2 text-center"><Tgl on={true} theme={theme} /></td></tr>)}</tbody></table></div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── MAIN COMPONENT ───────────────────────────────────
 function HRManagerDashboard({ theme }: { theme?: Theme }) {
   const [activeModule, setActiveModule] = useState('dashboard');
+  const [selectedEmp, setSelectedEmp] = useState(employees[0]);
   if (!theme) return null;
 
   return (
     <div className="flex gap-4 -m-6">
-      {/* Module sidebar */}
       <div className={`w-48 ${theme.cardBg} border-r ${theme.border} min-h-screen p-2 space-y-0.5 shrink-0`}>
-        <p className={`text-[10px] font-bold ${theme.iconColor} uppercase px-3 py-2`}>Modules</p>
+        <p className={`text-[10px] font-bold ${theme.iconColor} uppercase px-3 py-2`}>HR Modules</p>
         {modules.map(m => (
-          <button
-            key={m.id}
-            onClick={() => setActiveModule(m.id)}
-            className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-              activeModule === m.id ? `${theme.primary} text-white` : `${theme.iconColor} ${theme.buttonHover}`
-            }`}
-          >
+          <button key={m.id} onClick={() => setActiveModule(m.id)} className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all ${activeModule === m.id ? `${theme.primary} text-white` : `${theme.iconColor} ${theme.buttonHover}`}`}>
             <m.icon size={14} /> {m.label}
           </button>
         ))}
       </div>
-
-      {/* Module content */}
       <div className="flex-1 p-6 space-y-4 overflow-x-hidden">
-        {activeModule === 'dashboard' && <DashboardHome theme={theme} />}
-        {activeModule === 'directory' && <StaffDirectoryModule theme={theme} />}
-        {activeModule === 'recruitment' && <RecruitmentModule theme={theme} />}
-        {activeModule === 'leave' && <LeaveManagementModule theme={theme} />}
-        {activeModule === 'payroll' && <PayrollModule theme={theme} />}
+        {activeModule === 'dashboard' && <DashboardModule theme={theme} setActive={setActiveModule} />}
+        {activeModule === 'employees' && <EmployeeList theme={theme} setActive={setActiveModule} setSelectedEmp={setSelectedEmp} />}
+        {activeModule === 'profile' && <EmployeeProfile theme={theme} emp={selectedEmp} setActive={setActiveModule} />}
+        {activeModule === 'addemployee' && <AddEmployee theme={theme} setActive={setActiveModule} />}
+        {activeModule === 'onboarding' && <OnboardingModule theme={theme} />}
         {activeModule === 'attendance' && <AttendanceModule theme={theme} />}
-        {activeModule === 'documents' && <DocumentsModule theme={theme} />}
+        {activeModule === 'leave' && <LeaveModule theme={theme} />}
+        {activeModule === 'payroll' && <PayrollModule theme={theme} />}
+        {activeModule === 'performance' && <PerformanceModule theme={theme} />}
+        {activeModule === 'letters' && <LettersModule theme={theme} />}
+        {activeModule === 'offboarding' && <OffboardingModule theme={theme} />}
+        {activeModule === 'reports' && <ReportsModule theme={theme} />}
         {activeModule === 'settings' && <SettingsModule theme={theme} />}
       </div>
     </div>
   );
 }
 
-// ─── DASHBOARD HOME ────────────────────────────────
-function DashboardHome({ theme }: { theme: Theme }) {
-  return (
-    <div className="space-y-4">
-      <h1 className={`text-2xl font-bold ${theme.highlight}`}>HR Manager Dashboard</h1>
-
-      {/* Stats Row 1 */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-        <StatCard icon={Users} label="Total Employees" value={142} color="bg-blue-500" theme={theme} />
-        <StatCard icon={UserCheck} label="Present Today" value={128} color="bg-emerald-500" sub="90.1%" theme={theme} />
-        <StatCard icon={Calendar} label="On Leave" value={8} color="bg-amber-500" theme={theme} />
-        <StatCard icon={XCircle} label="Absent" value={6} color="bg-red-500" theme={theme} />
-        <StatCard icon={Briefcase} label="Open Positions" value={3} color="bg-purple-500" theme={theme} />
-        <StatCard icon={Clock} label="Pending Actions" value={12} color="bg-orange-500" theme={theme} />
-      </div>
-
-      {/* Department Strength */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <h3 className={`text-sm font-bold ${theme.highlight} mb-4`}>Department Strength</h3>
-        <div className="space-y-3">
-          {[
-            { dept: 'Teaching', count: 89, total: 142, color: 'bg-blue-500' },
-            { dept: 'Admin', count: 23, total: 142, color: 'bg-indigo-500' },
-            { dept: 'Transport', count: 18, total: 142, color: 'bg-emerald-500' },
-            { dept: 'IT & Lab', count: 8, total: 142, color: 'bg-purple-500' },
-            { dept: 'Security', count: 4, total: 142, color: 'bg-orange-500' },
-          ].map(d => (
-            <div key={d.dept} className="flex items-center gap-3">
-              <span className={`text-xs font-bold ${theme.highlight} w-20`}>{d.dept}</span>
-              <div className={`flex-1 h-6 ${theme.secondaryBg} rounded-full overflow-hidden`}>
-                <div
-                  className={`h-full ${d.color} rounded-full flex items-center justify-end pr-2`}
-                  style={{ width: `${(d.count / d.total) * 100}%` }}
-                >
-                  <span className="text-[10px] font-bold text-white">{d.count}</span>
-                </div>
-              </div>
-              <span className={`text-xs ${theme.iconColor} w-10 text-right`}>{Math.round((d.count / d.total) * 100)}%</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Quick Actions</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-          {[
-            { label: 'Process Payroll', icon: Banknote, color: 'bg-emerald-500' },
-            { label: 'Approve Leaves', icon: CheckCircle, color: 'bg-amber-500' },
-            { label: 'Post Job', icon: UserPlus, color: 'bg-blue-500' },
-            { label: 'Generate Report', icon: BarChart3, color: 'bg-purple-500' },
-          ].map(a => (
-            <button key={a.label} className={`flex items-center gap-2 p-3 rounded-xl ${theme.secondaryBg} ${theme.buttonHover} transition-all`}>
-              <div className={`w-8 h-8 rounded-lg ${a.color} flex items-center justify-center text-white`}><a.icon size={14} /></div>
-              <span className={`text-xs font-bold ${theme.highlight}`}>{a.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Recent HR Activity */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Recent HR Activity</h3>
-        <div className="space-y-2">
-          {[
-            { text: 'Leave request from Ms. Priya Sharma — 3 days CL approved', time: '15 min ago', type: 'leave' },
-            { text: 'New application received for PGT Mathematics — Ravi Shankar', time: '1 hour ago', type: 'recruitment' },
-            { text: 'January payroll processed for 138 employees', time: '2 hours ago', type: 'payroll' },
-            { text: 'Mr. Suresh Nair submitted resignation — notice period started', time: '1 day ago', type: 'exit' },
-            { text: 'Attendance anomaly: 3 staff marked late on 10-Feb-2026', time: '1 day ago', type: 'attendance' },
-          ].map((a, i) => (
-            <div key={i} className={`flex items-center gap-3 p-2 rounded-xl ${theme.accentBg}`}>
-              <div className={`w-2 h-2 rounded-full ${
-                a.type === 'leave' ? 'bg-amber-500' :
-                a.type === 'recruitment' ? 'bg-blue-500' :
-                a.type === 'payroll' ? 'bg-emerald-500' :
-                a.type === 'exit' ? 'bg-red-500' :
-                'bg-purple-500'
-              }`} />
-              <p className={`text-xs ${theme.highlight} flex-1`}>{a.text}</p>
-              <span className={`text-[10px] ${theme.iconColor}`}>{a.time}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── STAFF DIRECTORY MODULE ────────────────────────
-function StaffDirectoryModule({ theme }: { theme: Theme }) {
-  const [tab, setTab] = useState('All Staff');
-  const [filterDept, setFilterDept] = useState('All');
-  const [filterStatus, setFilterStatus] = useState('All');
-
-  const filteredStaff = mockStaff.filter(s => {
-    const deptMatch = filterDept === 'All' || s.dept === filterDept;
-    const statusMatch = filterStatus === 'All' || s.status === filterStatus;
-    const tabMatch =
-      tab === 'All Staff' ? true :
-      tab === 'Teaching' ? s.dept === 'Teaching' :
-      tab === 'Admin' ? s.dept === 'Admin' :
-      tab === 'Transport' ? s.dept === 'Transport' :
-      tab === 'Support' ? (s.dept === 'IT & Lab' || s.dept === 'Security') :
-      true;
-    return deptMatch && statusMatch && tabMatch;
-  });
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className={`text-2xl font-bold ${theme.highlight}`}>Staff Directory</h1>
-        <button className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}><Plus size={14} /> Add Employee</button>
-      </div>
-      <TabBar tabs={['All Staff', 'Teaching', 'Admin', 'Transport', 'Support']} active={tab} onChange={setTab} theme={theme} />
-      <div className="flex gap-3">
-        <SearchBar placeholder="Search by name, ID, department..." theme={theme} icon={Search} />
-        <select
-          value={filterDept}
-          onChange={e => setFilterDept(e.target.value)}
-          className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.iconColor}`}
-        >
-          <option value="All">All Departments</option>
-          <option value="Teaching">Teaching</option>
-          <option value="Admin">Admin</option>
-          <option value="Transport">Transport</option>
-          <option value="IT & Lab">IT & Lab</option>
-          <option value="Security">Security</option>
-        </select>
-        <select
-          value={filterStatus}
-          onChange={e => setFilterStatus(e.target.value)}
-          className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.iconColor}`}
-        >
-          <option value="All">All Status</option>
-          <option value="Active">Active</option>
-          <option value="Probation">Probation</option>
-          <option value="Notice Period">Notice Period</option>
-        </select>
-        <button className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold ${theme.iconColor} flex items-center gap-1`}><Download size={12} /> Export</button>
-      </div>
-      <DataTable
-        headers={['Emp ID', 'Name', 'Department', 'Designation', 'Status', 'Phone', 'Actions']}
-        rows={filteredStaff.map(s => [
-          <span key="id" className={`font-mono text-xs ${theme.primaryText}`}>{s.id}</span>,
-          <span key="name" className={`font-bold ${theme.highlight}`}>{s.name}</span>,
-          <span key="dept" className={theme.iconColor}>{s.dept}</span>,
-          <span key="desig" className={theme.iconColor}>{s.designation}</span>,
-          <StatusBadge key="status" status={s.status} theme={theme} />,
-          <span key="phone" className={theme.iconColor}>{s.phone}</span>,
-          <div key="actions" className="flex gap-1">
-            <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Eye size={12} className={theme.iconColor} /></button>
-            <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Edit size={12} className={theme.iconColor} /></button>
-          </div>
-        ])}
-        theme={theme}
-      />
-      <div className={`flex items-center justify-between text-xs ${theme.iconColor} px-2`}>
-        <span>Showing {filteredStaff.length} of {mockStaff.length} employees</span>
-        <div className="flex gap-1">
-          <button className={`px-3 py-1.5 rounded-lg ${theme.secondaryBg}`}>Previous</button>
-          <button className={`px-3 py-1.5 rounded-lg ${theme.primary} text-white`}>1</button>
-          <button className={`px-3 py-1.5 rounded-lg ${theme.secondaryBg}`}>Next</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── RECRUITMENT MODULE ────────────────────────────
-function RecruitmentModule({ theme }: { theme: Theme }) {
-  const [tab, setTab] = useState('Open Positions');
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className={`text-2xl font-bold ${theme.highlight}`}>Recruitment</h1>
-        <button className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}><Plus size={14} /> Post New Position</button>
-      </div>
-      <TabBar tabs={['Open Positions', 'Applications', 'Interviews']} active={tab} onChange={setTab} theme={theme} />
-
-      {tab === 'Open Positions' && (
-        <div className="space-y-4">
-          <div className="grid grid-cols-3 gap-4">
-            <StatCard icon={Briefcase} label="Total Open" value={3} color="bg-blue-500" theme={theme} />
-            <StatCard icon={FileText} label="Total Applications" value={49} color="bg-indigo-500" theme={theme} />
-            <StatCard icon={UserCheck} label="Shortlisted" value={8} color="bg-emerald-500" theme={theme} />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {mockPositions.map((p, i) => (
-              <div key={i} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className={`text-sm font-bold ${theme.highlight}`}>{p.title}</h4>
-                  <StatusBadge status={p.status} theme={theme} />
-                </div>
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-2">
-                    <Building2 size={12} className={theme.iconColor} />
-                    <span className={`text-xs ${theme.iconColor}`}>{p.dept}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CalendarDays size={12} className={theme.iconColor} />
-                    <span className={`text-xs ${theme.iconColor}`}>Posted: {p.posted}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users size={12} className={theme.iconColor} />
-                    <span className={`text-xs ${theme.iconColor}`}>{p.applications} Applications</span>
-                  </div>
-                </div>
-                <div className="flex gap-2 mt-3">
-                  <button className={`px-3 py-1.5 rounded-xl text-xs font-bold ${theme.secondaryBg} ${theme.highlight}`}>View Details</button>
-                  {p.status !== 'Closed' && (
-                    <button className={`px-3 py-1.5 rounded-xl text-xs font-bold ${theme.primaryText} border ${theme.border}`}>Edit</button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {tab === 'Applications' && (
-        <div className="space-y-4">
-          <div className="flex gap-3">
-            <SearchBar placeholder="Search applicant by name or position..." theme={theme} icon={Search} />
-            <button className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold ${theme.iconColor} flex items-center gap-1`}><Filter size={12} /> Filter</button>
-          </div>
-          <DataTable
-            headers={['Applicant Name', 'Position', 'Applied Date', 'Experience', 'Status', 'Actions']}
-            rows={mockApplications.map(a => [
-              <span key="name" className={`font-bold ${theme.highlight}`}>{a.name}</span>,
-              <span key="pos" className={theme.iconColor}>{a.position}</span>,
-              <span key="date" className={theme.iconColor}>{a.applied}</span>,
-              <span key="exp" className={theme.iconColor}>{a.experience}</span>,
-              <StatusBadge key="status" status={a.status} theme={theme} />,
-              <div key="actions" className="flex gap-1">
-                <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Eye size={12} className={theme.iconColor} /></button>
-                <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Mail size={12} className={theme.iconColor} /></button>
-              </div>
-            ])}
-            theme={theme}
-          />
-        </div>
-      )}
-
-      {tab === 'Interviews' && (
-        <div className="space-y-4">
-          <div className="grid grid-cols-3 gap-4">
-            <StatCard icon={Calendar} label="Scheduled This Week" value={4} color="bg-blue-500" theme={theme} />
-            <StatCard icon={CheckCircle} label="Completed" value={6} color="bg-emerald-500" theme={theme} />
-            <StatCard icon={Clock} label="Pending Feedback" value={2} color="bg-amber-500" theme={theme} />
-          </div>
-          {[
-            { name: 'Vikram Mehta', position: 'Lab Assistant', date: '12-Feb-2026', time: '10:00 AM', panel: 'Dr. Rajesh Kumar, Mr. Amit Verma', status: 'Scheduled' },
-            { name: 'Sanjay Mishra', position: 'TGT English', date: '13-Feb-2026', time: '11:30 AM', panel: 'Ms. Priya Sharma, Principal', status: 'Scheduled' },
-            { name: 'Ravi Shankar', position: 'PGT Mathematics', date: '10-Feb-2026', time: '2:00 PM', panel: 'Dr. Rajesh Kumar, VP', status: 'Completed' },
-            { name: 'Anita Rao', position: 'PGT Mathematics', date: '14-Feb-2026', time: '10:00 AM', panel: 'Dr. Rajesh Kumar, VP', status: 'Scheduled' },
-          ].map((iv, i) => (
-            <div key={i} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-              <div className="flex items-center justify-between mb-2">
-                <div>
-                  <p className={`text-sm font-bold ${theme.highlight}`}>{iv.name}</p>
-                  <p className={`text-xs ${theme.iconColor}`}>Position: {iv.position}</p>
-                </div>
-                <StatusBadge status={iv.status === 'Completed' ? 'Active' : 'Pending'} theme={theme} />
-              </div>
-              <div className="flex items-center gap-4 mt-2">
-                <div className="flex items-center gap-1">
-                  <CalendarDays size={12} className={theme.iconColor} />
-                  <span className={`text-xs ${theme.iconColor}`}>{iv.date}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Clock size={12} className={theme.iconColor} />
-                  <span className={`text-xs ${theme.iconColor}`}>{iv.time}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Users size={12} className={theme.iconColor} />
-                  <span className={`text-xs ${theme.iconColor}`}>Panel: {iv.panel}</span>
-                </div>
-              </div>
-              {iv.status === 'Completed' && (
-                <button className={`mt-3 px-3 py-1.5 rounded-xl text-xs font-bold ${theme.secondaryBg} ${theme.highlight}`}>View Feedback</button>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── LEAVE MANAGEMENT MODULE ───────────────────────
-function LeaveManagementModule({ theme }: { theme: Theme }) {
-  const [tab, setTab] = useState('Pending');
-  return (
-    <div className="space-y-4">
-      <h1 className={`text-2xl font-bold ${theme.highlight}`}>Leave Management</h1>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Clock} label="Pending Requests" value={5} color="bg-amber-500" theme={theme} />
-        <StatCard icon={CheckCircle} label="Approved Today" value={3} color="bg-emerald-500" theme={theme} />
-        <StatCard icon={Calendar} label="On Leave Now" value={8} color="bg-blue-500" theme={theme} />
-        <StatCard icon={BarChart3} label="Avg Leave Balance" value="12 days" color="bg-purple-500" theme={theme} />
-      </div>
-      <TabBar tabs={['Pending', 'Approved', 'Rejected', 'Leave Balance']} active={tab} onChange={setTab} theme={theme} />
-
-      {tab === 'Pending' && (
-        <div className="space-y-3">
-          {mockLeaveRequests.map((lr, i) => (
-            <div key={i} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-              <div className="flex items-center justify-between mb-2">
-                <div>
-                  <p className={`text-sm font-bold ${theme.highlight}`}>{lr.name}</p>
-                  <p className={`text-xs ${theme.iconColor}`}>{lr.dept}</p>
-                </div>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${
-                  lr.type === 'Casual Leave' ? 'bg-blue-100 text-blue-700' :
-                  lr.type === 'Sick Leave' ? 'bg-red-100 text-red-700' :
-                  lr.type === 'Earned Leave' ? 'bg-emerald-100 text-emerald-700' :
-                  'bg-purple-100 text-purple-700'
-                }`}>{lr.type}</span>
-              </div>
-              <div className="flex items-center gap-4 mb-2">
-                <div className="flex items-center gap-1">
-                  <CalendarDays size={12} className={theme.iconColor} />
-                  <span className={`text-xs ${theme.iconColor}`}>{lr.from} to {lr.to}</span>
-                </div>
-                <span className={`text-xs font-bold ${theme.highlight}`}>{lr.days} day{lr.days > 1 ? 's' : ''}</span>
-              </div>
-              <p className={`text-xs ${theme.iconColor} mb-3`}>Reason: {lr.reason}</p>
-              <div className="flex gap-2">
-                <button className="px-3 py-1.5 rounded-xl bg-emerald-500 text-white text-xs font-bold flex items-center gap-1"><Check size={10} /> Approve</button>
-                <button className="px-3 py-1.5 rounded-xl bg-red-500 text-white text-xs font-bold flex items-center gap-1"><X size={10} /> Reject</button>
-                <button className={`px-3 py-1.5 rounded-xl border ${theme.border} text-xs font-bold ${theme.highlight}`}>View History</button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {tab === 'Approved' && (
-        <div className="space-y-3">
-          {[
-            { name: 'Mr. Vijay Patil', type: 'Casual Leave', from: '05-Feb-2026', to: '06-Feb-2026', days: 2, approvedBy: 'HR Manager', dept: 'Teaching' },
-            { name: 'Ms. Asha Rani', type: 'Sick Leave', from: '03-Feb-2026', to: '04-Feb-2026', days: 2, approvedBy: 'HR Manager', dept: 'Teaching' },
-            { name: 'Mr. Prakash Jain', type: 'Earned Leave', from: '01-Feb-2026', to: '07-Feb-2026', days: 5, approvedBy: 'Principal', dept: 'Admin' },
-          ].map((lr, i) => (
-            <div key={i} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 flex items-center justify-between`}>
-              <div>
-                <p className={`text-sm font-bold ${theme.highlight}`}>{lr.name}</p>
-                <p className={`text-xs ${theme.iconColor}`}>{lr.dept} | {lr.type} | {lr.from} to {lr.to} ({lr.days} days)</p>
-                <p className={`text-[10px] ${theme.iconColor} mt-1`}>Approved by: {lr.approvedBy}</p>
-              </div>
-              <StatusBadge status="Approved" theme={theme} />
-            </div>
-          ))}
-        </div>
-      )}
-
-      {tab === 'Rejected' && (
-        <div className="space-y-3">
-          {[
-            { name: 'Mr. Mohan Das', type: 'Casual Leave', from: '08-Feb-2026', to: '10-Feb-2026', days: 3, reason: 'Short staffing during exams', dept: 'Transport' },
-            { name: 'Ms. Sneha Roy', type: 'Earned Leave', from: '09-Feb-2026', to: '15-Feb-2026', days: 5, reason: 'Already on notice period, EL not applicable', dept: 'Teaching' },
-          ].map((lr, i) => (
-            <div key={i} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 flex items-center justify-between`}>
-              <div>
-                <p className={`text-sm font-bold ${theme.highlight}`}>{lr.name}</p>
-                <p className={`text-xs ${theme.iconColor}`}>{lr.dept} | {lr.type} | {lr.from} to {lr.to} ({lr.days} days)</p>
-                <p className={`text-[10px] text-red-500 mt-1`}>Rejection reason: {lr.reason}</p>
-              </div>
-              <StatusBadge status="Rejected" theme={theme} />
-            </div>
-          ))}
-        </div>
-      )}
-
-      {tab === 'Leave Balance' && (
-        <DataTable
-          headers={['Employee', 'CL Balance', 'SL Balance', 'EL Balance', 'Total Used', 'Total Remaining']}
-          rows={mockLeaveBalance.map(lb => [
-            <span key="name" className={`font-bold ${theme.highlight}`}>{lb.name}</span>,
-            <span key="cl" className={theme.iconColor}>{lb.cl}</span>,
-            <span key="sl" className={theme.iconColor}>{lb.sl}</span>,
-            <span key="el" className={theme.iconColor}>{lb.el}</span>,
-            <span key="used" className={`font-bold ${theme.highlight}`}>{lb.used}</span>,
-            <span key="rem" className={`font-bold ${lb.remaining < 0 ? 'text-red-500' : 'text-emerald-600'}`}>{lb.remaining}</span>,
-          ])}
-          theme={theme}
-        />
-      )}
-    </div>
-  );
-}
-
-// ─── PAYROLL MODULE ────────────────────────────────
-function PayrollModule({ theme }: { theme: Theme }) {
-  const [tab, setTab] = useState('Overview');
-  const [selectedMonth, setSelectedMonth] = useState('February 2026');
-  const [selectedDept, setSelectedDept] = useState('All');
-
-  return (
-    <div className="space-y-4">
-      <h1 className={`text-2xl font-bold ${theme.highlight}`}>Payroll Management</h1>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Banknote} label="Total Monthly Payroll" value="₹18,45,000" color="bg-blue-500" theme={theme} />
-        <StatCard icon={CheckCircle} label="Processed" value={138} color="bg-emerald-500" theme={theme} />
-        <StatCard icon={Clock} label="Pending" value={4} color="bg-amber-500" theme={theme} />
-        <StatCard icon={TrendingUp} label="Deductions" value="₹2,15,000" color="bg-red-500" theme={theme} />
-      </div>
-      <TabBar tabs={['Overview', 'Process Payroll', 'Payslips', 'Deductions']} active={tab} onChange={setTab} theme={theme} />
-
-      {tab === 'Overview' && (
-        <div className="space-y-4">
-          <h3 className={`text-sm font-bold ${theme.highlight}`}>Department-wise Salary Breakdown</h3>
-          <DataTable
-            headers={['Department', 'Employees', 'Total Basic', 'Total HRA', 'Total DA', 'Total Deductions', 'Net Payable']}
-            rows={[
-              { dept: 'Teaching', count: 89, basic: '₹32,50,000', hra: '₹13,00,000', da: '₹6,50,000', deductions: '₹5,80,000', net: '₹46,20,000' },
-              { dept: 'Admin', count: 23, basic: '₹6,90,000', hra: '₹2,76,000', da: '₹1,38,000', deductions: '₹1,24,000', net: '₹9,80,000' },
-              { dept: 'Transport', count: 18, basic: '₹4,50,000', hra: '₹1,80,000', da: '₹90,000', deductions: '₹81,000', net: '₹6,39,000' },
-              { dept: 'IT & Lab', count: 8, basic: '₹1,76,000', hra: '₹70,400', da: '₹35,200', deductions: '₹31,600', net: '₹2,50,000' },
-              { dept: 'Security', count: 4, basic: '₹80,000', hra: '₹32,000', da: '₹16,000', deductions: '₹14,400', net: '₹1,13,600' },
-            ].map(d => [
-              <span key="dept" className={`font-bold ${theme.highlight}`}>{d.dept}</span>,
-              <span key="count" className={`font-bold ${theme.highlight}`}>{d.count}</span>,
-              <span key="basic" className={theme.iconColor}>{d.basic}</span>,
-              <span key="hra" className={theme.iconColor}>{d.hra}</span>,
-              <span key="da" className={theme.iconColor}>{d.da}</span>,
-              <span key="ded" className="text-red-500 font-bold">{d.deductions}</span>,
-              <span key="net" className="text-emerald-600 font-bold">{d.net}</span>,
-            ])}
-            theme={theme}
-          />
-        </div>
-      )}
-
-      {tab === 'Process Payroll' && (
-        <div className="space-y-4">
-          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-            <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Process Monthly Payroll</h3>
-            <div className="flex items-center gap-4 mb-4">
-              <div>
-                <label className={`text-xs ${theme.iconColor} block mb-1`}>Select Month</label>
-                <select
-                  value={selectedMonth}
-                  onChange={e => setSelectedMonth(e.target.value)}
-                  className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight}`}
-                >
-                  <option>February 2026</option>
-                  <option>January 2026</option>
-                  <option>December 2025</option>
-                </select>
-              </div>
-              <div>
-                <label className={`text-xs ${theme.iconColor} block mb-1`}>Department</label>
-                <select
-                  value={selectedDept}
-                  onChange={e => setSelectedDept(e.target.value)}
-                  className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight}`}
-                >
-                  <option value="All">All Departments</option>
-                  <option>Teaching</option>
-                  <option>Admin</option>
-                  <option>Transport</option>
-                  <option>IT & Lab</option>
-                  <option>Security</option>
-                </select>
-              </div>
-              <div className="flex-1" />
-              <button className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1 self-end`}><Banknote size={14} /> Process All</button>
-            </div>
-          </div>
-
-          <h3 className={`text-sm font-bold ${theme.highlight}`}>Pending Payroll ({selectedMonth})</h3>
-          {[
-            { name: 'Mrs. Sunita Patel', dept: 'Teaching', reason: 'LOP deduction pending — 2 days absent without leave', amount: '₹40,000' },
-            { name: 'Mr. Suresh Nair', dept: 'IT & Lab', reason: 'Notice period — final settlement pending', amount: '₹31,400' },
-            { name: 'Ms. Kavita Singh', dept: 'Teaching', reason: 'Maternity leave adjustment pending', amount: '₹45,600' },
-            { name: 'Mr. Deepak Joshi', dept: 'Security', reason: 'Overtime calculation pending — 12 extra hours', amount: '₹28,800' },
-          ].map((p, i) => (
-            <div key={i} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 flex items-center justify-between`}>
-              <div>
-                <p className={`text-sm font-bold ${theme.highlight}`}>{p.name}</p>
-                <p className={`text-xs ${theme.iconColor}`}>{p.dept} | Estimated: {p.amount}</p>
-                <p className={`text-[10px] text-amber-600 mt-1`}>{p.reason}</p>
-              </div>
-              <div className="flex gap-2">
-                <button className={`px-3 py-1.5 rounded-xl text-xs font-bold ${theme.secondaryBg} ${theme.highlight}`}>Review</button>
-                <button className="px-3 py-1.5 rounded-xl bg-emerald-500 text-white text-xs font-bold">Process</button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {tab === 'Payslips' && (
-        <div className="space-y-4">
-          <div className="flex gap-3">
-            <SearchBar placeholder="Search employee payslip..." theme={theme} icon={Search} />
-            <button className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold ${theme.iconColor} flex items-center gap-1`}><Download size={12} /> Export All</button>
-          </div>
-          <DataTable
-            headers={['Employee', 'Basic (₹)', 'HRA (₹)', 'DA (₹)', 'Deductions (₹)', 'Net Salary (₹)', 'Actions']}
-            rows={mockPayslips.map(p => [
-              <span key="name" className={`font-bold ${theme.highlight}`}>{p.name}</span>,
-              <span key="basic" className={theme.iconColor}>{p.basic.toLocaleString()}</span>,
-              <span key="hra" className={theme.iconColor}>{p.hra.toLocaleString()}</span>,
-              <span key="da" className={theme.iconColor}>{p.da.toLocaleString()}</span>,
-              <span key="ded" className="text-red-500 font-bold">{p.deductions.toLocaleString()}</span>,
-              <span key="net" className="text-emerald-600 font-bold">₹{p.net.toLocaleString()}</span>,
-              <div key="actions" className="flex gap-1">
-                <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Eye size={12} className={theme.iconColor} /></button>
-                <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Download size={12} className={theme.iconColor} /></button>
-                <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Printer size={12} className={theme.iconColor} /></button>
-              </div>
-            ])}
-            theme={theme}
-          />
-        </div>
-      )}
-
-      {tab === 'Deductions' && (
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard icon={DollarSign} label="PF Deductions" value="₹1,08,000" color="bg-blue-500" theme={theme} />
-            <StatCard icon={DollarSign} label="ESI Deductions" value="₹42,000" color="bg-indigo-500" theme={theme} />
-            <StatCard icon={DollarSign} label="TDS" value="₹38,000" color="bg-purple-500" theme={theme} />
-            <StatCard icon={DollarSign} label="Professional Tax" value="₹27,000" color="bg-orange-500" theme={theme} />
-          </div>
-          <DataTable
-            headers={['Employee', 'PF (₹)', 'ESI (₹)', 'TDS (₹)', 'Prof. Tax (₹)', 'LOP (₹)', 'Total Deduction (₹)']}
-            rows={[
-              { name: 'Dr. Rajesh Kumar', pf: '5,400', esi: '2,100', tds: '3,500', pt: '200', lop: '0', total: '11,200' },
-              { name: 'Ms. Priya Sharma', pf: '4,200', esi: '1,640', tds: '1,800', pt: '200', lop: '0', total: '7,840' },
-              { name: 'Mr. Amit Verma', pf: '3,600', esi: '1,400', tds: '1,200', pt: '200', lop: '0', total: '6,400' },
-              { name: 'Mrs. Sunita Patel', pf: '3,360', esi: '1,312', tds: '800', pt: '200', lop: '1,867', total: '7,539' },
-              { name: 'Mr. Ramesh Gupta', pf: '3,000', esi: '1,170', tds: '500', pt: '150', lop: '0', total: '4,820' },
-            ].map(d => [
-              <span key="name" className={`font-bold ${theme.highlight}`}>{d.name}</span>,
-              <span key="pf" className={theme.iconColor}>{d.pf}</span>,
-              <span key="esi" className={theme.iconColor}>{d.esi}</span>,
-              <span key="tds" className={theme.iconColor}>{d.tds}</span>,
-              <span key="pt" className={theme.iconColor}>{d.pt}</span>,
-              <span key="lop" className={d.lop !== '0' ? 'text-red-500 font-bold' : theme.iconColor}>{d.lop}</span>,
-              <span key="total" className="text-red-500 font-bold">{d.total}</span>,
-            ])}
-            theme={theme}
-          />
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── ATTENDANCE MODULE ─────────────────────────────
-function AttendanceModule({ theme }: { theme: Theme }) {
-  const [selectedDate, setSelectedDate] = useState('2026-02-11');
-
-  const statusColors: Record<string, string> = {
-    present: 'bg-emerald-400',
-    absent: 'bg-red-400',
-    late: 'bg-amber-400',
-    'half-day': 'bg-blue-400',
-  };
-
-  const statusLabels: Record<string, string> = {
-    present: 'P',
-    absent: 'A',
-    late: 'L',
-    'half-day': 'H',
-  };
-
-  const presentCount = mockAttendanceGrid.filter(a => a.status === 'present').length;
-  const absentCount = mockAttendanceGrid.filter(a => a.status === 'absent').length;
-  const lateCount = mockAttendanceGrid.filter(a => a.status === 'late').length;
-  const halfDayCount = mockAttendanceGrid.filter(a => a.status === 'half-day').length;
-
-  const departments = ['Teaching', 'Admin', 'Transport', 'IT & Lab', 'Security'];
-
-  return (
-    <div className="space-y-4">
-      <h1 className={`text-2xl font-bold ${theme.highlight}`}>Staff Attendance</h1>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={UserCheck} label="Present" value={presentCount} color="bg-emerald-500" theme={theme} />
-        <StatCard icon={XCircle} label="Absent" value={absentCount} color="bg-red-500" theme={theme} />
-        <StatCard icon={Clock} label="Late" value={lateCount} color="bg-amber-500" theme={theme} />
-        <StatCard icon={Calendar} label="Half Day" value={halfDayCount} color="bg-blue-500" theme={theme} />
-      </div>
-
-      {/* Date Selector */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 flex items-center gap-4`}>
-        <label className={`text-xs font-bold ${theme.highlight}`}>Select Date:</label>
-        <input
-          type="date"
-          value={selectedDate}
-          onChange={e => setSelectedDate(e.target.value)}
-          className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight}`}
-        />
-        <div className="flex-1" />
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-full bg-emerald-400" />
-            <span className={`text-xs ${theme.iconColor}`}>Present</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-full bg-red-400" />
-            <span className={`text-xs ${theme.iconColor}`}>Absent</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-full bg-amber-400" />
-            <span className={`text-xs ${theme.iconColor}`}>Late</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-full bg-blue-400" />
-            <span className={`text-xs ${theme.iconColor}`}>Half Day</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Attendance Grid */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Staff Attendance Grid</h3>
-        <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
-          {mockAttendanceGrid.map((a, i) => (
-            <div key={i} className={`p-2 rounded-xl ${theme.accentBg} text-center`}>
-              <div className={`w-8 h-8 rounded-full ${statusColors[a.status]} mx-auto mb-1 flex items-center justify-center text-[10px] font-bold text-white`}>
-                {statusLabels[a.status]}
-              </div>
-              <p className={`text-[10px] font-bold ${theme.highlight} truncate`}>{a.name.split(' ').slice(-1)[0]}</p>
-              <p className={`text-[8px] ${theme.iconColor}`}>{a.dept}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Department-wise Summary */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Department-wise Attendance Summary</h3>
-        <DataTable
-          headers={['Department', 'Total', 'Present', 'Absent', 'Late', 'Half Day', 'Attendance %']}
-          rows={departments.map(dept => {
-            const deptStaff = mockAttendanceGrid.filter(a => a.dept === dept);
-            const p = deptStaff.filter(a => a.status === 'present').length;
-            const ab = deptStaff.filter(a => a.status === 'absent').length;
-            const l = deptStaff.filter(a => a.status === 'late').length;
-            const h = deptStaff.filter(a => a.status === 'half-day').length;
-            const pct = deptStaff.length > 0 ? Math.round(((p + l + h) / deptStaff.length) * 100) : 0;
-            return [
-              <span key="dept" className={`font-bold ${theme.highlight}`}>{dept}</span>,
-              <span key="total" className={`font-bold ${theme.highlight}`}>{deptStaff.length}</span>,
-              <span key="p" className="text-emerald-600 font-bold">{p}</span>,
-              <span key="a" className={ab > 0 ? 'text-red-500 font-bold' : theme.iconColor}>{ab}</span>,
-              <span key="l" className={l > 0 ? 'text-amber-600 font-bold' : theme.iconColor}>{l}</span>,
-              <span key="h" className={h > 0 ? 'text-blue-600 font-bold' : theme.iconColor}>{h}</span>,
-              <span key="pct" className={`font-bold ${pct >= 90 ? 'text-emerald-600' : pct >= 75 ? 'text-amber-600' : 'text-red-500'}`}>{pct}%</span>,
-            ];
-          })}
-          theme={theme}
-        />
-      </div>
-    </div>
-  );
-}
-
-// ─── DOCUMENTS MODULE ──────────────────────────────
-function DocumentsModule({ theme }: { theme: Theme }) {
-  const [tab, setTab] = useState('Templates');
-  return (
-    <div className="space-y-4">
-      <h1 className={`text-2xl font-bold ${theme.highlight}`}>HR Documents</h1>
-      <TabBar tabs={['Templates', 'Generated', 'Employee Docs']} active={tab} onChange={setTab} theme={theme} />
-
-      {tab === 'Templates' && (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {[
-            { title: 'Appointment Letter', desc: 'Official job offer and terms of employment', icon: FileCheck, color: 'bg-blue-500' },
-            { title: 'Experience Letter', desc: 'Work experience confirmation for ex-employees', icon: Award, color: 'bg-emerald-500' },
-            { title: 'Salary Certificate', desc: 'Salary details for loan or visa processing', icon: Banknote, color: 'bg-indigo-500' },
-            { title: 'Relieving Letter', desc: 'Confirmation of employment termination', icon: FileText, color: 'bg-purple-500' },
-            { title: 'Warning Letter', desc: 'Formal warning for policy violation', icon: AlertTriangle, color: 'bg-red-500' },
-            { title: 'Appreciation Letter', desc: 'Recognition for outstanding performance', icon: Star, color: 'bg-amber-500' },
-          ].map((t, i) => (
-            <div key={i} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5 hover:shadow-md transition-all cursor-pointer`}>
-              <div className={`w-10 h-10 rounded-xl ${t.color} flex items-center justify-center text-white mb-3`}>
-                <t.icon size={18} />
-              </div>
-              <h4 className={`text-sm font-bold ${theme.highlight} mb-1`}>{t.title}</h4>
-              <p className={`text-xs ${theme.iconColor} mb-3`}>{t.desc}</p>
-              <button className={`text-xs ${theme.primaryText} font-bold flex items-center gap-1`}><FilePlus size={12} /> Use Template</button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {tab === 'Generated' && (
-        <div className="space-y-4">
-          <div className="flex gap-3">
-            <SearchBar placeholder="Search generated documents..." theme={theme} icon={Search} />
-            <button className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold ${theme.iconColor} flex items-center gap-1`}><Filter size={12} /> Filter</button>
-          </div>
-          <DataTable
-            headers={['Document', 'Employee', 'Type', 'Generated On', 'Generated By', 'Actions']}
-            rows={[
-              { doc: 'APT-2026-001', emp: 'Mrs. Sunita Patel', type: 'Appointment Letter', date: '10-Jan-2026', by: 'HR Manager' },
-              { doc: 'SAL-2026-015', emp: 'Dr. Rajesh Kumar', type: 'Salary Certificate', date: '05-Feb-2026', by: 'HR Manager' },
-              { doc: 'EXP-2026-003', emp: 'Mr. Suresh Nair', type: 'Experience Letter', date: '08-Feb-2026', by: 'HR Manager' },
-              { doc: 'REL-2026-001', emp: 'Mr. Suresh Nair', type: 'Relieving Letter', date: '08-Feb-2026', by: 'HR Manager' },
-              { doc: 'APR-2026-002', emp: 'Ms. Priya Sharma', type: 'Appreciation Letter', date: '01-Feb-2026', by: 'Principal' },
-              { doc: 'WRN-2026-001', emp: 'Mr. Mohan Das', type: 'Warning Letter', date: '28-Jan-2026', by: 'HR Manager' },
-            ].map(d => [
-              <span key="doc" className={`font-mono text-xs ${theme.primaryText}`}>{d.doc}</span>,
-              <span key="emp" className={`font-bold ${theme.highlight}`}>{d.emp}</span>,
-              <span key="type" className={theme.iconColor}>{d.type}</span>,
-              <span key="date" className={theme.iconColor}>{d.date}</span>,
-              <span key="by" className={theme.iconColor}>{d.by}</span>,
-              <div key="actions" className="flex gap-1">
-                <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Eye size={12} className={theme.iconColor} /></button>
-                <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Download size={12} className={theme.iconColor} /></button>
-                <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Printer size={12} className={theme.iconColor} /></button>
-              </div>
-            ])}
-            theme={theme}
-          />
-        </div>
-      )}
-
-      {tab === 'Employee Docs' && (
-        <div className="space-y-4">
-          <div className="flex gap-3">
-            <SearchBar placeholder="Search employee to view documents..." theme={theme} icon={Search} />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[
-              { name: 'Dr. Rajesh Kumar', id: 'EMP001', docs: ['Aadhar Card', 'PAN Card', 'Degree Certificate', 'Experience Letters (2)', 'Photo'], uploaded: 5 },
-              { name: 'Ms. Priya Sharma', id: 'EMP002', docs: ['Aadhar Card', 'PAN Card', 'B.Ed Certificate', 'Passport'], uploaded: 4 },
-              { name: 'Mr. Amit Verma', id: 'EMP003', docs: ['Aadhar Card', 'PAN Card', 'MBA Certificate'], uploaded: 3 },
-              { name: 'Mrs. Sunita Patel', id: 'EMP004', docs: ['Aadhar Card', 'PAN Card', 'B.Sc Certificate', 'B.Ed Certificate'], uploaded: 4 },
-            ].map((emp, i) => (
-              <div key={i} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <p className={`text-sm font-bold ${theme.highlight}`}>{emp.name}</p>
-                    <p className={`text-xs font-mono ${theme.primaryText}`}>{emp.id}</p>
-                  </div>
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-bold bg-blue-100 text-blue-700`}>{emp.uploaded} docs</span>
-                </div>
-                <div className="flex flex-wrap gap-1.5 mb-3">
-                  {emp.docs.map((d, di) => (
-                    <span key={di} className={`text-[10px] px-2 py-1 rounded-lg ${theme.secondaryBg} ${theme.iconColor} font-bold`}>{d}</span>
-                  ))}
-                </div>
-                <div className="flex gap-2">
-                  <button className={`px-3 py-1.5 rounded-xl text-xs font-bold ${theme.secondaryBg} ${theme.highlight} flex items-center gap-1`}><Eye size={10} /> View All</button>
-                  <button className={`px-3 py-1.5 rounded-xl text-xs font-bold border ${theme.border} ${theme.primaryText} flex items-center gap-1`}><Plus size={10} /> Upload</button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── SETTINGS MODULE ───────────────────────────────
-function SettingsModule({ theme }: { theme: Theme }) {
-  return (
-    <div className="space-y-4">
-      <h1 className={`text-2xl font-bold ${theme.highlight}`}>HR Settings & Policies</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {[
-          { title: 'Leave Policy', desc: 'Configure CL, SL, EL entitlements, carry-forward rules, and leave year cycle', icon: Calendar, color: 'bg-blue-500' },
-          { title: 'Payroll Rules', desc: 'Basic pay structure, HRA/DA percentages, PF/ESI rates, TDS slabs', icon: Banknote, color: 'bg-emerald-500' },
-          { title: 'Attendance Rules', desc: 'Working hours, late-mark threshold, half-day policy, biometric integration', icon: ClipboardCheck, color: 'bg-indigo-500' },
-          { title: 'Probation Policy', desc: 'Probation period duration, evaluation criteria, confirmation process', icon: BadgeCheck, color: 'bg-purple-500' },
-          { title: 'Exit Policy', desc: 'Notice period rules, full & final settlement, exit interview process', icon: ArrowRight, color: 'bg-red-500' },
-          { title: 'Holiday Calendar', desc: 'Public holidays, restricted holidays, compensatory off rules for the year', icon: CalendarDays, color: 'bg-amber-500' },
-        ].map((c, i) => (
-          <div key={i} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition-all`}>
-            <div className={`w-10 h-10 rounded-xl ${c.color} flex items-center justify-center text-white shrink-0`}>
-              <c.icon size={18} />
-            </div>
-            <div className="flex-1">
-              <p className={`text-sm font-bold ${theme.highlight}`}>{c.title}</p>
-              <p className={`text-xs ${theme.iconColor}`}>{c.desc}</p>
-            </div>
-            <button className={`px-3 py-1.5 rounded-xl text-xs font-bold ${theme.secondaryBg} ${theme.highlight} shrink-0`}>Configure</button>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ─── EXPORT ────────────────────────────────────────
-export default function Page() {
-  return (
-    <BlueprintLayout>
-      <HRManagerDashboard />
-    </BlueprintLayout>
-  );
+export default function HRManagerPage() {
+  return <BlueprintLayout><HRManagerDashboard /></BlueprintLayout>;
 }
