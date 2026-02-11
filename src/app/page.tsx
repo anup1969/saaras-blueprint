@@ -1,65 +1,117 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import BlueprintLayout from '@/components/BlueprintLayout';
+import { stakeholders } from '@/lib/mock-data';
+import Link from 'next/link';
+import {
+  Building2, GraduationCap, BookOpen, User, Users, Shield, Eye,
+  UserCheck, Briefcase, Calculator, Phone, Bus, ShieldCheck, Headphones,
+  ArrowRight, CheckCircle, Clock, Hammer
+} from 'lucide-react';
+import { type Theme } from '@/lib/themes';
+
+const iconMap: Record<string, any> = {
+  Building2, GraduationCap, BookOpen, User, Users, Shield, Eye,
+  UserCheck, Briefcase, Calculator, Phone, Bus, ShieldCheck, Headphones,
+};
+
+function HomePage({ theme }: { theme?: Theme }) {
+  if (!theme) return null;
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="space-y-8">
+      {/* Hero */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-8`}>
+        <h1 className={`text-3xl font-bold ${theme.highlight} mb-2`}>Saaras.ai — ERP Blueprint</h1>
+        <p className={`${theme.iconColor} text-sm max-w-2xl`}>
+          This is a navigable visual prototype of the School ERP platform. Click any dashboard below to explore.
+          Use <kbd className="px-1.5 py-0.5 bg-purple-600 text-white rounded text-[10px] font-bold mx-0.5">Shift+Click</kbd> on any element to leave feedback.
+        </p>
+        <div className="flex gap-6 mt-6">
+          <div>
+            <p className={`text-2xl font-bold ${theme.highlight}`}>27+</p>
+            <p className={`text-xs ${theme.iconColor}`}>Modules</p>
+          </div>
+          <div>
+            <p className={`text-2xl font-bold ${theme.highlight}`}>25</p>
+            <p className={`text-xs ${theme.iconColor}`}>Stakeholder Dashboards</p>
+          </div>
+          <div>
+            <p className={`text-2xl font-bold ${theme.highlight}`}>3</p>
+            <p className={`text-xs ${theme.iconColor}`}>Phases</p>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </div>
+
+      {/* Dashboard Grid */}
+      <div>
+        <h2 className={`text-lg font-bold ${theme.highlight} mb-4`}>Stakeholder Dashboards</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {stakeholders.map(s => {
+            const Icon = iconMap[s.icon] || Building2;
+            const StatusIcon = s.status === 'built' ? CheckCircle : s.status === 'in-progress' ? Hammer : Clock;
+            const statusColor = s.status === 'built' ? 'text-emerald-500' : s.status === 'in-progress' ? 'text-amber-500' : 'text-slate-400';
+            const statusLabel = s.status === 'built' ? 'Built' : s.status === 'in-progress' ? 'In Progress' : 'Planned';
+
+            return (
+              <Link
+                key={s.id}
+                href={`/${s.id}`}
+                className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5 hover:shadow-lg transition-all group ${
+                  s.status === 'built' ? 'hover:border-emerald-300' : 'hover:border-slate-300'
+                }`}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                    s.status === 'built' ? 'bg-emerald-100' : theme.secondaryBg
+                  }`}>
+                    <Icon size={18} className={s.status === 'built' ? 'text-emerald-600' : theme.iconColor} />
+                  </div>
+                  <div className={`flex items-center gap-1 ${statusColor}`}>
+                    <StatusIcon size={12} />
+                    <span className="text-[10px] font-bold">{statusLabel}</span>
+                  </div>
+                </div>
+                <h3 className={`text-sm font-bold ${theme.highlight} mb-1`}>{s.name}</h3>
+                <p className={`text-xs ${theme.iconColor} mb-3`}>{s.desc}</p>
+                <div className="flex items-center justify-between">
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${theme.secondaryBg} ${theme.iconColor}`}>
+                    Phase {s.phase}
+                  </span>
+                  <ArrowRight size={14} className={`${theme.iconColor} group-hover:translate-x-1 transition-transform`} />
+                </div>
+              </Link>
+            );
+          })}
         </div>
-      </main>
+      </div>
+
+      {/* Legend */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>How to Use This Blueprint</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+          <div className={`p-3 ${theme.accentBg} rounded-xl`}>
+            <p className={`font-bold ${theme.highlight} mb-1`}>1. Browse Dashboards</p>
+            <p className={theme.iconColor}>Click any dashboard card above to explore its modules, tabs, and mock data.</p>
+          </div>
+          <div className={`p-3 ${theme.accentBg} rounded-xl`}>
+            <p className={`font-bold ${theme.highlight} mb-1`}>2. Leave Feedback</p>
+            <p className={theme.iconColor}>Hold <strong>Shift</strong> and click any element to leave a remark — remove, move, change, or comment.</p>
+          </div>
+          <div className={`p-3 ${theme.accentBg} rounded-xl`}>
+            <p className={`font-bold ${theme.highlight} mb-1`}>3. Switch Themes</p>
+            <p className={theme.iconColor}>Use the theme selector in the sidebar to preview different white-label looks (Air, Moss, Stone, Midnight).</p>
+          </div>
+        </div>
+      </div>
     </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <BlueprintLayout>
+      <HomePage />
+    </BlueprintLayout>
   );
 }
