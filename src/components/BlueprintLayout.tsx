@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import {
   Building2, GraduationCap, BookOpen, User, Users, Shield, Eye,
   UserCheck, Briefcase, Calculator, Phone, Bus, ShieldCheck, Headphones,
-  Home, ChevronLeft, Menu, LogOut
+  Home, ChevronLeft, Menu, LogOut, MessageSquare
 } from 'lucide-react';
 import { themes, type Theme } from '@/lib/themes';
 import { getLoggedInUser, logoutUser, type TeamMember } from '@/lib/auth';
@@ -29,6 +29,7 @@ const navItems = [
   { href: '/transport-head', label: 'Transport Head', icon: Bus },
   { href: '/security', label: 'Security', icon: ShieldCheck },
   { href: '/account-manager', label: 'Account Manager', icon: Headphones },
+  { href: '/chat', label: 'Chat', icon: MessageSquare },
 ];
 
 export default function BlueprintLayout({ children }: { children: React.ReactNode }) {
