@@ -138,6 +138,22 @@ function Step1Identity({ theme }: { theme: Theme }) {
   );
 }
 
+// ─── HOUSE COLOR PALETTE ──────────────────────────────
+const HOUSE_COLOR_PALETTE = [
+  { label: 'Red', bg: 'bg-red-500', ring: 'ring-red-300' },
+  { label: 'Blue', bg: 'bg-blue-500', ring: 'ring-blue-300' },
+  { label: 'Green', bg: 'bg-emerald-500', ring: 'ring-emerald-300' },
+  { label: 'Yellow', bg: 'bg-amber-500', ring: 'ring-amber-300' },
+  { label: 'Purple', bg: 'bg-purple-500', ring: 'ring-purple-300' },
+  { label: 'Orange', bg: 'bg-orange-500', ring: 'ring-orange-300' },
+  { label: 'Pink', bg: 'bg-pink-500', ring: 'ring-pink-300' },
+  { label: 'Teal', bg: 'bg-teal-500', ring: 'ring-teal-300' },
+  { label: 'Indigo', bg: 'bg-indigo-500', ring: 'ring-indigo-300' },
+  { label: 'Cyan', bg: 'bg-cyan-500', ring: 'ring-cyan-300' },
+];
+
+type HouseEntry = { id: string; name: string; colorIndex: number; mascot: string };
+
 // ─── STEP 2: ACADEMIC STRUCTURE ───────────────────────
 function Step2Academic({ theme }: { theme: Theme }) {
   const [classes, setClasses] = useState<Record<string, boolean>>({
@@ -148,6 +164,78 @@ function Step2Academic({ theme }: { theme: Theme }) {
   });
   const [streams, setStreams] = useState<Record<string, boolean>>({ 'Science': true, 'Commerce': true, 'Arts / Humanities': false });
   const [houseEnabled, setHouseEnabled] = useState(true);
+
+  // State-managed sections per class range
+  const [sections, setSections] = useState<Record<string, string[]>>({
+    'Nursery - UKG': ['A', 'B'],
+    'Class 1 - 5': ['A', 'B', 'C'],
+    'Class 6 - 8': ['A', 'B', 'C'],
+    'Class 9 - 10': ['A', 'B'],
+    'Class 11 - 12': ['Sci', 'Com', 'Arts'],
+  });
+
+  const sectionStudents: Record<string, string> = {
+    'Nursery - UKG': '~30 per section',
+    'Class 1 - 5': '~35 per section',
+    'Class 6 - 8': '~40 per section',
+    'Class 9 - 10': '~42 per section',
+    'Class 11 - 12': '~40 per section',
+  };
+
+  const addSection = (range: string) => {
+    const name = window.prompt(`Enter new section name for ${range}:`);
+    if (name && name.trim()) {
+      const trimmed = name.trim();
+      setSections(prev => {
+        const current = prev[range] || [];
+        if (current.includes(trimmed)) {
+          window.alert(`Section "${trimmed}" already exists in ${range}.`);
+          return prev;
+        }
+        return { ...prev, [range]: [...current, trimmed] };
+      });
+    }
+  };
+
+  const removeSection = (range: string, sectionName: string) => {
+    setSections(prev => {
+      const current = prev[range] || [];
+      if (current.length <= 1) {
+        window.alert('Each class range must have at least 1 section.');
+        return prev;
+      }
+      return { ...prev, [range]: current.filter(s => s !== sectionName) };
+    });
+  };
+
+  // State-managed house system
+  const [houses, setHouses] = useState<HouseEntry[]>([
+    { id: 'h1', name: 'Red House', colorIndex: 0, mascot: '' },
+    { id: 'h2', name: 'Blue House', colorIndex: 1, mascot: '' },
+    { id: 'h3', name: 'Green House', colorIndex: 2, mascot: '' },
+    { id: 'h4', name: 'Yellow House', colorIndex: 3, mascot: '' },
+  ]);
+  const [colorPickerOpen, setColorPickerOpen] = useState<string | null>(null);
+
+  const addHouse = () => {
+    const newId = `h${Date.now()}`;
+    // Pick the first color not already in use, or default to 0
+    const usedColors = houses.map(h => h.colorIndex);
+    const nextColor = HOUSE_COLOR_PALETTE.findIndex((_, i) => !usedColors.includes(i));
+    setHouses(prev => [...prev, { id: newId, name: `House ${prev.length + 1}`, colorIndex: nextColor >= 0 ? nextColor : 0, mascot: '' }]);
+  };
+
+  const removeHouse = (id: string) => {
+    if (houses.length <= 2) {
+      window.alert('A minimum of 2 houses is required.');
+      return;
+    }
+    setHouses(prev => prev.filter(h => h.id !== id));
+  };
+
+  const updateHouse = (id: string, field: keyof HouseEntry, value: string | number) => {
+    setHouses(prev => prev.map(h => h.id === id ? { ...h, [field]: value } : h));
+  };
 
   return (
     <div className="space-y-6">
@@ -171,27 +259,34 @@ function Step2Academic({ theme }: { theme: Theme }) {
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
         <SectionTitle title="Sections per Class" subtitle="How many sections does each class have?" theme={theme} />
         <div className="space-y-2">
-          {[
-            { range: 'Nursery - UKG', sections: ['A', 'B'], students: '~30 per section' },
-            { range: 'Class 1 - 5', sections: ['A', 'B', 'C'], students: '~35 per section' },
-            { range: 'Class 6 - 8', sections: ['A', 'B', 'C'], students: '~40 per section' },
-            { range: 'Class 9 - 10', sections: ['A', 'B'], students: '~42 per section' },
-            { range: 'Class 11 - 12', sections: ['Sci', 'Com', 'Arts'], students: '~40 per section' },
-          ].map(row => (
-            <div key={row.range} className={`flex items-center gap-4 p-3 rounded-xl ${theme.secondaryBg}`}>
-              <span className={`text-xs font-bold ${theme.highlight} w-32`}>{row.range}</span>
-              <div className="flex gap-1">
-                {row.sections.map(s => (
-                  <span key={s} className={`text-[10px] px-2.5 py-1 rounded-lg ${theme.primary} text-white font-bold`}>{s}</span>
+          {Object.entries(sections).map(([range, sectionList]) => (
+            <div key={range} className={`flex items-center gap-4 p-3 rounded-xl ${theme.secondaryBg}`}>
+              <span className={`text-xs font-bold ${theme.highlight} w-32`}>{range}</span>
+              <div className="flex gap-1 flex-wrap">
+                {sectionList.map(s => (
+                  <span key={s} className={`text-[10px] px-2.5 py-1 rounded-lg ${theme.primary} text-white font-bold flex items-center gap-1`}>
+                    {s}
+                    <button onClick={() => removeSection(range, s)} title={`Remove section ${s}`}>
+                      <X size={8} className="cursor-pointer opacity-70 hover:opacity-100" />
+                    </button>
+                  </span>
                 ))}
-                <button className={`text-[10px] px-2 py-1 rounded-lg border ${theme.border} ${theme.iconColor}`}>
+                <button
+                  onClick={() => addSection(range)}
+                  className={`text-[10px] px-2 py-1 rounded-lg border ${theme.border} ${theme.iconColor} hover:bg-slate-100 transition-colors`}
+                  title="Add new section"
+                >
                   <Plus size={10} />
                 </button>
               </div>
-              <span className={`text-[10px] ${theme.iconColor} ml-auto`}>{row.students}</span>
+              <span className={`text-[10px] ${theme.iconColor} ml-auto whitespace-nowrap`}>{sectionStudents[range]}</span>
             </div>
           ))}
         </div>
+        <p className={`text-[10px] ${theme.iconColor} mt-2`}>
+          <Lock size={10} className="inline mr-1 text-amber-500" />
+          <strong>Note:</strong> In the live system, only Principals and School Admins can add/modify sections.
+        </p>
       </div>
 
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
@@ -222,21 +317,79 @@ function Step2Academic({ theme }: { theme: Theme }) {
           <Toggle on={houseEnabled} onChange={() => setHouseEnabled(!houseEnabled)} theme={theme} />
         </div>
         {houseEnabled && (
-          <div className="grid grid-cols-4 gap-3">
-            {[
-              { name: 'Red House', color: 'bg-red-500' },
-              { name: 'Blue House', color: 'bg-blue-500' },
-              { name: 'Green House', color: 'bg-emerald-500' },
-              { name: 'Yellow House', color: 'bg-amber-500' },
-            ].map(h => (
-              <div key={h.name} className={`p-3 rounded-xl ${theme.secondaryBg} text-center`}>
-                <div className={`w-10 h-10 rounded-full ${h.color} mx-auto mb-2`} />
-                <input defaultValue={h.name} className={`w-full text-center text-xs font-bold ${theme.highlight} bg-transparent outline-none`} />
-              </div>
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              {houses.map(h => {
+                const paletteColor = HOUSE_COLOR_PALETTE[h.colorIndex] || HOUSE_COLOR_PALETTE[0];
+                return (
+                  <div key={h.id} className={`p-3 rounded-xl ${theme.secondaryBg} relative`}>
+                    {/* Remove button */}
+                    <button
+                      onClick={() => removeHouse(h.id)}
+                      className={`absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center ${theme.border} border hover:bg-red-100 transition-colors`}
+                      title="Remove house"
+                    >
+                      <X size={10} className="text-red-500" />
+                    </button>
+
+                    {/* Color circle — click to open palette */}
+                    <div className="relative flex justify-center mb-2">
+                      <button
+                        onClick={() => setColorPickerOpen(colorPickerOpen === h.id ? null : h.id)}
+                        className={`w-10 h-10 rounded-full ${paletteColor.bg} cursor-pointer ring-2 ring-offset-2 ${colorPickerOpen === h.id ? paletteColor.ring : 'ring-transparent'} transition-all`}
+                        title="Click to change color"
+                      />
+                      {/* Color palette dropdown */}
+                      {colorPickerOpen === h.id && (
+                        <div className={`absolute top-12 z-10 ${theme.cardBg} border ${theme.border} rounded-xl p-2 shadow-lg flex flex-wrap gap-1.5 w-40`}>
+                          {HOUSE_COLOR_PALETTE.map((pc, idx) => (
+                            <button
+                              key={pc.label}
+                              onClick={() => { updateHouse(h.id, 'colorIndex', idx); setColorPickerOpen(null); }}
+                              className={`w-6 h-6 rounded-full ${pc.bg} cursor-pointer ${h.colorIndex === idx ? `ring-2 ring-offset-1 ${pc.ring}` : ''} hover:scale-110 transition-transform`}
+                              title={pc.label}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* House name input */}
+                    <input
+                      value={h.name}
+                      onChange={(e) => updateHouse(h.id, 'name', e.target.value)}
+                      className={`w-full text-center text-xs font-bold ${theme.highlight} bg-transparent outline-none border-b ${theme.border} pb-1 mb-2 focus:border-blue-400`}
+                      placeholder="House name"
+                    />
+
+                    {/* Mascot input */}
+                    <input
+                      value={h.mascot}
+                      onChange={(e) => updateHouse(h.id, 'mascot', e.target.value)}
+                      className={`w-full text-center text-[10px] ${theme.iconColor} bg-transparent outline-none border-b ${theme.border} pb-1 focus:border-blue-400`}
+                      placeholder="Mascot / Logo name"
+                    />
+                  </div>
+                );
+              })}
+
+              {/* Add new house button */}
+              <button
+                onClick={addHouse}
+                className={`p-3 rounded-xl border-2 border-dashed ${theme.border} flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-slate-50 transition-colors min-h-[120px]`}
+              >
+                <Plus size={20} className={theme.iconColor} />
+                <span className={`text-[10px] font-bold ${theme.iconColor}`}>Add House</span>
+              </button>
+            </div>
+            <p className={`text-[10px] ${theme.iconColor} mt-2`}>
+              {houses.length} house{houses.length !== 1 ? 's' : ''} configured. Names, colors, and mascots are editable. Students will be auto-assigned or manually grouped.
+            </p>
+          </>
         )}
-        <p className={`text-[10px] ${theme.iconColor} mt-2`}>House names are editable. Students will be auto-assigned or manually grouped.</p>
+        {!houseEnabled && (
+          <p className={`text-[10px] ${theme.iconColor} mt-2`}>House system is disabled. Toggle on to configure houses.</p>
+        )}
       </div>
 
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>

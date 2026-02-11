@@ -5,7 +5,7 @@ import BlueprintLayout from '@/components/BlueprintLayout';
 import { StatCard, TabBar, StatusBadge, SearchBar, DataTable, Toggle } from '@/components/shared';
 import { type Theme } from '@/lib/themes';
 import {
-  MessageSquare, Users, Megaphone, CheckSquare, Send, Search, Plus, Settings,
+  MessageSquare, Users, Megaphone, Send, Search, Plus, Settings,
   Phone, Video, Paperclip, Image, Smile, MoreVertical, Check, CheckCheck,
   Circle, Clock, Star, Pin, Archive, Trash2, Bell, BellOff, ChevronDown,
   UserPlus, Hash, Lock, Globe, BarChart3, Vote, FileText, Download,
@@ -53,15 +53,6 @@ const sampleMessages = [
   { id: 'm8', sender: 'Priya Sharma', avatar: 'PS', text: 'Class 10-A test papers are ready for review', time: '11:02 AM', status: 'delivered', type: 'text' },
 ];
 
-// Tasks from chat
-const chatTasks = [
-  { id: 't1', title: 'Review Class 10-A UT3 Maths paper', assignedBy: 'Priya Sharma', assignedTo: 'You', due: 'Today, 3 PM', priority: 'High', status: 'In Progress', from: 'DM' },
-  { id: 't2', title: 'Submit attendance report for January', assignedBy: 'Principal', assignedTo: 'You', due: 'Tomorrow', priority: 'Urgent', status: 'Pending', from: 'All Teaching Staff' },
-  { id: 't3', title: 'Prepare Annual Day program list', assignedBy: 'Dr. Meena Iyer', assignedTo: 'Annual Day Committee', due: 'Feb 20', priority: 'Normal', status: 'Pending', from: 'Annual Day Committee' },
-  { id: 't4', title: 'Update student profiles for 10-A', assignedBy: 'You', assignedTo: 'Kavitha Nair', due: 'Feb 15', priority: 'Normal', status: 'Done', from: 'Class 10-A Teachers' },
-  { id: 't5', title: 'Send parent reminders for fee payment', assignedBy: 'Accounts Head', assignedTo: 'Class Teachers', due: 'Feb 12', priority: 'High', status: 'Pending', from: 'Broadcast' },
-];
-
 // Broadcasts
 const broadcasts = [
   { id: 'b1', from: 'Principal', title: 'Staff Meeting - Tomorrow 3 PM', audience: 'All Staff', time: '15 min ago', priority: 'Important', readCount: 32, totalCount: 86 },
@@ -98,7 +89,6 @@ const modules = [
   { id: 'chats', label: 'Chats', icon: MessageSquare },
   { id: 'groups', label: 'Groups', icon: Users },
   { id: 'broadcasts', label: 'Broadcasts', icon: Megaphone },
-  { id: 'tasks', label: 'Tasks', icon: CheckSquare },
   { id: 'polls', label: 'Polls', icon: BarChart3 },
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
@@ -318,6 +308,7 @@ function GroupsView({ theme }: { theme: Theme }) {
 // ─── BROADCASTS VIEW ───────────────────────────────────
 function BroadcastsView({ theme }: { theme: Theme }) {
   const [tab, setTab] = useState('All');
+  const [showCompose, setShowCompose] = useState(false);
 
   return (
     <div className="space-y-4">
@@ -326,8 +317,11 @@ function BroadcastsView({ theme }: { theme: Theme }) {
           <h2 className={`text-lg font-bold ${theme.highlight}`}>Broadcasts</h2>
           <p className={`text-xs ${theme.iconColor}`}>One-way announcements to specific audiences</p>
         </div>
-        <button className={`flex items-center gap-2 px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>
-          <Megaphone size={14} /> New Broadcast
+        <button
+          onClick={() => setShowCompose(!showCompose)}
+          className={`flex items-center gap-2 px-4 py-2 ${showCompose ? theme.secondaryBg + ' ' + theme.highlight : theme.primary + ' text-white'} rounded-xl text-xs font-bold`}
+        >
+          {showCompose ? <><X size={14} /> Cancel</> : <><Megaphone size={14} /> New Broadcast</>}
         </button>
       </div>
 
@@ -364,99 +358,52 @@ function BroadcastsView({ theme }: { theme: Theme }) {
       </div>
 
       {/* New Broadcast Form */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Compose Broadcast</h3>
-        <div className="space-y-3">
-          <div>
-            <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Audience</label>
-            <div className="flex flex-wrap gap-2">
-              {['All Staff', 'All Parents', 'Teaching Staff', 'Class 10-A Parents', 'Red House', 'Custom...'].map(a => (
-                <button key={a} className={`text-xs px-3 py-1.5 rounded-lg border ${theme.border} ${theme.buttonHover} ${theme.highlight}`}>{a}</button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Priority</label>
-            <div className="flex gap-2">
-              {['Normal', 'Important', 'Urgent'].map(p => (
-                <button key={p} className={`text-xs px-3 py-1.5 rounded-lg ${p === 'Normal' ? `${theme.primary} text-white` : `border ${theme.border} ${theme.highlight}`}`}>{p}</button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Message</label>
-            <textarea rows={3} placeholder="Type your broadcast message..." className={`w-full px-4 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none`} />
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="flex gap-2">
-              <button className={`p-2 rounded-xl ${theme.secondaryBg}`}><Paperclip size={14} className={theme.iconColor} /></button>
-              <button className={`p-2 rounded-xl ${theme.secondaryBg}`}><Image size={14} className={theme.iconColor} /></button>
-              <button className={`p-2 rounded-xl ${theme.secondaryBg}`}><Clock size={14} className={theme.iconColor} /></button>
-            </div>
-            <div className="flex gap-2">
-              <button className={`px-4 py-2 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.highlight}`}>Schedule</button>
-              <button className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold flex items-center gap-1`}><Send size={12} /> Send Now</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── TASKS VIEW ────────────────────────────────────────
-function TasksView({ theme }: { theme: Theme }) {
-  const [tab, setTab] = useState('All');
-  const filtered = tab === 'All' ? chatTasks
-    : tab === 'My Tasks' ? chatTasks.filter(t => t.assignedTo === 'You')
-    : tab === 'Assigned by Me' ? chatTasks.filter(t => t.assignedBy === 'You')
-    : chatTasks.filter(t => t.status === 'Done');
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className={`text-lg font-bold ${theme.highlight}`}>Tasks from Chat</h2>
-          <p className={`text-xs ${theme.iconColor}`}>Track tasks delegated via conversations</p>
-        </div>
-        <button className={`flex items-center gap-2 px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>
-          <Plus size={14} /> Create Task
-        </button>
-      </div>
-
-      <TabBar tabs={['All', 'My Tasks', 'Assigned by Me', 'Completed']} active={tab} onChange={setTab} theme={theme} />
-
-      <div className="space-y-3">
-        {filtered.map(t => (
-          <div key={t.id} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-2">
-                <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
-                  t.status === 'Done' ? 'bg-emerald-500 border-emerald-500' : t.status === 'In Progress' ? `border-amber-400` : `${theme.border}`
-                }`}>
-                  {t.status === 'Done' && <Check size={10} className="text-white" />}
-                </div>
-                <StatusBadge status={t.priority} theme={theme} />
+      {showCompose && (
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Compose Broadcast</h3>
+          <div className="space-y-3">
+            <div>
+              <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Audience</label>
+              <div className="flex flex-wrap gap-2">
+                {['All Staff', 'All Parents', 'Teaching Staff', 'Class 10-A Parents', 'Red House', 'Custom...'].map(a => (
+                  <button key={a} className={`text-xs px-3 py-1.5 rounded-lg border ${theme.border} ${theme.buttonHover} ${theme.highlight}`}>{a}</button>
+                ))}
               </div>
-              <span className={`text-[10px] ${theme.iconColor}`}>
-                <MessageCircle size={10} className="inline mr-1" />from {t.from}
-              </span>
             </div>
-            <h4 className={`text-sm font-bold ${theme.highlight} mt-2 ${t.status === 'Done' ? 'line-through opacity-60' : ''}`}>{t.title}</h4>
-            <div className="flex items-center gap-4 mt-2">
-              <span className={`text-[10px] ${theme.iconColor}`}>By: {t.assignedBy}</span>
-              <span className={`text-[10px] ${theme.iconColor}`}>To: {t.assignedTo}</span>
-              <span className={`text-[10px] font-bold ${t.priority === 'Urgent' ? 'text-red-500' : theme.iconColor}`}>Due: {t.due}</span>
+            <div>
+              <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Priority</label>
+              <div className="flex gap-2">
+                {['Normal', 'Important', 'Urgent'].map(p => (
+                  <button key={p} className={`text-xs px-3 py-1.5 rounded-lg ${p === 'Normal' ? `${theme.primary} text-white` : `border ${theme.border} ${theme.highlight}`}`}>{p}</button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Message</label>
+              <textarea rows={3} placeholder="Type your broadcast message..." className={`w-full px-4 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none`} />
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex gap-2">
+                <button className={`p-2 rounded-xl ${theme.secondaryBg}`}><Paperclip size={14} className={theme.iconColor} /></button>
+                <button className={`p-2 rounded-xl ${theme.secondaryBg}`}><Image size={14} className={theme.iconColor} /></button>
+                <button className={`p-2 rounded-xl ${theme.secondaryBg}`}><Clock size={14} className={theme.iconColor} /></button>
+              </div>
+              <div className="flex gap-2">
+                <button className={`px-4 py-2 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.highlight}`}>Schedule</button>
+                <button className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold flex items-center gap-1`}><Send size={12} /> Send Now</button>
+              </div>
             </div>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
 
 // ─── POLLS VIEW ────────────────────────────────────────
 function PollsView({ theme }: { theme: Theme }) {
+  const [showForm, setShowForm] = useState(false);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -464,8 +411,11 @@ function PollsView({ theme }: { theme: Theme }) {
           <h2 className={`text-lg font-bold ${theme.highlight}`}>Quick Polls</h2>
           <p className={`text-xs ${theme.iconColor}`}>Create polls for staff or parents</p>
         </div>
-        <button className={`flex items-center gap-2 px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>
-          <Plus size={14} /> Create Poll
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className={`flex items-center gap-2 px-4 py-2 ${showForm ? theme.secondaryBg + ' ' + theme.highlight : theme.primary + ' text-white'} rounded-xl text-xs font-bold`}
+        >
+          {showForm ? <><X size={14} /> Cancel</> : <><Plus size={14} /> Create Poll</>}
         </button>
       </div>
 
@@ -511,37 +461,103 @@ function PollsView({ theme }: { theme: Theme }) {
       </div>
 
       {/* Create Poll Form */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Create New Poll</h3>
-        <div className="space-y-3">
-          <div>
-            <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Question</label>
-            <input placeholder="Ask a question..." className={`w-full px-4 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none`} />
-          </div>
-          <div>
-            <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Options</label>
-            {['Option 1', 'Option 2', 'Option 3'].map((o, i) => (
-              <input key={i} placeholder={o} className={`w-full px-4 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none mb-2`} />
-            ))}
-            <button className={`text-xs ${theme.primaryText} font-bold`}>+ Add Option</button>
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className={`text-[10px] ${theme.iconColor}`}>Audience:</span>
-              {['My Class Parents', 'Teaching Staff', 'All Staff'].map(a => (
-                <button key={a} className={`text-[10px] px-2 py-1 rounded-lg border ${theme.border} ${theme.highlight}`}>{a}</button>
-              ))}
+      {showForm && (
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Create New Poll</h3>
+          <div className="space-y-3">
+            <div>
+              <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Question</label>
+              <input placeholder="Ask a question..." className={`w-full px-4 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none`} />
             </div>
-            <button className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>Create Poll</button>
+            <div>
+              <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Options</label>
+              {['Option 1', 'Option 2', 'Option 3'].map((o, i) => (
+                <input key={i} placeholder={o} className={`w-full px-4 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none mb-2`} />
+              ))}
+              <button className={`text-xs ${theme.primaryText} font-bold`}>+ Add Option</button>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className={`text-[10px] ${theme.iconColor}`}>Audience:</span>
+                {['My Class Parents', 'Teaching Staff', 'All Staff'].map(a => (
+                  <button key={a} className={`text-[10px] px-2 py-1 rounded-lg border ${theme.border} ${theme.highlight}`}>{a}</button>
+                ))}
+              </div>
+              <button className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>Create Poll</button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
 
 // ─── SETTINGS VIEW ─────────────────────────────────────
 function SettingsView({ theme }: { theme: Theme }) {
+  // DM Permissions toggles
+  const [dmPerms, setDmPerms] = useState<Record<string, boolean>>({
+    'Teacher-Teacher': true,
+    'Teacher-Parent': true,
+    'Parent-Teacher': true,
+    'Parent-Admin': false,
+    'Admin-Anyone': true,
+    'Principal-Anyone': true,
+    'Staff-Staff (same dept)': true,
+  });
+
+  // Parent Communication Mode radio
+  const [parentMode, setParentMode] = useState('Two-way (Parent can initiate)');
+
+  // Group Creation Authority toggles
+  const [groupAuth, setGroupAuth] = useState<Record<string, boolean>>({
+    'Super Admin / Account Manager': true,
+    'School Admin': true,
+    'Principal': true,
+    'Vice Principal': true,
+    'HODs / Teachers': false,
+  });
+
+  // Notification toggles
+  const [notifPrefs, setNotifPrefs] = useState<Record<string, boolean>>({
+    'Push Notifications': true,
+    'Email for missed messages (after 1 hour)': true,
+    'Sound for new messages': true,
+    'Show message preview in notification': false,
+    'Do Not Disturb (9 PM - 7 AM)': true,
+  });
+
+  const dmPermsList = [
+    { from: 'Teacher', to: 'Teacher' },
+    { from: 'Teacher', to: 'Parent' },
+    { from: 'Parent', to: 'Teacher' },
+    { from: 'Parent', to: 'Admin' },
+    { from: 'Admin', to: 'Anyone' },
+    { from: 'Principal', to: 'Anyone' },
+    { from: 'Staff', to: 'Staff (same dept)' },
+  ];
+
+  const groupAuthList = [
+    { role: 'Super Admin / Account Manager', note: 'Always (platform level)' },
+    { role: 'School Admin', note: 'Enabled by default' },
+    { role: 'Principal', note: 'Enabled by default' },
+    { role: 'Vice Principal', note: 'Enabled by default' },
+    { role: 'HODs / Teachers', note: 'Disabled — can be enabled per school' },
+  ];
+
+  const parentModes = [
+    { mode: 'Two-way (Parent can initiate)', desc: 'Parents can start conversations with class teacher' },
+    { mode: 'Reply-only', desc: 'Parents can only reply to teacher-initiated messages' },
+    { mode: 'Broadcast only', desc: 'One-way — teachers send, parents read only' },
+  ];
+
+  const notifList = [
+    'Push Notifications',
+    'Email for missed messages (after 1 hour)',
+    'Sound for new messages',
+    'Show message preview in notification',
+    'Do Not Disturb (9 PM - 7 AM)',
+  ];
+
   return (
     <div className="space-y-4">
       <div>
@@ -554,20 +570,15 @@ function SettingsView({ theme }: { theme: Theme }) {
         <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Direct Message Permissions</h3>
         <p className={`text-[10px] ${theme.iconColor} mb-3`}>Who can initiate DMs with whom (set during school onboarding)</p>
         <div className="space-y-2">
-          {[
-            { from: 'Teacher', to: 'Teacher', enabled: true },
-            { from: 'Teacher', to: 'Parent', enabled: true },
-            { from: 'Parent', to: 'Teacher', enabled: true },
-            { from: 'Parent', to: 'Admin', enabled: false },
-            { from: 'Admin', to: 'Anyone', enabled: true },
-            { from: 'Principal', to: 'Anyone', enabled: true },
-            { from: 'Staff', to: 'Staff (same dept)', enabled: true },
-          ].map(p => (
-            <div key={`${p.from}-${p.to}`} className={`flex items-center justify-between p-3 rounded-xl ${theme.secondaryBg}`}>
-              <span className={`text-xs ${theme.highlight}`}>{p.from} → {p.to}</span>
-              <Toggle on={p.enabled} onChange={() => {}} theme={theme} />
-            </div>
-          ))}
+          {dmPermsList.map(p => {
+            const key = `${p.from}-${p.to}`;
+            return (
+              <div key={key} className={`flex items-center justify-between p-3 rounded-xl ${theme.secondaryBg}`}>
+                <span className={`text-xs ${theme.highlight}`}>{p.from} → {p.to}</span>
+                <Toggle on={dmPerms[key]} onChange={() => setDmPerms(prev => ({ ...prev, [key]: !prev[key] }))} theme={theme} />
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -576,20 +587,20 @@ function SettingsView({ theme }: { theme: Theme }) {
         <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Parent Communication Mode</h3>
         <p className={`text-[10px] ${theme.iconColor} mb-3`}>How parents interact in chat (configurable per school, editable anytime)</p>
         <div className="space-y-2">
-          {[
-            { mode: 'Two-way (Parent can initiate)', desc: 'Parents can start conversations with class teacher', selected: true },
-            { mode: 'Reply-only', desc: 'Parents can only reply to teacher-initiated messages', selected: false },
-            { mode: 'Broadcast only', desc: 'One-way — teachers send, parents read only', selected: false },
-          ].map(m => (
-            <div key={m.mode} className={`flex items-center gap-3 p-3 rounded-xl ${m.selected ? `border-2 ${theme.primary.replace('bg-', 'border-')}` : `border ${theme.border}`} ${theme.cardBg}`}>
-              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${m.selected ? `${theme.primary.replace('bg-', 'border-')}` : theme.border}`}>
-                {m.selected && <div className={`w-2 h-2 rounded-full ${theme.primary}`} />}
+          {parentModes.map(m => (
+            <button
+              key={m.mode}
+              onClick={() => setParentMode(m.mode)}
+              className={`w-full flex items-center gap-3 p-3 rounded-xl text-left ${parentMode === m.mode ? `border-2 ${theme.primary.replace('bg-', 'border-')}` : `border ${theme.border}`} ${theme.cardBg}`}
+            >
+              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${parentMode === m.mode ? `${theme.primary.replace('bg-', 'border-')}` : theme.border}`}>
+                {parentMode === m.mode && <div className={`w-2 h-2 rounded-full ${theme.primary}`} />}
               </div>
               <div>
                 <p className={`text-xs font-bold ${theme.highlight}`}>{m.mode}</p>
                 <p className={`text-[10px] ${theme.iconColor}`}>{m.desc}</p>
               </div>
-            </div>
+            </button>
           ))}
         </div>
       </div>
@@ -598,19 +609,13 @@ function SettingsView({ theme }: { theme: Theme }) {
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
         <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Group Creation Authority</h3>
         <div className="space-y-2">
-          {[
-            { role: 'Super Admin / Account Manager', can: true, note: 'Always (platform level)' },
-            { role: 'School Admin', can: true, note: 'Enabled by default' },
-            { role: 'Principal', can: true, note: 'Enabled by default' },
-            { role: 'Vice Principal', can: true, note: 'Enabled by default' },
-            { role: 'HODs / Teachers', can: false, note: 'Disabled — can be enabled per school' },
-          ].map(r => (
+          {groupAuthList.map(r => (
             <div key={r.role} className={`flex items-center justify-between p-3 rounded-xl ${theme.secondaryBg}`}>
               <div>
                 <span className={`text-xs font-bold ${theme.highlight}`}>{r.role}</span>
                 <p className={`text-[10px] ${theme.iconColor}`}>{r.note}</p>
               </div>
-              <Toggle on={r.can} onChange={() => {}} theme={theme} />
+              <Toggle on={groupAuth[r.role]} onChange={() => setGroupAuth(prev => ({ ...prev, [r.role]: !prev[r.role] }))} theme={theme} />
             </div>
           ))}
         </div>
@@ -658,16 +663,10 @@ function SettingsView({ theme }: { theme: Theme }) {
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
         <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Notification Preferences</h3>
         <div className="space-y-2">
-          {[
-            { label: 'Push Notifications', on: true },
-            { label: 'Email for missed messages (after 1 hour)', on: true },
-            { label: 'Sound for new messages', on: true },
-            { label: 'Show message preview in notification', on: false },
-            { label: 'Do Not Disturb (9 PM - 7 AM)', on: true },
-          ].map(n => (
-            <div key={n.label} className={`flex items-center justify-between p-3 rounded-xl ${theme.secondaryBg}`}>
-              <span className={`text-xs ${theme.highlight}`}>{n.label}</span>
-              <Toggle on={n.on} onChange={() => {}} theme={theme} />
+          {notifList.map(label => (
+            <div key={label} className={`flex items-center justify-between p-3 rounded-xl ${theme.secondaryBg}`}>
+              <span className={`text-xs ${theme.highlight}`}>{label}</span>
+              <Toggle on={notifPrefs[label]} onChange={() => setNotifPrefs(prev => ({ ...prev, [label]: !prev[label] }))} theme={theme} />
             </div>
           ))}
         </div>
@@ -686,7 +685,6 @@ function ChatModule({ theme }: { theme?: Theme }) {
       case 'chats': return <ChatsView theme={theme} />;
       case 'groups': return <GroupsView theme={theme} />;
       case 'broadcasts': return <BroadcastsView theme={theme} />;
-      case 'tasks': return <TasksView theme={theme} />;
       case 'polls': return <PollsView theme={theme} />;
       case 'settings': return <SettingsView theme={theme} />;
       default: return <ChatsView theme={theme} />;
