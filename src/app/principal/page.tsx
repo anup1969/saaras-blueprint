@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import BlueprintLayout from '@/components/BlueprintLayout';
 import { StatCard, TabBar, StatusBadge, SearchBar, DataTable } from '@/components/shared';
 import { type Theme } from '@/lib/themes';
@@ -11,7 +11,8 @@ import {
   TrendingUp, Heart, ClipboardCheck, Star, DollarSign, Building2,
   Bell, ArrowRight, MessageSquare, Award, Filter, User, ListTodo, Circle,
   PanelLeftClose, PanelLeftOpen, Banknote, IndianRupee, Mail, Inbox,
-  ChevronRight, ChevronLeft, CalendarDays, GripVertical, Flag, Edit2, Save, Trash2
+  ChevronRight, ChevronLeft, CalendarDays, GripVertical, Flag, Edit2, Save, Trash2,
+  CalendarClock, Sparkles, Bot, ChevronDown, Loader2
 } from 'lucide-react';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
@@ -25,6 +26,7 @@ const modules = [
   { id: 'compliance', label: 'Compliance', icon: ShieldCheck },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
   { id: 'calendar', label: 'Calendar', icon: CalendarDays },
+  { id: 'yearly-planner', label: 'Yearly Planner', icon: CalendarClock },
   { id: 'approvals', label: 'Approvals', icon: CheckCircle },
   { id: 'reports', label: 'Reports', icon: BarChart3 },
   { id: 'announcements', label: 'Announcements', icon: Megaphone },
@@ -68,6 +70,7 @@ function PrincipalDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme;
         {activeModule === 'compliance' && <ComplianceModule theme={theme} />}
         {activeModule === 'communication' && <CommunicationModule theme={theme} />}
         {activeModule === 'calendar' && <CalendarModule theme={theme} />}
+        {activeModule === 'yearly-planner' && <YearlyPlannerModule theme={theme} />}
         {activeModule === 'approvals' && <ApprovalsModule theme={theme} />}
         {activeModule === 'reports' && <ReportsModule theme={theme} />}
         {activeModule === 'announcements' && <AnnouncementsModule theme={theme} />}
@@ -876,6 +879,737 @@ function CommunicationModule({ theme }: { theme: Theme }) {
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+// ─── YEARLY PLANNER MODULE ───────────────────────────
+
+interface ChatMessage {
+  sender: 'bot' | 'user';
+  text: string;
+  type?: 'question' | 'answer' | 'info' | 'summary';
+}
+
+interface PlannerQuestion {
+  id: number;
+  topic: string;
+  question: string;
+  inputType: 'buttons' | 'dropdown' | 'multi-select' | 'date-range' | 'text-add';
+  options?: string[];
+}
+
+const PLANNER_QUESTIONS: PlannerQuestion[] = [
+  { id: 1, topic: 'Terms', question: 'How many terms do you follow?', inputType: 'buttons', options: ['2 Terms', '3 Terms'] },
+  { id: 2, topic: 'Unit Tests', question: 'How many unit tests per term?', inputType: 'buttons', options: ['2', '3', '4'] },
+  { id: 3, topic: 'Mid-Term', question: 'Do you conduct mid-term exams?', inputType: 'buttons', options: ['Yes', 'No'] },
+  { id: 4, topic: 'Pre-Board', question: 'Pre-board exams for Class 10/12?', inputType: 'buttons', options: ['Yes, both', 'Only Class 12', 'No'] },
+  { id: 5, topic: 'PTMs', question: 'How many PTMs per year?', inputType: 'buttons', options: ['2', '3', '4', '6'] },
+  { id: 6, topic: 'Events', question: 'Select your annual events:', inputType: 'multi-select', options: [
+    'Annual Day', 'Sports Day', 'Science Fair', 'Art Exhibition', 'Republic Day',
+    'Independence Day', 'Teachers Day', 'Children\'s Day', 'Founder\'s Day', 'Graduation Day'
+  ]},
+  { id: 7, topic: 'Summer Break', question: 'Summer vacation dates?', inputType: 'date-range' },
+  { id: 8, topic: 'Winter Break', question: 'Winter break dates?', inputType: 'date-range' },
+  { id: 9, topic: 'Diwali Break', question: 'Diwali break duration?', inputType: 'buttons', options: ['1 Week', '2 Weeks'] },
+  { id: 10, topic: 'Holidays', question: 'Any other school-specific holidays?', inputType: 'text-add' },
+];
+
+function YearlyPlannerModule({ theme }: { theme: Theme }) {
+  const [plannerMode, setPlannerMode] = useState<'manual' | 'ai'>('manual');
+  const [selectedGanttItem, setSelectedGanttItem] = useState<string | null>(null);
+
+  // AI Mode state
+  const [currentStep, setCurrentStep] = useState(0);
+  const [answers, setAnswers] = useState<Record<number, string | string[]>>({});
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [isTyping, setIsTyping] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generateProgress, setGenerateProgress] = useState(0);
+  const [planReady, setPlanReady] = useState(false);
+  const [aiStarted, setAiStarted] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  // Multi-select state for Q10
+  const [selectedEvents, setSelectedEvents] = useState<string[]>([]);
+  // Date range state for Q11
+  const [vacationFrom, setVacationFrom] = useState('2026-05-01');
+  const [vacationTo, setVacationTo] = useState('2026-06-15');
+  // Text-add state for Q12
+  const [holidayInput, setHolidayInput] = useState('');
+  const [customHolidays, setCustomHolidays] = useState<string[]>([]);
+  // Dropdown state for Q2
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  // Auto-scroll chat
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatMessages, isTyping]);
+
+  const addBotMessage = useCallback((text: string, type: ChatMessage['type'] = 'question') => {
+    setIsTyping(true);
+    setTimeout(() => {
+      setIsTyping(false);
+      setChatMessages(prev => [...prev, { sender: 'bot', text, type }]);
+    }, 300);
+  }, []);
+
+  const startAI = useCallback(() => {
+    setAiStarted(true);
+    setChatMessages([]);
+    setCurrentStep(0);
+    setAnswers({});
+    setPlanReady(false);
+    setIsGenerating(false);
+    setGenerateProgress(0);
+    setSelectedEvents([]);
+    setCustomHolidays([]);
+
+    // Welcome message then first question
+    setChatMessages([
+      { sender: 'bot', text: "Hello! I\u2019m Saaras AI, your academic year planning assistant. I already have your school profile: CBSE affiliated, Gujarat, April-March session, Alternate Saturdays. Let me ask 10 quick questions about your academic planning to build the complete 2026-27 plan!", type: 'info' }
+    ]);
+    setTimeout(() => {
+      addBotMessage(PLANNER_QUESTIONS[0].question);
+      setCurrentStep(1);
+    }, 800);
+  }, [addBotMessage]);
+
+  const handleAnswer = useCallback((stepId: number, answer: string | string[]) => {
+    const displayAnswer = Array.isArray(answer) ? answer.join(', ') : answer;
+    setChatMessages(prev => [...prev, { sender: 'user', text: displayAnswer, type: 'answer' }]);
+    setAnswers(prev => ({ ...prev, [stepId]: answer }));
+
+    const nextStep = stepId + 1;
+    if (nextStep <= PLANNER_QUESTIONS.length) {
+      setTimeout(() => {
+        addBotMessage(PLANNER_QUESTIONS[nextStep - 1].question);
+        setCurrentStep(nextStep);
+      }, 500);
+    } else {
+      // All done — generate
+      setTimeout(() => {
+        setChatMessages(prev => [...prev, { sender: 'bot', text: 'Excellent! I have all the information I need. Generating your personalized academic plan...', type: 'info' }]);
+        setIsGenerating(true);
+        setGenerateProgress(0);
+
+        let progress = 0;
+        const interval = setInterval(() => {
+          progress += Math.random() * 8 + 2;
+          if (progress >= 100) {
+            progress = 100;
+            clearInterval(interval);
+            setTimeout(() => {
+              setIsGenerating(false);
+              setPlanReady(true);
+              setCurrentStep(13);
+            }, 400);
+          }
+          setGenerateProgress(Math.min(progress, 100));
+        }, 100);
+      }, 500);
+    }
+  }, [addBotMessage]);
+
+  // ─── GANTT TIMELINE DATA ─────────────────────
+  const months = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'];
+
+  const ganttCategories = [
+    {
+      name: 'Academic', color: 'bg-blue-500', textColor: 'text-blue-700', bgLight: 'bg-blue-100',
+      items: [
+        { label: 'Term 1', startMonth: 0, duration: 6, detail: 'April to September' },
+        { label: 'Term 2', startMonth: 6, duration: 6, detail: 'October to March' },
+      ]
+    },
+    {
+      name: 'Exams', color: 'bg-red-500', textColor: 'text-red-700', bgLight: 'bg-red-100',
+      items: [
+        { label: 'UT-1', startMonth: 2, duration: 0.5, detail: 'Unit Test 1 — June' },
+        { label: 'Mid-Term', startMonth: 5, duration: 0.5, detail: 'Mid-Term Exams — September' },
+        { label: 'UT-2', startMonth: 7, duration: 0.5, detail: 'Unit Test 2 — November' },
+        { label: 'Pre-Board', startMonth: 9, duration: 0.5, detail: 'Pre-Board Exams — January' },
+        { label: 'Finals', startMonth: 11, duration: 0.5, detail: 'Final Exams — March' },
+      ]
+    },
+    {
+      name: 'Events', color: 'bg-orange-500', textColor: 'text-orange-700', bgLight: 'bg-orange-100',
+      items: [
+        { label: 'Sports Day', startMonth: 4, duration: 0.3, detail: 'Sports Day — August' },
+        { label: 'Annual Day', startMonth: 8, duration: 0.3, detail: 'Annual Day — December' },
+        { label: 'Republic Day', startMonth: 9.8, duration: 0.2, detail: 'Republic Day — January 26' },
+        { label: 'Teachers Day', startMonth: 5.15, duration: 0.2, detail: 'Teachers Day — September 5' },
+      ]
+    },
+    {
+      name: 'Holidays', color: 'bg-green-500', textColor: 'text-green-700', bgLight: 'bg-green-100',
+      items: [
+        { label: 'Summer', startMonth: 1, duration: 1.5, detail: 'Summer Vacation — May to mid-June' },
+        { label: 'Diwali', startMonth: 6.5, duration: 0.5, detail: 'Diwali Break — Oct/Nov' },
+        { label: 'Winter', startMonth: 8.5, duration: 0.8, detail: 'Winter Break — Dec/Jan' },
+      ]
+    },
+    {
+      name: 'PTM', color: 'bg-purple-500', textColor: 'text-purple-700', bgLight: 'bg-purple-100',
+      items: [
+        { label: 'PTM 1', startMonth: 3, duration: 0.15, detail: 'Parent-Teacher Meeting — July' },
+        { label: 'PTM 2', startMonth: 5, duration: 0.15, detail: 'Parent-Teacher Meeting — September' },
+        { label: 'PTM 3', startMonth: 8, duration: 0.15, detail: 'Parent-Teacher Meeting — December' },
+        { label: 'PTM 4', startMonth: 10, duration: 0.15, detail: 'Parent-Teacher Meeting — February' },
+      ]
+    },
+    {
+      name: 'Compliance', color: 'bg-gray-500', textColor: 'text-gray-700', bgLight: 'bg-gray-200',
+      items: [
+        { label: 'Fire Drill Q1', startMonth: 1, duration: 0.2, detail: 'Fire Drill — Q1 (May)' },
+        { label: 'Fire Drill Q3', startMonth: 7, duration: 0.2, detail: 'Fire Drill — Q3 (November)' },
+        { label: 'CBSE Visit', startMonth: 7, duration: 0.3, detail: 'CBSE Inspection Visit — November' },
+        { label: 'Safety Audit', startMonth: 9, duration: 0.3, detail: 'Safety Audit — January' },
+      ]
+    },
+  ];
+
+  // ─── RENDER MANUAL MODE ──────────────────────
+  const renderManualMode = () => (
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className={`text-lg font-bold ${theme.highlight}`}>Academic Year 2026-27</h2>
+          <p className={`text-xs ${theme.iconColor}`}>Gantt-style yearly timeline view</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className={`px-3 py-1.5 rounded-xl ${theme.secondaryBg}`}>
+            <span className={`text-xs font-bold ${theme.highlight}`}>Total Working Days: </span>
+            <span className="text-xs font-bold text-emerald-600">220</span>
+          </div>
+          <button className={`px-3 py-1.5 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-1`}>
+            <Plus size={12} /> Add Event
+          </button>
+        </div>
+      </div>
+
+      {/* Gantt Chart */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 overflow-x-auto`}>
+        {/* Month Headers */}
+        <div className="flex items-stretch min-w-[900px]">
+          <div className="w-28 shrink-0" />
+          <div className="flex-1 grid grid-cols-12 gap-0">
+            {months.map((m, i) => (
+              <div key={m} className={`text-center py-2 text-[10px] font-bold uppercase ${theme.iconColor} ${i < 11 ? `border-r ${theme.border}` : ''}`}>
+                {m}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Category Rows */}
+        {ganttCategories.map((cat) => (
+          <div key={cat.name} className={`flex items-stretch min-w-[900px] border-t ${theme.border}`}>
+            {/* Category Label */}
+            <div className={`w-28 shrink-0 flex items-center gap-2 py-3 pr-2`}>
+              <div className={`w-2.5 h-2.5 rounded-full ${cat.color}`} />
+              <span className={`text-[11px] font-bold ${theme.highlight}`}>{cat.name}</span>
+            </div>
+            {/* Timeline Grid */}
+            <div className="flex-1 relative py-2" style={{ minHeight: '36px' }}>
+              {/* Grid lines */}
+              <div className="absolute inset-0 grid grid-cols-12">
+                {months.map((m, i) => (
+                  <div key={m} className={`${i < 11 ? `border-r ${theme.border}` : ''} opacity-30`} />
+                ))}
+              </div>
+              {/* Bars */}
+              <div className="relative h-full flex items-center">
+                {cat.items.map((item) => {
+                  const leftPercent = (item.startMonth / 12) * 100;
+                  const widthPercent = Math.max((item.duration / 12) * 100, 2);
+                  const isSelected = selectedGanttItem === `${cat.name}-${item.label}`;
+                  return (
+                    <div
+                      key={item.label}
+                      onClick={() => setSelectedGanttItem(isSelected ? null : `${cat.name}-${item.label}`)}
+                      className={`absolute h-6 rounded-full ${cat.color} cursor-pointer hover:opacity-90 transition-all flex items-center justify-center ${
+                        isSelected ? 'ring-2 ring-offset-1 ring-blue-400 z-10' : ''
+                      }`}
+                      style={{ left: `${leftPercent}%`, width: `${widthPercent}%`, minWidth: '22px' }}
+                      title={item.detail}
+                    >
+                      <span className="text-[8px] font-bold text-white truncate px-1">{item.label}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Selected item detail */}
+      {selectedGanttItem && (() => {
+        const [catName, ...labelParts] = selectedGanttItem.split('-');
+        const label = labelParts.join('-');
+        const cat = ganttCategories.find(c => c.name === catName);
+        const item = cat?.items.find(i => i.label === label);
+        if (!cat || !item) return null;
+        return (
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 flex items-center gap-4`}>
+            <div className={`w-10 h-10 rounded-xl ${cat.color} flex items-center justify-center`}>
+              <CalendarClock size={18} className="text-white" />
+            </div>
+            <div className="flex-1">
+              <p className={`text-sm font-bold ${theme.highlight}`}>{item.label}</p>
+              <p className={`text-xs ${theme.iconColor}`}>{item.detail}</p>
+              <p className={`text-[10px] ${cat.textColor} font-bold mt-0.5`}>{cat.name}</p>
+            </div>
+            <button onClick={() => setSelectedGanttItem(null)} className={`p-1.5 rounded-lg ${theme.buttonHover}`}>
+              <X size={14} className={theme.iconColor} />
+            </button>
+          </div>
+        );
+      })()}
+
+      {/* Color Legend */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <div className="flex items-center flex-wrap gap-4">
+          {ganttCategories.map(cat => (
+            <div key={cat.name} className="flex items-center gap-1.5">
+              <div className={`w-3 h-3 rounded-full ${cat.color}`} />
+              <span className={`text-[10px] font-bold ${theme.iconColor}`}>{cat.name}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  // ─── RENDER AI QUESTION INPUT ─────────────────
+  const renderQuestionInput = () => {
+    if (currentStep < 1 || currentStep > 12 || isGenerating || planReady) return null;
+    const q = PLANNER_QUESTIONS[currentStep - 1];
+
+    if (q.inputType === 'buttons') {
+      return (
+        <div className="flex flex-wrap gap-2 mt-3">
+          {q.options?.map(opt => (
+            <button
+              key={opt}
+              onClick={() => handleAnswer(q.id, opt)}
+              className={`px-4 py-2 rounded-xl text-xs font-bold border-2 ${theme.border} ${theme.highlight} hover:border-blue-400 ${theme.buttonHover} transition-all`}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+      );
+    }
+
+    if (q.inputType === 'dropdown') {
+      return (
+        <div className="mt-3 relative" style={{ maxWidth: '280px' }}>
+          <button
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+            className={`w-full px-4 py-2.5 rounded-xl text-xs font-bold border-2 ${theme.border} ${theme.highlight} ${theme.cardBg} flex items-center justify-between`}
+          >
+            <span className={theme.iconColor}>Select a state...</span>
+            <ChevronDown size={14} className={theme.iconColor} />
+          </button>
+          {dropdownOpen && (
+            <div className={`absolute top-full left-0 right-0 mt-1 ${theme.cardBg} border ${theme.border} rounded-xl shadow-lg max-h-48 overflow-y-auto z-20`}>
+              {q.options?.map(opt => (
+                <button
+                  key={opt}
+                  onClick={() => { handleAnswer(q.id, opt); setDropdownOpen(false); }}
+                  className={`w-full text-left px-4 py-2 text-xs ${theme.highlight} ${theme.buttonHover} first:rounded-t-xl last:rounded-b-xl`}
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    if (q.inputType === 'multi-select') {
+      return (
+        <div className="mt-3 space-y-2">
+          <div className="grid grid-cols-2 gap-2">
+            {q.options?.map(opt => {
+              const isChecked = selectedEvents.includes(opt);
+              return (
+                <button
+                  key={opt}
+                  onClick={() => setSelectedEvents(prev => isChecked ? prev.filter(e => e !== opt) : [...prev, opt])}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium border-2 transition-all ${
+                    isChecked ? 'border-blue-400 bg-blue-50 text-blue-700' : `${theme.border} ${theme.highlight} ${theme.buttonHover}`
+                  }`}
+                >
+                  <div className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 ${
+                    isChecked ? 'border-blue-500 bg-blue-500' : `${theme.border}`
+                  }`}>
+                    {isChecked && <Check size={10} className="text-white" />}
+                  </div>
+                  {opt}
+                </button>
+              );
+            })}
+          </div>
+          {selectedEvents.length > 0 && (
+            <button
+              onClick={() => handleAnswer(q.id, selectedEvents)}
+              className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-1`}
+            >
+              <Check size={12} /> Confirm {selectedEvents.length} selected
+            </button>
+          )}
+        </div>
+      );
+    }
+
+    if (q.inputType === 'date-range') {
+      return (
+        <div className="mt-3 space-y-2">
+          <div className="flex items-center gap-3">
+            <div>
+              <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>From</label>
+              <input
+                type="date"
+                value={vacationFrom}
+                onChange={e => setVacationFrom(e.target.value)}
+                className={`px-3 py-2 rounded-xl text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight} outline-none`}
+              />
+            </div>
+            <div>
+              <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>To</label>
+              <input
+                type="date"
+                value={vacationTo}
+                onChange={e => setVacationTo(e.target.value)}
+                className={`px-3 py-2 rounded-xl text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight} outline-none`}
+              />
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              const from = new Date(vacationFrom).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+              const to = new Date(vacationTo).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+              handleAnswer(q.id, `${from} to ${to}`);
+            }}
+            className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-1`}
+          >
+            <Check size={12} /> Confirm Dates
+          </button>
+        </div>
+      );
+    }
+
+    if (q.inputType === 'text-add') {
+      return (
+        <div className="mt-3 space-y-2">
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={holidayInput}
+              onChange={e => setHolidayInput(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && holidayInput.trim()) {
+                  setCustomHolidays(prev => [...prev, holidayInput.trim()]);
+                  setHolidayInput('');
+                }
+              }}
+              placeholder="e.g., Founder's Day, Local Festival..."
+              className={`flex-1 px-3 py-2 rounded-xl text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight} outline-none`}
+            />
+            <button
+              onClick={() => {
+                if (holidayInput.trim()) {
+                  setCustomHolidays(prev => [...prev, holidayInput.trim()]);
+                  setHolidayInput('');
+                }
+              }}
+              className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}
+            >
+              Add
+            </button>
+          </div>
+          {customHolidays.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {customHolidays.map((h, i) => (
+                <span key={i} className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${theme.secondaryBg} ${theme.highlight} flex items-center gap-1`}>
+                  {h}
+                  <button onClick={() => setCustomHolidays(prev => prev.filter((_, idx) => idx !== i))} className="hover:text-red-500">
+                    <X size={10} />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+          <button
+            onClick={() => handleAnswer(q.id, customHolidays.length > 0 ? customHolidays : ['None'])}
+            className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-1`}
+          >
+            <Check size={12} /> {customHolidays.length > 0 ? `Done (${customHolidays.length} added)` : 'Skip — No extra holidays'}
+          </button>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
+  // ─── RENDER AI MODE ──────────────────────────
+  const renderAIMode = () => (
+    <div className="space-y-4">
+      {!aiStarted ? (
+        /* Welcome Screen */
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-8 text-center`}>
+          <div className={`w-16 h-16 rounded-2xl ${theme.primary} mx-auto mb-4 flex items-center justify-center`}>
+            <Sparkles size={28} className="text-white" />
+          </div>
+          <h2 className={`text-xl font-bold ${theme.highlight} mb-2`}>AI-Powered Yearly Planner</h2>
+          <p className={`text-sm ${theme.iconColor} mb-6 max-w-md mx-auto`}>
+            Answer 10 quick questions and I&apos;ll generate a complete, customized academic year plan for your school — including exams, events, holidays, PTMs, and compliance items. Your school profile data is already loaded!
+          </p>
+          <button
+            onClick={startAI}
+            className={`px-6 py-3 rounded-xl ${theme.primary} text-white text-sm font-bold flex items-center gap-2 mx-auto hover:opacity-90 transition-opacity`}
+          >
+            <Sparkles size={16} /> Start Planning with AI
+          </button>
+        </div>
+      ) : (
+        /* Chat Interface */
+        <div className="flex gap-4" style={{ minHeight: '600px' }}>
+          {/* Left: Chat Area (60%) */}
+          <div className="flex-[3] flex flex-col">
+            <div className={`flex-1 ${theme.cardBg} rounded-2xl border ${theme.border} p-4 flex flex-col`}>
+              {/* Chat Header */}
+              <div className={`flex items-center gap-2 pb-3 border-b ${theme.border} mb-3`}>
+                <div className={`w-8 h-8 rounded-full ${theme.primary} flex items-center justify-center`}>
+                  <Bot size={16} className="text-white" />
+                </div>
+                <div>
+                  <p className={`text-xs font-bold ${theme.highlight}`}>Saaras AI</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>Academic Year Planner</p>
+                </div>
+                <div className="flex-1" />
+                {aiStarted && !planReady && (
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold`}>Active</span>
+                )}
+              </div>
+
+              {/* Chat Messages */}
+              <div className="flex-1 overflow-y-auto space-y-3 pr-1" style={{ maxHeight: '450px' }}>
+                {chatMessages.map((msg, i) => (
+                  <div key={i} className={`flex gap-2 ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}>
+                    {/* Avatar */}
+                    <div className={`w-6 h-6 rounded-full shrink-0 flex items-center justify-center ${
+                      msg.sender === 'bot' ? `${theme.primary}` : 'bg-blue-500'
+                    }`}>
+                      {msg.sender === 'bot' ? <Bot size={12} className="text-white" /> : <User size={12} className="text-white" />}
+                    </div>
+                    {/* Message Bubble */}
+                    <div className={`max-w-[80%] px-3 py-2 rounded-2xl text-xs leading-relaxed ${
+                      msg.sender === 'bot'
+                        ? `${theme.secondaryBg} ${theme.highlight} rounded-tl-sm`
+                        : `${theme.primary} text-white rounded-tr-sm`
+                    }`}>
+                      {msg.text}
+                    </div>
+                  </div>
+                ))}
+
+                {/* Typing indicator */}
+                {isTyping && (
+                  <div className="flex gap-2">
+                    <div className={`w-6 h-6 rounded-full shrink-0 flex items-center justify-center ${theme.primary}`}>
+                      <Bot size={12} className="text-white" />
+                    </div>
+                    <div className={`px-4 py-2.5 rounded-2xl rounded-tl-sm ${theme.secondaryBg}`}>
+                      <div className="flex gap-1">
+                        <div className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <div className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <div className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Generating animation */}
+                {isGenerating && (
+                  <div className={`${theme.secondaryBg} rounded-2xl p-4 space-y-2`}>
+                    <div className="flex items-center gap-2">
+                      <Loader2 size={14} className={`${theme.iconColor} animate-spin`} />
+                      <span className={`text-xs font-bold ${theme.highlight}`}>Generating your academic plan...</span>
+                    </div>
+                    <div className="h-2 rounded-full bg-gray-200 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${theme.primary} transition-all duration-100`}
+                        style={{ width: `${generateProgress}%` }}
+                      />
+                    </div>
+                    <p className={`text-[10px] ${theme.iconColor} text-right`}>{Math.round(generateProgress)}%</p>
+                  </div>
+                )}
+
+                {/* Plan Ready Summary */}
+                {planReady && (
+                  <div className={`${theme.secondaryBg} rounded-2xl p-5 space-y-3 border-2 border-emerald-300`}>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle size={18} className="text-emerald-500" />
+                      <span className={`text-sm font-bold ${theme.highlight}`}>Your 2026-27 Academic Plan is ready!</span>
+                    </div>
+                    <div className={`space-y-1.5 ${theme.iconColor}`}>
+                      <p className="text-xs flex items-center gap-2"><BarChart3 size={12} /> <strong>220</strong> Working Days</p>
+                      <p className="text-xs flex items-center gap-2"><Calendar size={12} /> <strong>45</strong> Holidays (22 govt + 23 school)</p>
+                      <p className="text-xs flex items-center gap-2"><FileText size={12} /> <strong>6</strong> Exam Windows (2 UT + Mid + 2 UT + Final)</p>
+                      <p className="text-xs flex items-center gap-2"><Users size={12} /> <strong>4</strong> PTMs scheduled</p>
+                      <p className="text-xs flex items-center gap-2"><Star size={12} /> <strong>10</strong> Events planned</p>
+                      <p className="text-xs flex items-center gap-2"><ShieldCheck size={12} /> <strong>4</strong> Compliance items auto-added</p>
+                    </div>
+                    <div className="flex gap-2 pt-2">
+                      <button
+                        onClick={() => setPlannerMode('manual')}
+                        className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-1`}
+                      >
+                        <Eye size={12} /> View Full Plan
+                      </button>
+                      <button className={`px-4 py-2 rounded-xl border ${theme.border} text-xs font-bold ${theme.highlight} flex items-center gap-1`}>
+                        <Download size={12} /> Export PDF
+                      </button>
+                      <button className={`px-4 py-2 rounded-xl border ${theme.border} text-xs font-bold ${theme.highlight} flex items-center gap-1`}>
+                        <Edit2 size={12} /> Edit Plan
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <div ref={chatEndRef} />
+              </div>
+
+              {/* Input Area */}
+              {!isTyping && !isGenerating && !planReady && renderQuestionInput()}
+            </div>
+          </div>
+
+          {/* Right: Progress Tracker (40%) */}
+          <div className="flex-[2]">
+            <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 sticky top-4`}>
+              <h3 className={`text-xs font-bold ${theme.highlight} mb-4 uppercase tracking-wider`}>Progress Tracker</h3>
+              <div className="space-y-1">
+                {PLANNER_QUESTIONS.map((q) => {
+                  const isAnswered = answers[q.id] !== undefined;
+                  const isCurrent = currentStep === q.id;
+                  const isUpcoming = !isAnswered && !isCurrent;
+                  return (
+                    <div key={q.id} className={`flex items-center gap-3 p-2 rounded-xl transition-all ${
+                      isCurrent ? `${theme.accentBg} ring-1 ring-blue-300` : ''
+                    }`}>
+                      {/* Step indicator */}
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
+                        isAnswered ? 'bg-emerald-500' : isCurrent ? 'bg-blue-500' : `${theme.secondaryBg}`
+                      }`}>
+                        {isAnswered ? (
+                          <Check size={12} className="text-white" />
+                        ) : isCurrent ? (
+                          <div className="w-2 h-2 rounded-full bg-white" />
+                        ) : (
+                          <Circle size={10} className={theme.iconColor} />
+                        )}
+                      </div>
+                      {/* Label */}
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-[11px] font-bold ${
+                          isAnswered ? 'text-emerald-600' : isCurrent ? 'text-blue-600' : theme.iconColor
+                        } truncate`}>
+                          {q.topic}
+                        </p>
+                        {isAnswered && answers[q.id] && (
+                          <p className={`text-[9px] ${theme.iconColor} truncate`}>
+                            {Array.isArray(answers[q.id]) ? (answers[q.id] as string[]).join(', ') : String(answers[q.id])}
+                          </p>
+                        )}
+                      </div>
+                      {/* Step number */}
+                      <span className={`text-[9px] font-bold ${isUpcoming ? theme.iconColor : 'opacity-0'}`}>{q.id}/12</span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Progress Bar */}
+              <div className="mt-4 pt-3 border-t border-gray-200">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className={`text-[10px] font-bold ${theme.iconColor}`}>Completion</span>
+                  <span className={`text-[10px] font-bold ${theme.highlight}`}>{Object.keys(answers).length}/12</span>
+                </div>
+                <div className="h-2 rounded-full bg-gray-200 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-emerald-500 transition-all duration-500"
+                    style={{ width: `${(Object.keys(answers).length / 12) * 100}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Reset button */}
+              {aiStarted && (
+                <button
+                  onClick={() => { setAiStarted(false); setCurrentStep(0); setAnswers({}); setChatMessages([]); setPlanReady(false); setIsGenerating(false); setSelectedEvents([]); setCustomHolidays([]); }}
+                  className={`mt-3 w-full px-3 py-2 rounded-xl border ${theme.border} text-xs font-bold ${theme.iconColor} ${theme.buttonHover} text-center`}
+                >
+                  Start Over
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="space-y-4">
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className={`w-10 h-10 rounded-xl ${theme.primary} flex items-center justify-center`}>
+            <CalendarClock size={20} className="text-white" />
+          </div>
+          <div>
+            <h1 className={`text-2xl font-bold ${theme.highlight}`}>Yearly Planner</h1>
+            <p className={`text-xs ${theme.iconColor}`}>Plan and visualize your complete academic year</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Mode Toggle */}
+      <div className={`flex gap-0 p-1 rounded-xl ${theme.secondaryBg} w-fit`}>
+        <button
+          onClick={() => setPlannerMode('manual')}
+          className={`px-5 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+            plannerMode === 'manual'
+              ? `${theme.primary} text-white`
+              : `${theme.iconColor} ${theme.buttonHover}`
+          }`}
+        >
+          <CalendarDays size={14} /> Manual
+        </button>
+        <button
+          onClick={() => setPlannerMode('ai')}
+          className={`px-5 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+            plannerMode === 'ai'
+              ? `${theme.primary} text-white`
+              : `${theme.iconColor} ${theme.buttonHover}`
+          }`}
+        >
+          <Sparkles size={14} /> AI-Powered
+        </button>
+      </div>
+
+      {/* Mode Content */}
+      {plannerMode === 'manual' && renderManualMode()}
+      {plannerMode === 'ai' && renderAIMode()}
     </div>
   );
 }
