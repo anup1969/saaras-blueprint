@@ -225,7 +225,6 @@ const modules = [
   { id: 'fees', label: 'Fees', icon: Banknote },
   { id: 'library', label: 'Library', icon: BookMarked },
   { id: 'notices', label: 'Notices', icon: Megaphone },
-  { id: 'profile', label: 'My Profile', icon: User },
 ];
 
 // ─── MAIN COMPONENT ────────────────────────────────
@@ -253,7 +252,7 @@ function StudentDashboard({ theme }: { theme?: Theme }) {
 
       {/* Module content */}
       <div className="flex-1 p-6 space-y-4 overflow-x-hidden">
-        {activeModule === 'dashboard' && <DashboardHome theme={theme} />}
+        {activeModule === 'dashboard' && <DashboardHome theme={theme} onProfileClick={() => setActiveModule('profile')} />}
         {activeModule === 'timetable' && <TimetableModule theme={theme} />}
         {activeModule === 'homework' && <HomeworkModule theme={theme} />}
         {activeModule === 'results' && <ResultsModule theme={theme} />}
@@ -268,7 +267,7 @@ function StudentDashboard({ theme }: { theme?: Theme }) {
 }
 
 // ─── DASHBOARD HOME ─────────────────────────────────
-function DashboardHome({ theme }: { theme: Theme }) {
+function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick: () => void }) {
   return (
     <div className="space-y-4">
       {/* Profile header */}
@@ -287,6 +286,7 @@ function DashboardHome({ theme }: { theme: Theme }) {
           <p className={`text-xs ${theme.iconColor}`}>Academic Year</p>
           <p className={`text-sm font-bold ${theme.highlight}`}>2025-26</p>
         </div>
+        <button onClick={onProfileClick} title="My Profile" className={`w-9 h-9 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold hover:opacity-90 transition-opacity`}>AM</button>
       </div>
 
       {/* Stats */}

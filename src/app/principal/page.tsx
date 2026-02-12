@@ -7,7 +7,7 @@ import { type Theme } from '@/lib/themes';
 import {
   Home, BookOpen, Users, UserCheck, CheckCircle, BarChart3, Megaphone,
   GraduationCap, Briefcase, Clock, AlertTriangle, FileText, Send,
-  Calendar, Shield, Eye, Download, Plus, Check, X, Search,
+  Calendar, Shield, ShieldCheck, Eye, Download, Plus, Check, X, Search,
   TrendingUp, Heart, ClipboardCheck, Star, DollarSign, Building2,
   Bell, ArrowRight, MessageSquare, Award, Filter, User
 } from 'lucide-react';
@@ -18,11 +18,11 @@ const modules = [
   { id: 'dashboard', label: 'Dashboard', icon: Home },
   { id: 'academics', label: 'Academics', icon: BookOpen },
   { id: 'staff', label: 'Staff Overview', icon: Briefcase },
-  { id: 'welfare', label: 'Student Welfare', icon: Heart },
+  { id: 'hr', label: 'HR Management', icon: Briefcase },
+  { id: 'compliance', label: 'Compliance', icon: ShieldCheck },
   { id: 'approvals', label: 'Approvals', icon: CheckCircle },
   { id: 'reports', label: 'Reports', icon: BarChart3 },
   { id: 'announcements', label: 'Announcements', icon: Megaphone },
-  { id: 'profile', label: 'My Profile', icon: User },
 ];
 
 function PrincipalDashboard({ theme }: { theme?: Theme }) {
@@ -49,10 +49,11 @@ function PrincipalDashboard({ theme }: { theme?: Theme }) {
 
       {/* Module content */}
       <div className="flex-1 p-6 space-y-4 overflow-x-hidden">
-        {activeModule === 'dashboard' && <DashboardHome theme={theme} />}
+        {activeModule === 'dashboard' && <DashboardHome theme={theme} onProfileClick={() => setActiveModule('profile')} />}
         {activeModule === 'academics' && <AcademicsModule theme={theme} />}
         {activeModule === 'staff' && <StaffOverviewModule theme={theme} />}
-        {activeModule === 'welfare' && <StudentWelfareModule theme={theme} />}
+        {activeModule === 'hr' && <HRManagementModule theme={theme} />}
+        {activeModule === 'compliance' && <ComplianceModule theme={theme} />}
         {activeModule === 'approvals' && <ApprovalsModule theme={theme} />}
         {activeModule === 'reports' && <ReportsModule theme={theme} />}
         {activeModule === 'announcements' && <AnnouncementsModule theme={theme} />}
@@ -63,10 +64,13 @@ function PrincipalDashboard({ theme }: { theme?: Theme }) {
 }
 
 // ─── DASHBOARD HOME ──────────────────────────────────
-function DashboardHome({ theme }: { theme: Theme }) {
+function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick: () => void }) {
   return (
     <div className="space-y-4">
-      <h1 className={`text-2xl font-bold ${theme.highlight}`}>Principal Dashboard</h1>
+      <div className="flex items-center justify-between">
+        <h1 className={`text-2xl font-bold ${theme.highlight}`}>Principal Dashboard</h1>
+        <button onClick={onProfileClick} title="My Profile" className={`w-9 h-9 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold hover:opacity-90 transition-opacity`}>SM</button>
+      </div>
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         <StatCard icon={Users} label="Total Students" value="2,847" color="bg-blue-500" theme={theme} />
         <StatCard icon={Briefcase} label="Total Staff" value="142" color="bg-indigo-500" theme={theme} />
@@ -273,119 +277,193 @@ function StaffOverviewModule({ theme }: { theme: Theme }) {
   );
 }
 
-// ─── STUDENT WELFARE MODULE ──────────────────────────
-function StudentWelfareModule({ theme }: { theme: Theme }) {
-  const [tab, setTab] = useState('Overview');
-
-  const recentCases = [
-    { date: '10-Feb-2026', student: 'Arjun Singh', cls: '8-B', type: 'Disciplinary', status: 'Open', assignedTo: 'Dr. Meena Rao' },
-    { date: '08-Feb-2026', student: 'Riya Patel', cls: '6-A', type: 'Counseling', status: 'In Progress', assignedTo: 'Ms. Kavita Desai' },
-    { date: '07-Feb-2026', student: 'Vivaan Sharma', cls: '9-C', type: 'Behavioral', status: 'Resolved', assignedTo: 'Mr. Suresh Nair' },
-    { date: '05-Feb-2026', student: 'Anaya Gupta', cls: '7-A', type: 'Counseling', status: 'In Progress', assignedTo: 'Ms. Kavita Desai' },
-    { date: '03-Feb-2026', student: 'Rohan Mehta', cls: '10-B', type: 'Disciplinary', status: 'Resolved', assignedTo: 'Dr. Meena Rao' },
-    { date: '01-Feb-2026', student: 'Saanvi Reddy', cls: '5-B', type: 'Behavioral', status: 'Open', assignedTo: 'Mr. Suresh Nair' },
+// ─── HR MANAGEMENT MODULE ────────────────────────────
+function HRManagementModule({ theme }: { theme: Theme }) {
+  const staffList = [
+    { name: 'Dr. Priya Sharma', designation: 'HOD - Science', department: 'Teaching', status: 'Active' },
+    { name: 'Rajesh Kumar', designation: 'Admin Manager', department: 'Administration', status: 'Active' },
+    { name: 'Ms. Kavita Desai', designation: 'Counselor', department: 'Student Support', status: 'On Leave' },
+    { name: 'Mohammed Irfan', designation: 'Transport Head', department: 'Transport', status: 'Active' },
+    { name: 'Vikram Singh', designation: 'IT Coordinator', department: 'IT & Lab', status: 'Active' },
+    { name: 'Sunita Verma', designation: 'TGT - Hindi', department: 'Teaching', status: 'On Leave' },
   ];
 
-  const disciplinaryCases = [
-    { date: '10-Feb-2026', student: 'Arjun Singh', cls: '8-B', incident: 'Classroom disruption during exam', action: 'Warning issued', parentNotified: 'Yes', status: 'Open' },
-    { date: '03-Feb-2026', student: 'Rohan Mehta', cls: '10-B', incident: 'Repeated tardiness (5 consecutive days)', action: 'Parent meeting scheduled', parentNotified: 'Yes', status: 'Resolved' },
-    { date: '28-Jan-2026', student: 'Dev Kapoor', cls: '9-A', incident: 'Mobile phone usage during class', action: 'Device confiscated, parent informed', parentNotified: 'Yes', status: 'Resolved' },
+  return (
+    <div className="space-y-4">
+      <h1 className={`text-2xl font-bold ${theme.highlight}`}>HR Management</h1>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard icon={Users} label="Total Staff" value="124" color="bg-blue-500" theme={theme} />
+        <StatCard icon={GraduationCap} label="Teaching" value="78" color="bg-emerald-500" theme={theme} />
+        <StatCard icon={Briefcase} label="Non-Teaching" value="46" color="bg-purple-500" theme={theme} />
+        <StatCard icon={Calendar} label="On Leave Today" value="5" color="bg-amber-500" theme={theme} />
+      </div>
+
+      {/* Staff List */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Staff Directory</h3>
+        <DataTable
+          headers={['Name', 'Designation', 'Department', 'Status']}
+          rows={staffList.map(s => [
+            <span key="name" className={`font-bold ${theme.highlight}`}>{s.name}</span>,
+            <span key="desig" className={theme.iconColor}>{s.designation}</span>,
+            <span key="dept" className={theme.iconColor}>{s.department}</span>,
+            <StatusBadge key="status" status={s.status === 'Active' ? 'Active' : 'Pending'} theme={theme} />,
+          ])}
+          theme={theme}
+        />
+      </div>
+
+      {/* Quick Actions */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Quick Actions</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {[
+            { label: 'View Payroll Summary', icon: DollarSign, color: 'bg-emerald-500', sub: 'Monthly payroll overview' },
+            { label: 'Leave Requests', icon: Calendar, color: 'bg-amber-500', sub: '3 pending approvals' },
+            { label: 'Attendance Report', icon: ClipboardCheck, color: 'bg-blue-500', sub: 'Staff attendance trends' },
+          ].map(a => (
+            <button key={a.label} className={`flex items-center gap-3 p-4 rounded-xl ${theme.secondaryBg} ${theme.buttonHover} transition-all text-left`}>
+              <div className={`w-10 h-10 rounded-xl ${a.color} flex items-center justify-center text-white`}><a.icon size={18} /></div>
+              <div>
+                <span className={`text-xs font-bold ${theme.highlight} block`}>{a.label}</span>
+                <span className={`text-[10px] ${theme.iconColor}`}>{a.sub}</span>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── COMPLIANCE MODULE ──────────────────────────────
+function ComplianceModule({ theme }: { theme: Theme }) {
+  const overdueItems = [
+    { title: 'Fire Safety Certificate renewal', dueDate: '31-Jan-2026', assignedTo: 'Rajesh Kumar', status: 'Overdue' },
+    { title: 'CBSE affiliation renewal', dueDate: '15-Jan-2026', assignedTo: 'Dr. Priya Sharma', status: 'Overdue' },
   ];
 
-  const counselingSessions = [
-    { date: '09-Feb-2026', student: 'Riya Patel', cls: '6-A', concern: 'Academic anxiety', sessions: 3, counselor: 'Ms. Kavita Desai', nextSession: '12-Feb-2026' },
-    { date: '06-Feb-2026', student: 'Anaya Gupta', cls: '7-A', concern: 'Peer relationship issues', sessions: 2, counselor: 'Ms. Kavita Desai', nextSession: '13-Feb-2026' },
-    { date: '02-Feb-2026', student: 'Meera Nair', cls: '8-A', concern: 'Low self-confidence', sessions: 5, counselor: 'Dr. Meena Rao', nextSession: '16-Feb-2026' },
-    { date: '30-Jan-2026', student: 'Ishaan Das', cls: '10-A', concern: 'Exam stress management', sessions: 4, counselor: 'Dr. Meena Rao', nextSession: '14-Feb-2026' },
+  const dueThisMonth = [
+    { title: 'Annual audit report submission', dueDate: '28-Feb-2026', assignedTo: 'Accounts Head', status: 'In Progress' },
+    { title: 'Staff background verification', dueDate: '25-Feb-2026', assignedTo: 'HR Manager', status: 'Pending' },
+    { title: 'POCSO training completion', dueDate: '20-Feb-2026', assignedTo: 'Vice Principal', status: 'In Progress' },
   ];
 
-  const statusColor = (status: string) => {
-    if (status === 'Open') return 'Pending';
-    if (status === 'In Progress') return 'Follow-up';
-    return 'Active';
+  const upcomingItems = [
+    { title: 'RTE compliance report', dueDate: '15-Mar-2026', assignedTo: 'School Admin', status: 'Scheduled' },
+    { title: 'Infrastructure safety inspection', dueDate: '01-Apr-2026', assignedTo: 'Rajesh Kumar', status: 'Scheduled' },
+    { title: 'Annual health checkup records', dueDate: '10-Apr-2026', assignedTo: 'Medical Officer', status: 'Scheduled' },
+  ];
+
+  const sqaafDomains = [
+    { name: 'Curricular Aspects', score: 82, color: 'bg-emerald-500' },
+    { name: 'Teaching-Learning', score: 78, color: 'bg-blue-500' },
+    { name: 'Infrastructure', score: 71, color: 'bg-amber-500' },
+    { name: 'Human Resources', score: 85, color: 'bg-purple-500' },
+    { name: 'Student Support', score: 80, color: 'bg-teal-500' },
+    { name: 'Governance', score: 75, color: 'bg-indigo-500' },
+    { name: 'Innovation', score: 68, color: 'bg-orange-500' },
+  ];
+
+  const statusBadgeColor = (status: string) => {
+    if (status === 'Overdue') return 'bg-red-100 text-red-700';
+    if (status === 'In Progress') return 'bg-amber-100 text-amber-700';
+    if (status === 'Pending') return 'bg-yellow-100 text-yellow-700';
+    return 'bg-blue-100 text-blue-700';
   };
 
   return (
     <div className="space-y-4">
-      <h1 className={`text-2xl font-bold ${theme.highlight}`}>Student Welfare</h1>
-      <TabBar tabs={['Overview', 'Disciplinary', 'Counseling']} active={tab} onChange={setTab} theme={theme} />
+      <h1 className={`text-2xl font-bold ${theme.highlight}`}>Compliance</h1>
 
-      {tab === 'Overview' && (
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard icon={AlertTriangle} label="Active Cases" value="12" color="bg-amber-500" theme={theme} />
-            <StatCard icon={CheckCircle} label="Resolved This Month" value="8" color="bg-emerald-500" theme={theme} />
-            <StatCard icon={Heart} label="Counseling Sessions" value="15" color="bg-purple-500" theme={theme} />
-            <StatCard icon={Users} label="Parent Meetings" value="6" color="bg-blue-500" theme={theme} />
+      {/* Task Report Cards */}
+      <div className="space-y-4">
+        {/* Important / Overdue (Red) */}
+        <div className={`rounded-2xl border-2 border-red-200 bg-red-50 p-4`}>
+          <div className="flex items-center gap-2 mb-3">
+            <AlertTriangle size={16} className="text-red-600" />
+            <h3 className="text-sm font-bold text-red-700">Important / Overdue</h3>
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-200 text-red-800 font-bold">{overdueItems.length} items</span>
           </div>
-
-          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-            <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Recent Cases</h3>
-            <DataTable
-              headers={['Date', 'Student', 'Class', 'Type', 'Status', 'Assigned To']}
-              rows={recentCases.map(c => [
-                <span key="date" className={theme.iconColor}>{c.date}</span>,
-                <span key="student" className={`font-bold ${theme.highlight}`}>{c.student}</span>,
-                <span key="cls" className={theme.iconColor}>{c.cls}</span>,
-                <span key="type" className={`text-xs px-2 py-0.5 rounded-full font-bold ${
-                  c.type === 'Disciplinary' ? 'bg-red-100 text-red-700' :
-                  c.type === 'Counseling' ? 'bg-purple-100 text-purple-700' :
-                  'bg-amber-100 text-amber-700'
-                }`}>{c.type}</span>,
-                <StatusBadge key="status" status={statusColor(c.status)} theme={theme} />,
-                <span key="assigned" className={theme.iconColor}>{c.assignedTo}</span>,
-              ])}
-              theme={theme}
-            />
+          <div className="space-y-2">
+            {overdueItems.map(item => (
+              <div key={item.title} className={`${theme.cardBg} rounded-xl p-3 flex items-center justify-between`}>
+                <div>
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{item.title}</p>
+                  <p className={`text-[10px] ${theme.iconColor} mt-0.5`}>Due: {item.dueDate} &middot; Assigned to: {item.assignedTo}</p>
+                </div>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${statusBadgeColor(item.status)}`}>{item.status}</span>
+              </div>
+            ))}
           </div>
         </div>
-      )}
 
-      {tab === 'Disciplinary' && (
-        <div className="space-y-4">
-          <div className="grid grid-cols-3 gap-4">
-            <StatCard icon={AlertTriangle} label="Open Cases" value="4" color="bg-red-500" theme={theme} />
-            <StatCard icon={CheckCircle} label="Resolved" value="12" color="bg-emerald-500" sub="this term" theme={theme} />
-            <StatCard icon={Users} label="Parents Notified" value="16" color="bg-blue-500" theme={theme} />
+        {/* Due This Month (Amber) */}
+        <div className={`rounded-2xl border-2 border-amber-200 bg-amber-50 p-4`}>
+          <div className="flex items-center gap-2 mb-3">
+            <Clock size={16} className="text-amber-600" />
+            <h3 className="text-sm font-bold text-amber-700">Due This Month</h3>
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-200 text-amber-800 font-bold">{dueThisMonth.length} items</span>
           </div>
-          <DataTable
-            headers={['Date', 'Student', 'Class', 'Incident', 'Action Taken', 'Parent Notified', 'Status']}
-            rows={disciplinaryCases.map(c => [
-              <span key="date" className={theme.iconColor}>{c.date}</span>,
-              <span key="student" className={`font-bold ${theme.highlight}`}>{c.student}</span>,
-              <span key="cls" className={theme.iconColor}>{c.cls}</span>,
-              <span key="incident" className={`text-xs ${theme.highlight}`}>{c.incident}</span>,
-              <span key="action" className={`text-xs ${theme.iconColor}`}>{c.action}</span>,
-              <span key="parent" className={c.parentNotified === 'Yes' ? 'text-emerald-600 font-bold text-xs' : `text-xs ${theme.iconColor}`}>{c.parentNotified}</span>,
-              <StatusBadge key="status" status={statusColor(c.status)} theme={theme} />,
-            ])}
-            theme={theme}
-          />
+          <div className="space-y-2">
+            {dueThisMonth.map(item => (
+              <div key={item.title} className={`${theme.cardBg} rounded-xl p-3 flex items-center justify-between`}>
+                <div>
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{item.title}</p>
+                  <p className={`text-[10px] ${theme.iconColor} mt-0.5`}>Due: {item.dueDate} &middot; Assigned to: {item.assignedTo}</p>
+                </div>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${statusBadgeColor(item.status)}`}>{item.status}</span>
+              </div>
+            ))}
+          </div>
         </div>
-      )}
 
-      {tab === 'Counseling' && (
-        <div className="space-y-4">
-          <div className="grid grid-cols-3 gap-4">
-            <StatCard icon={Heart} label="Active Sessions" value="8" color="bg-purple-500" theme={theme} />
-            <StatCard icon={CheckCircle} label="Completed" value="23" color="bg-emerald-500" sub="this term" theme={theme} />
-            <StatCard icon={Calendar} label="Upcoming" value="6" color="bg-blue-500" sub="this week" theme={theme} />
+        {/* Upcoming (Blue) */}
+        <div className={`rounded-2xl border-2 border-blue-200 bg-blue-50 p-4`}>
+          <div className="flex items-center gap-2 mb-3">
+            <Calendar size={16} className="text-blue-600" />
+            <h3 className="text-sm font-bold text-blue-700">Upcoming</h3>
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-200 text-blue-800 font-bold">{upcomingItems.length} items</span>
           </div>
-          <DataTable
-            headers={['Date', 'Student', 'Class', 'Concern', 'Sessions', 'Counselor', 'Next Session']}
-            rows={counselingSessions.map(c => [
-              <span key="date" className={theme.iconColor}>{c.date}</span>,
-              <span key="student" className={`font-bold ${theme.highlight}`}>{c.student}</span>,
-              <span key="cls" className={theme.iconColor}>{c.cls}</span>,
-              <span key="concern" className={`text-xs ${theme.highlight}`}>{c.concern}</span>,
-              <span key="sessions" className={`font-bold ${theme.highlight}`}>{c.sessions}</span>,
-              <span key="counselor" className={theme.iconColor}>{c.counselor}</span>,
-              <span key="next" className={`${theme.primaryText} font-bold text-xs`}>{c.nextSession}</span>,
-            ])}
-            theme={theme}
-          />
+          <div className="space-y-2">
+            {upcomingItems.map(item => (
+              <div key={item.title} className={`${theme.cardBg} rounded-xl p-3 flex items-center justify-between`}>
+                <div>
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{item.title}</p>
+                  <p className={`text-[10px] ${theme.iconColor} mt-0.5`}>Due: {item.dueDate} &middot; Assigned to: {item.assignedTo}</p>
+                </div>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${statusBadgeColor(item.status)}`}>{item.status}</span>
+              </div>
+            ))}
+          </div>
         </div>
-      )}
+      </div>
+
+      {/* SQAAF Section */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>SQAAF — School Quality Assessment & Accreditation Framework</h3>
+            <p className={`text-[10px] ${theme.iconColor} mt-0.5`}>Self-assessment for continuous improvement &middot; 7 domains</p>
+          </div>
+          <div className={`w-14 h-14 rounded-2xl ${theme.primary} text-white flex flex-col items-center justify-center`}>
+            <span className="text-lg font-bold">78</span>
+            <span className="text-[8px]">/ 100</span>
+          </div>
+        </div>
+        <div className="space-y-3">
+          {sqaafDomains.map(d => (
+            <div key={d.name} className={`flex items-center gap-3 p-3 rounded-xl ${theme.secondaryBg}`}>
+              <span className={`text-xs font-bold ${theme.highlight} w-40`}>{d.name}</span>
+              <div className="flex-1 h-2 rounded-full bg-slate-200 overflow-hidden">
+                <div className={`h-full rounded-full ${d.score >= 80 ? 'bg-emerald-500' : d.score >= 70 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${d.score}%` }} />
+              </div>
+              <span className={`text-xs font-bold ${d.score >= 80 ? 'text-emerald-600' : d.score >= 70 ? 'text-amber-600' : 'text-red-600'} w-12 text-right`}>{d.score}/100</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

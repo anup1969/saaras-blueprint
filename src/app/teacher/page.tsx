@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import BlueprintLayout from '@/components/BlueprintLayout';
 import { StatCard, TabBar, StatusBadge, SearchBar, DataTable, Toggle } from '@/components/shared';
 import { type Theme } from '@/lib/themes';
@@ -9,7 +9,7 @@ import {
   Search, Bell, Plus, Check, X, Eye, Edit, Download, Filter, ChevronDown,
   Users, CheckCircle, XCircle, AlertTriangle, Send, Star, ArrowRight,
   PenTool, BookMarked, GraduationCap, Notebook, CalendarDays, Timer, TrendingUp,
-  Pencil, Upload, ChevronLeft, ChevronRight, Minus, User
+  Pencil, Upload, ChevronLeft, ChevronRight, Minus, User, MessageSquare
 } from 'lucide-react';
 import StakeholderProfile from '@/components/StakeholderProfile';
 
@@ -135,7 +135,6 @@ const modules = [
   { id: 'leave', label: 'Leave', icon: CalendarDays },
   { id: 'diary', label: 'Diary', icon: Notebook },
   { id: 'reports', label: 'Reports', icon: BarChart3 },
-  { id: 'profile', label: 'My Profile', icon: User },
 ];
 
 // ─── MAIN COMPONENT ─────────────────────────────────
@@ -163,7 +162,7 @@ function TeacherDashboard({ theme }: { theme?: Theme }) {
 
       {/* Module content */}
       <div className="flex-1 p-6 space-y-4 overflow-x-hidden">
-        {activeModule === 'dashboard' && <DashboardHome theme={theme} />}
+        {activeModule === 'dashboard' && <DashboardHome theme={theme} onProfileClick={() => setActiveModule('profile')} />}
         {activeModule === 'classes' && <MyClassesModule theme={theme} />}
         {activeModule === 'attendance' && <AttendanceModule theme={theme} />}
         {activeModule === 'homework' && <HomeworkModule theme={theme} />}
@@ -179,7 +178,31 @@ function TeacherDashboard({ theme }: { theme?: Theme }) {
 }
 
 // ─── DASHBOARD HOME ─────────────────────────────────
-function DashboardHome({ theme }: { theme: Theme }) {
+function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick: () => void }) {
+  const [showNotifications, setShowNotifications] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setShowNotifications(false);
+      }
+    }
+    if (showNotifications) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showNotifications]);
+
+  const notifications = [
+    { id: 1, icon: ClipboardCheck, title: 'Attendance not marked for 10-A', time: '10 min ago', color: 'border-amber-500', read: false },
+    { id: 2, icon: FileText, title: 'Homework submissions: Ch 7 Coordinate Geometry (28/42)', time: '25 min ago', color: 'border-blue-500', read: false },
+    { id: 3, icon: MessageSquare, title: 'New message from Vice Principal regarding PTM schedule', time: '1 hour ago', color: 'border-purple-500', read: false },
+    { id: 4, icon: Calendar, title: 'Staff meeting today at 1:00 PM — Agenda updated', time: '2 hours ago', color: 'border-teal-500', read: true },
+    { id: 5, icon: CheckCircle, title: 'Leave request approved — 20 Feb (1 day CL)', time: '3 hours ago', color: 'border-emerald-500', read: true },
+    { id: 6, icon: AlertTriangle, title: 'Gradebook deadline: UT-3 marks entry by 15 Feb', time: '5 hours ago', color: 'border-red-500', read: true },
+  ];
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -187,11 +210,46 @@ function DashboardHome({ theme }: { theme: Theme }) {
           <h1 className={`text-2xl font-bold ${theme.highlight}`}>Good Morning, Ms. Priya</h1>
           <p className={`text-xs ${theme.iconColor} mt-1`}>Wednesday, 12 February 2026 | Employee ID: {teacherProfile.empId}</p>
         </div>
-        <div className="flex gap-2">
-          <button className={`p-2.5 rounded-xl ${theme.secondaryBg} ${theme.buttonHover} relative`}>
-            <Bell size={16} className={theme.iconColor} />
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full text-[9px] font-bold flex items-center justify-center">3</span>
-          </button>
+        <div className="flex gap-2 items-center">
+          <div ref={notifRef} className="relative">
+            <button
+              onClick={() => setShowNotifications(prev => !prev)}
+              className={`p-2.5 rounded-xl ${theme.secondaryBg} ${theme.buttonHover} relative`}
+            >
+              <Bell size={16} className={theme.iconColor} />
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full text-[9px] font-bold flex items-center justify-center">3</span>
+            </button>
+
+            {showNotifications && (
+              <div className={`absolute right-0 top-12 w-80 ${theme.cardBg} rounded-2xl border ${theme.border} shadow-2xl z-50 overflow-hidden`}>
+                <div className={`px-4 py-3 border-b ${theme.border} flex items-center justify-between`}>
+                  <h4 className={`text-sm font-bold ${theme.highlight}`}>Notifications</h4>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-500 text-white font-bold">3 new</span>
+                </div>
+                <div className="max-h-80 overflow-y-auto">
+                  {notifications.map(n => (
+                    <div
+                      key={n.id}
+                      className={`px-4 py-3 border-l-[3px] ${n.color} ${!n.read ? theme.accentBg : ''} hover:${theme.secondaryBg} transition-colors cursor-pointer border-b ${theme.border}`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <n.icon size={14} className={`${theme.iconColor} mt-0.5 shrink-0`} />
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-xs ${!n.read ? `font-bold ${theme.highlight}` : theme.iconColor} leading-relaxed`}>{n.title}</p>
+                          <p className={`text-[10px] ${theme.iconColor} mt-1`}>{n.time}</p>
+                        </div>
+                        {!n.read && <div className="w-2 h-2 rounded-full bg-blue-500 mt-1 shrink-0" />}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className={`px-4 py-2.5 border-t ${theme.border} text-center`}>
+                  <button className={`text-xs font-bold ${theme.primaryText} hover:underline`}>View All Notifications</button>
+                </div>
+              </div>
+            )}
+          </div>
+          <button onClick={onProfileClick} title="My Profile" className={`w-9 h-9 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold hover:opacity-90 transition-opacity`}>PS</button>
         </div>
       </div>
 

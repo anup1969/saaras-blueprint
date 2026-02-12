@@ -34,7 +34,6 @@ const modules = [
   { id: 'offboarding', label: 'Offboarding', icon: UserMinus },
   { id: 'reports', label: 'Reports', icon: BarChart3 },
   { id: 'settings', label: 'Settings', icon: Settings },
-  { id: 'my-profile', label: 'My Profile', icon: User },
 ];
 
 // ─── SHARED HELPERS ───────────────────────────────────
@@ -62,7 +61,10 @@ function DashboardModule({ theme, setActive }: { theme: Theme; setActive: (s: st
   const weekData = [{ d: 'Mon', p: 125 }, { d: 'Tue', p: 130 }, { d: 'Wed', p: 128 }, { d: 'Thu', p: 126 }, { d: 'Fri', p: 132 }, { d: 'Sat', p: 118 }];
   return (
     <div className="space-y-4">
-      <h1 className={`text-xl font-bold ${theme.highlight}`}>HR Dashboard</h1>
+      <div className="flex items-center justify-between">
+        <h1 className={`text-xl font-bold ${theme.highlight}`}>HR Dashboard</h1>
+        <button onClick={() => setActive('my-profile')} title="My Profile" className={`w-9 h-9 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold hover:opacity-90 transition-opacity`}>KR</button>
+      </div>
       <div className="grid grid-cols-6 gap-3">
         <SC icon={Users} label="Total Staff" value="142" sub="+5 this month" color="bg-indigo-600" theme={theme} />
         <SC icon={CheckCircle} label="Present" value="128" color="bg-emerald-500" theme={theme} />

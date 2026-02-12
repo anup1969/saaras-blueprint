@@ -21,7 +21,6 @@ const modules = [
   { id: 'gps-tracking', label: 'GPS Tracking', icon: Navigation },
   { id: 'students-by-route', label: 'Students by Route', icon: MapPin },
   { id: 'maintenance', label: 'Maintenance', icon: Wrench },
-  { id: 'profile', label: 'My Profile', icon: User },
 ];
 
 // ─── MOCK DATA ──────────────────────────────────────
@@ -151,7 +150,7 @@ function TransportHeadDashboard({ theme }: { theme?: Theme }) {
 
       {/* Module content */}
       <div className="flex-1 p-6 space-y-4 overflow-x-hidden">
-        {activeModule === 'dashboard' && <DashboardHome theme={theme} />}
+        {activeModule === 'dashboard' && <DashboardHome theme={theme} onProfileClick={() => setActiveModule('profile')} />}
         {activeModule === 'routes' && <RoutesModule theme={theme} />}
         {activeModule === 'vehicles' && <VehiclesModule theme={theme} />}
         {activeModule === 'drivers' && <DriversModule theme={theme} />}
@@ -166,10 +165,13 @@ function TransportHeadDashboard({ theme }: { theme?: Theme }) {
 
 // ─── DASHBOARD HOME ─────────────────────────────────
 
-function DashboardHome({ theme }: { theme: Theme }) {
+function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick: () => void }) {
   return (
     <div className="space-y-4">
-      <h1 className={`text-2xl font-bold ${theme.highlight}`}>Transport Dashboard</h1>
+      <div className="flex items-center justify-between">
+        <h1 className={`text-2xl font-bold ${theme.highlight}`}>Transport Dashboard</h1>
+        <button onClick={onProfileClick} title="My Profile" className={`w-9 h-9 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold hover:opacity-90 transition-opacity`}>MI</button>
+      </div>
 
       {/* Stats Row 1 */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

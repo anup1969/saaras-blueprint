@@ -616,6 +616,9 @@ function Step4Roles({ theme }: { theme: Theme }) {
     'HR Manager': true, 'Accounts Head': true, 'Receptionist': true, 'Transport Head': true,
     'Security / Gatekeeper': true, 'Trustee': false, 'Librarian': false, 'Lab Coordinator': false,
   });
+  const [hrAccess, setHrAccess] = useState<Record<string, boolean>>({
+    'Principal': true, 'School Admin': true, 'Vice Principal': false, 'Trustee': true, 'Accounts Head': false,
+  });
 
   const mandatoryRoles = ['School Admin', 'Principal', 'Teacher'];
   const roleDescs: Record<string, string> = {
@@ -686,6 +689,24 @@ function Step4Roles({ theme }: { theme: Theme }) {
             </div>
           ))}
         </div>
+      </div>
+
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <SectionTitle title="HR Management Access" subtitle="Which stakeholder dashboards should include the HR Management module?" theme={theme} />
+        <div className="space-y-2">
+          {Object.entries(hrAccess).map(([role, enabled]) => (
+            <div key={role} className={`flex items-center justify-between p-3 rounded-xl ${theme.secondaryBg}`}>
+              <div>
+                <span className={`text-xs font-bold ${theme.highlight}`}>{role}</span>
+                {(role === 'Principal' || role === 'School Admin') && (
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-600 font-bold ml-2">Recommended</span>
+                )}
+              </div>
+              <Toggle on={enabled} onChange={() => setHrAccess(p => ({ ...p, [role]: !p[role] }))} theme={theme} />
+            </div>
+          ))}
+        </div>
+        <p className={`text-[10px] ${theme.iconColor} mt-2`}>{Object.values(hrAccess).filter(Boolean).length} dashboards will show the HR Management module</p>
       </div>
     </div>
   );

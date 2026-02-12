@@ -68,16 +68,18 @@ const modules = [
   { id: 'bank', label: 'Bank Reconciliation', icon: Building2 },
   { id: 'reports', label: 'Financial Reports', icon: BarChart3 },
   { id: 'receipts', label: 'Receipts', icon: Receipt },
-  { id: 'profile', label: 'My Profile', icon: User },
 ];
 
 // ─── DASHBOARD VIEW ────────────────────────────────────
 function DashboardView({ theme, setActiveModule }: { theme: Theme; setActiveModule: (m: string) => void }) {
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className={`text-xl font-bold ${theme.highlight}`}>Accounts Dashboard</h2>
-        <p className={`text-xs ${theme.iconColor} mt-1`}>Financial overview — February 2026</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className={`text-xl font-bold ${theme.highlight}`}>Accounts Dashboard</h2>
+          <p className={`text-xs ${theme.iconColor} mt-1`}>Financial overview — February 2026</p>
+        </div>
+        <button onClick={() => setActiveModule('profile')} title="My Profile" className={`w-9 h-9 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold hover:opacity-90 transition-opacity`}>RP</button>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

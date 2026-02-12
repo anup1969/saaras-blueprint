@@ -345,7 +345,6 @@ const modules = [
   { id: 'communication', label: 'Communication', icon: MessageSquare },
   { id: 'transport', label: 'Transport', icon: Bus },
   { id: 'pickup', label: 'Pickup Auth', icon: Shield },
-  { id: 'profile', label: 'My Profile', icon: User },
 ];
 
 // ─── CHILD SELECTOR ─────────────────────────────────
@@ -388,7 +387,7 @@ function ChildSelector({ children: childList, selected, onChange, theme }: {
 }
 
 // ─── DASHBOARD HOME ─────────────────────────────────
-function DashboardHome({ theme, child }: { theme: Theme; child: ChildProfile }) {
+function DashboardHome({ theme, child, onProfileClick }: { theme: Theme; child: ChildProfile; onProfileClick: () => void }) {
   const att = attendanceData[child.id];
   const fees = feesData[child.id];
   const hw = homeworkData[child.id];
@@ -417,6 +416,7 @@ function DashboardHome({ theme, child }: { theme: Theme; child: ChildProfile }) 
             <p className={`text-xs ${theme.iconColor}`}>Class Teacher</p>
             <p className={`text-sm font-bold ${theme.highlight}`}>{child.classTeacher}</p>
           </div>
+          <button onClick={onProfileClick} title="My Profile" className={`w-9 h-9 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold hover:opacity-90 transition-opacity`}>RM</button>
         </div>
       </div>
 
@@ -1560,7 +1560,7 @@ function ParentDashboard({ theme }: { theme?: Theme }) {
           {childrenData}
         </ChildSelector>
 
-        {activeModule === 'dashboard' && <DashboardHome theme={theme} child={child} />}
+        {activeModule === 'dashboard' && <DashboardHome theme={theme} child={child} onProfileClick={() => setActiveModule('profile')} />}
         {activeModule === 'attendance' && <AttendanceModule theme={theme} child={child} />}
         {activeModule === 'academics' && <AcademicsModule theme={theme} child={child} />}
         {activeModule === 'fees' && <FeesModule theme={theme} child={child} />}

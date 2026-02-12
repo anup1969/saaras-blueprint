@@ -86,18 +86,21 @@ const modules = [
   { id: 'academic', label: 'Academic Performance', icon: GraduationCap },
   { id: 'sqaaf', label: 'SQAAF / Quality', icon: Award },
   { id: 'staff', label: 'Staff Overview', icon: Users },
+  { id: 'hr', label: 'HR Management', icon: Briefcase },
   { id: 'compliance', label: 'Compliance & Audit', icon: Shield },
   { id: 'approvals', label: 'Approvals', icon: CheckCircle },
-  { id: 'profile', label: 'My Profile', icon: User },
 ];
 
 // ─── DASHBOARD VIEW ────────────────────────────────────
 function DashboardView({ theme, setActiveModule }: { theme: Theme; setActiveModule: (m: string) => void }) {
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className={`text-xl font-bold ${theme.highlight}`}>Governance Dashboard</h2>
-        <p className={`text-xs ${theme.iconColor} mt-1`}>Trust-level overview — Academic Year 2025-26</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className={`text-xl font-bold ${theme.highlight}`}>Governance Dashboard</h2>
+          <p className={`text-xs ${theme.iconColor} mt-1`}>Trust-level overview — Academic Year 2025-26</p>
+        </div>
+        <button onClick={() => setActiveModule('profile')} title="My Profile" className={`w-9 h-9 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold hover:opacity-90 transition-opacity`}>JS</button>
       </div>
 
       {/* Financial KPIs */}
@@ -457,6 +460,48 @@ function StaffView({ theme }: { theme: Theme }) {
   );
 }
 
+// ─── HR MANAGEMENT VIEW ─────────────────────────────────
+function HRManagementView({ theme }: { theme: Theme }) {
+  const staffList = [
+    { name: 'Dr. Priya Sharma', designation: 'HOD - Science', department: 'Teaching', status: 'Active' },
+    { name: 'Rajesh Kumar', designation: 'Admin Manager', department: 'Administration', status: 'Active' },
+    { name: 'Ms. Kavita Desai', designation: 'Counselor', department: 'Student Support', status: 'On Leave' },
+    { name: 'Mohammed Irfan', designation: 'Transport Head', department: 'Transport', status: 'Active' },
+    { name: 'Vikram Singh', designation: 'IT Coordinator', department: 'IT & Lab', status: 'Active' },
+    { name: 'Sunita Verma', designation: 'TGT - Hindi', department: 'Teaching', status: 'On Leave' },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <h2 className={`text-lg font-bold ${theme.highlight}`}>HR Management</h2>
+        <p className={`text-xs ${theme.iconColor}`}>Trust-level HR and staffing summary</p>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <StatCard icon={Users} label="Total Staff" value="124" color="bg-blue-500" theme={theme} />
+        <StatCard icon={GraduationCap} label="Teaching" value="78" color="bg-emerald-500" theme={theme} />
+        <StatCard icon={Briefcase} label="Non-Teaching" value="46" color="bg-purple-500" theme={theme} />
+        <StatCard icon={Calendar} label="On Leave Today" value="5" color="bg-amber-500" theme={theme} />
+      </div>
+
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Staff Directory</h3>
+        <DataTable
+          headers={['Name', 'Designation', 'Department', 'Status']}
+          rows={staffList.map(s => [
+            <span key="name" className={`font-bold ${theme.highlight}`}>{s.name}</span>,
+            <span key="desig" className={theme.iconColor}>{s.designation}</span>,
+            <span key="dept" className={theme.iconColor}>{s.department}</span>,
+            <StatusBadge key="status" status={s.status === 'Active' ? 'Active' : 'Pending'} theme={theme} />,
+          ])}
+          theme={theme}
+        />
+      </div>
+    </div>
+  );
+}
+
 // ─── COMPLIANCE VIEW ───────────────────────────────────
 function ComplianceView({ theme }: { theme: Theme }) {
   const compliant = complianceItems.filter(c => c.status === 'Compliant').length;
@@ -550,6 +595,7 @@ function TrusteeDashboard({ theme }: { theme?: Theme }) {
       case 'academic': return <AcademicView theme={theme} />;
       case 'sqaaf': return <SQAAFView theme={theme} />;
       case 'staff': return <StaffView theme={theme} />;
+      case 'hr': return <HRManagementView theme={theme} />;
       case 'compliance': return <ComplianceView theme={theme} />;
       case 'approvals': return <ApprovalsView theme={theme} />;
       case 'profile': return <StakeholderProfile role="trustee" theme={theme} />;

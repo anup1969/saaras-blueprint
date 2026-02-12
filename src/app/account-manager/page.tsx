@@ -21,7 +21,6 @@ const modules = [
   { id: 'analytics', label: 'Usage Analytics', icon: BarChart3 },
   { id: 'renewals', label: 'Renewals', icon: RefreshCcw },
   { id: 'onboarding', label: 'Onboarding', icon: Rocket },
-  { id: 'profile', label: 'My Profile', icon: User },
 ];
 
 // ─── MOCK DATA ─────────────────────────────────────
@@ -134,7 +133,7 @@ function AccountManagerDashboard({ theme }: { theme?: Theme }) {
 
       {/* Module content */}
       <div className="flex-1 p-6 space-y-4 overflow-x-hidden">
-        {activeModule === 'dashboard' && <DashboardHome theme={theme} />}
+        {activeModule === 'dashboard' && <DashboardHome theme={theme} onProfileClick={() => setActiveModule('profile')} />}
         {activeModule === 'my-schools' && <MySchoolsModule theme={theme} />}
         {activeModule === 'tickets' && <TicketsModule theme={theme} />}
         {activeModule === 'analytics' && <AnalyticsModule theme={theme} />}
@@ -147,11 +146,16 @@ function AccountManagerDashboard({ theme }: { theme?: Theme }) {
 }
 
 // ─── DASHBOARD HOME ────────────────────────────────
-function DashboardHome({ theme }: { theme: Theme }) {
+function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick: () => void }) {
   return (
     <div className="space-y-4">
-      <h1 className={`text-2xl font-bold ${theme.highlight}`}>Account Manager Dashboard</h1>
-      <p className={`text-xs ${theme.iconColor}`}>Welcome back, Riya. Here is your portfolio overview for today.</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className={`text-2xl font-bold ${theme.highlight}`}>Account Manager Dashboard</h1>
+          <p className={`text-xs ${theme.iconColor}`}>Welcome back, Riya. Here is your portfolio overview for today.</p>
+        </div>
+        <button onClick={onProfileClick} title="My Profile" className={`w-9 h-9 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold hover:opacity-90 transition-opacity`}>SP</button>
+      </div>
 
       {/* Top Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

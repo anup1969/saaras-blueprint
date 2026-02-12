@@ -85,7 +85,6 @@ const modules = [
   { id: 'gate-log', label: 'Gate Log', icon: ClipboardList },
   { id: 'emergency', label: 'Emergency', icon: AlertTriangle },
   { id: 'patrol-log', label: 'Patrol Log', icon: Footprints },
-  { id: 'profile', label: 'My Profile', icon: User },
 ];
 
 function SecurityDashboard({ theme }: { theme?: Theme }) {
@@ -112,7 +111,7 @@ function SecurityDashboard({ theme }: { theme?: Theme }) {
 
       {/* Module content */}
       <div className="flex-1 p-6 space-y-4 overflow-x-hidden">
-        {activeModule === 'dashboard' && <DashboardHome theme={theme} />}
+        {activeModule === 'dashboard' && <DashboardHome theme={theme} onProfileClick={() => setActiveModule('profile')} />}
         {activeModule === 'visitor-checkin' && <VisitorCheckinModule theme={theme} />}
         {activeModule === 'student-pickup' && <StudentPickupModule theme={theme} />}
         {activeModule === 'gate-log' && <GateLogModule theme={theme} />}
@@ -125,11 +124,16 @@ function SecurityDashboard({ theme }: { theme?: Theme }) {
 }
 
 // ─── DASHBOARD HOME ──────────────────────────────────
-function DashboardHome({ theme }: { theme: Theme }) {
+function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick: () => void }) {
   return (
     <div className="space-y-4">
-      <h1 className={`text-2xl font-bold ${theme.highlight}`}>Security Dashboard</h1>
-      <p className={`text-xs ${theme.iconColor}`}>Gate overview for today &mdash; {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className={`text-2xl font-bold ${theme.highlight}`}>Security Dashboard</h1>
+          <p className={`text-xs ${theme.iconColor}`}>Gate overview for today &mdash; {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
+        </div>
+        <button onClick={onProfileClick} title="My Profile" className={`w-9 h-9 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold hover:opacity-90 transition-opacity`}>RK</button>
+      </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon={Users} label="Visitors Inside Campus" value={4} color="bg-blue-500" sub="6 total today" theme={theme} />

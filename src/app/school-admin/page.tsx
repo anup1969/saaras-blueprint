@@ -30,8 +30,8 @@ const modules = [
   { id: 'approvals', label: 'Approvals', icon: CheckCircle },
   { id: 'attendance', label: 'Attendance', icon: ClipboardCheck },
   { id: 'reports', label: 'Reports', icon: BarChart3 },
+  { id: 'hr', label: 'HR Management', icon: Briefcase },
   { id: 'config', label: 'Configuration', icon: Settings },
-  { id: 'profile', label: 'My Profile', icon: User },
 ];
 
 function SchoolAdminDashboard({ theme }: { theme?: Theme }) {
@@ -59,7 +59,7 @@ function SchoolAdminDashboard({ theme }: { theme?: Theme }) {
 
       {/* Module content */}
       <div className="flex-1 p-6 space-y-4 overflow-x-hidden">
-        {activeModule === 'dashboard' && <DashboardHome theme={theme} stats={stats} />}
+        {activeModule === 'dashboard' && <DashboardHome theme={theme} stats={stats} onProfileClick={() => setActiveModule('profile')} />}
         {activeModule === 'students' && <StudentsModule theme={theme} />}
         {activeModule === 'enquiries' && <EnquiriesModule theme={theme} />}
         {activeModule === 'staff' && <StaffModule theme={theme} />}
@@ -72,6 +72,7 @@ function SchoolAdminDashboard({ theme }: { theme?: Theme }) {
         {activeModule === 'approvals' && <ApprovalsModule theme={theme} />}
         {activeModule === 'attendance' && <AttendanceModule theme={theme} />}
         {activeModule === 'reports' && <ReportsModule theme={theme} />}
+        {activeModule === 'hr' && <HRManagementModule theme={theme} />}
         {activeModule === 'config' && <ConfigModule theme={theme} />}
         {activeModule === 'profile' && <StakeholderProfile role="school-admin" theme={theme} />}
       </div>
@@ -80,10 +81,13 @@ function SchoolAdminDashboard({ theme }: { theme?: Theme }) {
 }
 
 // ─── DASHBOARD HOME ──────────────────────────────────
-function DashboardHome({ theme, stats }: { theme: Theme; stats: typeof dashboardStats.schoolAdmin }) {
+function DashboardHome({ theme, stats, onProfileClick }: { theme: Theme; stats: typeof dashboardStats.schoolAdmin; onProfileClick: () => void }) {
   return (
     <div className="space-y-4">
-      <h1 className={`text-2xl font-bold ${theme.highlight}`}>School Admin Dashboard</h1>
+      <div className="flex items-center justify-between">
+        <h1 className={`text-2xl font-bold ${theme.highlight}`}>School Admin Dashboard</h1>
+        <button onClick={onProfileClick} title="My Profile" className={`w-9 h-9 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold hover:opacity-90 transition-opacity`}>DV</button>
+      </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon={Users} label="Total Students" value={stats.totalStudents} color="bg-blue-500" theme={theme} />
         <StatCard icon={Briefcase} label="Total Staff" value={stats.totalStaff} color="bg-indigo-500" theme={theme} />
@@ -1361,6 +1365,45 @@ function ConfigModule({ theme }: { theme: Theme }) {
             <ArrowRight size={14} className={`${theme.iconColor} ml-auto`} />
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── HR MANAGEMENT MODULE ────────────────────────────
+function HRManagementModule({ theme }: { theme: Theme }) {
+  const staffList = [
+    { name: 'Dr. Priya Sharma', designation: 'HOD - Science', department: 'Teaching', status: 'Active' },
+    { name: 'Rajesh Kumar', designation: 'Admin Manager', department: 'Administration', status: 'Active' },
+    { name: 'Ms. Kavita Desai', designation: 'Counselor', department: 'Student Support', status: 'On Leave' },
+    { name: 'Mohammed Irfan', designation: 'Transport Head', department: 'Transport', status: 'Active' },
+    { name: 'Vikram Singh', designation: 'IT Coordinator', department: 'IT & Lab', status: 'Active' },
+    { name: 'Sunita Verma', designation: 'TGT - Hindi', department: 'Teaching', status: 'On Leave' },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <h1 className={`text-2xl font-bold ${theme.highlight}`}>HR Management</h1>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard icon={Users} label="Total Staff" value="124" color="bg-blue-500" theme={theme} />
+        <StatCard icon={GraduationCap} label="Teaching" value="78" color="bg-emerald-500" theme={theme} />
+        <StatCard icon={Briefcase} label="Non-Teaching" value="46" color="bg-purple-500" theme={theme} />
+        <StatCard icon={Calendar} label="On Leave Today" value="5" color="bg-amber-500" theme={theme} />
+      </div>
+
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Staff Directory</h3>
+        <DataTable
+          headers={['Name', 'Designation', 'Department', 'Status']}
+          rows={staffList.map(s => [
+            <span key="name" className={`font-bold ${theme.highlight}`}>{s.name}</span>,
+            <span key="desig" className={theme.iconColor}>{s.designation}</span>,
+            <span key="dept" className={theme.iconColor}>{s.department}</span>,
+            <StatusBadge key="status" status={s.status === 'Active' ? 'Active' : 'Pending'} theme={theme} />,
+          ])}
+          theme={theme}
+        />
       </div>
     </div>
   );

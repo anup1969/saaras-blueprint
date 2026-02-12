@@ -21,7 +21,6 @@ const modules = [
   { id: 'examinations', label: 'Examinations', icon: BookOpen },
   { id: 'staff-duties', label: 'Staff Duties', icon: ClipboardCheck },
   { id: 'circulars', label: 'Circulars', icon: Megaphone },
-  { id: 'profile', label: 'My Profile', icon: User },
 ];
 
 // ─── MOCK DATA ──────────────────────────────────────
@@ -124,7 +123,7 @@ function VicePrincipalDashboard({ theme }: { theme?: Theme }) {
 
       {/* Module content */}
       <div className="flex-1 p-6 space-y-4 overflow-x-hidden">
-        {activeModule === 'dashboard' && <DashboardHome theme={theme} />}
+        {activeModule === 'dashboard' && <DashboardHome theme={theme} onProfileClick={() => setActiveModule('profile')} />}
         {activeModule === 'substitutions' && <SubstitutionsModule theme={theme} />}
         {activeModule === 'discipline' && <DisciplineModule theme={theme} />}
         {activeModule === 'timetable' && <TimetableModule theme={theme} />}
@@ -139,11 +138,16 @@ function VicePrincipalDashboard({ theme }: { theme?: Theme }) {
 
 // ─── DASHBOARD HOME ─────────────────────────────────
 
-function DashboardHome({ theme }: { theme: Theme }) {
+function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick: () => void }) {
   return (
     <div className="space-y-4">
-      <h1 className={`text-2xl font-bold ${theme.highlight}`}>Vice Principal Dashboard</h1>
-      <p className={`text-xs ${theme.iconColor}`}>Good morning, Dr. Meena Iyer &mdash; Wednesday, 12 February 2026</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className={`text-2xl font-bold ${theme.highlight}`}>Vice Principal Dashboard</h1>
+          <p className={`text-xs ${theme.iconColor}`}>Good morning, Dr. Meena Iyer &mdash; Wednesday, 12 February 2026</p>
+        </div>
+        <button onClick={onProfileClick} title="My Profile" className={`w-9 h-9 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold hover:opacity-90 transition-opacity`}>RJ</button>
+      </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon={Repeat} label="Today's Substitutions" value={4} color="bg-blue-500" sub="2 pending" theme={theme} />

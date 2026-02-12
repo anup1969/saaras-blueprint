@@ -21,7 +21,6 @@ const modules = [
   { id: 'courier', label: 'Courier/Mail', icon: Package },
   { id: 'appointments', label: 'Appointments', icon: Calendar },
   { id: 'directory', label: 'Directory', icon: BookOpen },
-  { id: 'profile', label: 'My Profile', icon: User },
 ];
 
 // ─── MOCK DATA ──────────────────────────────────────
@@ -112,7 +111,7 @@ function ReceptionistDashboard({ theme }: { theme?: Theme }) {
 
       {/* Module content */}
       <div className="flex-1 p-6 space-y-4 overflow-x-hidden">
-        {activeModule === 'dashboard' && <DashboardHome theme={theme} />}
+        {activeModule === 'dashboard' && <DashboardHome theme={theme} onProfileClick={() => setActiveModule('profile')} />}
         {activeModule === 'visitors' && <VisitorsModule theme={theme} />}
         {activeModule === 'enquiries' && <EnquiriesModule theme={theme} />}
         {activeModule === 'calls' && <CallsModule theme={theme} />}
@@ -127,7 +126,7 @@ function ReceptionistDashboard({ theme }: { theme?: Theme }) {
 
 // ─── DASHBOARD HOME ─────────────────────────────────
 
-function DashboardHome({ theme }: { theme: Theme }) {
+function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick: () => void }) {
   const inCampus = mockVisitors.filter(v => v.status === 'In Campus').length;
   const newEnquiries = mockEnquiries.filter(e => e.status === 'New').length;
   const todayAppointments = mockAppointments.filter(a => a.date === '14 Feb 2026' || a.date === '13 Feb 2026').length;
@@ -135,8 +134,13 @@ function DashboardHome({ theme }: { theme: Theme }) {
 
   return (
     <div className="space-y-4">
-      <h1 className={`text-2xl font-bold ${theme.highlight}`}>Front Desk Overview</h1>
-      <p className={`text-xs ${theme.iconColor}`}>Thursday, 12 February 2026 — Good Morning!</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className={`text-2xl font-bold ${theme.highlight}`}>Front Desk Overview</h1>
+          <p className={`text-xs ${theme.iconColor}`}>Thursday, 12 February 2026 — Good Morning!</p>
+        </div>
+        <button onClick={onProfileClick} title="My Profile" className={`w-9 h-9 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold hover:opacity-90 transition-opacity`}>AD</button>
+      </div>
 
       {/* Stat Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

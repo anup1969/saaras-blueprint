@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Building2, GraduationCap, BookOpen, User, Users, Shield, Eye,
   UserCheck, Briefcase, Calculator, Phone, Bus, ShieldCheck, Headphones,
-  Home, ChevronLeft, Menu, LogOut, MessageSquare
+  Home, ChevronLeft, Menu, LogOut, MessageSquare, Bell,
+  FileText, CheckCircle, Calendar, AlertTriangle, ClipboardCheck
 } from 'lucide-react';
 import { themes, type Theme } from '@/lib/themes';
 import { getLoggedInUser, logoutUser, type TeamMember } from '@/lib/auth';
@@ -38,7 +39,19 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [currentUser, setCurrentUser] = useState<TeamMember | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
   const theme = themes[themeIdx];
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setShowNotifications(false);
+      }
+    };
+    if (showNotifications) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showNotifications]);
 
   useEffect(() => {
     const user = getLoggedInUser();
@@ -145,6 +158,47 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
             <span className={`text-[10px] px-2 py-1 rounded-lg ${theme.secondaryBg} ${theme.iconColor}`}>
               BLUEPRINT MODE — Not a live system
             </span>
+            {/* Notification Bell */}
+            <div ref={notifRef} className="relative">
+              <button
+                onClick={() => setShowNotifications(!showNotifications)}
+                className={`relative p-2 rounded-lg ${theme.secondaryBg} ${theme.iconColor} hover:opacity-80 transition-all`}
+                title="Notifications"
+              >
+                <Bell size={14} />
+                <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-red-500 rounded-full text-[8px] text-white font-bold flex items-center justify-center">3</span>
+              </button>
+              {showNotifications && (
+                <div className={`absolute right-0 top-10 w-80 ${theme.cardBg} border ${theme.border} rounded-2xl shadow-2xl z-50 overflow-hidden`}>
+                  <div className={`px-4 py-3 border-b ${theme.border} flex items-center justify-between`}>
+                    <span className={`text-xs font-bold ${theme.highlight}`}>Notifications</span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-red-100 text-red-600 font-bold">3 new</span>
+                  </div>
+                  <div className="max-h-80 overflow-y-auto">
+                    {[
+                      { icon: MessageSquare, title: 'New message from Vice Principal', time: '2 min ago', color: 'border-l-blue-500', unread: true },
+                      { icon: FileText, title: 'Circular: Annual Day preparations', time: '15 min ago', color: 'border-l-amber-500', unread: true },
+                      { icon: ClipboardCheck, title: 'Leave request needs approval', time: '30 min ago', color: 'border-l-purple-500', unread: true },
+                      { icon: Calendar, title: 'PTM scheduled for tomorrow', time: '1 hr ago', color: 'border-l-teal-500', unread: false },
+                      { icon: CheckCircle, title: 'Attendance report generated', time: '2 hrs ago', color: 'border-l-emerald-500', unread: false },
+                      { icon: AlertTriangle, title: 'Fee payment reminder sent', time: '3 hrs ago', color: 'border-l-red-500', unread: false },
+                    ].map((n, i) => (
+                      <div key={i} className={`flex items-start gap-3 px-4 py-3 border-l-[3px] ${n.color} ${n.unread ? theme.secondaryBg : ''} hover:opacity-80 cursor-pointer transition-all`}>
+                        <n.icon size={14} className={`mt-0.5 ${theme.iconColor} shrink-0`} />
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-xs ${n.unread ? `font-bold ${theme.highlight}` : theme.iconColor}`}>{n.title}</p>
+                          <p className={`text-[10px] ${theme.iconColor} mt-0.5`}>{n.time}</p>
+                        </div>
+                        {n.unread && <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 shrink-0" />}
+                      </div>
+                    ))}
+                  </div>
+                  <div className={`px-4 py-2.5 border-t ${theme.border} text-center`}>
+                    <button className={`text-[10px] font-bold ${theme.primaryText}`}>View All Notifications</button>
+                  </div>
+                </div>
+              )}
+            </div>
             <span className={`text-xs font-bold ${theme.primaryText}`}>{currentUser.name}</span>
           </div>
         </div>
