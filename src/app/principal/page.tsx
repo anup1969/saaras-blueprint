@@ -11,7 +11,7 @@ import {
   TrendingUp, Heart, ClipboardCheck, Star, DollarSign, Building2,
   Bell, ArrowRight, MessageSquare, Award, Filter, User, ListTodo, Circle,
   PanelLeftClose, PanelLeftOpen, Banknote, IndianRupee, Mail, Inbox,
-  ChevronRight, CalendarDays
+  ChevronRight, CalendarDays, GripVertical, Flag
 } from 'lucide-react';
 import StakeholderProfile from '@/components/StakeholderProfile';
 
@@ -37,11 +37,11 @@ function PrincipalDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme;
   return (
     <div className="flex gap-4 -m-6">
       {/* Module sidebar */}
-      <div className={`${sidebarCollapsed ? 'w-12' : 'w-48'} ${theme.cardBg} border-r ${theme.border} min-h-screen p-2 space-y-0.5 shrink-0 transition-all duration-200`}>
+      <div className={`${sidebarCollapsed ? 'w-14' : 'w-48'} ${theme.cardBg} border-r ${theme.border} min-h-screen p-2 space-y-0.5 shrink-0 transition-all duration-200`}>
         <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-between'} px-2 py-2`}>
           {!sidebarCollapsed && <p className={`text-[10px] font-bold ${theme.iconColor} uppercase px-1`}>Modules</p>}
           <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} className={`p-1 rounded-lg ${theme.buttonHover} ${theme.iconColor} transition-all`}>
-            {sidebarCollapsed ? <PanelLeftOpen size={14} /> : <PanelLeftClose size={14} />}
+            {sidebarCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={14} />}
           </button>
         </div>
         {modules.map(m => (
@@ -49,11 +49,11 @@ function PrincipalDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme;
             key={m.id}
             onClick={() => setActiveModule(m.id)}
             title={sidebarCollapsed ? m.label : undefined}
-            className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : 'gap-2'} px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+            className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center px-2 py-2.5' : 'gap-2 px-3 py-2'} rounded-lg text-xs font-medium transition-all ${
               activeModule === m.id ? `${theme.primary} text-white` : `${theme.iconColor} ${theme.buttonHover}`
             }`}
           >
-            <m.icon size={14} /> {!sidebarCollapsed && m.label}
+            <m.icon size={sidebarCollapsed ? 18 : 14} /> {!sidebarCollapsed && m.label}
           </button>
         ))}
       </div>
@@ -76,6 +76,183 @@ function PrincipalDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme;
   );
 }
 
+// ─── TASK TRACKER PANEL ─────────────────────────────
+function TaskTrackerPanel({ theme }: { theme: Theme }) {
+  const [taskTab, setTaskTab] = useState('Quick View');
+  const [taskSearch, setTaskSearch] = useState('');
+  const [priorityFilter, setPriorityFilter] = useState('All');
+  const [statusFilter, setStatusFilter] = useState('All');
+
+  const tasks = [
+    { id: 1, title: 'Review mid-term exam papers', priority: 'high' as const, assignee: 'Self', days: '2d', status: 'open' as const },
+    { id: 2, title: 'Approve staff leave requests (3)', priority: 'high' as const, assignee: 'Self', days: 'Today', status: 'open' as const },
+    { id: 3, title: 'Submit SQAAF self-assessment', priority: 'high' as const, assignee: 'Self', days: '5d', status: 'open' as const },
+    { id: 4, title: 'Prepare Annual Day speech', priority: 'medium' as const, assignee: 'Self', days: '8d', status: 'open' as const },
+    { id: 5, title: 'Review fee defaulter list', priority: 'high' as const, assignee: 'VP', days: '1d', status: 'in progress' as const },
+    { id: 6, title: 'Meeting with PTA committee', priority: 'medium' as const, assignee: 'Self', days: '3d', status: 'open' as const },
+    { id: 7, title: 'Finalize timetable changes', priority: 'low' as const, assignee: 'VP', days: '12d', status: 'open' as const },
+    { id: 8, title: 'Review bus route complaints', priority: 'medium' as const, assignee: 'Transport Head', days: '4d', status: 'open' as const },
+  ];
+
+  const totalTasks = 12;
+  const inProgress = 3;
+  const highPriority = 5;
+  const completed = 4;
+
+  const priorityDot = (p: 'high' | 'medium' | 'low') => {
+    if (p === 'high') return 'bg-red-500';
+    if (p === 'medium') return 'bg-amber-500';
+    return 'bg-blue-500';
+  };
+
+  const daysColor = (d: string) => {
+    if (d === 'Today' || d === '1d') return 'text-red-600 font-bold';
+    const num = parseInt(d);
+    if (!isNaN(num) && num <= 3) return 'text-red-500 font-bold';
+    if (!isNaN(num) && num <= 7) return 'text-amber-600 font-bold';
+    return `${theme.iconColor} font-medium`;
+  };
+
+  const statusBadge = (s: 'open' | 'in progress' | 'done') => {
+    if (s === 'open') return 'bg-blue-100 text-blue-700';
+    if (s === 'in progress') return 'bg-amber-100 text-amber-700';
+    return 'bg-emerald-100 text-emerald-700';
+  };
+
+  const tabCounts: Record<string, number> = { 'Quick View': 5, 'Assigned to Me': 3, 'Created by Me': 4 };
+
+  return (
+    <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 flex flex-col`}>
+      {/* Header row */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <ListTodo size={16} className={theme.iconColor} />
+          <h3 className={`text-sm font-bold ${theme.highlight}`}>Task Tracker</h3>
+        </div>
+        <button className={`px-2.5 py-1.5 ${theme.primary} text-white rounded-lg text-[10px] font-bold flex items-center gap-1`}>
+          <Plus size={10} /> Create Task
+        </button>
+      </div>
+
+      {/* Stat cards row */}
+      <div className="grid grid-cols-4 gap-2 mb-3">
+        <div className={`${theme.secondaryBg} rounded-xl p-2 text-center`}>
+          <div className="flex items-center justify-center gap-1 mb-0.5">
+            <CheckCircle size={10} className={theme.iconColor} />
+            <span className={`text-[9px] ${theme.iconColor}`}>Total</span>
+          </div>
+          <p className={`text-sm font-bold ${theme.highlight}`}>{totalTasks}</p>
+        </div>
+        <div className={`${theme.secondaryBg} rounded-xl p-2 text-center`}>
+          <div className="flex items-center justify-center gap-1 mb-0.5">
+            <Clock size={10} className="text-amber-500" />
+            <span className={`text-[9px] ${theme.iconColor}`}>In Progress</span>
+          </div>
+          <p className="text-sm font-bold text-amber-600">{inProgress}</p>
+        </div>
+        <div className={`${theme.secondaryBg} rounded-xl p-2 text-center`}>
+          <div className="flex items-center justify-center gap-1 mb-0.5">
+            <Flag size={10} className="text-red-500" />
+            <span className={`text-[9px] ${theme.iconColor}`}>High Priority</span>
+          </div>
+          <p className="text-sm font-bold text-red-600">{highPriority}</p>
+        </div>
+        <div className={`${theme.secondaryBg} rounded-xl p-2 text-center`}>
+          <div className="flex items-center justify-center gap-1 mb-0.5">
+            <Check size={10} className="text-emerald-500" />
+            <span className={`text-[9px] ${theme.iconColor}`}>Completed</span>
+          </div>
+          <p className="text-sm font-bold text-emerald-600">{completed}</p>
+        </div>
+      </div>
+
+      {/* Search + Filters row */}
+      <div className="flex items-center gap-2 mb-3">
+        <div className={`flex items-center gap-1.5 flex-1 px-2 py-1.5 rounded-lg ${theme.secondaryBg} border ${theme.border}`}>
+          <Search size={10} className={theme.iconColor} />
+          <input
+            type="text"
+            placeholder="Search tasks..."
+            value={taskSearch}
+            onChange={e => setTaskSearch(e.target.value)}
+            className={`bg-transparent text-[10px] ${theme.highlight} outline-none w-full placeholder:${theme.iconColor}`}
+          />
+        </div>
+        <select
+          value={priorityFilter}
+          onChange={e => setPriorityFilter(e.target.value)}
+          className={`px-2 py-1.5 rounded-lg text-[10px] font-medium ${theme.secondaryBg} border ${theme.border} ${theme.highlight} outline-none cursor-pointer`}
+        >
+          <option value="All">Priority</option>
+          <option value="High">High</option>
+          <option value="Medium">Medium</option>
+          <option value="Low">Low</option>
+        </select>
+        <select
+          value={statusFilter}
+          onChange={e => setStatusFilter(e.target.value)}
+          className={`px-2 py-1.5 rounded-lg text-[10px] font-medium ${theme.secondaryBg} border ${theme.border} ${theme.highlight} outline-none cursor-pointer`}
+        >
+          <option value="All">Status</option>
+          <option value="Open">Open</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Done">Done</option>
+        </select>
+      </div>
+
+      {/* Tabs */}
+      <div className={`flex gap-1 mb-3 border-b ${theme.border} pb-2`}>
+        {(['Quick View', 'Assigned to Me', 'Created by Me'] as const).map(tab => (
+          <button
+            key={tab}
+            onClick={() => setTaskTab(tab)}
+            className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
+              taskTab === tab ? `${theme.primary} text-white` : `${theme.iconColor} ${theme.buttonHover}`
+            }`}
+          >
+            {tab} <span className={`ml-0.5 ${taskTab === tab ? 'text-white/80' : ''}`}>({tabCounts[tab]})</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Task list — scrollable */}
+      <div className="max-h-[400px] overflow-y-auto space-y-1.5 pr-1">
+        {tasks.map(t => (
+          <div key={t.id} className={`flex items-center gap-2 p-2 rounded-xl ${theme.accentBg} hover:${theme.secondaryBg} transition-all group`}>
+            {/* Drag handle */}
+            <GripVertical size={12} className={`${theme.iconColor} opacity-40 group-hover:opacity-70 cursor-grab shrink-0`} />
+            {/* Expand chevron */}
+            <ChevronRight size={12} className={`${theme.iconColor} shrink-0`} />
+            {/* Priority dot */}
+            <span className={`w-2 h-2 rounded-full ${priorityDot(t.priority)} shrink-0`} />
+            {/* Task title */}
+            <p className={`text-[11px] font-medium ${theme.highlight} flex-1 min-w-0 truncate`}>{t.title}</p>
+            {/* Assignee badge */}
+            <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${theme.secondaryBg} ${theme.iconColor} font-medium whitespace-nowrap shrink-0`}>{t.assignee}</span>
+            {/* Days indicator */}
+            <span className={`text-[9px] ${daysColor(t.days)} whitespace-nowrap shrink-0 w-8 text-center`}>{t.days}</span>
+            {/* Complete button */}
+            <button className={`w-5 h-5 rounded-full border ${theme.border} flex items-center justify-center shrink-0 hover:bg-emerald-100 hover:border-emerald-400 transition-all`}>
+              <Check size={9} className={`${theme.iconColor} opacity-50`} />
+            </button>
+            {/* Open arrow */}
+            <button className={`w-5 h-5 rounded-full ${theme.secondaryBg} flex items-center justify-center shrink-0 hover:${theme.buttonHover} transition-all`}>
+              <ArrowRight size={9} className={theme.iconColor} />
+            </button>
+            {/* Status badge */}
+            <span className={`text-[8px] px-1.5 py-0.5 rounded-full font-bold whitespace-nowrap shrink-0 ${statusBadge(t.status)}`}>{t.status}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Popup behavior note */}
+      <p className={`text-[9px] ${theme.iconColor} mt-3 pt-2 border-t ${theme.border} italic`}>
+        Popup: Greets on login, reappears after 5 min inactivity (configurable in Settings)
+      </p>
+    </div>
+  );
+}
+
 // ─── DASHBOARD HOME ──────────────────────────────────
 function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick: () => void }) {
   return (
@@ -84,20 +261,20 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
         <h1 className={`text-2xl font-bold ${theme.highlight}`}>Principal Dashboard</h1>
         <button onClick={onProfileClick} title="My Profile" className={`w-9 h-9 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold hover:opacity-90 transition-opacity`}>SM</button>
       </div>
-      {/* Attendance Row — Student + Academic Staff + Non-Academic Staff (compact) */}
+      {/* Attendance Row — Student + Academic Staff + Non-Academic Staff */}
       <div className="grid grid-cols-3 gap-3">
         {/* Student Attendance */}
-        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-3`}>
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
           <div className="flex items-center justify-between">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5 mb-1">
-                <Users size={12} className={theme.iconColor} />
-                <h3 className={`text-[11px] font-bold ${theme.highlight}`}>Students</h3>
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <Users size={14} className={theme.iconColor} />
+                <h3 className={`text-xs font-bold ${theme.highlight}`}>Students</h3>
               </div>
-              <p className={`text-sm font-bold ${theme.highlight}`}>2,598 / 2,847</p>
-              <p className={`text-[9px] ${theme.iconColor} mt-0.5`}>Enrolled: 3,000</p>
+              <p className={`text-lg font-bold ${theme.highlight}`}>2,598 / 2,847</p>
+              <p className={`text-xs ${theme.iconColor} mt-0.5`}>Enrolled: 3,000</p>
             </div>
-            <div className="w-10 h-10 ml-2 shrink-0">
+            <div className="w-14 h-14 ml-2 shrink-0">
               <svg viewBox="0 0 36 36" className="w-full h-full">
                 <circle r="16" cx="18" cy="18" fill="none" stroke="#9ca3af" strokeWidth="4"
                   strokeDasharray={`${(153 / 3000) * 100.53} ${100.53 - (153 / 3000) * 100.53}`}
@@ -108,29 +285,29 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
                 <circle r="16" cx="18" cy="18" fill="none" stroke="#10b981" strokeWidth="4"
                   strokeDasharray={`${(2598 / 3000) * 100.53} ${100.53 - (2598 / 3000) * 100.53}`}
                   strokeDashoffset={`${25.13 - (153 / 3000) * 100.53 - (249 / 3000) * 100.53}`} transform="rotate(-90 18 18)" />
-                <text x="18" y="19" textAnchor="middle" dominantBaseline="middle" className="fill-emerald-600" style={{ fontSize: '7px', fontWeight: 700 }}>87%</text>
+                <text x="18" y="19" textAnchor="middle" dominantBaseline="middle" className="fill-emerald-600" style={{ fontSize: '8px', fontWeight: 700 }}>87%</text>
               </svg>
             </div>
           </div>
-          <div className="flex items-center gap-2 mt-1.5">
-            <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" /><span className={`text-[9px] ${theme.iconColor}`}>2,598</span></span>
-            <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block" /><span className={`text-[9px] ${theme.iconColor}`}>249</span></span>
-            <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-gray-400 inline-block" /><span className={`text-[9px] ${theme.iconColor}`}>153</span></span>
+          <div className="flex items-center gap-3 mt-2">
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /><span className={`text-[10px] ${theme.iconColor}`}>2,598</span></span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500 inline-block" /><span className={`text-[10px] ${theme.iconColor}`}>249</span></span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-gray-400 inline-block" /><span className={`text-[10px] ${theme.iconColor}`}>153</span></span>
           </div>
         </div>
 
         {/* Academic Staff */}
-        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-3`}>
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
           <div className="flex items-center justify-between">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5 mb-1">
-                <GraduationCap size={12} className={theme.iconColor} />
-                <h3 className={`text-[11px] font-bold ${theme.highlight}`}>Academic Staff</h3>
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <GraduationCap size={14} className={theme.iconColor} />
+                <h3 className={`text-xs font-bold ${theme.highlight}`}>Academic Staff</h3>
               </div>
-              <p className={`text-sm font-bold ${theme.highlight}`}>72 / 78</p>
-              <p className={`text-[9px] text-emerald-600 mt-0.5`}>92% Present</p>
+              <p className={`text-lg font-bold ${theme.highlight}`}>72 / 78</p>
+              <p className={`text-xs text-emerald-600 mt-0.5`}>92% Present</p>
             </div>
-            <div className="w-10 h-10 ml-2 shrink-0">
+            <div className="w-14 h-14 ml-2 shrink-0">
               <svg viewBox="0 0 36 36" className="w-full h-full">
                 <circle r="16" cx="18" cy="18" fill="none" stroke="#ef4444" strokeWidth="4"
                   strokeDasharray={`${(6 / 78) * 100.53} ${100.53 - (6 / 78) * 100.53}`}
@@ -138,28 +315,28 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
                 <circle r="16" cx="18" cy="18" fill="none" stroke="#10b981" strokeWidth="4"
                   strokeDasharray={`${(72 / 78) * 100.53} ${100.53 - (72 / 78) * 100.53}`}
                   strokeDashoffset={`${25.13 - (6 / 78) * 100.53}`} transform="rotate(-90 18 18)" />
-                <text x="18" y="19" textAnchor="middle" dominantBaseline="middle" className="fill-emerald-600" style={{ fontSize: '7px', fontWeight: 700 }}>92%</text>
+                <text x="18" y="19" textAnchor="middle" dominantBaseline="middle" className="fill-emerald-600" style={{ fontSize: '8px', fontWeight: 700 }}>92%</text>
               </svg>
             </div>
           </div>
-          <div className="flex items-center gap-2 mt-1.5">
-            <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" /><span className={`text-[9px] ${theme.iconColor}`}>72</span></span>
-            <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block" /><span className={`text-[9px] ${theme.iconColor}`}>6</span></span>
+          <div className="flex items-center gap-3 mt-2">
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /><span className={`text-[10px] ${theme.iconColor}`}>72</span></span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500 inline-block" /><span className={`text-[10px] ${theme.iconColor}`}>6</span></span>
           </div>
         </div>
 
         {/* Non-Academic Staff */}
-        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-3`}>
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
           <div className="flex items-center justify-between">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5 mb-1">
-                <Briefcase size={12} className={theme.iconColor} />
-                <h3 className={`text-[11px] font-bold ${theme.highlight}`}>Non-Academic</h3>
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <Briefcase size={14} className={theme.iconColor} />
+                <h3 className={`text-xs font-bold ${theme.highlight}`}>Non-Academic</h3>
               </div>
-              <p className={`text-sm font-bold ${theme.highlight}`}>56 / 64</p>
-              <p className={`text-[9px] text-emerald-600 mt-0.5`}>88% Present</p>
+              <p className={`text-lg font-bold ${theme.highlight}`}>56 / 64</p>
+              <p className={`text-xs text-emerald-600 mt-0.5`}>88% Present</p>
             </div>
-            <div className="w-10 h-10 ml-2 shrink-0">
+            <div className="w-14 h-14 ml-2 shrink-0">
               <svg viewBox="0 0 36 36" className="w-full h-full">
                 <circle r="16" cx="18" cy="18" fill="none" stroke="#ef4444" strokeWidth="4"
                   strokeDasharray={`${(8 / 64) * 100.53} ${100.53 - (8 / 64) * 100.53}`}
@@ -167,44 +344,23 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
                 <circle r="16" cx="18" cy="18" fill="none" stroke="#10b981" strokeWidth="4"
                   strokeDasharray={`${(56 / 64) * 100.53} ${100.53 - (56 / 64) * 100.53}`}
                   strokeDashoffset={`${25.13 - (8 / 64) * 100.53}`} transform="rotate(-90 18 18)" />
-                <text x="18" y="19" textAnchor="middle" dominantBaseline="middle" className="fill-emerald-600" style={{ fontSize: '7px', fontWeight: 700 }}>88%</text>
+                <text x="18" y="19" textAnchor="middle" dominantBaseline="middle" className="fill-emerald-600" style={{ fontSize: '8px', fontWeight: 700 }}>88%</text>
               </svg>
             </div>
           </div>
-          <div className="flex items-center gap-2 mt-1.5">
-            <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" /><span className={`text-[9px] ${theme.iconColor}`}>56</span></span>
-            <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block" /><span className={`text-[9px] ${theme.iconColor}`}>8</span></span>
+          <div className="flex items-center gap-3 mt-2">
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /><span className={`text-[10px] ${theme.iconColor}`}>56</span></span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500 inline-block" /><span className={`text-[10px] ${theme.iconColor}`}>8</span></span>
           </div>
         </div>
       </div>
 
-      {/* Remaining Stat Cards */}
+      {/* Stat Cards — including Fees inline */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon={ClipboardCheck} label="Avg Attendance" value="94.2%" color="bg-emerald-500" theme={theme} />
         <StatCard icon={Award} label="Academic Performance" value="87.5%" color="bg-purple-500" theme={theme} />
         <StatCard icon={Clock} label="Pending Approvals" value="8" color="bg-amber-500" theme={theme} />
-      </div>
-
-      {/* Fees Card */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <div className="flex items-center gap-2 mb-3">
-          <Banknote size={16} className={theme.iconColor} />
-          <h3 className={`text-sm font-bold ${theme.highlight}`}>Fees Overview</h3>
-        </div>
-        <div className="grid grid-cols-3 gap-4">
-          <div className={`${theme.secondaryBg} rounded-xl p-3 text-center`}>
-            <p className={`text-[10px] ${theme.iconColor} mb-1`}>Today&apos;s Collection</p>
-            <p className={`text-lg font-bold text-emerald-600`}>{'\u20B9'}2,45,000</p>
-          </div>
-          <div className={`${theme.secondaryBg} rounded-xl p-3 text-center`}>
-            <p className={`text-[10px] ${theme.iconColor} mb-1`}>Total Collected (FY)</p>
-            <p className={`text-lg font-bold ${theme.highlight}`}>{'\u20B9'}1.2 Cr</p>
-          </div>
-          <div className={`${theme.secondaryBg} rounded-xl p-3 text-center`}>
-            <p className={`text-[10px] ${theme.iconColor} mb-1`}>Outstanding</p>
-            <p className="text-lg font-bold text-red-500">{'\u20B9'}18.5L</p>
-          </div>
-        </div>
+        <StatCard icon={Banknote} label="Today's Collection" value={`\u20B92,45,000`} color="bg-green-500" sub="Outstanding: \u20B918.5L" theme={theme} />
       </div>
 
       {/* Recent Activity + Task Tracker — Side by Side */}
@@ -234,45 +390,8 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
           </div>
         </div>
 
-        {/* Task Tracker */}
-        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-          <div className="flex items-center gap-2 mb-3">
-            <ListTodo size={16} className={theme.iconColor} />
-            <h3 className={`text-sm font-bold ${theme.highlight}`}>Task Tracker</h3>
-          </div>
-          <div className="space-y-2">
-            {[
-              { task: 'Review mid-term exam papers', due: '15-Feb', priority: 'High', status: 'In Progress' },
-              { task: 'Submit SQAAF self-assessment', due: '20-Feb', priority: 'Urgent', status: 'Pending' },
-              { task: 'Approve staff leave requests (3)', due: 'Today', priority: 'High', status: 'Pending' },
-              { task: 'Prepare Annual Day speech', due: '25-Feb', priority: 'Normal', status: 'Not Started' },
-              { task: 'Review fee defaulter list', due: '12-Feb', priority: 'High', status: 'Completed' },
-            ].map((t, i) => (
-              <div key={i} className={`flex items-center gap-3 p-2.5 rounded-xl ${theme.accentBg} border-l-[3px] ${
-                t.priority === 'Urgent' ? 'border-l-red-500' :
-                t.priority === 'High' ? 'border-l-amber-500' :
-                'border-l-blue-500'
-              }`}>
-                {/* Checkbox circle */}
-                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                  t.status === 'Completed' ? 'border-emerald-500 bg-emerald-500' : `border-gray-300`
-                }`}>
-                  {t.status === 'Completed' && <Check size={10} className="text-white" />}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className={`text-xs font-bold ${theme.highlight} ${t.status === 'Completed' ? 'line-through opacity-60' : ''}`}>{t.task}</p>
-                  <p className={`text-[10px] ${theme.iconColor} mt-0.5`}>Due: {t.due}</p>
-                </div>
-                <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold whitespace-nowrap ${
-                  t.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' :
-                  t.status === 'In Progress' ? 'bg-blue-100 text-blue-700' :
-                  t.status === 'Pending' ? 'bg-amber-100 text-amber-700' :
-                  'bg-gray-100 text-gray-600'
-                }`}>{t.status}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* Task Tracker — Full Task Management Dashboard */}
+        <TaskTrackerPanel theme={theme} />
       </div>
 
       {/* Quick Actions */}

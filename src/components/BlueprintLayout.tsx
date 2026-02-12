@@ -8,7 +8,7 @@ import {
   UserCheck, Briefcase, Calculator, Phone, Bus, ShieldCheck, Headphones,
   Home, ChevronLeft, Menu, LogOut, MessageSquare, Bell,
   FileText, CheckCircle, Calendar, AlertTriangle, ClipboardCheck,
-  Maximize2, Minimize2
+  Palette
 } from 'lucide-react';
 import { themes, type Theme } from '@/lib/themes';
 import { getLoggedInUser, logoutUser, type TeamMember } from '@/lib/auth';
@@ -41,8 +41,9 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
   const [currentUser, setCurrentUser] = useState<TeamMember | null>(null);
   const [loading, setLoading] = useState(true);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showThemePicker, setShowThemePicker] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
+  const themePickerRef = useRef<HTMLDivElement>(null);
   const theme = themes[themeIdx];
 
   useEffect(() => {
@@ -56,20 +57,14 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
   }, [showNotifications]);
 
   useEffect(() => {
-    const onFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+    const handleClickOutsideTheme = (e: MouseEvent) => {
+      if (themePickerRef.current && !themePickerRef.current.contains(e.target as Node)) {
+        setShowThemePicker(false);
+      }
     };
-    document.addEventListener('fullscreenchange', onFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', onFullscreenChange);
-  }, []);
-
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(() => {});
-    } else {
-      document.exitFullscreen().catch(() => {});
-    }
-  };
+    if (showThemePicker) document.addEventListener('mousedown', handleClickOutsideTheme);
+    return () => document.removeEventListener('mousedown', handleClickOutsideTheme);
+  }, [showThemePicker]);
 
   useEffect(() => {
     const user = getLoggedInUser();
@@ -158,29 +153,44 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
             <span className={`text-[10px] px-2 py-1 rounded-lg ${theme.secondaryBg} ${theme.iconColor}`}>
               BLUEPRINT MODE — Not a live system
             </span>
-            {/* Theme selector */}
-            <div className="flex items-center gap-0.5">
-              {themes.map((t, i) => (
-                <button
-                  key={t.id}
-                  onClick={() => setThemeIdx(i)}
-                  className={`w-6 h-6 rounded-md flex items-center justify-center text-[9px] font-bold transition-all ${
-                    i === themeIdx ? `${t.primary} text-white ring-1 ring-purple-400` : `${theme.secondaryBg} ${theme.iconColor} hover:opacity-80`
-                  }`}
-                  title={t.name}
-                >
-                  {t.name[0]}
-                </button>
-              ))}
+            {/* Theme picker */}
+            <div ref={themePickerRef} className="relative">
+              <button
+                onClick={() => setShowThemePicker(!showThemePicker)}
+                className={`p-2 rounded-lg ${theme.secondaryBg} ${theme.iconColor} hover:opacity-80 transition-all`}
+                title="Change theme"
+              >
+                <Palette size={14} />
+              </button>
+              {showThemePicker && (
+                <div className={`absolute right-0 top-10 w-48 ${theme.cardBg} border ${theme.border} rounded-xl shadow-2xl z-50 overflow-hidden`}>
+                  <div className={`px-3 py-2 border-b ${theme.border}`}>
+                    <span className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Select Theme</span>
+                  </div>
+                  {themes.map((t, i) => {
+                    const swatchColors: Record<string, string> = {
+                      blue: 'bg-slate-600',
+                      sage: 'bg-[#5c6b5d]',
+                      stone: 'bg-[#78716c]',
+                      neon: 'bg-indigo-500',
+                    };
+                    return (
+                      <button
+                        key={t.id}
+                        onClick={() => { setThemeIdx(i); setShowThemePicker(false); }}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 text-left transition-all ${
+                          i === themeIdx ? `${theme.secondaryBg}` : `${theme.buttonHover}`
+                        }`}
+                      >
+                        <span className={`w-4 h-4 rounded-full ${swatchColors[t.id] || t.primary} shrink-0 ${i === themeIdx ? 'ring-2 ring-offset-1 ring-purple-400' : ''}`} />
+                        <span className={`text-xs font-medium ${theme.highlight}`}>{t.name}</span>
+                        {i === themeIdx && <span className={`text-[10px] ml-auto ${theme.primaryText} font-bold`}>Active</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-            {/* Fullscreen toggle */}
-            <button
-              onClick={toggleFullscreen}
-              className={`p-2 rounded-lg ${theme.secondaryBg} ${theme.iconColor} hover:opacity-80 transition-all`}
-              title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
-            >
-              {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
-            </button>
             {/* Notification Bell */}
             <div ref={notifRef} className="relative">
               <button

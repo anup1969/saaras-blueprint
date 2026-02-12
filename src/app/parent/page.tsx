@@ -1530,11 +1530,11 @@ function ParentDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; th
   return (
     <div className="flex gap-4 -m-6">
       {/* Module sidebar */}
-      <div className={`${sidebarCollapsed ? 'w-12' : 'w-48'} ${theme.cardBg} border-r ${theme.border} min-h-screen p-2 space-y-0.5 shrink-0 transition-all duration-200`}>
+      <div className={`${sidebarCollapsed ? 'w-14' : 'w-48'} ${theme.cardBg} border-r ${theme.border} min-h-screen p-2 space-y-0.5 shrink-0 transition-all duration-200`}>
         <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-between'} px-2 py-2`}>
           {!sidebarCollapsed && <p className={`text-[10px] font-bold ${theme.iconColor} uppercase px-1`}>Parent Portal</p>}
           <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} className={`p-1 rounded-lg ${theme.buttonHover} ${theme.iconColor} transition-all`}>
-            {sidebarCollapsed ? <PanelLeftOpen size={14} /> : <PanelLeftClose size={14} />}
+            {sidebarCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={14} />}
           </button>
         </div>
         {modules.map(m => (
@@ -1542,11 +1542,11 @@ function ParentDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; th
             key={m.id}
             onClick={() => setActiveModule(m.id)}
             title={sidebarCollapsed ? m.label : undefined}
-            className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : 'gap-2'} px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+            className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center px-2 py-2.5' : 'gap-2 px-3 py-2'} rounded-lg text-xs font-medium transition-all ${
               activeModule === m.id ? `${theme.primary} text-white` : `${theme.iconColor} ${theme.buttonHover}`
             }`}
           >
-            <m.icon size={14} /> {!sidebarCollapsed && m.label}
+            <m.icon size={sidebarCollapsed ? 18 : 14} /> {!sidebarCollapsed && m.label}
           </button>
         ))}
 
