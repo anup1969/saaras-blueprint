@@ -8,7 +8,7 @@ import {
   UserCheck, Briefcase, Calculator, Phone, Bus, ShieldCheck, Headphones,
   Home, ChevronLeft, Menu, LogOut, MessageSquare, Bell,
   FileText, CheckCircle, Calendar, AlertTriangle, ClipboardCheck,
-  Palette
+  Palette, Maximize2, Minimize2
 } from 'lucide-react';
 import { themes, type Theme } from '@/lib/themes';
 import { getLoggedInUser, logoutUser, type TeamMember } from '@/lib/auth';
@@ -42,6 +42,7 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
   const [loading, setLoading] = useState(true);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showThemePicker, setShowThemePicker] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
   const themePickerRef = useRef<HTMLDivElement>(null);
   const theme = themes[themeIdx];
@@ -71,6 +72,22 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
     setCurrentUser(user);
     setLoading(false);
   }, []);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  };
 
   const handleLogin = (user: TeamMember) => {
     setCurrentUser(user);
@@ -173,6 +190,7 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
                       sage: 'bg-[#5c6b5d]',
                       stone: 'bg-[#78716c]',
                       neon: 'bg-indigo-500',
+                      vivid: 'bg-pink-500',
                     };
                     return (
                       <button
@@ -191,6 +209,14 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
                 </div>
               )}
             </div>
+            {/* Fullscreen Toggle */}
+            <button
+              onClick={toggleFullscreen}
+              className={`p-2 rounded-lg ${theme.secondaryBg} ${theme.iconColor} hover:opacity-80 transition-all`}
+              title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+            >
+              {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+            </button>
             {/* Notification Bell */}
             <div ref={notifRef} className="relative">
               <button

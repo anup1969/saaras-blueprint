@@ -5,6 +5,7 @@ import BlueprintLayout from '@/components/BlueprintLayout';
 import { StatCard, TabBar, StatusBadge, SearchBar, DataTable } from '@/components/shared';
 import { type Theme } from '@/lib/themes';
 import StakeholderProfile from '@/components/StakeholderProfile';
+import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import {
   Home, Users, UserPlus, Phone, Mail, Calendar, Clock, Search, Plus, Eye, Edit,
   Filter, Download, CheckCircle, AlertTriangle, ArrowRight, PhoneCall, PhoneIncoming,
@@ -234,6 +235,9 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
           ))}
         </div>
       </div>
+
+      {/* Task Tracker */}
+      <TaskTrackerPanel theme={theme} role="receptionist" />
     </div>
   );
 }

@@ -58,4 +58,14 @@ export const themes: Theme[] = [
     inputBg: 'bg-slate-950', helpBtn: 'bg-slate-800 text-indigo-300',
     bodyBg: 'bg-slate-950',
   },
+  {
+    id: 'vivid', name: 'Vivid', type: 'light',
+    primary: 'bg-pink-500', primaryText: 'text-pink-600',
+    secondaryBg: 'bg-pink-50', accentBg: 'bg-fuchsia-50',
+    border: 'border-pink-200', sidebarBg: 'bg-white',
+    highlight: 'text-pink-950', cardBg: 'bg-white',
+    iconColor: 'text-pink-400', buttonHover: 'hover:bg-pink-50',
+    inputBg: 'bg-white', helpBtn: 'bg-pink-50 text-pink-600',
+    bodyBg: 'bg-gradient-to-br from-pink-50 via-fuchsia-50 to-rose-50',
+  },
 ];

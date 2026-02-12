@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import BlueprintLayout from '@/components/BlueprintLayout';
 import StakeholderProfile from '@/components/StakeholderProfile';
+import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import { type Theme } from '@/lib/themes';
 import {
   Users, Home, UserPlus, Calendar, Clock, Banknote, Star, FileText, UserMinus, BarChart3,
@@ -124,6 +125,9 @@ function DashboardModule({ theme, setActive }: { theme: Theme; setActive: (s: st
           ))}
         </div>
       </div>
+
+      {/* Task Tracker */}
+      <TaskTrackerPanel theme={theme} role="hr-manager" />
     </div>
   );
 }

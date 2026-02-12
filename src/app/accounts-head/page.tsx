@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import BlueprintLayout from '@/components/BlueprintLayout';
 import { StatCard, TabBar, StatusBadge, SearchBar, DataTable, Toggle } from '@/components/shared';
 import StakeholderProfile from '@/components/StakeholderProfile';
+import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import { type Theme } from '@/lib/themes';
 import {
   Home, Banknote, CreditCard, Receipt, Users, FileText, BarChart3, Settings,
@@ -174,6 +175,9 @@ function DashboardView({ theme, setActiveModule }: { theme: Theme; setActiveModu
           theme={theme}
         />
       </div>
+
+      {/* Task Tracker */}
+      <TaskTrackerPanel theme={theme} role="accounts-head" />
     </div>
   );
 }

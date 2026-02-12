@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import BlueprintLayout from '@/components/BlueprintLayout';
 import { StatCard, TabBar, StatusBadge, SearchBar, DataTable } from '@/components/shared';
 import StakeholderProfile from '@/components/StakeholderProfile';
+import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import { type Theme } from '@/lib/themes';
 import {
   Home, Users, UserCheck, Calendar, Clock, Shield, Search, Plus, Filter, Download,
@@ -204,24 +205,30 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
         </div>
       </div>
 
-      {/* Recent Activity */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Recent Activity</h3>
-        <div className="space-y-2">
-          {[
-            { text: 'Substitution assigned: Mr. Rajeev Nair covering Maths for Mrs. Sharma (Class 10-A, P3)', time: '15 min ago', type: 'sub' },
-            { text: 'Discipline case opened: Arjun Malhotra (9-B) — Bullying complaint', time: '1 hour ago', type: 'discipline' },
-            { text: 'Circular published: Unit Test 3 Schedule — Classes 8 to 10', time: '2 hours ago', type: 'circular' },
-            { text: 'Exam schedule finalized: Pre-Board Exams Class 12 (24-28 Feb)', time: '3 hours ago', type: 'exam' },
-            { text: 'Duty roster updated: Sports Day assignments for 28 Feb', time: '5 hours ago', type: 'duty' },
-          ].map((a, i) => (
-            <div key={i} className={`flex items-center gap-3 p-2 rounded-xl ${theme.accentBg}`}>
-              <div className={`w-2 h-2 rounded-full ${a.type === 'sub' ? 'bg-blue-500' : a.type === 'discipline' ? 'bg-red-500' : a.type === 'circular' ? 'bg-indigo-500' : a.type === 'exam' ? 'bg-purple-500' : 'bg-teal-500'}`} />
-              <p className={`text-xs ${theme.highlight} flex-1`}>{a.text}</p>
-              <span className={`text-[10px] ${theme.iconColor}`}>{a.time}</span>
-            </div>
-          ))}
+      {/* Recent Activity + Task Tracker — Side by Side */}
+      <div className="grid grid-cols-2 gap-4">
+        {/* Recent Activity */}
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Recent Activity</h3>
+          <div className="space-y-2">
+            {[
+              { text: 'Substitution assigned: Mr. Rajeev Nair covering Maths for Mrs. Sharma (Class 10-A, P3)', time: '15 min ago', type: 'sub' },
+              { text: 'Discipline case opened: Arjun Malhotra (9-B) — Bullying complaint', time: '1 hour ago', type: 'discipline' },
+              { text: 'Circular published: Unit Test 3 Schedule — Classes 8 to 10', time: '2 hours ago', type: 'circular' },
+              { text: 'Exam schedule finalized: Pre-Board Exams Class 12 (24-28 Feb)', time: '3 hours ago', type: 'exam' },
+              { text: 'Duty roster updated: Sports Day assignments for 28 Feb', time: '5 hours ago', type: 'duty' },
+            ].map((a, i) => (
+              <div key={i} className={`flex items-center gap-3 p-2 rounded-xl ${theme.accentBg}`}>
+                <div className={`w-2 h-2 rounded-full ${a.type === 'sub' ? 'bg-blue-500' : a.type === 'discipline' ? 'bg-red-500' : a.type === 'circular' ? 'bg-indigo-500' : a.type === 'exam' ? 'bg-purple-500' : 'bg-teal-500'}`} />
+                <p className={`text-xs ${theme.highlight} flex-1`}>{a.text}</p>
+                <span className={`text-[10px] ${theme.iconColor}`}>{a.time}</span>
+              </div>
+            ))}
+          </div>
         </div>
+
+        {/* Task Tracker */}
+        <TaskTrackerPanel theme={theme} role="vice-principal" />
       </div>
     </div>
   );

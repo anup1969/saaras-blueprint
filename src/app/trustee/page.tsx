@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import BlueprintLayout from '@/components/BlueprintLayout';
 import { StatCard, TabBar, StatusBadge, DataTable } from '@/components/shared';
 import StakeholderProfile from '@/components/StakeholderProfile';
+import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import { type Theme } from '@/lib/themes';
 import {
   Home, Eye, DollarSign, GraduationCap, Shield, Users, CheckCircle, XCircle,
@@ -223,6 +224,9 @@ function DashboardView({ theme, setActiveModule }: { theme: Theme; setActiveModu
           ))}
         </div>
       </div>
+
+      {/* Task Tracker */}
+      <TaskTrackerPanel theme={theme} role="trustee" />
     </div>
   );
 }

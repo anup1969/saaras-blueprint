@@ -13,6 +13,7 @@ import {
   PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
 import StakeholderProfile from '@/components/StakeholderProfile';
+import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 
 // ─── STUDENT PROFILE ────────────────────────────────
 const studentProfile = {
@@ -361,22 +362,28 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Quick Actions</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-          {[
-            { label: 'Submit Homework', icon: Upload, color: 'bg-blue-500' },
-            { label: 'View Results', icon: Award, color: 'bg-emerald-500' },
-            { label: 'Pay Fees', icon: CreditCard, color: 'bg-indigo-500' },
-            { label: 'Library Catalog', icon: BookMarked, color: 'bg-purple-500' },
-          ].map(a => (
-            <button key={a.label} className={`flex items-center gap-2 p-3 rounded-xl ${theme.secondaryBg} ${theme.buttonHover} transition-all`}>
-              <div className={`w-8 h-8 rounded-lg ${a.color} flex items-center justify-center text-white`}><a.icon size={14} /></div>
-              <span className={`text-xs font-bold ${theme.highlight}`}>{a.label}</span>
-            </button>
-          ))}
+      {/* Quick Actions + Task Tracker — Side by Side */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Quick Actions */}
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Quick Actions</h3>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { label: 'Submit Homework', icon: Upload, color: 'bg-blue-500' },
+              { label: 'View Results', icon: Award, color: 'bg-emerald-500' },
+              { label: 'Pay Fees', icon: CreditCard, color: 'bg-indigo-500' },
+              { label: 'Library Catalog', icon: BookMarked, color: 'bg-purple-500' },
+            ].map(a => (
+              <button key={a.label} className={`flex items-center gap-2 p-3 rounded-xl ${theme.secondaryBg} ${theme.buttonHover} transition-all`}>
+                <div className={`w-8 h-8 rounded-lg ${a.color} flex items-center justify-center text-white`}><a.icon size={14} /></div>
+                <span className={`text-xs font-bold ${theme.highlight}`}>{a.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
+
+        {/* Task Tracker */}
+        <TaskTrackerPanel theme={theme} role="student" />
       </div>
     </div>
   );

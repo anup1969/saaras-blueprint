@@ -13,6 +13,7 @@ import {
   PanelLeftClose, PanelLeftOpen, Mail, Megaphone, ListTodo, CircleDot
 } from 'lucide-react';
 import StakeholderProfile from '@/components/StakeholderProfile';
+import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 
 // ─── MOCK DATA ──────────────────────────────────────
 
@@ -436,25 +437,31 @@ function DashboardHome({ theme }: { theme: Theme }) {
         </div>
       </div>
 
-      {/* Upcoming Events / Notices */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Upcoming</h3>
-        <div className="space-y-2">
-          {[
-            { text: 'Unit Test 4 — Class 10-B (Ch 4 & Ch 5)', date: '15 Feb', type: 'exam' },
-            { text: 'PTM for Class 10-A', date: '18 Feb', type: 'meeting' },
-            { text: 'Science Exhibition preparations', date: '22 Feb', type: 'event' },
-            { text: 'Half-yearly report cards submission deadline', date: '25 Feb', type: 'deadline' },
-          ].map((e, i) => (
-            <div key={i} className={`flex items-center gap-3 p-2 rounded-xl ${theme.accentBg}`}>
-              <div className={`w-2 h-2 rounded-full ${
-                e.type === 'exam' ? 'bg-red-500' : e.type === 'meeting' ? 'bg-blue-500' : e.type === 'event' ? 'bg-purple-500' : 'bg-amber-500'
-              }`} />
-              <p className={`text-xs ${theme.highlight} flex-1`}>{e.text}</p>
-              <span className={`text-[10px] ${theme.iconColor} font-bold`}>{e.date}</span>
-            </div>
-          ))}
+      {/* Upcoming Events + Task Tracker — Side by Side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Upcoming Events / Notices */}
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Upcoming</h3>
+          <div className="space-y-2">
+            {[
+              { text: 'Unit Test 4 — Class 10-B (Ch 4 & Ch 5)', date: '15 Feb', type: 'exam' },
+              { text: 'PTM for Class 10-A', date: '18 Feb', type: 'meeting' },
+              { text: 'Science Exhibition preparations', date: '22 Feb', type: 'event' },
+              { text: 'Half-yearly report cards submission deadline', date: '25 Feb', type: 'deadline' },
+            ].map((e, i) => (
+              <div key={i} className={`flex items-center gap-3 p-2 rounded-xl ${theme.accentBg}`}>
+                <div className={`w-2 h-2 rounded-full ${
+                  e.type === 'exam' ? 'bg-red-500' : e.type === 'meeting' ? 'bg-blue-500' : e.type === 'event' ? 'bg-purple-500' : 'bg-amber-500'
+                }`} />
+                <p className={`text-xs ${theme.highlight} flex-1`}>{e.text}</p>
+                <span className={`text-[10px] ${theme.iconColor} font-bold`}>{e.date}</span>
+              </div>
+            ))}
+          </div>
         </div>
+
+        {/* Task Tracker */}
+        <TaskTrackerPanel theme={theme} role="teacher" />
       </div>
     </div>
   );

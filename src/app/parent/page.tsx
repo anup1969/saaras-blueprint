@@ -16,6 +16,7 @@ import {
   PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
 import StakeholderProfile from '@/components/StakeholderProfile';
+import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 
 // ─── CHILD DATA ─────────────────────────────────────
 interface ChildProfile {
@@ -584,6 +585,9 @@ function DashboardHome({ theme, child, onProfileClick }: { theme: Theme; child: 
           </div>
         </div>
       </div>
+
+      {/* Task Tracker */}
+      <TaskTrackerPanel theme={theme} role="parent" />
     </div>
   );
 }

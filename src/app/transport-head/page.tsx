@@ -5,6 +5,7 @@ import BlueprintLayout from '@/components/BlueprintLayout';
 import { StatCard, TabBar, StatusBadge, SearchBar, DataTable, Toggle } from '@/components/shared';
 import { type Theme } from '@/lib/themes';
 import StakeholderProfile from '@/components/StakeholderProfile';
+import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import {
   Home, Bus, Route, Car, Users, MapPin, Wrench, Search, Plus, Filter, Download,
   Eye, Edit, Trash2, Phone, Clock, Shield, AlertTriangle, CheckCircle, Navigation,
@@ -238,30 +239,36 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
         </div>
       </div>
 
-      {/* Recent Activity */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Recent Activity</h3>
-        <div className="space-y-2">
-          {[
-            { text: 'GJ-01-MN-6789 (Vastral route) sent for engine overhaul at Tata Motors Service', time: '2 hours ago', type: 'maintenance' },
-            { text: 'All morning pickup trips completed - 7/7 routes on time', time: '8:15 AM', type: 'trip' },
-            { text: 'New student Aarohi Patel (Class 3-B) added to Satellite route', time: 'Yesterday', type: 'student' },
-            { text: 'PUC renewal completed for GJ-01-KL-2345 (Chandkheda route)', time: 'Yesterday', type: 'document' },
-            { text: 'Driver Suresh Parmar documents pending - license renewal due Mar 2026', time: '2 days ago', type: 'alert' },
-          ].map((a, i) => (
-            <div key={i} className={`flex items-center gap-3 p-2 rounded-xl ${theme.accentBg}`}>
-              <div className={`w-2 h-2 rounded-full ${
-                a.type === 'maintenance' ? 'bg-amber-500' :
-                a.type === 'trip' ? 'bg-emerald-500' :
-                a.type === 'student' ? 'bg-blue-500' :
-                a.type === 'document' ? 'bg-purple-500' :
-                'bg-red-500'
-              }`} />
-              <p className={`text-xs ${theme.highlight} flex-1`}>{a.text}</p>
-              <span className={`text-[10px] ${theme.iconColor} whitespace-nowrap`}>{a.time}</span>
-            </div>
-          ))}
+      {/* Recent Activity + Task Tracker — Side by Side */}
+      <div className="grid grid-cols-2 gap-4">
+        {/* Recent Activity */}
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Recent Activity</h3>
+          <div className="space-y-2">
+            {[
+              { text: 'GJ-01-MN-6789 (Vastral route) sent for engine overhaul at Tata Motors Service', time: '2 hours ago', type: 'maintenance' },
+              { text: 'All morning pickup trips completed - 7/7 routes on time', time: '8:15 AM', type: 'trip' },
+              { text: 'New student Aarohi Patel (Class 3-B) added to Satellite route', time: 'Yesterday', type: 'student' },
+              { text: 'PUC renewal completed for GJ-01-KL-2345 (Chandkheda route)', time: 'Yesterday', type: 'document' },
+              { text: 'Driver Suresh Parmar documents pending - license renewal due Mar 2026', time: '2 days ago', type: 'alert' },
+            ].map((a, i) => (
+              <div key={i} className={`flex items-center gap-3 p-2 rounded-xl ${theme.accentBg}`}>
+                <div className={`w-2 h-2 rounded-full ${
+                  a.type === 'maintenance' ? 'bg-amber-500' :
+                  a.type === 'trip' ? 'bg-emerald-500' :
+                  a.type === 'student' ? 'bg-blue-500' :
+                  a.type === 'document' ? 'bg-purple-500' :
+                  'bg-red-500'
+                }`} />
+                <p className={`text-xs ${theme.highlight} flex-1`}>{a.text}</p>
+                <span className={`text-[10px] ${theme.iconColor} whitespace-nowrap`}>{a.time}</span>
+              </div>
+            ))}
+          </div>
         </div>
+
+        {/* Task Tracker */}
+        <TaskTrackerPanel theme={theme} role="transport-head" />
       </div>
     </div>
   );

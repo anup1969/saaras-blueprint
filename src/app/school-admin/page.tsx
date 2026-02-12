@@ -15,6 +15,7 @@ import {
   PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
 import StakeholderProfile from '@/components/StakeholderProfile';
+import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 
 // ─── MODULE SIDEBAR ────────────────────────────────
 const modules = [
@@ -149,24 +150,30 @@ function DashboardHome({ theme, stats, onProfileClick }: { theme: Theme; stats: 
         </div>
       </div>
 
-      {/* Recent Activity */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Recent Activity</h3>
-        <div className="space-y-2">
-          {[
-            { text: 'Fee payment ₹5,800 received from Rajesh Patel (STU001)', time: '10 min ago', type: 'fee' },
-            { text: 'New enquiry from Sunil Rao for Nursery admission', time: '25 min ago', type: 'enquiry' },
-            { text: 'Leave request from Ms. Priya Sharma — 3 days CL', time: '1 hour ago', type: 'leave' },
-            { text: 'Visitor check-in: Amit Gupta — Parent Meeting', time: '2 hours ago', type: 'visitor' },
-            { text: 'Attendance marked for Class 10-A (32/35 present)', time: '3 hours ago', type: 'attendance' },
-          ].map((a, i) => (
-            <div key={i} className={`flex items-center gap-3 p-2 rounded-xl ${theme.accentBg}`}>
-              <div className={`w-2 h-2 rounded-full ${a.type === 'fee' ? 'bg-emerald-500' : a.type === 'enquiry' ? 'bg-blue-500' : a.type === 'leave' ? 'bg-amber-500' : a.type === 'visitor' ? 'bg-purple-500' : 'bg-teal-500'}`} />
-              <p className={`text-xs ${theme.highlight} flex-1`}>{a.text}</p>
-              <span className={`text-[10px] ${theme.iconColor}`}>{a.time}</span>
-            </div>
-          ))}
+      {/* Recent Activity + Task Tracker — Side by Side */}
+      <div className="grid grid-cols-2 gap-4">
+        {/* Recent Activity */}
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Recent Activity</h3>
+          <div className="space-y-2">
+            {[
+              { text: 'Fee payment ₹5,800 received from Rajesh Patel (STU001)', time: '10 min ago', type: 'fee' },
+              { text: 'New enquiry from Sunil Rao for Nursery admission', time: '25 min ago', type: 'enquiry' },
+              { text: 'Leave request from Ms. Priya Sharma — 3 days CL', time: '1 hour ago', type: 'leave' },
+              { text: 'Visitor check-in: Amit Gupta — Parent Meeting', time: '2 hours ago', type: 'visitor' },
+              { text: 'Attendance marked for Class 10-A (32/35 present)', time: '3 hours ago', type: 'attendance' },
+            ].map((a, i) => (
+              <div key={i} className={`flex items-center gap-3 p-2 rounded-xl ${theme.accentBg}`}>
+                <div className={`w-2 h-2 rounded-full ${a.type === 'fee' ? 'bg-emerald-500' : a.type === 'enquiry' ? 'bg-blue-500' : a.type === 'leave' ? 'bg-amber-500' : a.type === 'visitor' ? 'bg-purple-500' : 'bg-teal-500'}`} />
+                <p className={`text-xs ${theme.highlight} flex-1`}>{a.text}</p>
+                <span className={`text-[10px] ${theme.iconColor}`}>{a.time}</span>
+              </div>
+            ))}
+          </div>
         </div>
+
+        {/* Task Tracker */}
+        <TaskTrackerPanel theme={theme} role="school-admin" />
       </div>
     </div>
   );

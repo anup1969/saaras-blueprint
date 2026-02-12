@@ -5,6 +5,7 @@ import BlueprintLayout from '@/components/BlueprintLayout';
 import { StatCard, TabBar, StatusBadge, SearchBar, DataTable, Toggle } from '@/components/shared';
 import OnboardingWizard from '@/components/OnboardingWizard';
 import StakeholderProfile from '@/components/StakeholderProfile';
+import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import { type Theme } from '@/lib/themes';
 import {
   Home, Building2, CreditCard, Users, Layers, UserPlus, Headphones, BarChart3, Settings, FileText,
@@ -206,6 +207,9 @@ function DashboardView({ theme, setActiveModule, onStartWizard }: { theme: Theme
           ))}
         </div>
       </div>
+
+      {/* Task Tracker */}
+      <TaskTrackerPanel theme={theme} role="super-admin" />
     </div>
   );
 }
