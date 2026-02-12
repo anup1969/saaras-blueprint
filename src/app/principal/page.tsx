@@ -12,7 +12,8 @@ import {
   Bell, ArrowRight, MessageSquare, Award, Filter, User, ListTodo, Circle,
   PanelLeftClose, PanelLeftOpen, Banknote, IndianRupee, Mail, Inbox,
   ChevronRight, ChevronLeft, CalendarDays, GripVertical, Flag, Edit2, Save, Trash2,
-  CalendarClock, Sparkles, Bot, ChevronDown, Loader2
+  CalendarClock, Sparkles, Bot, ChevronDown, Loader2, Bus, MapPin, Paperclip,
+  ToggleLeft, ToggleRight, Percent
 } from 'lucide-react';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
@@ -25,16 +26,17 @@ const modules = [
   { id: 'hr', label: 'HR Management', icon: Briefcase },
   { id: 'compliance', label: 'Compliance', icon: ShieldCheck },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
-  { id: 'calendar', label: 'Calendar', icon: CalendarDays },
-  { id: 'yearly-planner', label: 'Yearly Planner', icon: CalendarClock },
+  { id: 'calendar', label: 'Calendar', icon: CalendarDays, subItems: [
+    { id: 'yearly-planner', label: 'Yearly Planner', icon: CalendarClock },
+  ]},
   { id: 'approvals', label: 'Approvals', icon: CheckCircle },
   { id: 'reports', label: 'Reports', icon: BarChart3 },
-  { id: 'announcements', label: 'Announcements', icon: Megaphone },
 ];
 
 function PrincipalDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [expandedParent, setExpandedParent] = useState<string | null>(null);
   if (!theme) return null;
 
   return (
@@ -47,18 +49,45 @@ function PrincipalDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme;
             {sidebarCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={14} />}
           </button>
         </div>
-        {modules.map(m => (
-          <button
-            key={m.id}
-            onClick={() => setActiveModule(m.id)}
-            title={sidebarCollapsed ? m.label : undefined}
-            className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center px-2 py-2.5' : 'gap-2 px-3 py-2'} rounded-lg text-xs font-medium transition-all ${
-              activeModule === m.id ? `${theme.primary} text-white` : `${theme.iconColor} ${theme.buttonHover}`
-            }`}
-          >
-            <m.icon size={sidebarCollapsed ? 18 : 14} /> {!sidebarCollapsed && m.label}
-          </button>
-        ))}
+        {modules.map(m => {
+          const hasSubItems = 'subItems' in m && m.subItems && m.subItems.length > 0;
+          const isParentExpanded = expandedParent === m.id;
+          const isParentActive = activeModule === m.id || (hasSubItems && m.subItems!.some(s => activeModule === s.id));
+          return (
+            <div key={m.id}>
+              <button
+                onClick={() => {
+                  if (hasSubItems && !sidebarCollapsed) {
+                    setExpandedParent(isParentExpanded ? null : m.id);
+                  }
+                  setActiveModule(m.id);
+                }}
+                title={sidebarCollapsed ? m.label : undefined}
+                className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center px-2 py-2.5' : 'gap-2 px-3 py-2'} rounded-lg text-xs font-medium transition-all ${
+                  isParentActive ? `${theme.primary} text-white` : `${theme.iconColor} ${theme.buttonHover}`
+                }`}
+              >
+                <m.icon size={sidebarCollapsed ? 18 : 14} />
+                {!sidebarCollapsed && <span className="flex-1 text-left">{m.label}</span>}
+                {!sidebarCollapsed && hasSubItems && (
+                  <ChevronDown size={12} className={`transition-transform ${isParentExpanded ? 'rotate-180' : ''}`} />
+                )}
+              </button>
+              {/* Sub-items for Calendar */}
+              {hasSubItems && !sidebarCollapsed && isParentExpanded && m.subItems!.map(sub => (
+                <button
+                  key={sub.id}
+                  onClick={() => setActiveModule(sub.id)}
+                  className={`w-full flex items-center gap-2 pl-8 pr-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
+                    activeModule === sub.id ? `${theme.primary} text-white` : `${theme.iconColor} ${theme.buttonHover}`
+                  }`}
+                >
+                  <sub.icon size={12} /> {sub.label}
+                </button>
+              ))}
+            </div>
+          );
+        })}
       </div>
 
       {/* Module content */}
@@ -73,7 +102,6 @@ function PrincipalDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme;
         {activeModule === 'yearly-planner' && <YearlyPlannerModule theme={theme} />}
         {activeModule === 'approvals' && <ApprovalsModule theme={theme} />}
         {activeModule === 'reports' && <ReportsModule theme={theme} />}
-        {activeModule === 'announcements' && <AnnouncementsModule theme={theme} />}
         {activeModule === 'profile' && <StakeholderProfile role="principal" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>
     </div>
@@ -683,41 +711,243 @@ function ApprovalsModule({ theme }: { theme: Theme }) {
   );
 }
 
-// ─── REPORTS MODULE ──────────────────────────────────
+// ─── REPORTS MODULE (REMARK 4: Overview cards with metrics + Transportation) ──
 function ReportsModule({ theme }: { theme: Theme }) {
-  const reports = [
-    { title: 'Academic Report', desc: 'Class-wise results, subject analysis, toppers list, grade distribution', icon: Award, color: 'bg-purple-500', lastGenerated: '08-Feb-2026' },
-    { title: 'Financial Summary', desc: 'Fee collection, outstanding dues, expense breakdown, monthly P&L', icon: DollarSign, color: 'bg-emerald-500', lastGenerated: '05-Feb-2026' },
-    { title: 'Attendance Report', desc: 'Student and staff attendance trends, absentee patterns, class-wise data', icon: ClipboardCheck, color: 'bg-blue-500', lastGenerated: '10-Feb-2026' },
-    { title: 'Staff Performance', desc: 'Department-wise performance, training completed, leave utilization', icon: Briefcase, color: 'bg-indigo-500', lastGenerated: '01-Feb-2026' },
-    { title: 'Infrastructure Status', desc: 'Classroom utilization, lab equipment inventory, maintenance pending', icon: Building2, color: 'bg-amber-500', lastGenerated: '28-Jan-2026' },
-    { title: 'Compliance Report', desc: 'Board compliance, safety audits, UDISE submission status, RTE compliance', icon: Shield, color: 'bg-red-500', lastGenerated: '15-Jan-2026' },
+  const [expandedReport, setExpandedReport] = useState<string | null>(null);
+
+  const reportCards = [
+    {
+      id: 'academic',
+      title: 'Academic Report',
+      icon: Award,
+      color: 'bg-purple-500',
+      lightBg: 'bg-purple-50',
+      borderColor: 'border-purple-200',
+      metrics: [
+        { label: 'Pass Rate', value: '94%', color: 'text-emerald-600' },
+        { label: 'Avg Score', value: '78%', color: 'text-blue-600' },
+        { label: 'Top Subject', value: 'Science', color: 'text-purple-600' },
+      ],
+      progressValue: 94,
+      progressColor: 'bg-purple-500',
+      detailHeaders: ['Class', 'Strength', 'Avg Score', 'Pass %', 'Top Scorer', 'Distinction %'],
+      detailRows: [
+        ['Class I', '52', '91.2%', '100%', 'Aarav Mehta', '42%'],
+        ['Class II', '48', '89.5%', '100%', 'Saanvi Patel', '38%'],
+        ['Class III', '55', '87.8%', '98.2%', 'Vivaan Sharma', '35%'],
+        ['Class IV', '50', '85.3%', '96.0%', 'Anaya Gupta', '31%'],
+        ['Class V', '47', '83.6%', '95.7%', 'Reyansh Iyer', '28%'],
+        ['Class VI', '53', '82.1%', '94.3%', 'Diya Reddy', '26%'],
+      ],
+    },
+    {
+      id: 'attendance',
+      title: 'Attendance Report',
+      icon: ClipboardCheck,
+      color: 'bg-blue-500',
+      lightBg: 'bg-blue-50',
+      borderColor: 'border-blue-200',
+      metrics: [
+        { label: 'Avg Attendance', value: '92%', color: 'text-emerald-600' },
+        { label: 'Chronic Absentees', value: '12', color: 'text-red-600' },
+        { label: 'Perfect Attendance', value: '145', color: 'text-blue-600' },
+      ],
+      progressValue: 92,
+      progressColor: 'bg-blue-500',
+      detailHeaders: ['Class', 'Present', 'Absent', 'Late', 'Attendance %', 'Chronic Absentees'],
+      detailRows: [
+        ['Class I', '48', '4', '1', '92.3%', '1'],
+        ['Class II', '45', '3', '0', '93.8%', '1'],
+        ['Class III', '50', '5', '2', '90.9%', '2'],
+        ['Class IV', '46', '4', '1', '92.0%', '2'],
+        ['Class V', '44', '3', '0', '93.6%', '3'],
+        ['Class VI', '49', '4', '1', '92.5%', '3'],
+      ],
+    },
+    {
+      id: 'financial',
+      title: 'Financial Report',
+      icon: IndianRupee,
+      color: 'bg-emerald-500',
+      lightBg: 'bg-emerald-50',
+      borderColor: 'border-emerald-200',
+      metrics: [
+        { label: 'Collection Rate', value: '87%', color: 'text-emerald-600' },
+        { label: 'Outstanding', value: '\u20B918.5L', color: 'text-red-600' },
+        { label: 'Monthly Trend', value: '\u2191', color: 'text-emerald-600' },
+      ],
+      progressValue: 87,
+      progressColor: 'bg-emerald-500',
+      detailHeaders: ['Category', 'Collected', 'Pending', 'Collection %', 'Defaulters', 'Trend'],
+      detailRows: [
+        ['Tuition Fee', '\u20B942.5L', '\u20B94.2L', '91%', '23', '\u2191 +3%'],
+        ['Transport Fee', '\u20B98.2L', '\u20B91.8L', '82%', '18', '\u2192 0%'],
+        ['Lab Fee', '\u20B93.1L', '\u20B90.4L', '89%', '8', '\u2191 +2%'],
+        ['Activity Fee', '\u20B95.6L', '\u20B91.2L', '82%', '15', '\u2193 -1%'],
+        ['Exam Fee', '\u20B92.8L', '\u20B90.3L', '90%', '6', '\u2191 +4%'],
+      ],
+    },
+    {
+      id: 'staff',
+      title: 'Staff Report',
+      icon: Briefcase,
+      color: 'bg-indigo-500',
+      lightBg: 'bg-indigo-50',
+      borderColor: 'border-indigo-200',
+      metrics: [
+        { label: 'Present Today', value: '134/142', color: 'text-emerald-600' },
+        { label: 'Avg Rating', value: '4.2/5', color: 'text-amber-600' },
+        { label: 'Open Leaves', value: '8', color: 'text-blue-600' },
+      ],
+      progressValue: 94,
+      progressColor: 'bg-indigo-500',
+      detailHeaders: ['Department', 'Strength', 'Present', 'Attendance %', 'Avg Rating', 'Leaves Used'],
+      detailRows: [
+        ['Teaching', '78', '72', '92.3%', '4.3/5', '12'],
+        ['Admin', '23', '22', '95.7%', '4.1/5', '5'],
+        ['Transport', '18', '17', '94.4%', '4.0/5', '8'],
+        ['IT & Lab', '8', '8', '100%', '4.5/5', '2'],
+        ['Security', '4', '4', '100%', '4.0/5', '1'],
+        ['Housekeeping', '11', '11', '100%', '3.9/5', '4'],
+      ],
+    },
+    {
+      id: 'transportation',
+      title: 'Transportation Report',
+      icon: Bus,
+      color: 'bg-amber-500',
+      lightBg: 'bg-amber-50',
+      borderColor: 'border-amber-200',
+      metrics: [
+        { label: 'Routes Active', value: '12/14', color: 'text-emerald-600' },
+        { label: 'Students Using', value: '1,850', color: 'text-blue-600' },
+        { label: 'GPS Coverage', value: '100%', color: 'text-emerald-600' },
+        { label: 'Avg Delay', value: '3 min', color: 'text-amber-600' },
+      ],
+      progressValue: 86,
+      progressColor: 'bg-amber-500',
+      detailHeaders: ['Route', 'Bus No.', 'Driver', 'Students', 'Stops', 'Avg Delay', 'GPS'],
+      detailRows: [
+        ['Route 1 - Vastrapur', 'GJ-01-AB-1234', 'Ramesh Patel', '165', '12', '2 min', 'Active'],
+        ['Route 2 - Satellite', 'GJ-01-CD-5678', 'Suresh Yadav', '158', '10', '4 min', 'Active'],
+        ['Route 3 - Bodakdev', 'GJ-01-EF-9012', 'Mohan Singh', '142', '9', '3 min', 'Active'],
+        ['Route 4 - Prahladnagar', 'GJ-01-GH-3456', 'Ahmed Khan', '168', '14', '5 min', 'Active'],
+        ['Route 5 - Thaltej', 'GJ-01-IJ-7890', 'Vijay Sharma', '155', '11', '2 min', 'Active'],
+        ['Route 6 - SG Highway', 'GJ-01-KL-2345', 'Dinesh Mehta', '148', '8', '3 min', 'Active'],
+        ['Route 7 - Gota', 'GJ-01-MN-6789', 'Kamal Joshi', '135', '10', '4 min', 'Active'],
+        ['Route 8 - Chandkheda', 'GJ-01-OP-0123', 'Ravi Kumar', '128', '9', '2 min', 'Active'],
+        ['Route 9 - Bopal', 'GJ-01-QR-4567', 'Nilesh Patel', '140', '11', '3 min', 'Active'],
+        ['Route 10 - Maninagar', 'GJ-01-ST-8901', 'Arjun Desai', '112', '7', '2 min', 'Active'],
+        ['Route 11 - Navrangpura', 'GJ-01-UV-2345', 'Prakash Jha', '125', '8', '5 min', 'Active'],
+        ['Route 12 - Ellis Bridge', 'GJ-01-WX-6789', 'Sanjay Gupta', '174', '13', '3 min', 'Active'],
+      ],
+    },
   ];
 
   return (
     <div className="space-y-4">
-      <h1 className={`text-2xl font-bold ${theme.highlight}`}>Reports</h1>
-      <p className={`text-xs ${theme.iconColor}`}>Generate and download school performance reports for board meetings and compliance.</p>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {reports.map((r, i) => (
-          <div key={i} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5 hover:shadow-md transition-all`}>
-            <div className={`w-10 h-10 rounded-xl ${r.color} flex items-center justify-center text-white mb-3`}>
-              <r.icon size={20} />
-            </div>
-            <h4 className={`text-sm font-bold ${theme.highlight} mb-1`}>{r.title}</h4>
-            <p className={`text-xs ${theme.iconColor} mb-3 leading-relaxed`}>{r.desc}</p>
-            <div className="flex items-center justify-between">
-              <span className={`text-[10px] ${theme.iconColor}`}>Last generated: {r.lastGenerated}</span>
-              <button className={`px-3 py-1.5 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-1`}>
-                <Download size={10} /> Generate
-              </button>
-            </div>
-          </div>
-        ))}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className={`text-2xl font-bold ${theme.highlight}`}>Reports</h1>
+          <p className={`text-xs ${theme.iconColor} mt-0.5`}>Key metrics at a glance. Click &quot;View Details&quot; for detailed breakdowns.</p>
+        </div>
+        <button className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold flex items-center gap-1`}>
+          <Download size={12} /> Export All
+        </button>
       </div>
 
-      {/* Quick Stats */}
+      {/* Overview Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {reportCards.map(card => {
+          const isExpanded = expandedReport === card.id;
+          return (
+            <div key={card.id} className={`${isExpanded ? 'col-span-full' : ''}`}>
+              <div className={`${theme.cardBg} rounded-2xl border ${theme.border} overflow-hidden hover:shadow-lg transition-all`}>
+                {/* Card Header with colored accent */}
+                <div className={`${card.lightBg} ${card.borderColor} border-b px-5 pt-4 pb-3`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-xl ${card.color} flex items-center justify-center text-white`}>
+                      <card.icon size={20} />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className={`text-sm font-bold ${theme.highlight}`}>{card.title}</h4>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Metrics */}
+                <div className="p-4 space-y-3">
+                  <div className={`grid ${card.metrics.length === 4 ? 'grid-cols-4' : 'grid-cols-3'} gap-3`}>
+                    {card.metrics.map((m, mi) => (
+                      <div key={mi} className={`${theme.secondaryBg} rounded-xl p-3 text-center`}>
+                        <p className={`text-lg font-bold ${m.color}`}>{m.value}</p>
+                        <p className={`text-[10px] font-medium ${theme.iconColor} mt-0.5`}>{m.label}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Progress bar */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className={`text-[10px] font-bold ${theme.iconColor}`}>Overall</span>
+                      <span className={`text-[10px] font-bold ${theme.highlight}`}>{card.progressValue}%</span>
+                    </div>
+                    <div className="h-2 rounded-full bg-gray-200 overflow-hidden">
+                      <div className={`h-full rounded-full ${card.progressColor} transition-all`} style={{ width: `${card.progressValue}%` }} />
+                    </div>
+                  </div>
+
+                  {/* View Details button */}
+                  <button
+                    onClick={() => setExpandedReport(isExpanded ? null : card.id)}
+                    className={`w-full py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition-all ${
+                      isExpanded ? `${card.color} text-white` : `${theme.secondaryBg} ${theme.highlight} ${theme.buttonHover}`
+                    }`}
+                  >
+                    {isExpanded ? <><X size={12} /> Close Details</> : <><ArrowRight size={12} /> View Details &rarr;</>}
+                  </button>
+                </div>
+
+                {/* Expanded Detail Table */}
+                {isExpanded && (
+                  <div className={`border-t ${theme.border} p-4`}>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className={`border-b ${theme.border}`}>
+                            {card.detailHeaders.map((h, hi) => (
+                              <th key={hi} className={`text-[10px] font-bold ${theme.iconColor} uppercase py-2 px-3 text-left`}>{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {card.detailRows.map((row, ri) => (
+                            <tr key={ri} className={`border-b ${theme.border} last:border-b-0 ${theme.buttonHover}`}>
+                              {row.map((cell, ci) => (
+                                <td key={ci} className={`text-xs py-2.5 px-3 ${ci === 0 ? `font-bold ${theme.highlight}` : theme.iconColor}`}>{cell}</td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100">
+                      <button className={`px-3 py-1.5 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-1`}>
+                        <Download size={10} /> Download PDF
+                      </button>
+                      <button className={`px-3 py-1.5 rounded-xl border ${theme.border} text-xs font-bold ${theme.highlight} flex items-center gap-1`}>
+                        <FileText size={10} /> Full Report
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Report Generation Summary */}
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
         <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Report Generation Summary</h3>
         <div className="grid grid-cols-4 gap-3">
@@ -739,89 +969,16 @@ function ReportsModule({ theme }: { theme: Theme }) {
   );
 }
 
-// ─── ANNOUNCEMENTS MODULE ────────────────────────────
-function AnnouncementsModule({ theme }: { theme: Theme }) {
-  const announcements = [
-    {
-      id: 1, title: 'Annual Day Celebration — 28 February 2026',
-      message: 'All students from Class I to X are expected to participate in the Annual Day celebration. Parents are cordially invited. Rehearsals begin from 15-Feb.',
-      sentTo: 'All', date: '10-Feb-2026', sentBy: 'Principal',
-    },
-    {
-      id: 2, title: 'Parent-Teacher Meeting Schedule',
-      message: 'PTM for classes VI to X will be held on 15-Feb (Saturday). Parents are requested to collect the progress report from respective class teachers.',
-      sentTo: 'Parents', date: '08-Feb-2026', sentBy: 'Principal',
-    },
-    {
-      id: 3, title: 'Staff Development Workshop',
-      message: 'A mandatory workshop on NEP 2020 implementation strategies will be conducted on 20-Feb. All teaching staff must attend. Relief arrangements in progress.',
-      sentTo: 'Teachers', date: '07-Feb-2026', sentBy: 'Vice Principal',
-    },
-    {
-      id: 4, title: 'Revised School Timings — Effective 1 March',
-      message: 'Summer timings will be effective from 1-Mar-2026. School hours: 7:00 AM to 1:00 PM. Bus timings will be updated accordingly.',
-      sentTo: 'All', date: '05-Feb-2026', sentBy: 'Principal',
-    },
-    {
-      id: 5, title: 'Inter-School Science Exhibition',
-      message: 'Selected students from classes VIII to X will represent our school at the District Science Exhibition on 25-Feb. Parents of selected students will be notified separately.',
-      sentTo: 'Parents', date: '03-Feb-2026', sentBy: 'Dr. Priya Sharma',
-    },
-    {
-      id: 6, title: 'Fee Payment Reminder — Last Date 15 February',
-      message: 'Parents are requested to clear all pending fee dues by 15-Feb-2026. Late fee of Rs. 500 will be applicable after the due date.',
-      sentTo: 'Parents', date: '01-Feb-2026', sentBy: 'Accounts Dept.',
-    },
-  ];
+// ─── (Announcements module removed — merged into Communication as a tab, REMARK 2) ──
 
-  const audienceColor = (audience: string) => {
-    if (audience === 'All') return 'bg-blue-100 text-blue-700';
-    if (audience === 'Teachers') return 'bg-purple-100 text-purple-700';
-    return 'bg-emerald-100 text-emerald-700';
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className={`text-2xl font-bold ${theme.highlight}`}>Announcements</h1>
-        <button className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}>
-          <Plus size={14} /> New Announcement
-        </button>
-      </div>
-
-      <div className="grid grid-cols-3 gap-4">
-        <StatCard icon={Megaphone} label="Total Sent" value="42" color="bg-blue-500" sub="this month" theme={theme} />
-        <StatCard icon={Users} label="Reach" value="2,847" color="bg-emerald-500" sub="students + parents" theme={theme} />
-        <StatCard icon={Bell} label="Scheduled" value="3" color="bg-amber-500" sub="upcoming" theme={theme} />
-      </div>
-
-      <div className="space-y-3">
-        {announcements.map(a => (
-          <div key={a.id} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-            <div className="flex items-center justify-between mb-2">
-              <h4 className={`text-sm font-bold ${theme.highlight}`}>{a.title}</h4>
-              <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${audienceColor(a.sentTo)}`}>{a.sentTo}</span>
-            </div>
-            <p className={`text-xs ${theme.iconColor} leading-relaxed mb-3`}>{a.message}</p>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className={`text-[10px] ${theme.iconColor}`}>{a.date}</span>
-                <span className={`text-[10px] ${theme.iconColor}`}>Sent by: <span className="font-bold">{a.sentBy}</span></span>
-              </div>
-              <div className="flex gap-1">
-                <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Eye size={12} className={theme.iconColor} /></button>
-                <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Send size={12} className={theme.iconColor} /></button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ─── COMMUNICATION MODULE ────────────────────────────
+// ─── COMMUNICATION MODULE (with Announcements tab — REMARK 2) ────────────────
 function CommunicationModule({ theme }: { theme: Theme }) {
+  const [commTab, setCommTab] = useState<'Messages' | 'Announcements'>('Messages');
+  const [showNewAnnouncement, setShowNewAnnouncement] = useState(false);
+  const [announcementForm, setAnnouncementForm] = useState({
+    title: '', message: '', audience: 'All Staff', priority: 'Normal' as 'Normal' | 'Important' | 'Urgent', scheduleMode: 'now' as 'now' | 'later', scheduleDate: '',
+  });
+
   const messages = [
     { id: 1, type: 'Circular', subject: 'Annual Day Rehearsal Schedule', from: 'Principal Office', to: 'All Staff + Parents', date: '11-Feb-2026', status: 'Sent', reads: '2,145 / 2,847' },
     { id: 2, type: 'Notice', subject: 'Fee Payment Reminder — Last Date 15 Feb', from: 'Accounts Dept.', to: 'Parents (Defaulters)', date: '10-Feb-2026', status: 'Sent', reads: '189 / 312' },
@@ -829,6 +986,15 @@ function CommunicationModule({ theme }: { theme: Theme }) {
     { id: 4, type: 'Circular', subject: 'PTM Schedule — Classes VI to X', from: 'Principal Office', to: 'Parents (VI-X)', date: '08-Feb-2026', status: 'Sent', reads: '890 / 1,120' },
     { id: 5, type: 'Alert', subject: 'Water Supply Disruption — 12 Feb', from: 'Admin Office', to: 'All', date: '07-Feb-2026', status: 'Sent', reads: '2,540 / 2,847' },
     { id: 6, type: 'Draft', subject: 'Summer Timing Change Notification', from: 'Principal Office', to: 'All', date: '—', status: 'Draft', reads: '—' },
+  ];
+
+  const announcements = [
+    { id: 1, title: 'Annual Day Celebration — 28 February 2026', message: 'All students from Class I to X are expected to participate in the Annual Day celebration. Parents are cordially invited. Rehearsals begin from 15-Feb.', sentTo: 'All', date: '10-Feb-2026', sentBy: 'Principal' },
+    { id: 2, title: 'Parent-Teacher Meeting Schedule', message: 'PTM for classes VI to X will be held on 15-Feb (Saturday). Parents are requested to collect the progress report from respective class teachers.', sentTo: 'Parents', date: '08-Feb-2026', sentBy: 'Principal' },
+    { id: 3, title: 'Staff Development Workshop', message: 'A mandatory workshop on NEP 2020 implementation strategies will be conducted on 20-Feb. All teaching staff must attend. Relief arrangements in progress.', sentTo: 'Teachers', date: '07-Feb-2026', sentBy: 'Vice Principal' },
+    { id: 4, title: 'Revised School Timings — Effective 1 March', message: 'Summer timings will be effective from 1-Mar-2026. School hours: 7:00 AM to 1:00 PM. Bus timings will be updated accordingly.', sentTo: 'All', date: '05-Feb-2026', sentBy: 'Principal' },
+    { id: 5, title: 'Inter-School Science Exhibition', message: 'Selected students from classes VIII to X will represent our school at the District Science Exhibition on 25-Feb. Parents of selected students will be notified separately.', sentTo: 'Parents', date: '03-Feb-2026', sentBy: 'Dr. Priya Sharma' },
+    { id: 6, title: 'Fee Payment Reminder — Last Date 15 February', message: 'Parents are requested to clear all pending fee dues by 15-Feb-2026. Late fee of Rs. 500 will be applicable after the due date.', sentTo: 'Parents', date: '01-Feb-2026', sentBy: 'Accounts Dept.' },
   ];
 
   const typeColor = (type: string) => {
@@ -839,46 +1005,226 @@ function CommunicationModule({ theme }: { theme: Theme }) {
     return 'bg-purple-100 text-purple-700';
   };
 
+  const audienceColor = (audience: string) => {
+    if (audience === 'All') return 'bg-blue-100 text-blue-700';
+    if (audience === 'Teachers') return 'bg-purple-100 text-purple-700';
+    return 'bg-emerald-100 text-emerald-700';
+  };
+
+  const priorityStyle = (p: string) => {
+    if (p === 'Urgent') return 'bg-red-500 text-white';
+    if (p === 'Important') return 'bg-amber-500 text-white';
+    return 'bg-blue-100 text-blue-700';
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className={`text-2xl font-bold ${theme.highlight}`}>Communication</h1>
         <div className="flex gap-2">
-          <button className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold flex items-center gap-1`}>
-            <Plus size={12} /> New Circular
-          </button>
-          <button className={`px-4 py-2 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.highlight} flex items-center gap-1`}>
-            <Send size={12} /> Quick Message
-          </button>
+          {commTab === 'Messages' && (
+            <>
+              <button className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold flex items-center gap-1`}>
+                <Plus size={12} /> New Circular
+              </button>
+              <button className={`px-4 py-2 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.highlight} flex items-center gap-1`}>
+                <Send size={12} /> Quick Message
+              </button>
+            </>
+          )}
+          {commTab === 'Announcements' && (
+            <button onClick={() => setShowNewAnnouncement(true)} className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}>
+              <Plus size={14} /> New Announcement
+            </button>
+          )}
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-4">
-        <StatCard icon={Send} label="Sent This Month" value="18" color="bg-blue-500" theme={theme} />
-        <StatCard icon={Inbox} label="Drafts" value="2" color="bg-gray-500" theme={theme} />
-        <StatCard icon={Users} label="Reach" value="2,847" color="bg-emerald-500" sub="students + parents" theme={theme} />
-        <StatCard icon={Mail} label="Read Rate" value="78%" color="bg-purple-500" theme={theme} />
-      </div>
+      {/* Tab Bar */}
+      <TabBar tabs={['Messages', 'Announcements']} active={commTab} onChange={(t) => setCommTab(t as 'Messages' | 'Announcements')} theme={theme} />
 
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Messages & Circulars</h3>
-        <div className="space-y-2">
-          {messages.map(m => (
-            <div key={m.id} className={`flex items-center gap-3 p-3 rounded-xl ${theme.secondaryBg}`}>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold whitespace-nowrap ${typeColor(m.type)}`}>{m.type}</span>
-              <div className="flex-1 min-w-0">
-                <p className={`text-xs font-bold ${theme.highlight} truncate`}>{m.subject}</p>
-                <p className={`text-[10px] ${theme.iconColor}`}>{m.from} &rarr; {m.to}</p>
-              </div>
-              <div className="text-right shrink-0">
-                <p className={`text-[10px] ${theme.iconColor}`}>{m.date}</p>
-                <p className={`text-[10px] ${m.status === 'Draft' ? 'text-gray-500' : 'text-emerald-600'} font-bold`}>{m.reads}</p>
-              </div>
-              <button className={`p-1.5 rounded-lg ${theme.buttonHover}`}><ChevronRight size={12} className={theme.iconColor} /></button>
+      {/* ── Messages Tab ── */}
+      {commTab === 'Messages' && (
+        <>
+          <div className="grid grid-cols-4 gap-4">
+            <StatCard icon={Send} label="Sent This Month" value="18" color="bg-blue-500" theme={theme} />
+            <StatCard icon={Inbox} label="Drafts" value="2" color="bg-gray-500" theme={theme} />
+            <StatCard icon={Users} label="Reach" value="2,847" color="bg-emerald-500" sub="students + parents" theme={theme} />
+            <StatCard icon={Mail} label="Read Rate" value="78%" color="bg-purple-500" theme={theme} />
+          </div>
+
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+            <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Messages & Circulars</h3>
+            <div className="space-y-2">
+              {messages.map(m => (
+                <div key={m.id} className={`flex items-center gap-3 p-3 rounded-xl ${theme.secondaryBg}`}>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold whitespace-nowrap ${typeColor(m.type)}`}>{m.type}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-xs font-bold ${theme.highlight} truncate`}>{m.subject}</p>
+                    <p className={`text-[10px] ${theme.iconColor}`}>{m.from} &rarr; {m.to}</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className={`text-[10px] ${theme.iconColor}`}>{m.date}</p>
+                    <p className={`text-[10px] ${m.status === 'Draft' ? 'text-gray-500' : 'text-emerald-600'} font-bold`}>{m.reads}</p>
+                  </div>
+                  <button className={`p-1.5 rounded-lg ${theme.buttonHover}`}><ChevronRight size={12} className={theme.iconColor} /></button>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
+        </>
+      )}
+
+      {/* ── Announcements Tab (moved from separate module — REMARK 2) ── */}
+      {commTab === 'Announcements' && (
+        <>
+          <div className="grid grid-cols-3 gap-4">
+            <StatCard icon={Megaphone} label="Total Sent" value="42" color="bg-blue-500" sub="this month" theme={theme} />
+            <StatCard icon={Users} label="Reach" value="2,847" color="bg-emerald-500" sub="students + parents" theme={theme} />
+            <StatCard icon={Bell} label="Scheduled" value="3" color="bg-amber-500" sub="upcoming" theme={theme} />
+          </div>
+
+          <div className="space-y-3">
+            {announcements.map(a => (
+              <div key={a.id} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className={`text-sm font-bold ${theme.highlight}`}>{a.title}</h4>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${audienceColor(a.sentTo)}`}>{a.sentTo}</span>
+                </div>
+                <p className={`text-xs ${theme.iconColor} leading-relaxed mb-3`}>{a.message}</p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className={`text-[10px] ${theme.iconColor}`}>{a.date}</span>
+                    <span className={`text-[10px] ${theme.iconColor}`}>Sent by: <span className="font-bold">{a.sentBy}</span></span>
+                  </div>
+                  <div className="flex gap-1">
+                    <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Eye size={12} className={theme.iconColor} /></button>
+                    <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Send size={12} className={theme.iconColor} /></button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* ── New Announcement Modal (REMARK 3) ── */}
+      {showNewAnnouncement && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowNewAnnouncement(false)}>
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} shadow-2xl w-full max-w-lg p-6 space-y-4`} onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className={`w-9 h-9 rounded-xl ${theme.primary} flex items-center justify-center text-white`}><Megaphone size={18} /></div>
+                <h2 className={`text-lg font-bold ${theme.highlight}`}>New Announcement</h2>
+              </div>
+              <button onClick={() => setShowNewAnnouncement(false)} className={`p-1.5 rounded-lg ${theme.buttonHover}`}><X size={16} className={theme.iconColor} /></button>
+            </div>
+
+            {/* Title */}
+            <div>
+              <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>Title</label>
+              <input
+                type="text"
+                value={announcementForm.title}
+                onChange={e => setAnnouncementForm(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="Enter announcement title..."
+                className={`w-full px-3 py-2.5 rounded-xl text-sm ${theme.inputBg} border ${theme.border} ${theme.highlight} outline-none focus:ring-2 focus:ring-blue-300`}
+              />
+            </div>
+
+            {/* Message */}
+            <div>
+              <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>Message</label>
+              <textarea
+                value={announcementForm.message}
+                onChange={e => setAnnouncementForm(prev => ({ ...prev, message: e.target.value }))}
+                placeholder="Type your announcement message..."
+                rows={4}
+                className={`w-full px-3 py-2.5 rounded-xl text-sm ${theme.inputBg} border ${theme.border} ${theme.highlight} outline-none focus:ring-2 focus:ring-blue-300 resize-none`}
+              />
+            </div>
+
+            {/* Audience + Priority row */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>Audience</label>
+                <select
+                  value={announcementForm.audience}
+                  onChange={e => setAnnouncementForm(prev => ({ ...prev, audience: e.target.value }))}
+                  className={`w-full px-3 py-2.5 rounded-xl text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight} outline-none focus:ring-2 focus:ring-blue-300`}
+                >
+                  <option>All Staff</option>
+                  <option>Teachers</option>
+                  <option>Parents</option>
+                  <option>Students</option>
+                  <option>Selected Groups</option>
+                </select>
+              </div>
+              <div>
+                <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>Priority</label>
+                <div className="flex gap-1.5">
+                  {(['Normal', 'Important', 'Urgent'] as const).map(p => (
+                    <button
+                      key={p}
+                      onClick={() => setAnnouncementForm(prev => ({ ...prev, priority: p }))}
+                      className={`flex-1 px-2 py-2 rounded-xl text-[10px] font-bold transition-all ${
+                        announcementForm.priority === p ? priorityStyle(p) : `${theme.secondaryBg} ${theme.iconColor} ${theme.buttonHover}`
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Attachment */}
+            <button className={`flex items-center gap-2 px-3 py-2 rounded-xl ${theme.secondaryBg} ${theme.buttonHover} transition-all`}>
+              <Paperclip size={14} className={theme.iconColor} />
+              <span className={`text-xs font-medium ${theme.iconColor}`}>Add Attachment</span>
+            </button>
+
+            {/* Schedule Toggle */}
+            <div>
+              <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-2`}>Schedule</label>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setAnnouncementForm(prev => ({ ...prev, scheduleMode: 'now' }))}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
+                    announcementForm.scheduleMode === 'now' ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.iconColor}`
+                  }`}
+                >
+                  <Send size={12} /> Send Now
+                </button>
+                <button
+                  onClick={() => setAnnouncementForm(prev => ({ ...prev, scheduleMode: 'later' }))}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
+                    announcementForm.scheduleMode === 'later' ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.iconColor}`
+                  }`}
+                >
+                  <Clock size={12} /> Schedule for Later
+                </button>
+              </div>
+              {announcementForm.scheduleMode === 'later' && (
+                <input
+                  type="datetime-local"
+                  value={announcementForm.scheduleDate}
+                  onChange={e => setAnnouncementForm(prev => ({ ...prev, scheduleDate: e.target.value }))}
+                  className={`mt-2 w-full px-3 py-2 rounded-xl text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight} outline-none focus:ring-2 focus:ring-blue-300`}
+                />
+              )}
+            </div>
+
+            {/* Send Button */}
+            <button
+              onClick={() => { setShowNewAnnouncement(false); setAnnouncementForm({ title: '', message: '', audience: 'All Staff', priority: 'Normal', scheduleMode: 'now', scheduleDate: '' }); }}
+              className={`w-full py-3 rounded-xl ${theme.primary} text-white text-sm font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity`}
+            >
+              <Send size={14} /> {announcementForm.scheduleMode === 'now' ? 'Send Announcement' : 'Schedule Announcement'}
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -941,6 +1287,216 @@ function YearlyPlannerModule({ theme }: { theme: Theme }) {
   // Dropdown state for Q2
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
+  // Generated Gantt categories from AI answers (FIX 3)
+  interface GanttItem { label: string; startMonth: number; duration: number; detail: string; }
+  interface GanttCategory { name: string; color: string; textColor: string; bgLight: string; items: GanttItem[]; }
+  const [generatedGanttCategories, setGeneratedGanttCategories] = useState<GanttCategory[] | null>(null);
+
+  // Computed plan data from answers (FIX 2)
+  const computePlanData = useCallback((ans: Record<number, string | string[]>) => {
+    const terms = String(ans[1] || '2 Terms');
+    const numTerms = terms.includes('3') ? 3 : 2;
+    const unitTestsPerTerm = parseInt(String(ans[2] || '2'), 10);
+    const hasMidTerm = String(ans[3] || 'Yes') === 'Yes';
+    const preBoard = String(ans[4] || 'Yes, both');
+    const hasPreBoard = preBoard !== 'No';
+    const ptmCount = parseInt(String(ans[5] || '4'), 10);
+    const events = Array.isArray(ans[6]) ? ans[6] : [];
+    const summerBreak = String(ans[7] || '1 May to 15 Jun');
+    const winterBreak = String(ans[8] || '25 Dec to 5 Jan');
+    const diwaliBreak = String(ans[9] || '1 Week');
+    const holidays = Array.isArray(ans[10]) ? ans[10].filter(h => h !== 'None') : [];
+
+    // Working days estimate
+    const workingDays = numTerms === 2 ? 220 : 210;
+
+    // Holiday count: 22 govt (auto) + custom holidays + vacation days estimate
+    const diwaliDays = diwaliBreak.includes('2') ? 14 : 7;
+    // Rough vacation days: summer ~45, winter ~12, diwali ~7-14
+    const totalHolidays = 22 + holidays.length + diwaliDays + 45 + 12;
+
+    // Exam windows: (unitTests * terms) + midTerm? + preBoard? + finals
+    const examWindows = (unitTestsPerTerm * numTerms) + (hasMidTerm ? 1 : 0) + (hasPreBoard ? 1 : 0) + 1;
+
+    // Build exam schedule text
+    const examScheduleLines: string[] = [];
+    if (numTerms === 2) {
+      // 2-term layout
+      const utLabels: string[] = [];
+      for (let i = 1; i <= unitTestsPerTerm; i++) utLabels.push(`UT-${i}`);
+      if (unitTestsPerTerm >= 1) examScheduleLines.push(`  ${utLabels[0]}: June 15-20`);
+      if (unitTestsPerTerm >= 2) examScheduleLines.push(`  ${utLabels[1]}: August 18-23`);
+      if (unitTestsPerTerm >= 3) examScheduleLines.push(`  ${utLabels[2]}: July 21-26`);
+      if (unitTestsPerTerm >= 4) examScheduleLines.push(`  ${utLabels[3]}: September 1-6`);
+      if (hasMidTerm) examScheduleLines.push('  Mid-Term: September 22-30');
+      // Term 2 UTs
+      for (let i = 1; i <= unitTestsPerTerm; i++) {
+        const utNum = unitTestsPerTerm + i;
+        if (i === 1) examScheduleLines.push(`  UT-${utNum}: November 17-22`);
+        if (i === 2) examScheduleLines.push(`  UT-${utNum}: January 19-24`);
+        if (i === 3) examScheduleLines.push(`  UT-${utNum}: December 8-13`);
+        if (i === 4) examScheduleLines.push(`  UT-${utNum}: February 2-7`);
+      }
+    } else {
+      // 3-term layout
+      for (let t = 1; t <= 3; t++) {
+        for (let u = 1; u <= unitTestsPerTerm; u++) {
+          const utNum = (t - 1) * unitTestsPerTerm + u;
+          const monthMap: Record<string, string> = { '1-1': 'May 19-24', '1-2': 'July 7-12', '2-1': 'Sep 15-20', '2-2': 'Nov 3-8', '3-1': 'Jan 12-17', '3-2': 'Feb 16-21' };
+          const key = `${t}-${u}`;
+          examScheduleLines.push(`  UT-${utNum}: ${monthMap[key] || `Term ${t} UT ${u}`}`);
+        }
+        if (hasMidTerm && t < 3) examScheduleLines.push(`  Mid-Term ${t}: ${t === 1 ? 'July 28 - Aug 2' : 'Nov 24-29'}`);
+      }
+    }
+    if (hasPreBoard) examScheduleLines.push(`  Pre-Board: January 26 - February 6${preBoard === 'Only Class 12' ? ' (Class 12 only)' : ''}`);
+    examScheduleLines.push('  Final Exams: March 1-15');
+
+    // PTM dates
+    const ptmDates: string[] = [];
+    const ptmDateOptions: Record<number, string[]> = {
+      2: ['September 18', 'February 14'],
+      3: ['July 12', 'November 15', 'February 14'],
+      4: ['July 12', 'September 18', 'December 13', 'February 14'],
+      6: ['June 14', 'August 9', 'October 11', 'December 13', 'January 17', 'February 28'],
+    };
+    ptmDates.push(...(ptmDateOptions[ptmCount] || ptmDateOptions[4]));
+
+    // Event date suggestions
+    const eventDateMap: Record<string, string> = {
+      'Annual Day': 'December 19',
+      'Sports Day': 'August 22',
+      'Science Fair': 'October 17',
+      'Art Exhibition': 'November 14',
+      'Republic Day': 'January 26',
+      'Independence Day': 'August 15',
+      'Teachers Day': 'September 5',
+      "Children's Day": 'November 14',
+      "Founder's Day": 'July 25',
+      'Graduation Day': 'March 20',
+    };
+
+    return {
+      numTerms, unitTestsPerTerm, hasMidTerm, hasPreBoard, preBoard, ptmCount, events,
+      summerBreak, winterBreak, diwaliBreak, holidays,
+      workingDays, totalHolidays, examWindows, examScheduleLines, ptmDates, eventDateMap,
+      diwaliDays,
+    };
+  }, []);
+
+  // Build Gantt categories from answers (FIX 3)
+  const buildGanttFromAnswers = useCallback((ans: Record<number, string | string[]>) => {
+    const plan = computePlanData(ans);
+    const cats: GanttCategory[] = [];
+
+    // Academic terms
+    if (plan.numTerms === 2) {
+      cats.push({
+        name: 'Academic', color: 'bg-blue-500', textColor: 'text-blue-700', bgLight: 'bg-blue-100',
+        items: [
+          { label: 'Term 1', startMonth: 0, duration: 6, detail: 'April to September' },
+          { label: 'Term 2', startMonth: 6, duration: 6, detail: 'October to March' },
+        ]
+      });
+    } else {
+      cats.push({
+        name: 'Academic', color: 'bg-blue-500', textColor: 'text-blue-700', bgLight: 'bg-blue-100',
+        items: [
+          { label: 'Term 1', startMonth: 0, duration: 4, detail: 'April to July' },
+          { label: 'Term 2', startMonth: 4, duration: 4, detail: 'August to November' },
+          { label: 'Term 3', startMonth: 8, duration: 4, detail: 'December to March' },
+        ]
+      });
+    }
+
+    // Exams
+    const examItems: GanttItem[] = [];
+    if (plan.numTerms === 2) {
+      for (let i = 1; i <= plan.unitTestsPerTerm; i++) {
+        const utMonths = [2, 4, 3, 5.2];
+        examItems.push({ label: `UT-${i}`, startMonth: utMonths[i - 1] || (1.5 + i), duration: 0.4, detail: `Unit Test ${i} - Term 1` });
+      }
+      if (plan.hasMidTerm) examItems.push({ label: 'Mid-Term', startMonth: 5, duration: 0.5, detail: 'Mid-Term Exams - September' });
+      for (let i = 1; i <= plan.unitTestsPerTerm; i++) {
+        const utMonths2 = [7, 9, 8, 10];
+        const utNum = plan.unitTestsPerTerm + i;
+        examItems.push({ label: `UT-${utNum}`, startMonth: utMonths2[i - 1] || (7 + i), duration: 0.4, detail: `Unit Test ${utNum} - Term 2` });
+      }
+    } else {
+      let utCounter = 1;
+      const termStarts = [0, 4, 8];
+      for (let t = 0; t < 3; t++) {
+        for (let u = 0; u < plan.unitTestsPerTerm; u++) {
+          examItems.push({ label: `UT-${utCounter}`, startMonth: termStarts[t] + 1.2 + u * 1.5, duration: 0.4, detail: `Unit Test ${utCounter} - Term ${t + 1}` });
+          utCounter++;
+        }
+        if (plan.hasMidTerm && t < 2) {
+          examItems.push({ label: `Mid-${t + 1}`, startMonth: termStarts[t] + 3.2, duration: 0.5, detail: `Mid-Term ${t + 1}` });
+        }
+      }
+    }
+    if (plan.hasPreBoard) examItems.push({ label: 'Pre-Board', startMonth: 9.5, duration: 0.5, detail: `Pre-Board Exams - January${plan.preBoard === 'Only Class 12' ? ' (Class 12)' : ''}` });
+    examItems.push({ label: 'Finals', startMonth: 11, duration: 0.5, detail: 'Final Exams - March' });
+    cats.push({ name: 'Exams', color: 'bg-red-500', textColor: 'text-red-700', bgLight: 'bg-red-100', items: examItems });
+
+    // Events (only selected ones)
+    const eventMonthMap: Record<string, { startMonth: number; detail: string }> = {
+      'Annual Day': { startMonth: 8.5, detail: 'Annual Day - December' },
+      'Sports Day': { startMonth: 4.5, detail: 'Sports Day - August' },
+      'Science Fair': { startMonth: 6.5, detail: 'Science Fair - October' },
+      'Art Exhibition': { startMonth: 7.3, detail: 'Art Exhibition - November' },
+      'Republic Day': { startMonth: 9.8, detail: 'Republic Day - January 26' },
+      'Independence Day': { startMonth: 4.4, detail: 'Independence Day - August 15' },
+      'Teachers Day': { startMonth: 5.15, detail: "Teachers' Day - September 5" },
+      "Children's Day": { startMonth: 7.4, detail: "Children's Day - November 14" },
+      "Founder's Day": { startMonth: 3.8, detail: "Founder's Day - July" },
+      'Graduation Day': { startMonth: 11.6, detail: 'Graduation Day - March' },
+    };
+    const eventItems: GanttItem[] = plan.events.map(ev => ({
+      label: ev,
+      startMonth: eventMonthMap[ev]?.startMonth ?? 6,
+      duration: 0.25,
+      detail: eventMonthMap[ev]?.detail ?? ev,
+    }));
+    if (eventItems.length > 0) {
+      cats.push({ name: 'Events', color: 'bg-orange-500', textColor: 'text-orange-700', bgLight: 'bg-orange-100', items: eventItems });
+    }
+
+    // Holidays (from vacation answers)
+    const holidayItems: GanttItem[] = [
+      { label: 'Summer', startMonth: 1, duration: 1.5, detail: `Summer Vacation - ${plan.summerBreak}` },
+      { label: 'Diwali', startMonth: 6.5, duration: plan.diwaliDays === 14 ? 0.5 : 0.25, detail: `Diwali Break - ${plan.diwaliBreak}` },
+      { label: 'Winter', startMonth: 8.8, duration: 0.5, detail: `Winter Break - ${plan.winterBreak}` },
+    ];
+    cats.push({ name: 'Holidays', color: 'bg-green-500', textColor: 'text-green-700', bgLight: 'bg-green-100', items: holidayItems });
+
+    // PTMs
+    const ptmMonthMap: Record<number, number[]> = {
+      2: [5, 10],
+      3: [3, 7.5, 10],
+      4: [3, 5.5, 8.5, 10.5],
+      6: [2, 4, 6, 8, 9.5, 11],
+    };
+    const ptmMonths = ptmMonthMap[plan.ptmCount] || ptmMonthMap[4];
+    const ptmItems: GanttItem[] = ptmMonths.map((m, i) => ({
+      label: `PTM ${i + 1}`, startMonth: m, duration: 0.15, detail: `Parent-Teacher Meeting ${i + 1}`,
+    }));
+    cats.push({ name: 'PTM', color: 'bg-purple-500', textColor: 'text-purple-700', bgLight: 'bg-purple-100', items: ptmItems });
+
+    // Compliance (always 4)
+    cats.push({
+      name: 'Compliance', color: 'bg-gray-500', textColor: 'text-gray-700', bgLight: 'bg-gray-200',
+      items: [
+        { label: 'Fire Drill Q1', startMonth: 3, duration: 0.2, detail: 'Fire Drill - July (quarterly)' },
+        { label: 'Fire Drill Q3', startMonth: 9, duration: 0.2, detail: 'Fire Drill - January (quarterly)' },
+        { label: 'CBSE Visit', startMonth: 7, duration: 0.3, detail: 'CBSE Affiliation Visit - November' },
+        { label: 'Safety Audit', startMonth: 9.5, duration: 0.3, detail: 'Safety Audit - January' },
+      ]
+    });
+
+    return cats;
+  }, [computePlanData]);
+
   // Auto-scroll chat
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -964,6 +1520,7 @@ function YearlyPlannerModule({ theme }: { theme: Theme }) {
     setGenerateProgress(0);
     setSelectedEvents([]);
     setCustomHolidays([]);
+    setGeneratedGanttCategories(null);
 
     // Welcome message then first question
     setChatMessages([
@@ -975,6 +1532,43 @@ function YearlyPlannerModule({ theme }: { theme: Theme }) {
     }, 800);
   }, [addBotMessage]);
 
+  // Contextual bot messages for between questions (FIX 4)
+  const getContextualMessage = useCallback((stepId: number, answer: string | string[]): string | null => {
+    const ans = String(Array.isArray(answer) ? answer.join(', ') : answer);
+    switch (stepId) {
+      case 1: {
+        const numTerms = ans.includes('3') ? 3 : 2;
+        return `Great! ${numTerms} terms means I'll plan the academic year in ${numTerms} blocks with exam windows distributed across each term.`;
+      }
+      case 2:
+        return `Got it! ${ans} unit tests per term. I'll space them evenly so students get adequate preparation time between each.`;
+      case 3:
+        return ans === 'Yes'
+          ? 'Mid-term exams noted! I\'ll schedule them at the midpoint of each term for comprehensive assessment.'
+          : 'No mid-terms -- that gives more teaching days. I\'ll adjust the schedule accordingly.';
+      case 4:
+        return ans === 'No'
+          ? 'No pre-boards. More revision time before finals!'
+          : `Pre-board exams ${ans === 'Only Class 12' ? 'for Class 12' : 'for both Class 10 & 12'} -- I'll slot them in January before the board exams.`;
+      case 5:
+        return `Perfect! I'll schedule ${ans} PTMs -- typically 1-2 weeks after each exam cycle so parents get fresh results.`;
+      case 6:
+        return Array.isArray(answer) && answer.length > 0
+          ? `Nice selection! ${answer.length} events chosen. I'll space these across the year to avoid clustering near exams.`
+          : 'No events selected. You can always add them later from the manual planner.';
+      case 7:
+        return 'Noted! I\'ll plan revision weeks before the summer break starts and schedule Term 2 kickoff right after.';
+      case 8:
+        return 'Winter break locked in! I\'ll ensure pre-board prep doesn\'t overlap with the break.';
+      case 9:
+        return ans.includes('2')
+          ? 'Two weeks for Diwali -- generous! I\'ll factor in catch-up days when school resumes.'
+          : 'One week Diwali break noted. Quick turnaround keeps momentum going.';
+      default:
+        return null;
+    }
+  }, []);
+
   const handleAnswer = useCallback((stepId: number, answer: string | string[]) => {
     const displayAnswer = Array.isArray(answer) ? answer.join(', ') : answer;
     setChatMessages(prev => [...prev, { sender: 'user', text: displayAnswer, type: 'answer' }]);
@@ -982,34 +1576,55 @@ function YearlyPlannerModule({ theme }: { theme: Theme }) {
 
     const nextStep = stepId + 1;
     if (nextStep <= PLANNER_QUESTIONS.length) {
-      setTimeout(() => {
-        addBotMessage(PLANNER_QUESTIONS[nextStep - 1].question);
-        setCurrentStep(nextStep);
-      }, 500);
+      // Add contextual bot message first, then next question
+      const contextMsg = getContextualMessage(stepId, answer);
+      if (contextMsg) {
+        setTimeout(() => {
+          setChatMessages(prev => [...prev, { sender: 'bot', text: contextMsg, type: 'info' }]);
+          setTimeout(() => {
+            addBotMessage(PLANNER_QUESTIONS[nextStep - 1].question);
+            setCurrentStep(nextStep);
+          }, 600);
+        }, 400);
+      } else {
+        setTimeout(() => {
+          addBotMessage(PLANNER_QUESTIONS[nextStep - 1].question);
+          setCurrentStep(nextStep);
+        }, 500);
+      }
     } else {
-      // All done — generate
+      // All done — generate plan from actual answers
       setTimeout(() => {
-        setChatMessages(prev => [...prev, { sender: 'bot', text: 'Excellent! I have all the information I need. Generating your personalized academic plan...', type: 'info' }]);
-        setIsGenerating(true);
-        setGenerateProgress(0);
+        setAnswers(prev => {
+          const finalAnswers = { ...prev, [stepId]: answer };
+          setChatMessages(old => [...old, { sender: 'bot', text: 'Excellent! I have all the information I need. Generating your personalized academic plan...', type: 'info' }]);
+          setIsGenerating(true);
+          setGenerateProgress(0);
 
-        let progress = 0;
-        const interval = setInterval(() => {
-          progress += Math.random() * 8 + 2;
-          if (progress >= 100) {
-            progress = 100;
-            clearInterval(interval);
-            setTimeout(() => {
-              setIsGenerating(false);
-              setPlanReady(true);
-              setCurrentStep(13);
-            }, 400);
-          }
-          setGenerateProgress(Math.min(progress, 100));
-        }, 100);
+          // Build gantt from answers (FIX 3)
+          const gantt = buildGanttFromAnswers(finalAnswers);
+          setGeneratedGanttCategories(gantt);
+
+          let progress = 0;
+          const interval = setInterval(() => {
+            progress += Math.random() * 8 + 2;
+            if (progress >= 100) {
+              progress = 100;
+              clearInterval(interval);
+              setTimeout(() => {
+                setIsGenerating(false);
+                setPlanReady(true);
+                setCurrentStep(PLANNER_QUESTIONS.length + 1);
+              }, 400);
+            }
+            setGenerateProgress(Math.min(progress, 100));
+          }, 100);
+
+          return finalAnswers;
+        });
       }, 500);
     }
-  }, [addBotMessage]);
+  }, [addBotMessage, getContextualMessage, buildGanttFromAnswers]);
 
   // ─── GANTT TIMELINE DATA ─────────────────────
   const months = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'];
@@ -1069,6 +1684,9 @@ function YearlyPlannerModule({ theme }: { theme: Theme }) {
     },
   ];
 
+  // Use generated gantt if plan is ready, otherwise default (FIX 3)
+  const activeGanttCategories = (planReady && generatedGanttCategories) ? generatedGanttCategories : ganttCategories;
+
   // ─── RENDER MANUAL MODE ──────────────────────
   const renderManualMode = () => (
     <div className="space-y-4">
@@ -1104,7 +1722,7 @@ function YearlyPlannerModule({ theme }: { theme: Theme }) {
         </div>
 
         {/* Category Rows */}
-        {ganttCategories.map((cat) => (
+        {activeGanttCategories.map((cat) => (
           <div key={cat.name} className={`flex items-stretch min-w-[900px] border-t ${theme.border}`}>
             {/* Category Label */}
             <div className={`w-28 shrink-0 flex items-center gap-2 py-3 pr-2`}>
@@ -1149,7 +1767,7 @@ function YearlyPlannerModule({ theme }: { theme: Theme }) {
       {selectedGanttItem && (() => {
         const [catName, ...labelParts] = selectedGanttItem.split('-');
         const label = labelParts.join('-');
-        const cat = ganttCategories.find(c => c.name === catName);
+        const cat = activeGanttCategories.find(c => c.name === catName);
         const item = cat?.items.find(i => i.label === label);
         if (!cat || !item) return null;
         return (
@@ -1172,7 +1790,7 @@ function YearlyPlannerModule({ theme }: { theme: Theme }) {
       {/* Color Legend */}
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
         <div className="flex items-center flex-wrap gap-4">
-          {ganttCategories.map(cat => (
+          {activeGanttCategories.map(cat => (
             <div key={cat.name} className="flex items-center gap-1.5">
               <div className={`w-3 h-3 rounded-full ${cat.color}`} />
               <span className={`text-[10px] font-bold ${theme.iconColor}`}>{cat.name}</span>
@@ -1185,173 +1803,209 @@ function YearlyPlannerModule({ theme }: { theme: Theme }) {
 
   // ─── RENDER AI QUESTION INPUT ─────────────────
   const renderQuestionInput = () => {
-    if (currentStep < 1 || currentStep > 12 || isGenerating || planReady) return null;
+    if (currentStep < 1 || currentStep > PLANNER_QUESTIONS.length || isGenerating || planReady) return null;
     const q = PLANNER_QUESTIONS[currentStep - 1];
+
+    // Wrapper with label (FIX 5)
+    const InputWrapper = ({ children }: { children: React.ReactNode }) => (
+      <div className={`mt-3 pt-3 border-t ${theme.border}`}>
+        <p className={`text-[10px] font-bold ${theme.iconColor} uppercase tracking-wider mb-2`}>Your answer:</p>
+        {children}
+      </div>
+    );
 
     if (q.inputType === 'buttons') {
       return (
-        <div className="flex flex-wrap gap-2 mt-3">
-          {q.options?.map(opt => (
-            <button
-              key={opt}
-              onClick={() => handleAnswer(q.id, opt)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold border-2 ${theme.border} ${theme.highlight} hover:border-blue-400 ${theme.buttonHover} transition-all`}
-            >
-              {opt}
-            </button>
-          ))}
-        </div>
+        <InputWrapper>
+          <div className="flex flex-wrap gap-2">
+            {q.options?.map(opt => (
+              <button
+                key={opt}
+                onClick={() => handleAnswer(q.id, opt)}
+                className={`px-4 py-2 rounded-xl text-xs font-bold border-2 ${theme.border} ${theme.highlight} hover:border-blue-400 ${theme.buttonHover} transition-all`}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+        </InputWrapper>
       );
     }
 
     if (q.inputType === 'dropdown') {
       return (
-        <div className="mt-3 relative" style={{ maxWidth: '280px' }}>
-          <button
-            onClick={() => setDropdownOpen(!dropdownOpen)}
-            className={`w-full px-4 py-2.5 rounded-xl text-xs font-bold border-2 ${theme.border} ${theme.highlight} ${theme.cardBg} flex items-center justify-between`}
-          >
-            <span className={theme.iconColor}>Select a state...</span>
-            <ChevronDown size={14} className={theme.iconColor} />
-          </button>
-          {dropdownOpen && (
-            <div className={`absolute top-full left-0 right-0 mt-1 ${theme.cardBg} border ${theme.border} rounded-xl shadow-lg max-h-48 overflow-y-auto z-20`}>
-              {q.options?.map(opt => (
-                <button
-                  key={opt}
-                  onClick={() => { handleAnswer(q.id, opt); setDropdownOpen(false); }}
-                  className={`w-full text-left px-4 py-2 text-xs ${theme.highlight} ${theme.buttonHover} first:rounded-t-xl last:rounded-b-xl`}
-                >
-                  {opt}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        <InputWrapper>
+          <div className="relative" style={{ maxWidth: '280px' }}>
+            <button
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              className={`w-full px-4 py-2.5 rounded-xl text-xs font-bold border-2 ${theme.border} ${theme.highlight} ${theme.cardBg} flex items-center justify-between`}
+            >
+              <span className={theme.iconColor}>Select a state...</span>
+              <ChevronDown size={14} className={theme.iconColor} />
+            </button>
+            {dropdownOpen && (
+              <div className={`absolute top-full left-0 right-0 mt-1 ${theme.cardBg} border ${theme.border} rounded-xl shadow-lg max-h-48 overflow-y-auto z-20`}>
+                {q.options?.map(opt => (
+                  <button
+                    key={opt}
+                    onClick={() => { handleAnswer(q.id, opt); setDropdownOpen(false); }}
+                    className={`w-full text-left px-4 py-2 text-xs ${theme.highlight} ${theme.buttonHover} first:rounded-t-xl last:rounded-b-xl`}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </InputWrapper>
       );
     }
 
     if (q.inputType === 'multi-select') {
       return (
-        <div className="mt-3 space-y-2">
-          <div className="grid grid-cols-2 gap-2">
-            {q.options?.map(opt => {
-              const isChecked = selectedEvents.includes(opt);
-              return (
-                <button
-                  key={opt}
-                  onClick={() => setSelectedEvents(prev => isChecked ? prev.filter(e => e !== opt) : [...prev, opt])}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium border-2 transition-all ${
-                    isChecked ? 'border-blue-400 bg-blue-50 text-blue-700' : `${theme.border} ${theme.highlight} ${theme.buttonHover}`
-                  }`}
-                >
-                  <div className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 ${
-                    isChecked ? 'border-blue-500 bg-blue-500' : `${theme.border}`
-                  }`}>
-                    {isChecked && <Check size={10} className="text-white" />}
-                  </div>
-                  {opt}
-                </button>
-              );
-            })}
+        <InputWrapper>
+          <div className="space-y-2">
+            {/* Selected count indicator (FIX 5) */}
+            <div className="flex items-center justify-between">
+              <span className={`text-[10px] ${theme.iconColor}`}>Tap to select/deselect</span>
+              <span className={`text-[10px] font-bold ${selectedEvents.length > 0 ? 'text-blue-600' : theme.iconColor}`}>
+                {selectedEvents.length} of {q.options?.length || 0} selected
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {q.options?.map(opt => {
+                const isChecked = selectedEvents.includes(opt);
+                return (
+                  <button
+                    key={opt}
+                    onClick={() => setSelectedEvents(prev => isChecked ? prev.filter(e => e !== opt) : [...prev, opt])}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium border-2 transition-all ${
+                      isChecked ? 'border-blue-400 bg-blue-50 text-blue-700' : `${theme.border} ${theme.highlight} ${theme.buttonHover}`
+                    }`}
+                  >
+                    <div className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 ${
+                      isChecked ? 'border-blue-500 bg-blue-500' : `${theme.border}`
+                    }`}>
+                      {isChecked && <Check size={10} className="text-white" />}
+                    </div>
+                    {opt}
+                  </button>
+                );
+              })}
+            </div>
+            {selectedEvents.length > 0 && (
+              <button
+                onClick={() => handleAnswer(q.id, selectedEvents)}
+                className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-1`}
+              >
+                <Check size={12} /> Confirm {selectedEvents.length} selected
+              </button>
+            )}
           </div>
-          {selectedEvents.length > 0 && (
-            <button
-              onClick={() => handleAnswer(q.id, selectedEvents)}
-              className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-1`}
-            >
-              <Check size={12} /> Confirm {selectedEvents.length} selected
-            </button>
-          )}
-        </div>
+        </InputWrapper>
       );
     }
 
     if (q.inputType === 'date-range') {
       return (
-        <div className="mt-3 space-y-2">
-          <div className="flex items-center gap-3">
-            <div>
-              <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>From</label>
-              <input
-                type="date"
-                value={vacationFrom}
-                onChange={e => setVacationFrom(e.target.value)}
-                className={`px-3 py-2 rounded-xl text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight} outline-none`}
-              />
+        <InputWrapper>
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="flex-1">
+                <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>From:</label>
+                <input
+                  type="date"
+                  value={vacationFrom}
+                  onChange={e => setVacationFrom(e.target.value)}
+                  className={`w-full px-3 py-2 rounded-xl text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight} outline-none focus:ring-2 focus:ring-blue-300`}
+                />
+              </div>
+              <div className={`text-xs font-bold ${theme.iconColor} mt-4`}>to</div>
+              <div className="flex-1">
+                <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>To:</label>
+                <input
+                  type="date"
+                  value={vacationTo}
+                  onChange={e => setVacationTo(e.target.value)}
+                  className={`w-full px-3 py-2 rounded-xl text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight} outline-none focus:ring-2 focus:ring-blue-300`}
+                />
+              </div>
             </div>
-            <div>
-              <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>To</label>
-              <input
-                type="date"
-                value={vacationTo}
-                onChange={e => setVacationTo(e.target.value)}
-                className={`px-3 py-2 rounded-xl text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight} outline-none`}
-              />
-            </div>
+            {/* Show duration preview */}
+            {vacationFrom && vacationTo && (
+              <p className={`text-[10px] ${theme.iconColor}`}>
+                Duration: {Math.max(0, Math.round((new Date(vacationTo).getTime() - new Date(vacationFrom).getTime()) / (1000 * 60 * 60 * 24)))} days
+              </p>
+            )}
+            <button
+              onClick={() => {
+                const from = new Date(vacationFrom).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+                const to = new Date(vacationTo).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+                handleAnswer(q.id, `${from} to ${to}`);
+              }}
+              className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-1`}
+            >
+              <Check size={12} /> Confirm Dates
+            </button>
           </div>
-          <button
-            onClick={() => {
-              const from = new Date(vacationFrom).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
-              const to = new Date(vacationTo).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
-              handleAnswer(q.id, `${from} to ${to}`);
-            }}
-            className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-1`}
-          >
-            <Check size={12} /> Confirm Dates
-          </button>
-        </div>
+        </InputWrapper>
       );
     }
 
     if (q.inputType === 'text-add') {
       return (
-        <div className="mt-3 space-y-2">
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              value={holidayInput}
-              onChange={e => setHolidayInput(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter' && holidayInput.trim()) {
-                  setCustomHolidays(prev => [...prev, holidayInput.trim()]);
-                  setHolidayInput('');
-                }
-              }}
-              placeholder="e.g., Founder's Day, Local Festival..."
-              className={`flex-1 px-3 py-2 rounded-xl text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight} outline-none`}
-            />
+        <InputWrapper>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={holidayInput}
+                onChange={e => setHolidayInput(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && holidayInput.trim()) {
+                    setCustomHolidays(prev => [...prev, holidayInput.trim()]);
+                    setHolidayInput('');
+                  }
+                }}
+                placeholder="Type holiday name and press Enter or click Add..."
+                className={`flex-1 px-3 py-2 rounded-xl text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight} outline-none focus:ring-2 focus:ring-blue-300`}
+              />
+              <button
+                onClick={() => {
+                  if (holidayInput.trim()) {
+                    setCustomHolidays(prev => [...prev, holidayInput.trim()]);
+                    setHolidayInput('');
+                  }
+                }}
+                className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-1`}
+              >
+                <Plus size={12} /> Add
+              </button>
+            </div>
+            {/* Show added items as tags (FIX 5) */}
+            {customHolidays.length > 0 && (
+              <div>
+                <p className={`text-[10px] ${theme.iconColor} mb-1`}>{customHolidays.length} holiday{customHolidays.length > 1 ? 's' : ''} added:</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {customHolidays.map((h, i) => (
+                    <span key={i} className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${theme.secondaryBg} ${theme.highlight} flex items-center gap-1 border ${theme.border}`}>
+                      {h}
+                      <button onClick={() => setCustomHolidays(prev => prev.filter((_, idx) => idx !== i))} className="hover:text-red-500 ml-0.5">
+                        <X size={10} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
             <button
-              onClick={() => {
-                if (holidayInput.trim()) {
-                  setCustomHolidays(prev => [...prev, holidayInput.trim()]);
-                  setHolidayInput('');
-                }
-              }}
-              className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}
+              onClick={() => handleAnswer(q.id, customHolidays.length > 0 ? customHolidays : ['None'])}
+              className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-1`}
             >
-              Add
+              <Check size={12} /> {customHolidays.length > 0 ? `Done (${customHolidays.length} added)` : 'Skip -- No extra holidays'}
             </button>
           </div>
-          {customHolidays.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {customHolidays.map((h, i) => (
-                <span key={i} className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${theme.secondaryBg} ${theme.highlight} flex items-center gap-1`}>
-                  {h}
-                  <button onClick={() => setCustomHolidays(prev => prev.filter((_, idx) => idx !== i))} className="hover:text-red-500">
-                    <X size={10} />
-                  </button>
-                </span>
-              ))}
-            </div>
-          )}
-          <button
-            onClick={() => handleAnswer(q.id, customHolidays.length > 0 ? customHolidays : ['None'])}
-            className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-1`}
-          >
-            <Check size={12} /> {customHolidays.length > 0 ? `Done (${customHolidays.length} added)` : 'Skip — No extra holidays'}
-          </button>
-        </div>
+        </InputWrapper>
       );
     }
 
@@ -1453,21 +2107,76 @@ function YearlyPlannerModule({ theme }: { theme: Theme }) {
                   </div>
                 )}
 
-                {/* Plan Ready Summary */}
-                {planReady && (
+                {/* Plan Ready Summary (FIX 2: Dynamic from answers) */}
+                {planReady && (() => {
+                  const plan = computePlanData(answers);
+                  return (
                   <div className={`${theme.secondaryBg} rounded-2xl p-5 space-y-3 border-2 border-emerald-300`}>
                     <div className="flex items-center gap-2">
                       <CheckCircle size={18} className="text-emerald-500" />
                       <span className={`text-sm font-bold ${theme.highlight}`}>Your 2026-27 Academic Plan is ready!</span>
                     </div>
+                    {/* Summary Stats */}
                     <div className={`space-y-1.5 ${theme.iconColor}`}>
-                      <p className="text-xs flex items-center gap-2"><BarChart3 size={12} /> <strong>220</strong> Working Days</p>
-                      <p className="text-xs flex items-center gap-2"><Calendar size={12} /> <strong>45</strong> Holidays (22 govt + 23 school)</p>
-                      <p className="text-xs flex items-center gap-2"><FileText size={12} /> <strong>6</strong> Exam Windows (2 UT + Mid + 2 UT + Final)</p>
-                      <p className="text-xs flex items-center gap-2"><Users size={12} /> <strong>4</strong> PTMs scheduled</p>
-                      <p className="text-xs flex items-center gap-2"><Star size={12} /> <strong>10</strong> Events planned</p>
+                      <p className="text-xs flex items-center gap-2"><BarChart3 size={12} /> <strong>{plan.workingDays}</strong> Working Days</p>
+                      <p className="text-xs flex items-center gap-2"><Calendar size={12} /> <strong>{plan.totalHolidays}</strong> Holidays (22 govt + {plan.totalHolidays - 22} school)</p>
+                      <p className="text-xs flex items-center gap-2"><FileText size={12} /> <strong>{plan.examWindows}</strong> Exam Windows ({plan.unitTestsPerTerm * plan.numTerms} UT{plan.hasMidTerm ? ' + Mid' : ''}{plan.hasPreBoard ? ' + Pre-Board' : ''} + Final)</p>
+                      <p className="text-xs flex items-center gap-2"><Users size={12} /> <strong>{plan.ptmCount}</strong> PTMs scheduled</p>
+                      <p className="text-xs flex items-center gap-2"><Star size={12} /> <strong>{plan.events.length}</strong> Events planned</p>
                       <p className="text-xs flex items-center gap-2"><ShieldCheck size={12} /> <strong>4</strong> Compliance items auto-added</p>
                     </div>
+
+                    {/* Detailed Breakdown (FIX 2) */}
+                    <div className={`mt-3 pt-3 border-t ${theme.border} space-y-3`}>
+                      {/* Exam Schedule */}
+                      <div>
+                        <p className={`text-xs font-bold ${theme.highlight} mb-1`}>Exam Schedule:</p>
+                        <div className={`space-y-0.5 ${theme.iconColor}`}>
+                          {plan.examScheduleLines.map((line, i) => (
+                            <p key={i} className="text-[11px]">{line}</p>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* PTMs */}
+                      <div>
+                        <p className={`text-xs font-bold ${theme.highlight} mb-1`}>PTMs:</p>
+                        <p className={`text-[11px] ${theme.iconColor}`}>  {plan.ptmDates.join(', ')}</p>
+                      </div>
+
+                      {/* Events */}
+                      {plan.events.length > 0 && (
+                        <div>
+                          <p className={`text-xs font-bold ${theme.highlight} mb-1`}>Events:</p>
+                          <div className={`space-y-0.5 ${theme.iconColor}`}>
+                            {plan.events.map((ev, i) => (
+                              <p key={i} className="text-[11px]">  {ev} -- {plan.eventDateMap[ev] || 'TBD'}</p>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Vacations */}
+                      <div>
+                        <p className={`text-xs font-bold ${theme.highlight} mb-1`}>Vacations:</p>
+                        <div className={`space-y-0.5 ${theme.iconColor}`}>
+                          <p className="text-[11px]">  Summer: {plan.summerBreak}</p>
+                          <p className="text-[11px]">  Winter: {plan.winterBreak}</p>
+                          <p className="text-[11px]">  Diwali: {plan.diwaliBreak}</p>
+                        </div>
+                      </div>
+
+                      {/* Compliance */}
+                      <div>
+                        <p className={`text-xs font-bold ${theme.highlight} mb-1`}>Compliance (Auto-added):</p>
+                        <div className={`space-y-0.5 ${theme.iconColor}`}>
+                          <p className="text-[11px]">  Fire Drill: July, January (quarterly)</p>
+                          <p className="text-[11px]">  CBSE Affiliation Visit: November</p>
+                          <p className="text-[11px]">  Safety Audit: January</p>
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="flex gap-2 pt-2">
                       <button
                         onClick={() => setPlannerMode('manual')}
@@ -1483,7 +2192,8 @@ function YearlyPlannerModule({ theme }: { theme: Theme }) {
                       </button>
                     </div>
                   </div>
-                )}
+                  );
+                })()}
 
                 <div ref={chatEndRef} />
               </div>
@@ -1532,7 +2242,7 @@ function YearlyPlannerModule({ theme }: { theme: Theme }) {
                         )}
                       </div>
                       {/* Step number */}
-                      <span className={`text-[9px] font-bold ${isUpcoming ? theme.iconColor : 'opacity-0'}`}>{q.id}/12</span>
+                      <span className={`text-[9px] font-bold ${isUpcoming ? theme.iconColor : 'opacity-0'}`}>{q.id}/{PLANNER_QUESTIONS.length}</span>
                     </div>
                   );
                 })}
@@ -1542,12 +2252,12 @@ function YearlyPlannerModule({ theme }: { theme: Theme }) {
               <div className="mt-4 pt-3 border-t border-gray-200">
                 <div className="flex items-center justify-between mb-1.5">
                   <span className={`text-[10px] font-bold ${theme.iconColor}`}>Completion</span>
-                  <span className={`text-[10px] font-bold ${theme.highlight}`}>{Object.keys(answers).length}/12</span>
+                  <span className={`text-[10px] font-bold ${theme.highlight}`}>{Object.keys(answers).length}/{PLANNER_QUESTIONS.length}</span>
                 </div>
                 <div className="h-2 rounded-full bg-gray-200 overflow-hidden">
                   <div
                     className="h-full rounded-full bg-emerald-500 transition-all duration-500"
-                    style={{ width: `${(Object.keys(answers).length / 12) * 100}%` }}
+                    style={{ width: `${(Object.keys(answers).length / PLANNER_QUESTIONS.length) * 100}%` }}
                   />
                 </div>
               </div>
@@ -1555,7 +2265,7 @@ function YearlyPlannerModule({ theme }: { theme: Theme }) {
               {/* Reset button */}
               {aiStarted && (
                 <button
-                  onClick={() => { setAiStarted(false); setCurrentStep(0); setAnswers({}); setChatMessages([]); setPlanReady(false); setIsGenerating(false); setSelectedEvents([]); setCustomHolidays([]); }}
+                  onClick={() => { setAiStarted(false); setCurrentStep(0); setAnswers({}); setChatMessages([]); setPlanReady(false); setIsGenerating(false); setSelectedEvents([]); setCustomHolidays([]); setGeneratedGanttCategories(null); }}
                   className={`mt-3 w-full px-3 py-2 rounded-xl border ${theme.border} text-xs font-bold ${theme.iconColor} ${theme.buttonHover} text-center`}
                 >
                   Start Over
