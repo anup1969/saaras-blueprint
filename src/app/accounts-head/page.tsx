@@ -3,12 +3,13 @@
 import React, { useState } from 'react';
 import BlueprintLayout from '@/components/BlueprintLayout';
 import { StatCard, TabBar, StatusBadge, SearchBar, DataTable, Toggle } from '@/components/shared';
+import StakeholderProfile from '@/components/StakeholderProfile';
 import { type Theme } from '@/lib/themes';
 import {
   Home, Banknote, CreditCard, Receipt, Users, FileText, BarChart3, Settings,
   Search, Plus, Eye, Download, Filter, Check, X, Calendar,
   DollarSign, TrendingUp, TrendingDown, AlertTriangle, ArrowRight,
-  Wallet, Building2, ChevronDown, Percent, Clock, Hash, Printer
+  Wallet, Building2, ChevronDown, Percent, Clock, Hash, Printer, User
 } from 'lucide-react';
 
 // ─── MOCK DATA ────────────────────────────────────────
@@ -67,6 +68,7 @@ const modules = [
   { id: 'bank', label: 'Bank Reconciliation', icon: Building2 },
   { id: 'reports', label: 'Financial Reports', icon: BarChart3 },
   { id: 'receipts', label: 'Receipts', icon: Receipt },
+  { id: 'profile', label: 'My Profile', icon: User },
 ];
 
 // ─── DASHBOARD VIEW ────────────────────────────────────
@@ -483,6 +485,7 @@ function AccountsHeadDashboard({ theme }: { theme?: Theme }) {
       case 'bank': return <BankView theme={theme} />;
       case 'reports': return <ReportsView theme={theme} />;
       case 'receipts': return <ReceiptsView theme={theme} />;
+      case 'profile': return <StakeholderProfile role="accounts-head" theme={theme} />;
       default: return <DashboardView theme={theme} setActiveModule={setActiveModule} />;
     }
   };

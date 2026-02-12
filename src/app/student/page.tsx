@@ -11,6 +11,7 @@ import {
   BarChart3, Timer, Library, BookOpenCheck, IndianRupee, Receipt, CreditCard,
   GraduationCap, User, ArrowRight
 } from 'lucide-react';
+import StakeholderProfile from '@/components/StakeholderProfile';
 
 // ─── STUDENT PROFILE ────────────────────────────────
 const studentProfile = {
@@ -224,6 +225,7 @@ const modules = [
   { id: 'fees', label: 'Fees', icon: Banknote },
   { id: 'library', label: 'Library', icon: BookMarked },
   { id: 'notices', label: 'Notices', icon: Megaphone },
+  { id: 'profile', label: 'My Profile', icon: User },
 ];
 
 // ─── MAIN COMPONENT ────────────────────────────────
@@ -259,6 +261,7 @@ function StudentDashboard({ theme }: { theme?: Theme }) {
         {activeModule === 'fees' && <FeesModule theme={theme} />}
         {activeModule === 'library' && <LibraryModule theme={theme} />}
         {activeModule === 'notices' && <NoticesModule theme={theme} />}
+        {activeModule === 'profile' && <StakeholderProfile role="student" theme={theme} />}
       </div>
     </div>
   );

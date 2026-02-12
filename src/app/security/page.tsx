@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import BlueprintLayout from '@/components/BlueprintLayout';
 import { StatCard, TabBar, StatusBadge, SearchBar, DataTable, Toggle } from '@/components/shared';
 import { type Theme } from '@/lib/themes';
+import StakeholderProfile from '@/components/StakeholderProfile';
 import {
   Home, Shield, UserCheck, ClipboardList, AlertTriangle, Footprints,
   Search, Plus, Eye, Edit, Filter, Download, ChevronDown,
@@ -84,6 +85,7 @@ const modules = [
   { id: 'gate-log', label: 'Gate Log', icon: ClipboardList },
   { id: 'emergency', label: 'Emergency', icon: AlertTriangle },
   { id: 'patrol-log', label: 'Patrol Log', icon: Footprints },
+  { id: 'profile', label: 'My Profile', icon: User },
 ];
 
 function SecurityDashboard({ theme }: { theme?: Theme }) {
@@ -116,6 +118,7 @@ function SecurityDashboard({ theme }: { theme?: Theme }) {
         {activeModule === 'gate-log' && <GateLogModule theme={theme} />}
         {activeModule === 'emergency' && <EmergencyModule theme={theme} />}
         {activeModule === 'patrol-log' && <PatrolLogModule theme={theme} />}
+        {activeModule === 'profile' && <StakeholderProfile role="security" theme={theme} />}
       </div>
     </div>
   );

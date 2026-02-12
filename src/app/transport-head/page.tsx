@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import BlueprintLayout from '@/components/BlueprintLayout';
 import { StatCard, TabBar, StatusBadge, SearchBar, DataTable, Toggle } from '@/components/shared';
 import { type Theme } from '@/lib/themes';
+import StakeholderProfile from '@/components/StakeholderProfile';
 import {
   Home, Bus, Route, Car, Users, MapPin, Wrench, Search, Plus, Filter, Download,
   Eye, Edit, Trash2, Phone, Clock, Shield, AlertTriangle, CheckCircle, Navigation,
@@ -20,6 +21,7 @@ const modules = [
   { id: 'gps-tracking', label: 'GPS Tracking', icon: Navigation },
   { id: 'students-by-route', label: 'Students by Route', icon: MapPin },
   { id: 'maintenance', label: 'Maintenance', icon: Wrench },
+  { id: 'profile', label: 'My Profile', icon: User },
 ];
 
 // ─── MOCK DATA ──────────────────────────────────────
@@ -156,6 +158,7 @@ function TransportHeadDashboard({ theme }: { theme?: Theme }) {
         {activeModule === 'gps-tracking' && <GPSTrackingModule theme={theme} />}
         {activeModule === 'students-by-route' && <StudentsByRouteModule theme={theme} />}
         {activeModule === 'maintenance' && <MaintenanceModule theme={theme} />}
+        {activeModule === 'profile' && <StakeholderProfile role="transport-head" theme={theme} />}
       </div>
     </div>
   );

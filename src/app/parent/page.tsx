@@ -14,6 +14,7 @@ import {
   AlertCircle, IndianRupee, Percent, TrendingDown, Notebook, PenTool,
   CircleDot, Camera, UserPlus, Navigation, Map, Info
 } from 'lucide-react';
+import StakeholderProfile from '@/components/StakeholderProfile';
 
 // ─── CHILD DATA ─────────────────────────────────────
 interface ChildProfile {
@@ -344,6 +345,7 @@ const modules = [
   { id: 'communication', label: 'Communication', icon: MessageSquare },
   { id: 'transport', label: 'Transport', icon: Bus },
   { id: 'pickup', label: 'Pickup Auth', icon: Shield },
+  { id: 'profile', label: 'My Profile', icon: User },
 ];
 
 // ─── CHILD SELECTOR ─────────────────────────────────
@@ -1566,6 +1568,7 @@ function ParentDashboard({ theme }: { theme?: Theme }) {
         {activeModule === 'communication' && <CommunicationModule theme={theme} child={child} />}
         {activeModule === 'transport' && <TransportModule theme={theme} child={child} />}
         {activeModule === 'pickup' && <PickupAuthModule theme={theme} child={child} />}
+        {activeModule === 'profile' && <StakeholderProfile role="parent" theme={theme} />}
       </div>
     </div>
   );

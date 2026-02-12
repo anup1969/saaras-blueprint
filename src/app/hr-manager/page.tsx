@@ -2,12 +2,13 @@
 
 import React, { useState } from 'react';
 import BlueprintLayout from '@/components/BlueprintLayout';
+import StakeholderProfile from '@/components/StakeholderProfile';
 import { type Theme } from '@/lib/themes';
 import {
   Users, Home, UserPlus, Calendar, Clock, Banknote, Star, FileText, UserMinus, BarChart3,
   Settings, Bell, ChevronLeft, ChevronRight, Check, X, Plus,
   Eye, Edit, Phone, Mail, Trash2, Camera, Award, CheckCircle, XCircle,
-  GripVertical, Cake, Briefcase, Upload, MinusCircle, Wallet, GitBranch, Shield
+  GripVertical, Cake, Briefcase, Upload, MinusCircle, Wallet, GitBranch, Shield, User
 } from 'lucide-react';
 
 // ─── MOCK DATA ────────────────────────────────────────
@@ -33,6 +34,7 @@ const modules = [
   { id: 'offboarding', label: 'Offboarding', icon: UserMinus },
   { id: 'reports', label: 'Reports', icon: BarChart3 },
   { id: 'settings', label: 'Settings', icon: Settings },
+  { id: 'my-profile', label: 'My Profile', icon: User },
 ];
 
 // ─── SHARED HELPERS ───────────────────────────────────
@@ -431,6 +433,7 @@ function HRManagerDashboard({ theme }: { theme?: Theme }) {
         {activeModule === 'offboarding' && <OffboardingModule theme={theme} />}
         {activeModule === 'reports' && <ReportsModule theme={theme} />}
         {activeModule === 'settings' && <SettingsModule theme={theme} />}
+        {activeModule === 'my-profile' && <StakeholderProfile role="hr-manager" theme={theme} />}
       </div>
     </div>
   );

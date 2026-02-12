@@ -11,8 +11,9 @@ import {
   Eye, Edit, Trash2, Download, Filter, ChevronDown, ChevronUp, Camera, File,
   Banknote, DollarSign, TrendingUp, AlertTriangle, FileText, Send, Megaphone, MapPin, Phone,
   Mail, Star, Award, BookOpen, ArrowRight, CreditCard, ArrowLeft, Save,
-  Upload, ClipboardCheck, Receipt, Printer, Hash, Heart, Building, Landmark
+  Upload, ClipboardCheck, Receipt, Printer, Hash, Heart, Building, Landmark, User
 } from 'lucide-react';
+import StakeholderProfile from '@/components/StakeholderProfile';
 
 // ─── MODULE SIDEBAR ────────────────────────────────
 const modules = [
@@ -30,6 +31,7 @@ const modules = [
   { id: 'attendance', label: 'Attendance', icon: ClipboardCheck },
   { id: 'reports', label: 'Reports', icon: BarChart3 },
   { id: 'config', label: 'Configuration', icon: Settings },
+  { id: 'profile', label: 'My Profile', icon: User },
 ];
 
 function SchoolAdminDashboard({ theme }: { theme?: Theme }) {
@@ -71,6 +73,7 @@ function SchoolAdminDashboard({ theme }: { theme?: Theme }) {
         {activeModule === 'attendance' && <AttendanceModule theme={theme} />}
         {activeModule === 'reports' && <ReportsModule theme={theme} />}
         {activeModule === 'config' && <ConfigModule theme={theme} />}
+        {activeModule === 'profile' && <StakeholderProfile role="school-admin" theme={theme} />}
       </div>
     </div>
   );

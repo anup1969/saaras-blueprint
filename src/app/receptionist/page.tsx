@@ -4,11 +4,12 @@ import React, { useState } from 'react';
 import BlueprintLayout from '@/components/BlueprintLayout';
 import { StatCard, TabBar, StatusBadge, SearchBar, DataTable } from '@/components/shared';
 import { type Theme } from '@/lib/themes';
+import StakeholderProfile from '@/components/StakeholderProfile';
 import {
   Home, Users, UserPlus, Phone, Mail, Calendar, Clock, Search, Plus, Eye, Edit,
   Filter, Download, CheckCircle, AlertTriangle, ArrowRight, PhoneCall, PhoneIncoming,
   PhoneOutgoing, Package, BookOpen, Shield, UserCheck, Briefcase, Building2,
-  MapPin, Bell, MessageSquare, LogIn, LogOut, BadgeCheck, Hash, FileText, Send
+  MapPin, Bell, MessageSquare, LogIn, LogOut, BadgeCheck, Hash, FileText, Send, User
 } from 'lucide-react';
 
 // ─── MODULE SIDEBAR ────────────────────────────────
@@ -20,6 +21,7 @@ const modules = [
   { id: 'courier', label: 'Courier/Mail', icon: Package },
   { id: 'appointments', label: 'Appointments', icon: Calendar },
   { id: 'directory', label: 'Directory', icon: BookOpen },
+  { id: 'profile', label: 'My Profile', icon: User },
 ];
 
 // ─── MOCK DATA ──────────────────────────────────────
@@ -117,6 +119,7 @@ function ReceptionistDashboard({ theme }: { theme?: Theme }) {
         {activeModule === 'courier' && <CourierModule theme={theme} />}
         {activeModule === 'appointments' && <AppointmentsModule theme={theme} />}
         {activeModule === 'directory' && <DirectoryModule theme={theme} />}
+        {activeModule === 'profile' && <StakeholderProfile role="receptionist" theme={theme} />}
       </div>
     </div>
   );

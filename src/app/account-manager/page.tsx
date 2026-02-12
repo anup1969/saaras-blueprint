@@ -4,12 +4,13 @@ import React, { useState } from 'react';
 import BlueprintLayout from '@/components/BlueprintLayout';
 import { StatCard, TabBar, StatusBadge, SearchBar, DataTable } from '@/components/shared';
 import { type Theme } from '@/lib/themes';
+import StakeholderProfile from '@/components/StakeholderProfile';
 import {
   Home, Building2, Headphones, BarChart3, RefreshCcw, Rocket,
   Search, Filter, Download, Eye, Edit, Phone, Mail, MessageSquare,
   TrendingUp, Users, AlertTriangle, CheckCircle, Clock, Star,
   Activity, Target, Calendar, ArrowRight, Zap, Shield,
-  ThumbsUp, Percent, DollarSign, UserCheck
+  ThumbsUp, Percent, DollarSign, UserCheck, User
 } from 'lucide-react';
 
 // ─── MODULE SIDEBAR ────────────────────────────────
@@ -20,6 +21,7 @@ const modules = [
   { id: 'analytics', label: 'Usage Analytics', icon: BarChart3 },
   { id: 'renewals', label: 'Renewals', icon: RefreshCcw },
   { id: 'onboarding', label: 'Onboarding', icon: Rocket },
+  { id: 'profile', label: 'My Profile', icon: User },
 ];
 
 // ─── MOCK DATA ─────────────────────────────────────
@@ -138,6 +140,7 @@ function AccountManagerDashboard({ theme }: { theme?: Theme }) {
         {activeModule === 'analytics' && <AnalyticsModule theme={theme} />}
         {activeModule === 'renewals' && <RenewalsModule theme={theme} />}
         {activeModule === 'onboarding' && <OnboardingModule theme={theme} />}
+        {activeModule === 'profile' && <StakeholderProfile role="account-manager" theme={theme} />}
       </div>
     </div>
   );

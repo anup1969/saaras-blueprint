@@ -3,12 +3,13 @@
 import React, { useState } from 'react';
 import BlueprintLayout from '@/components/BlueprintLayout';
 import { StatCard, TabBar, StatusBadge, DataTable } from '@/components/shared';
+import StakeholderProfile from '@/components/StakeholderProfile';
 import { type Theme } from '@/lib/themes';
 import {
   Home, Eye, DollarSign, GraduationCap, Shield, Users, CheckCircle, XCircle,
   TrendingUp, TrendingDown, BarChart3, Calendar, FileText, AlertTriangle,
   Award, Star, Building2, Banknote, ArrowRight, Download, PieChart,
-  Briefcase, Clock, Target, ChevronRight
+  Briefcase, Clock, Target, ChevronRight, User
 } from 'lucide-react';
 
 // ─── MOCK DATA ────────────────────────────────────────
@@ -87,6 +88,7 @@ const modules = [
   { id: 'staff', label: 'Staff Overview', icon: Users },
   { id: 'compliance', label: 'Compliance & Audit', icon: Shield },
   { id: 'approvals', label: 'Approvals', icon: CheckCircle },
+  { id: 'profile', label: 'My Profile', icon: User },
 ];
 
 // ─── DASHBOARD VIEW ────────────────────────────────────
@@ -550,6 +552,7 @@ function TrusteeDashboard({ theme }: { theme?: Theme }) {
       case 'staff': return <StaffView theme={theme} />;
       case 'compliance': return <ComplianceView theme={theme} />;
       case 'approvals': return <ApprovalsView theme={theme} />;
+      case 'profile': return <StakeholderProfile role="trustee" theme={theme} />;
       default: return <DashboardView theme={theme} setActiveModule={setActiveModule} />;
     }
   };

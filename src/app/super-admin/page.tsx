@@ -4,13 +4,14 @@ import React, { useState } from 'react';
 import BlueprintLayout from '@/components/BlueprintLayout';
 import { StatCard, TabBar, StatusBadge, SearchBar, DataTable, Toggle } from '@/components/shared';
 import OnboardingWizard from '@/components/OnboardingWizard';
+import StakeholderProfile from '@/components/StakeholderProfile';
 import { type Theme } from '@/lib/themes';
 import {
   Home, Building2, CreditCard, Users, Layers, UserPlus, Headphones, BarChart3, Settings, FileText,
   Search, Plus, Eye, Edit, Trash2, Check, X, ChevronDown, Download, Filter,
   Globe, Server, Shield, Bell, Clock, Activity, Zap, TrendingUp, AlertTriangle,
   Mail, Phone, Calendar, Star, Award, ArrowRight, RefreshCw, Database, Lock,
-  ChevronRight, CheckCircle, XCircle, Briefcase, DollarSign, Hash, MapPin
+  ChevronRight, CheckCircle, XCircle, Briefcase, DollarSign, Hash, MapPin, User
 } from 'lucide-react';
 
 // ─── MOCK DATA ────────────────────────────────────────
@@ -97,6 +98,7 @@ const modules = [
   { id: 'analytics', label: 'Analytics', icon: BarChart3 },
   { id: 'config', label: 'System Config', icon: Settings },
   { id: 'audit', label: 'Audit Logs', icon: FileText },
+  { id: 'profile', label: 'My Profile', icon: User },
 ];
 
 // ─── DASHBOARD VIEW ────────────────────────────────────
@@ -776,6 +778,7 @@ function SuperAdminDashboard({ theme }: { theme?: Theme }) {
       case 'analytics': return <AnalyticsView theme={theme} />;
       case 'config': return <SystemConfigView theme={theme} />;
       case 'audit': return <AuditLogsView theme={theme} />;
+      case 'profile': return <StakeholderProfile role="super-admin" theme={theme} />;
       default: return <DashboardView theme={theme} setActiveModule={setActiveModule} onStartWizard={() => setShowWizard(true)} />;
     }
   };

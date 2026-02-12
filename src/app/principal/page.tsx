@@ -9,8 +9,9 @@ import {
   GraduationCap, Briefcase, Clock, AlertTriangle, FileText, Send,
   Calendar, Shield, Eye, Download, Plus, Check, X, Search,
   TrendingUp, Heart, ClipboardCheck, Star, DollarSign, Building2,
-  Bell, ArrowRight, MessageSquare, Award, Filter
+  Bell, ArrowRight, MessageSquare, Award, Filter, User
 } from 'lucide-react';
+import StakeholderProfile from '@/components/StakeholderProfile';
 
 // ─── MODULE SIDEBAR ────────────────────────────────
 const modules = [
@@ -21,6 +22,7 @@ const modules = [
   { id: 'approvals', label: 'Approvals', icon: CheckCircle },
   { id: 'reports', label: 'Reports', icon: BarChart3 },
   { id: 'announcements', label: 'Announcements', icon: Megaphone },
+  { id: 'profile', label: 'My Profile', icon: User },
 ];
 
 function PrincipalDashboard({ theme }: { theme?: Theme }) {
@@ -54,6 +56,7 @@ function PrincipalDashboard({ theme }: { theme?: Theme }) {
         {activeModule === 'approvals' && <ApprovalsModule theme={theme} />}
         {activeModule === 'reports' && <ReportsModule theme={theme} />}
         {activeModule === 'announcements' && <AnnouncementsModule theme={theme} />}
+        {activeModule === 'profile' && <StakeholderProfile role="principal" theme={theme} />}
       </div>
     </div>
   );

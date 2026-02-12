@@ -3,12 +3,13 @@
 import React, { useState } from 'react';
 import BlueprintLayout from '@/components/BlueprintLayout';
 import { StatCard, TabBar, StatusBadge, SearchBar, DataTable } from '@/components/shared';
+import StakeholderProfile from '@/components/StakeholderProfile';
 import { type Theme } from '@/lib/themes';
 import {
   Home, Users, UserCheck, Calendar, Clock, Shield, Search, Plus, Filter, Download,
   Eye, Edit, AlertTriangle, FileText, Send, BookOpen, ArrowRight,
   ClipboardCheck, Bell, CheckCircle, XCircle, Repeat, Gavel,
-  LayoutGrid, Megaphone, UserMinus, MapPin, Coffee, Award
+  LayoutGrid, Megaphone, UserMinus, MapPin, Coffee, Award, User
 } from 'lucide-react';
 
 // ─── MODULE SIDEBAR ────────────────────────────────
@@ -20,6 +21,7 @@ const modules = [
   { id: 'examinations', label: 'Examinations', icon: BookOpen },
   { id: 'staff-duties', label: 'Staff Duties', icon: ClipboardCheck },
   { id: 'circulars', label: 'Circulars', icon: Megaphone },
+  { id: 'profile', label: 'My Profile', icon: User },
 ];
 
 // ─── MOCK DATA ──────────────────────────────────────
@@ -129,6 +131,7 @@ function VicePrincipalDashboard({ theme }: { theme?: Theme }) {
         {activeModule === 'examinations' && <ExaminationsModule theme={theme} />}
         {activeModule === 'staff-duties' && <StaffDutiesModule theme={theme} />}
         {activeModule === 'circulars' && <CircularsModule theme={theme} />}
+        {activeModule === 'profile' && <StakeholderProfile role="vice-principal" theme={theme} />}
       </div>
     </div>
   );

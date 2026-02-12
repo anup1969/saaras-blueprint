@@ -9,8 +9,9 @@ import {
   Search, Bell, Plus, Check, X, Eye, Edit, Download, Filter, ChevronDown,
   Users, CheckCircle, XCircle, AlertTriangle, Send, Star, ArrowRight,
   PenTool, BookMarked, GraduationCap, Notebook, CalendarDays, Timer, TrendingUp,
-  Pencil, Upload, ChevronLeft, ChevronRight, Minus
+  Pencil, Upload, ChevronLeft, ChevronRight, Minus, User
 } from 'lucide-react';
+import StakeholderProfile from '@/components/StakeholderProfile';
 
 // ─── MOCK DATA ──────────────────────────────────────
 
@@ -134,6 +135,7 @@ const modules = [
   { id: 'leave', label: 'Leave', icon: CalendarDays },
   { id: 'diary', label: 'Diary', icon: Notebook },
   { id: 'reports', label: 'Reports', icon: BarChart3 },
+  { id: 'profile', label: 'My Profile', icon: User },
 ];
 
 // ─── MAIN COMPONENT ─────────────────────────────────
@@ -170,6 +172,7 @@ function TeacherDashboard({ theme }: { theme?: Theme }) {
         {activeModule === 'leave' && <LeaveModule theme={theme} />}
         {activeModule === 'diary' && <DiaryModule theme={theme} />}
         {activeModule === 'reports' && <ReportsModule theme={theme} />}
+        {activeModule === 'profile' && <StakeholderProfile role="teacher" theme={theme} />}
       </div>
     </div>
   );
