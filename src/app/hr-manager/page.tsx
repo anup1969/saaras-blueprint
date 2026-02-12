@@ -407,7 +407,7 @@ function SettingsModule({ theme }: { theme: Theme }) {
 }
 
 // ─── MAIN COMPONENT ───────────────────────────────────
-function HRManagerDashboard({ theme }: { theme?: Theme }) {
+function HRManagerDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [selectedEmp, setSelectedEmp] = useState(employees[0]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -442,7 +442,7 @@ function HRManagerDashboard({ theme }: { theme?: Theme }) {
         {activeModule === 'offboarding' && <OffboardingModule theme={theme} />}
         {activeModule === 'reports' && <ReportsModule theme={theme} />}
         {activeModule === 'settings' && <SettingsModule theme={theme} />}
-        {activeModule === 'my-profile' && <StakeholderProfile role="hr-manager" theme={theme} onClose={() => setActiveModule('dashboard')} />}
+        {activeModule === 'my-profile' && <StakeholderProfile role="hr-manager" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>
     </div>
   );

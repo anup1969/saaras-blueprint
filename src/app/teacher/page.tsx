@@ -10,7 +10,7 @@ import {
   Users, CheckCircle, XCircle, AlertTriangle, Send, Star, ArrowRight,
   PenTool, BookMarked, GraduationCap, Notebook, CalendarDays, Timer, TrendingUp,
   Pencil, Upload, ChevronLeft, ChevronRight, Minus, User, MessageSquare,
-  PanelLeftClose, PanelLeftOpen
+  PanelLeftClose, PanelLeftOpen, Mail, Megaphone, ListTodo, CircleDot
 } from 'lucide-react';
 import StakeholderProfile from '@/components/StakeholderProfile';
 
@@ -139,7 +139,7 @@ const modules = [
 ];
 
 // ─── MAIN COMPONENT ─────────────────────────────────
-function TeacherDashboard({ theme }: { theme?: Theme }) {
+function TeacherDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   if (!theme) return null;
@@ -169,24 +169,38 @@ function TeacherDashboard({ theme }: { theme?: Theme }) {
       </div>
 
       {/* Module content */}
-      <div className="flex-1 p-6 space-y-4 overflow-x-hidden">
-        {activeModule === 'dashboard' && <DashboardHome theme={theme} onProfileClick={() => setActiveModule('profile')} />}
-        {activeModule === 'classes' && <MyClassesModule theme={theme} />}
-        {activeModule === 'attendance' && <AttendanceModule theme={theme} />}
-        {activeModule === 'homework' && <HomeworkModule theme={theme} />}
-        {activeModule === 'gradebook' && <GradebookModule theme={theme} />}
-        {activeModule === 'timetable' && <TimetableModule theme={theme} />}
-        {activeModule === 'leave' && <LeaveModule theme={theme} />}
-        {activeModule === 'diary' && <DiaryModule theme={theme} />}
-        {activeModule === 'reports' && <ReportsModule theme={theme} />}
-        {activeModule === 'profile' && <StakeholderProfile role="teacher" theme={theme} onClose={() => setActiveModule('dashboard')} />}
+      <div className="flex-1 overflow-x-hidden">
+        {/* Persistent top bar with profile avatar — REMARK 1 */}
+        <div className={`flex items-center justify-end gap-3 px-6 pt-4 pb-2`}>
+          <button
+            onClick={() => setActiveModule('profile')}
+            title="Ms. Priya Sharma — My Profile"
+            className={`flex items-center gap-2.5 px-3 py-1.5 rounded-full ${theme.secondaryBg} ${theme.buttonHover} transition-all`}
+          >
+            <span className={`text-xs font-medium ${theme.iconColor} hidden sm:inline`}>{teacherProfile.name}</span>
+            <div className={`w-8 h-8 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold shrink-0 ring-2 ring-white/20`}>PS</div>
+          </button>
+        </div>
+
+        <div className="px-6 pb-6 space-y-4">
+          {activeModule === 'dashboard' && <DashboardHome theme={theme} />}
+          {activeModule === 'classes' && <MyClassesModule theme={theme} />}
+          {activeModule === 'attendance' && <AttendanceModule theme={theme} />}
+          {activeModule === 'homework' && <HomeworkModule theme={theme} />}
+          {activeModule === 'gradebook' && <GradebookModule theme={theme} />}
+          {activeModule === 'timetable' && <TimetableModule theme={theme} />}
+          {activeModule === 'leave' && <LeaveModule theme={theme} />}
+          {activeModule === 'diary' && <DiaryModule theme={theme} />}
+          {activeModule === 'reports' && <ReportsModule theme={theme} />}
+          {activeModule === 'profile' && <StakeholderProfile role="teacher" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
+        </div>
       </div>
     </div>
   );
 }
 
 // ─── DASHBOARD HOME ─────────────────────────────────
-function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick: () => void }) {
+function DashboardHome({ theme }: { theme: Theme }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
 
@@ -257,7 +271,6 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
               </div>
             )}
           </div>
-          <button onClick={onProfileClick} title="My Profile" className={`w-9 h-9 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold hover:opacity-90 transition-opacity`}>PS</button>
         </div>
       </div>
 
@@ -269,22 +282,137 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
         <StatCard icon={Users} label="Total Students" value="225" color="bg-emerald-500" sub="6 sections" theme={theme} />
       </div>
 
-      {/* Today's Schedule */}
+      {/* Two-column layout: Messages + Circulars | To-Dos */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+        {/* Unread Messages */}
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Mail size={16} className="text-blue-500" />
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>Unread Messages</h3>
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-500 text-white font-bold">3</span>
+            </div>
+            <button className={`text-xs ${theme.primaryText} font-bold flex items-center gap-1`}>View All <ArrowRight size={12} /></button>
+          </div>
+          <div className="space-y-2">
+            {[
+              { sender: 'Mr. Rajesh Kapoor (Vice Principal)', subject: 'PTM schedule change — Class 10-A moved to 19 Feb', time: '9:15 AM', avatar: 'RK', avatarColor: 'bg-indigo-500' },
+              { sender: 'Ms. Sunita Deshmukh (HOD Science)', subject: 'Lab equipment request for Science Exhibition — need your math models', time: '8:42 AM', avatar: 'SD', avatarColor: 'bg-teal-500' },
+              { sender: 'Mr. Anil Mehta (Parent — Aarav, 10-A)', subject: 'Request for extra coaching — son struggling with trigonometry', time: 'Yesterday, 6:30 PM', avatar: 'AM', avatarColor: 'bg-amber-500' },
+            ].map((msg, i) => (
+              <div key={i} className={`flex items-start gap-3 p-3 rounded-xl ${theme.secondaryBg} ${theme.buttonHover} cursor-pointer transition-all`}>
+                <div className={`w-8 h-8 rounded-full ${msg.avatarColor} text-white flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5`}>{msg.avatar}</div>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-xs font-bold ${theme.highlight} truncate`}>{msg.sender}</p>
+                  <p className={`text-[11px] ${theme.iconColor} mt-0.5 line-clamp-1`}>{msg.subject}</p>
+                </div>
+                <div className="flex flex-col items-end shrink-0 gap-1">
+                  <span className={`text-[10px] ${theme.iconColor}`}>{msg.time}</span>
+                  <div className="w-2 h-2 rounded-full bg-blue-500" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Today's Circulars */}
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Megaphone size={16} className="text-purple-500" />
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>Today&apos;s Circulars</h3>
+            </div>
+            <button className={`text-xs ${theme.primaryText} font-bold flex items-center gap-1`}>View All <ArrowRight size={12} /></button>
+          </div>
+          <div className="space-y-2">
+            {[
+              { title: 'Annual Day rehearsal schedule — all class teachers to release students at 1:00 PM on 14 Feb', priority: 'Important', priorityColor: 'bg-red-100 text-red-700', from: 'Principal Office', time: '8:00 AM' },
+              { title: 'Reminder: UT-4 marks entry deadline extended to 17 Feb — submit via ERP portal only', priority: 'Action Required', priorityColor: 'bg-amber-100 text-amber-700', from: 'Exam Cell', time: '7:45 AM' },
+              { title: 'Staff wellness session this Saturday 15 Feb, 10:00 AM — Yoga & stress management in auditorium', priority: 'General', priorityColor: 'bg-blue-100 text-blue-700', from: 'HR Department', time: '7:30 AM' },
+            ].map((circ, i) => (
+              <div key={i} className={`p-3 rounded-xl ${theme.secondaryBg} ${theme.buttonHover} cursor-pointer transition-all`}>
+                <div className="flex items-start justify-between gap-2">
+                  <p className={`text-[11px] font-bold ${theme.highlight} flex-1 leading-relaxed`}>{circ.title}</p>
+                  <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold shrink-0 ${circ.priorityColor}`}>{circ.priority}</span>
+                </div>
+                <div className="flex items-center gap-2 mt-1.5">
+                  <span className={`text-[10px] ${theme.iconColor}`}>{circ.from}</span>
+                  <span className={`text-[10px] ${theme.iconColor}`}>|</span>
+                  <span className={`text-[10px] ${theme.iconColor}`}>{circ.time}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Important To-Dos */}
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Today&apos;s Schedule (Wednesday)</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-          {['10-A Math', 'Free', 'Free', '8-B Math', '6-A Math', 'Free', 'Lab Duty', 'Free'].map((period, i) => (
-            <div
-              key={i}
-              className={`p-3 rounded-xl border ${theme.border} ${
-                i === 3 ? `${theme.primary} text-white` : period === 'Free' ? theme.accentBg : theme.secondaryBg
-              }`}
-            >
-              <p className={`text-[10px] ${i === 3 ? 'text-white/70' : theme.iconColor}`}>Period {i + 1} | {periodTimings[i]}</p>
-              <p className={`text-xs font-bold ${i === 3 ? 'text-white' : period === 'Free' ? theme.iconColor : theme.highlight} mt-1`}>
-                {period}
-              </p>
-              {i === 3 && <p className="text-[10px] mt-1 text-white/80">Current Period</p>}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <ListTodo size={16} className="text-amber-500" />
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>Important To-Dos</h3>
+            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500 text-white font-bold">4 pending</span>
+          </div>
+          <button className={`text-xs ${theme.primaryText} font-bold flex items-center gap-1`}>Manage Tasks <ArrowRight size={12} /></button>
+        </div>
+        <div className="space-y-2">
+          {[
+            { task: 'Mark attendance for 10-A & 8-A (today)', due: 'Today by 9:30 AM', priority: 'Urgent', priorityColor: 'bg-red-500', status: 'Overdue', statusColor: 'text-red-600', icon: ClipboardCheck },
+            { task: 'Enter UT-4 marks for Class 10-B — Ch 4 & Ch 5', due: 'Due: 17 Feb 2026', priority: 'High', priorityColor: 'bg-amber-500', status: 'Pending', statusColor: 'text-amber-600', icon: PenTool },
+            { task: 'Review & grade homework — Ch 3 Linear Equations (8-A)', due: 'Due: 13 Feb 2026', priority: 'Medium', priorityColor: 'bg-blue-500', status: 'In Progress', statusColor: 'text-blue-600', icon: FileText },
+            { task: 'Prepare question paper for UT-4 — Class 10-A & 10-B', due: 'Due: 14 Feb 2026', priority: 'High', priorityColor: 'bg-amber-500', status: 'Not Started', statusColor: 'text-slate-500', icon: Pencil },
+          ].map((todo, i) => (
+            <div key={i} className={`flex items-center gap-3 p-3 rounded-xl ${theme.secondaryBg} ${theme.buttonHover} transition-all`}>
+              <div className={`w-8 h-8 rounded-lg ${todo.priorityColor} flex items-center justify-center text-white shrink-0`}>
+                <todo.icon size={14} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`text-xs font-bold ${theme.highlight}`}>{todo.task}</p>
+                <p className={`text-[10px] ${theme.iconColor} mt-0.5`}>{todo.due}</p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className={`text-[10px] font-bold ${todo.statusColor}`}>{todo.status}</span>
+                <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold text-white ${todo.priorityColor}`}>{todo.priority}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Today's Classes Schedule */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Calendar size={16} className="text-teal-500" />
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>Today&apos;s Classes (Wednesday, 12 Feb)</h3>
+          </div>
+          <button className={`text-xs ${theme.primaryText} font-bold flex items-center gap-1`}>Full Timetable <ArrowRight size={12} /></button>
+        </div>
+        <div className="space-y-2">
+          {[
+            { period: 1, time: '8:00 - 8:40', subject: 'Mathematics', class: '10-A', room: 'Room 301', status: 'Completed', statusColor: 'bg-emerald-100 text-emerald-700', isCurrent: false },
+            { period: 4, time: '10:20 - 11:00', subject: 'Mathematics', class: '8-B', room: 'Room 205', status: 'Current', statusColor: 'bg-blue-500 text-white', isCurrent: true },
+            { period: 5, time: '11:00 - 11:40', subject: 'Mathematics', class: '6-A', room: 'Room 106', status: 'Upcoming', statusColor: 'bg-amber-100 text-amber-700', isCurrent: false },
+            { period: 7, time: '1:00 - 1:40', subject: 'Lab Duty', class: 'Science Lab', room: 'Lab 2', status: 'Upcoming', statusColor: 'bg-purple-100 text-purple-700', isCurrent: false },
+            { period: 2, time: '8:40 - 9:20', subject: 'Free Period', class: '—', room: '—', status: 'Done', statusColor: 'bg-slate-100 text-slate-500', isCurrent: false },
+          ]
+            .sort((a, b) => a.period - b.period)
+            .map((cls, i) => (
+            <div key={i} className={`flex items-center gap-4 p-3 rounded-xl ${cls.isCurrent ? `${theme.primary} text-white ring-2 ring-blue-300` : `${theme.secondaryBg}`} transition-all`}>
+              <div className={`w-10 h-10 rounded-xl ${cls.isCurrent ? 'bg-white/20' : theme.accentBg} flex items-center justify-center shrink-0`}>
+                <span className={`text-sm font-bold ${cls.isCurrent ? 'text-white' : theme.primaryText}`}>P{cls.period}</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className={`text-xs font-bold ${cls.isCurrent ? 'text-white' : theme.highlight}`}>{cls.subject}</p>
+                  {cls.class !== '—' && <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${cls.isCurrent ? 'bg-white/20 text-white' : `${theme.accentBg} ${theme.iconColor}`}`}>{cls.class}</span>}
+                </div>
+                <p className={`text-[10px] mt-0.5 ${cls.isCurrent ? 'text-white/70' : theme.iconColor}`}>{cls.time} | {cls.room}</p>
+              </div>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold shrink-0 ${cls.statusColor}`}>{cls.status}</span>
+              {cls.isCurrent && <CircleDot size={14} className="text-white animate-pulse shrink-0" />}
             </div>
           ))}
         </div>
@@ -304,31 +432,6 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
               <div className={`w-8 h-8 rounded-lg ${a.color} flex items-center justify-center text-white`}><a.icon size={14} /></div>
               <span className={`text-xs font-bold ${theme.highlight}`}>{a.label}</span>
             </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Recent Homework Submissions */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <div className="flex items-center justify-between mb-3">
-          <h3 className={`text-sm font-bold ${theme.highlight}`}>Recent Homework Submissions</h3>
-          <button className={`text-xs ${theme.primaryText} font-bold flex items-center gap-1`}>View All <ArrowRight size={12} /></button>
-        </div>
-        <div className="space-y-2">
-          {[
-            { student: 'Aarav Mehta', class: '10-A', hw: 'Ch 7 — Coordinate Geometry', time: '5 min ago' },
-            { student: 'Kavya Menon', class: '10-B', hw: 'Ch 5 — Quadratic Equations', time: '20 min ago' },
-            { student: 'Aditi Das', class: '8-A', hw: 'Ch 3 — Linear Equations', time: '1 hour ago' },
-            { student: 'Vivaan Choudhary', class: '6-B', hw: 'Ch 1 — Number System', time: '2 hours ago' },
-            { student: 'Raj Malhotra', class: '8-B', hw: 'Ch 12 — Areas & Volumes', time: '3 hours ago' },
-          ].map((s, i) => (
-            <div key={i} className={`flex items-center gap-3 p-2 rounded-xl ${theme.accentBg}`}>
-              <div className="w-2 h-2 rounded-full bg-emerald-500" />
-              <p className={`text-xs ${theme.highlight} flex-1`}>
-                <span className="font-bold">{s.student}</span> ({s.class}) submitted &quot;{s.hw}&quot;
-              </p>
-              <span className={`text-[10px] ${theme.iconColor}`}>{s.time}</span>
-            </div>
           ))}
         </div>
       </div>

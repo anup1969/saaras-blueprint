@@ -110,7 +110,7 @@ function UsageBar({ value, theme }: { value: number; theme: Theme }) {
 }
 
 // ─── MAIN COMPONENT ────────────────────────────────
-function AccountManagerDashboard({ theme }: { theme?: Theme }) {
+function AccountManagerDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   if (!theme) return null;
@@ -147,7 +147,7 @@ function AccountManagerDashboard({ theme }: { theme?: Theme }) {
         {activeModule === 'analytics' && <AnalyticsModule theme={theme} />}
         {activeModule === 'renewals' && <RenewalsModule theme={theme} />}
         {activeModule === 'onboarding' && <OnboardingModule theme={theme} />}
-        {activeModule === 'profile' && <StakeholderProfile role="account-manager" theme={theme} onClose={() => setActiveModule('dashboard')} />}
+        {activeModule === 'profile' && <StakeholderProfile role="account-manager" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>
     </div>
   );

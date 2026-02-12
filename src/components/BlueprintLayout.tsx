@@ -7,7 +7,8 @@ import {
   Building2, GraduationCap, BookOpen, User, Users, Shield, Eye,
   UserCheck, Briefcase, Calculator, Phone, Bus, ShieldCheck, Headphones,
   Home, ChevronLeft, Menu, LogOut, MessageSquare, Bell,
-  FileText, CheckCircle, Calendar, AlertTriangle, ClipboardCheck
+  FileText, CheckCircle, Calendar, AlertTriangle, ClipboardCheck,
+  Maximize2, Minimize2
 } from 'lucide-react';
 import { themes, type Theme } from '@/lib/themes';
 import { getLoggedInUser, logoutUser, type TeamMember } from '@/lib/auth';
@@ -40,6 +41,7 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
   const [currentUser, setCurrentUser] = useState<TeamMember | null>(null);
   const [loading, setLoading] = useState(true);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
   const theme = themes[themeIdx];
 
@@ -52,6 +54,22 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
     if (showNotifications) document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showNotifications]);
+
+  useEffect(() => {
+    const onFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', onFullscreenChange);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+  };
 
   useEffect(() => {
     const user = getLoggedInUser();
@@ -106,26 +124,8 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
           })}
         </nav>
 
-        {/* Theme selector + User info */}
-        <div className={`p-3 border-t ${theme.border} space-y-2`}>
-          <div>
-            <p className={`text-[10px] ${theme.iconColor} mb-1 font-bold uppercase`}>Theme</p>
-            <div className="flex gap-1">
-              {themes.map((t, i) => (
-                <button
-                  key={t.id}
-                  onClick={() => setThemeIdx(i)}
-                  className={`w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-bold transition-all ${
-                    i === themeIdx ? `${t.primary} text-white ring-2 ring-purple-400` : `${t.secondaryBg} ${t.iconColor}`
-                  }`}
-                  title={t.name}
-                >
-                  {t.name[0]}
-                </button>
-              ))}
-            </div>
-          </div>
-          {/* Logged-in user */}
+        {/* User info */}
+        <div className={`p-3 border-t ${theme.border}`}>
           <div className={`flex items-center justify-between p-2 rounded-xl ${theme.secondaryBg}`}>
             <div>
               <p className={`text-xs font-bold ${theme.highlight}`}>{currentUser.name}</p>
@@ -158,6 +158,29 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
             <span className={`text-[10px] px-2 py-1 rounded-lg ${theme.secondaryBg} ${theme.iconColor}`}>
               BLUEPRINT MODE — Not a live system
             </span>
+            {/* Theme selector */}
+            <div className="flex items-center gap-0.5">
+              {themes.map((t, i) => (
+                <button
+                  key={t.id}
+                  onClick={() => setThemeIdx(i)}
+                  className={`w-6 h-6 rounded-md flex items-center justify-center text-[9px] font-bold transition-all ${
+                    i === themeIdx ? `${t.primary} text-white ring-1 ring-purple-400` : `${theme.secondaryBg} ${theme.iconColor} hover:opacity-80`
+                  }`}
+                  title={t.name}
+                >
+                  {t.name[0]}
+                </button>
+              ))}
+            </div>
+            {/* Fullscreen toggle */}
+            <button
+              onClick={toggleFullscreen}
+              className={`p-2 rounded-lg ${theme.secondaryBg} ${theme.iconColor} hover:opacity-80 transition-all`}
+              title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+            >
+              {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+            </button>
             {/* Notification Bell */}
             <div ref={notifRef} className="relative">
               <button
@@ -213,7 +236,7 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
         <div className="p-6">
           {React.Children.map(children, child => {
             if (React.isValidElement(child)) {
-              return React.cloneElement(child as React.ReactElement<{ theme: Theme }>, { theme });
+              return React.cloneElement(child as React.ReactElement<{ theme: Theme; themeIdx: number; onThemeChange: (idx: number) => void }>, { theme, themeIdx, onThemeChange: setThemeIdx });
             }
             return child;
           })}

@@ -10,7 +10,8 @@ import {
   Calendar, Shield, ShieldCheck, Eye, Download, Plus, Check, X, Search,
   TrendingUp, Heart, ClipboardCheck, Star, DollarSign, Building2,
   Bell, ArrowRight, MessageSquare, Award, Filter, User, ListTodo, Circle,
-  PanelLeftClose, PanelLeftOpen
+  PanelLeftClose, PanelLeftOpen, Banknote, IndianRupee, Mail, Inbox,
+  ChevronRight, CalendarDays
 } from 'lucide-react';
 import StakeholderProfile from '@/components/StakeholderProfile';
 
@@ -21,12 +22,14 @@ const modules = [
   { id: 'staff', label: 'Staff Overview', icon: Briefcase },
   { id: 'hr', label: 'HR Management', icon: Briefcase },
   { id: 'compliance', label: 'Compliance', icon: ShieldCheck },
+  { id: 'communication', label: 'Communication', icon: MessageSquare },
+  { id: 'calendar', label: 'Calendar', icon: CalendarDays },
   { id: 'approvals', label: 'Approvals', icon: CheckCircle },
   { id: 'reports', label: 'Reports', icon: BarChart3 },
   { id: 'announcements', label: 'Announcements', icon: Megaphone },
 ];
 
-function PrincipalDashboard({ theme }: { theme?: Theme }) {
+function PrincipalDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   if (!theme) return null;
@@ -62,10 +65,12 @@ function PrincipalDashboard({ theme }: { theme?: Theme }) {
         {activeModule === 'staff' && <StaffOverviewModule theme={theme} />}
         {activeModule === 'hr' && <HRManagementModule theme={theme} />}
         {activeModule === 'compliance' && <ComplianceModule theme={theme} />}
+        {activeModule === 'communication' && <CommunicationModule theme={theme} />}
+        {activeModule === 'calendar' && <CalendarModule theme={theme} />}
         {activeModule === 'approvals' && <ApprovalsModule theme={theme} />}
         {activeModule === 'reports' && <ReportsModule theme={theme} />}
         {activeModule === 'announcements' && <AnnouncementsModule theme={theme} />}
-        {activeModule === 'profile' && <StakeholderProfile role="principal" theme={theme} onClose={() => setActiveModule('dashboard')} />}
+        {activeModule === 'profile' && <StakeholderProfile role="principal" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>
     </div>
   );
@@ -79,103 +84,96 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
         <h1 className={`text-2xl font-bold ${theme.highlight}`}>Principal Dashboard</h1>
         <button onClick={onProfileClick} title="My Profile" className={`w-9 h-9 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold hover:opacity-90 transition-opacity`}>SM</button>
       </div>
-      {/* Student Attendance Card */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <div className="flex items-center justify-between">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <Users size={16} className={theme.iconColor} />
-              <h3 className={`text-sm font-bold ${theme.highlight}`}>Student Attendance</h3>
-            </div>
-            <p className={`text-xl font-bold ${theme.highlight}`}>2,598 / 2,847 <span className="text-sm font-medium text-emerald-600">Present</span></p>
-            <p className={`text-[10px] ${theme.iconColor} mt-1`}>Total Enrolled: 3,000 | Attendance Taken: 2,847 | Present: 2,598</p>
-          </div>
-          <div className="w-16 h-16 ml-4">
-            <svg viewBox="0 0 36 36" className="w-full h-full">
-              {/* Gray segment — Not Yet Taken: 153 / 3000 = 5.1% */}
-              <circle r="16" cx="18" cy="18" fill="none" stroke="#9ca3af" strokeWidth="3.5"
-                strokeDasharray={`${(153 / 3000) * 100.53} ${100.53 - (153 / 3000) * 100.53}`}
-                strokeDashoffset="25.13" transform="rotate(-90 18 18)" />
-              {/* Red segment — Absent: 249 / 3000 = 8.3% */}
-              <circle r="16" cx="18" cy="18" fill="none" stroke="#ef4444" strokeWidth="3.5"
-                strokeDasharray={`${(249 / 3000) * 100.53} ${100.53 - (249 / 3000) * 100.53}`}
-                strokeDashoffset={`${25.13 - (153 / 3000) * 100.53}`} transform="rotate(-90 18 18)" />
-              {/* Emerald segment — Present: 2598 / 3000 = 86.6% */}
-              <circle r="16" cx="18" cy="18" fill="none" stroke="#10b981" strokeWidth="3.5"
-                strokeDasharray={`${(2598 / 3000) * 100.53} ${100.53 - (2598 / 3000) * 100.53}`}
-                strokeDashoffset={`${25.13 - (153 / 3000) * 100.53 - (249 / 3000) * 100.53}`} transform="rotate(-90 18 18)" />
-              <text x="18" y="19" textAnchor="middle" dominantBaseline="middle" className="fill-current" style={{ fontSize: '6px', fontWeight: 700 }}>
-                <tspan className="text-emerald-600">87%</tspan>
-              </text>
-            </svg>
-          </div>
-        </div>
-        <div className="flex items-center gap-4 mt-2">
-          <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /><span className={`text-[10px] ${theme.iconColor}`}>Present (2,598)</span></div>
-          <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500 inline-block" /><span className={`text-[10px] ${theme.iconColor}`}>Absent (249)</span></div>
-          <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-gray-400 inline-block" /><span className={`text-[10px] ${theme.iconColor}`}>Not Yet Taken (153)</span></div>
-        </div>
-      </div>
-
-      {/* Staff Attendance Card — Split into Academic & Non-Academic */}
-      <div className="grid grid-cols-2 gap-4">
-        {/* Academic Staff */}
-        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+      {/* Attendance Row — Student + Academic Staff + Non-Academic Staff (compact) */}
+      <div className="grid grid-cols-3 gap-3">
+        {/* Student Attendance */}
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-3`}>
           <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <GraduationCap size={14} className={theme.iconColor} />
-                <h3 className={`text-xs font-bold ${theme.highlight}`}>Academic Staff</h3>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5 mb-1">
+                <Users size={12} className={theme.iconColor} />
+                <h3 className={`text-[11px] font-bold ${theme.highlight}`}>Students</h3>
               </div>
-              <p className={`text-lg font-bold ${theme.highlight}`}>72 / 78 <span className="text-xs font-medium text-emerald-600">Present</span></p>
+              <p className={`text-sm font-bold ${theme.highlight}`}>2,598 / 2,847</p>
+              <p className={`text-[9px] ${theme.iconColor} mt-0.5`}>Enrolled: 3,000</p>
             </div>
-            <div className="w-12 h-12 ml-3">
+            <div className="w-10 h-10 ml-2 shrink-0">
               <svg viewBox="0 0 36 36" className="w-full h-full">
-                {/* Red segment — Absent: 6 / 78 = 7.7% */}
-                <circle r="16" cx="18" cy="18" fill="none" stroke="#ef4444" strokeWidth="4"
-                  strokeDasharray={`${(6 / 78) * 100.53} ${100.53 - (6 / 78) * 100.53}`}
+                <circle r="16" cx="18" cy="18" fill="none" stroke="#9ca3af" strokeWidth="4"
+                  strokeDasharray={`${(153 / 3000) * 100.53} ${100.53 - (153 / 3000) * 100.53}`}
                   strokeDashoffset="25.13" transform="rotate(-90 18 18)" />
-                {/* Emerald segment — Present: 72 / 78 = 92.3% */}
+                <circle r="16" cx="18" cy="18" fill="none" stroke="#ef4444" strokeWidth="4"
+                  strokeDasharray={`${(249 / 3000) * 100.53} ${100.53 - (249 / 3000) * 100.53}`}
+                  strokeDashoffset={`${25.13 - (153 / 3000) * 100.53}`} transform="rotate(-90 18 18)" />
                 <circle r="16" cx="18" cy="18" fill="none" stroke="#10b981" strokeWidth="4"
-                  strokeDasharray={`${(72 / 78) * 100.53} ${100.53 - (72 / 78) * 100.53}`}
-                  strokeDashoffset={`${25.13 - (6 / 78) * 100.53}`} transform="rotate(-90 18 18)" />
-                <text x="18" y="19" textAnchor="middle" dominantBaseline="middle" style={{ fontSize: '7px', fontWeight: 700 }} className="fill-emerald-600">92%</text>
+                  strokeDasharray={`${(2598 / 3000) * 100.53} ${100.53 - (2598 / 3000) * 100.53}`}
+                  strokeDashoffset={`${25.13 - (153 / 3000) * 100.53 - (249 / 3000) * 100.53}`} transform="rotate(-90 18 18)" />
+                <text x="18" y="19" textAnchor="middle" dominantBaseline="middle" className="fill-emerald-600" style={{ fontSize: '7px', fontWeight: 700 }}>87%</text>
               </svg>
             </div>
           </div>
-          <div className="flex items-center gap-3 mt-2">
-            <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /><span className={`text-[10px] ${theme.iconColor}`}>Present (72)</span></div>
-            <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500 inline-block" /><span className={`text-[10px] ${theme.iconColor}`}>Absent (6)</span></div>
+          <div className="flex items-center gap-2 mt-1.5">
+            <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" /><span className={`text-[9px] ${theme.iconColor}`}>2,598</span></span>
+            <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block" /><span className={`text-[9px] ${theme.iconColor}`}>249</span></span>
+            <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-gray-400 inline-block" /><span className={`text-[9px] ${theme.iconColor}`}>153</span></span>
+          </div>
+        </div>
+
+        {/* Academic Staff */}
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-3`}>
+          <div className="flex items-center justify-between">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5 mb-1">
+                <GraduationCap size={12} className={theme.iconColor} />
+                <h3 className={`text-[11px] font-bold ${theme.highlight}`}>Academic Staff</h3>
+              </div>
+              <p className={`text-sm font-bold ${theme.highlight}`}>72 / 78</p>
+              <p className={`text-[9px] text-emerald-600 mt-0.5`}>92% Present</p>
+            </div>
+            <div className="w-10 h-10 ml-2 shrink-0">
+              <svg viewBox="0 0 36 36" className="w-full h-full">
+                <circle r="16" cx="18" cy="18" fill="none" stroke="#ef4444" strokeWidth="4"
+                  strokeDasharray={`${(6 / 78) * 100.53} ${100.53 - (6 / 78) * 100.53}`}
+                  strokeDashoffset="25.13" transform="rotate(-90 18 18)" />
+                <circle r="16" cx="18" cy="18" fill="none" stroke="#10b981" strokeWidth="4"
+                  strokeDasharray={`${(72 / 78) * 100.53} ${100.53 - (72 / 78) * 100.53}`}
+                  strokeDashoffset={`${25.13 - (6 / 78) * 100.53}`} transform="rotate(-90 18 18)" />
+                <text x="18" y="19" textAnchor="middle" dominantBaseline="middle" className="fill-emerald-600" style={{ fontSize: '7px', fontWeight: 700 }}>92%</text>
+              </svg>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 mt-1.5">
+            <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" /><span className={`text-[9px] ${theme.iconColor}`}>72</span></span>
+            <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block" /><span className={`text-[9px] ${theme.iconColor}`}>6</span></span>
           </div>
         </div>
 
         {/* Non-Academic Staff */}
-        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-3`}>
           <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <Briefcase size={14} className={theme.iconColor} />
-                <h3 className={`text-xs font-bold ${theme.highlight}`}>Non-Academic Staff</h3>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5 mb-1">
+                <Briefcase size={12} className={theme.iconColor} />
+                <h3 className={`text-[11px] font-bold ${theme.highlight}`}>Non-Academic</h3>
               </div>
-              <p className={`text-lg font-bold ${theme.highlight}`}>56 / 64 <span className="text-xs font-medium text-emerald-600">Present</span></p>
+              <p className={`text-sm font-bold ${theme.highlight}`}>56 / 64</p>
+              <p className={`text-[9px] text-emerald-600 mt-0.5`}>88% Present</p>
             </div>
-            <div className="w-12 h-12 ml-3">
+            <div className="w-10 h-10 ml-2 shrink-0">
               <svg viewBox="0 0 36 36" className="w-full h-full">
-                {/* Red segment — Absent: 8 / 64 = 12.5% */}
                 <circle r="16" cx="18" cy="18" fill="none" stroke="#ef4444" strokeWidth="4"
                   strokeDasharray={`${(8 / 64) * 100.53} ${100.53 - (8 / 64) * 100.53}`}
                   strokeDashoffset="25.13" transform="rotate(-90 18 18)" />
-                {/* Emerald segment — Present: 56 / 64 = 87.5% */}
                 <circle r="16" cx="18" cy="18" fill="none" stroke="#10b981" strokeWidth="4"
                   strokeDasharray={`${(56 / 64) * 100.53} ${100.53 - (56 / 64) * 100.53}`}
                   strokeDashoffset={`${25.13 - (8 / 64) * 100.53}`} transform="rotate(-90 18 18)" />
-                <text x="18" y="19" textAnchor="middle" dominantBaseline="middle" style={{ fontSize: '7px', fontWeight: 700 }} className="fill-emerald-600">88%</text>
+                <text x="18" y="19" textAnchor="middle" dominantBaseline="middle" className="fill-emerald-600" style={{ fontSize: '7px', fontWeight: 700 }}>88%</text>
               </svg>
             </div>
           </div>
-          <div className="flex items-center gap-3 mt-2">
-            <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /><span className={`text-[10px] ${theme.iconColor}`}>Present (56)</span></div>
-            <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500 inline-block" /><span className={`text-[10px] ${theme.iconColor}`}>Absent (8)</span></div>
+          <div className="flex items-center gap-2 mt-1.5">
+            <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" /><span className={`text-[9px] ${theme.iconColor}`}>56</span></span>
+            <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block" /><span className={`text-[9px] ${theme.iconColor}`}>8</span></span>
           </div>
         </div>
       </div>
@@ -185,7 +183,28 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
         <StatCard icon={ClipboardCheck} label="Avg Attendance" value="94.2%" color="bg-emerald-500" theme={theme} />
         <StatCard icon={Award} label="Academic Performance" value="87.5%" color="bg-purple-500" theme={theme} />
         <StatCard icon={Clock} label="Pending Approvals" value="8" color="bg-amber-500" theme={theme} />
-        <StatCard icon={Calendar} label="Parent Meetings Today" value="3" color="bg-teal-500" theme={theme} />
+      </div>
+
+      {/* Fees Card */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <div className="flex items-center gap-2 mb-3">
+          <Banknote size={16} className={theme.iconColor} />
+          <h3 className={`text-sm font-bold ${theme.highlight}`}>Fees Overview</h3>
+        </div>
+        <div className="grid grid-cols-3 gap-4">
+          <div className={`${theme.secondaryBg} rounded-xl p-3 text-center`}>
+            <p className={`text-[10px] ${theme.iconColor} mb-1`}>Today&apos;s Collection</p>
+            <p className={`text-lg font-bold text-emerald-600`}>{'\u20B9'}2,45,000</p>
+          </div>
+          <div className={`${theme.secondaryBg} rounded-xl p-3 text-center`}>
+            <p className={`text-[10px] ${theme.iconColor} mb-1`}>Total Collected (FY)</p>
+            <p className={`text-lg font-bold ${theme.highlight}`}>{'\u20B9'}1.2 Cr</p>
+          </div>
+          <div className={`${theme.secondaryBg} rounded-xl p-3 text-center`}>
+            <p className={`text-[10px] ${theme.iconColor} mb-1`}>Outstanding</p>
+            <p className="text-lg font-bold text-red-500">{'\u20B9'}18.5L</p>
+          </div>
+        </div>
       </div>
 
       {/* Recent Activity + Task Tracker — Side by Side */}
@@ -850,6 +869,158 @@ function AnnouncementsModule({ theme }: { theme: Theme }) {
             </div>
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── COMMUNICATION MODULE ────────────────────────────
+function CommunicationModule({ theme }: { theme: Theme }) {
+  const messages = [
+    { id: 1, type: 'Circular', subject: 'Annual Day Rehearsal Schedule', from: 'Principal Office', to: 'All Staff + Parents', date: '11-Feb-2026', status: 'Sent', reads: '2,145 / 2,847' },
+    { id: 2, type: 'Notice', subject: 'Fee Payment Reminder — Last Date 15 Feb', from: 'Accounts Dept.', to: 'Parents (Defaulters)', date: '10-Feb-2026', status: 'Sent', reads: '189 / 312' },
+    { id: 3, type: 'Message', subject: 'Staff Meeting — Agenda for 14-Feb', from: 'Vice Principal', to: 'All Teaching Staff', date: '10-Feb-2026', status: 'Sent', reads: '65 / 78' },
+    { id: 4, type: 'Circular', subject: 'PTM Schedule — Classes VI to X', from: 'Principal Office', to: 'Parents (VI-X)', date: '08-Feb-2026', status: 'Sent', reads: '890 / 1,120' },
+    { id: 5, type: 'Alert', subject: 'Water Supply Disruption — 12 Feb', from: 'Admin Office', to: 'All', date: '07-Feb-2026', status: 'Sent', reads: '2,540 / 2,847' },
+    { id: 6, type: 'Draft', subject: 'Summer Timing Change Notification', from: 'Principal Office', to: 'All', date: '—', status: 'Draft', reads: '—' },
+  ];
+
+  const typeColor = (type: string) => {
+    if (type === 'Circular') return 'bg-blue-100 text-blue-700';
+    if (type === 'Notice') return 'bg-amber-100 text-amber-700';
+    if (type === 'Alert') return 'bg-red-100 text-red-700';
+    if (type === 'Draft') return 'bg-gray-100 text-gray-600';
+    return 'bg-purple-100 text-purple-700';
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className={`text-2xl font-bold ${theme.highlight}`}>Communication</h1>
+        <div className="flex gap-2">
+          <button className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold flex items-center gap-1`}>
+            <Plus size={12} /> New Circular
+          </button>
+          <button className={`px-4 py-2 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.highlight} flex items-center gap-1`}>
+            <Send size={12} /> Quick Message
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-4 gap-4">
+        <StatCard icon={Send} label="Sent This Month" value="18" color="bg-blue-500" theme={theme} />
+        <StatCard icon={Inbox} label="Drafts" value="2" color="bg-gray-500" theme={theme} />
+        <StatCard icon={Users} label="Reach" value="2,847" color="bg-emerald-500" sub="students + parents" theme={theme} />
+        <StatCard icon={Mail} label="Read Rate" value="78%" color="bg-purple-500" theme={theme} />
+      </div>
+
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Messages & Circulars</h3>
+        <div className="space-y-2">
+          {messages.map(m => (
+            <div key={m.id} className={`flex items-center gap-3 p-3 rounded-xl ${theme.secondaryBg}`}>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold whitespace-nowrap ${typeColor(m.type)}`}>{m.type}</span>
+              <div className="flex-1 min-w-0">
+                <p className={`text-xs font-bold ${theme.highlight} truncate`}>{m.subject}</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>{m.from} &rarr; {m.to}</p>
+              </div>
+              <div className="text-right shrink-0">
+                <p className={`text-[10px] ${theme.iconColor}`}>{m.date}</p>
+                <p className={`text-[10px] ${m.status === 'Draft' ? 'text-gray-500' : 'text-emerald-600'} font-bold`}>{m.reads}</p>
+              </div>
+              <button className={`p-1.5 rounded-lg ${theme.buttonHover}`}><ChevronRight size={12} className={theme.iconColor} /></button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── CALENDAR MODULE ─────────────────────────────────
+function CalendarModule({ theme }: { theme: Theme }) {
+  const currentMonth = 'February 2026';
+  const daysInMonth = 28;
+  const startDay = 0; // Feb 2026 starts on Sunday
+  const today = 12;
+
+  const events: Record<number, { label: string; color: string }[]> = {
+    1: [{ label: 'Fee Due', color: 'bg-amber-400' }],
+    5: [{ label: 'Staff Meeting', color: 'bg-blue-400' }],
+    12: [{ label: 'Today', color: 'bg-emerald-400' }],
+    14: [{ label: 'PTM (VI-X)', color: 'bg-purple-400' }],
+    15: [{ label: 'Fee Deadline', color: 'bg-red-400' }],
+    20: [{ label: 'POCSO Training', color: 'bg-indigo-400' }],
+    25: [{ label: 'Science Exhb.', color: 'bg-teal-400' }],
+    28: [{ label: 'Annual Day', color: 'bg-pink-400' }],
+  };
+
+  const upcomingEvents = [
+    { date: '14-Feb', label: 'Parent-Teacher Meeting (Classes VI-X)', type: 'Meeting', color: 'bg-purple-500' },
+    { date: '15-Feb', label: 'Fee Payment Deadline', type: 'Finance', color: 'bg-red-500' },
+    { date: '20-Feb', label: 'POCSO Awareness Training — All Staff', type: 'Training', color: 'bg-indigo-500' },
+    { date: '25-Feb', label: 'Inter-School Science Exhibition', type: 'Event', color: 'bg-teal-500' },
+    { date: '28-Feb', label: 'Annual Day Celebration', type: 'Event', color: 'bg-pink-500' },
+  ];
+
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  return (
+    <div className="space-y-4">
+      <h1 className={`text-2xl font-bold ${theme.highlight}`}>School Calendar</h1>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Calendar Grid */}
+        <div className={`lg:col-span-2 ${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <div className="flex items-center justify-between mb-4">
+            <button className={`p-1.5 rounded-lg ${theme.buttonHover}`}><ArrowRight size={14} className={`${theme.iconColor} rotate-180`} /></button>
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>{currentMonth}</h3>
+            <button className={`p-1.5 rounded-lg ${theme.buttonHover}`}><ArrowRight size={14} className={theme.iconColor} /></button>
+          </div>
+          <div className="grid grid-cols-7 gap-1">
+            {dayNames.map(d => (
+              <div key={d} className={`text-center text-[10px] font-bold ${theme.iconColor} uppercase py-1`}>{d}</div>
+            ))}
+            {Array.from({ length: startDay }).map((_, i) => (
+              <div key={`empty-${i}`} />
+            ))}
+            {Array.from({ length: daysInMonth }).map((_, i) => {
+              const day = i + 1;
+              const isToday = day === today;
+              const dayEvents = events[day] || [];
+              return (
+                <div key={day} className={`relative p-1.5 rounded-lg text-center min-h-[48px] ${isToday ? `${theme.primary} text-white` : theme.secondaryBg} ${theme.buttonHover} cursor-pointer transition-all`}>
+                  <span className={`text-xs font-bold ${isToday ? 'text-white' : theme.highlight}`}>{day}</span>
+                  {dayEvents.length > 0 && (
+                    <div className="flex justify-center gap-0.5 mt-0.5">
+                      {dayEvents.map((e, ei) => (
+                        <span key={ei} className={`w-1.5 h-1.5 rounded-full ${e.color}`} title={e.label} />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Upcoming Events List */}
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Upcoming Events</h3>
+          <div className="space-y-2">
+            {upcomingEvents.map((e, i) => (
+              <div key={i} className={`flex items-center gap-3 p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <div className={`w-8 h-8 rounded-lg ${e.color} text-white flex items-center justify-center shrink-0`}>
+                  <Calendar size={14} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-xs font-bold ${theme.highlight} truncate`}>{e.label}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{e.date} &middot; {e.type}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -6,7 +6,7 @@ import { StatCard, Toggle } from '@/components/shared';
 import {
   Building2, GraduationCap, Users, Shield, MessageSquare,
   Banknote, Briefcase, Bus, Check, ChevronRight, ChevronLeft, Save, Rocket,
-  Upload, Plus, X, Eye, AlertTriangle, CheckCircle, Lock, Circle,
+  Upload, Plus, X, Eye, AlertTriangle, CheckCircle, Lock, Circle, AlertCircle,
   Layers, ArrowRight, Download, Megaphone, Clock
 } from 'lucide-react';
 
@@ -153,7 +153,7 @@ const HOUSE_COLOR_PALETTE = [
 ];
 
 type HouseEntry = { id: string; name: string; colorIndex: number; mascot: string };
-type ShiftEntry = { id: string; name: string; startTime: string; endTime: string; periods: number; periodDuration: number };
+type ShiftEntry = { id: string; name: string; level: string; startTime: string; endTime: string; periods: number; periodDuration: number };
 
 // ─── STEP 2: ACADEMIC STRUCTURE ───────────────────────
 function Step2Academic({ theme }: { theme: Theme }) {
@@ -221,16 +221,13 @@ function Step2Academic({ theme }: { theme: Theme }) {
   // State-managed shifts
   const [workingDays, setWorkingDays] = useState('Monday - Saturday');
   const [shifts, setShifts] = useState<ShiftEntry[]>([
-    { id: 's1', name: 'Pre-Primary', startTime: '08:00', endTime: '12:00', periods: 5, periodDuration: 35 },
-    { id: 's2', name: 'Primary', startTime: '08:00', endTime: '14:00', periods: 7, periodDuration: 40 },
-    { id: 's3', name: 'Secondary', startTime: '08:00', endTime: '14:30', periods: 8, periodDuration: 40 },
+    { id: 's1', name: 'Pre-Primary Morning', level: 'Pre-Primary', startTime: '08:00', endTime: '12:00', periods: 5, periodDuration: 35 },
+    { id: 's2', name: 'Primary Morning', level: 'Primary', startTime: '08:00', endTime: '14:00', periods: 7, periodDuration: 40 },
+    { id: 's3', name: 'Secondary', level: 'Secondary', startTime: '08:00', endTime: '14:30', periods: 8, periodDuration: 40 },
   ]);
 
   const addShift = () => {
-    const name = window.prompt('Enter shift name (e.g. Pre-Primary Morning, Senior Afternoon):');
-    if (name && name.trim()) {
-      setShifts(prev => [...prev, { id: `s${Date.now()}`, name: name.trim(), startTime: '08:00', endTime: '14:00', periods: 7, periodDuration: 40 }]);
-    }
+    setShifts(prev => [...prev, { id: `s${Date.now()}`, name: '', level: '', startTime: '08:00', endTime: '14:00', periods: 7, periodDuration: 40 }]);
   };
 
   const removeShift = (id: string) => {
@@ -442,8 +439,8 @@ function Step2Academic({ theme }: { theme: Theme }) {
                 <span className={`text-xs font-bold ${theme.highlight}`}>Shift {idx + 1}</span>
               </div>
 
-              <div className="grid grid-cols-5 gap-3">
-                <div className="col-span-1">
+              <div className="grid grid-cols-6 gap-3">
+                <div>
                   <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>
                     Shift Name <span className="text-red-500">*</span>
                   </label>
@@ -451,8 +448,24 @@ function Step2Academic({ theme }: { theme: Theme }) {
                     value={shift.name}
                     onChange={(e) => updateShift(shift.id, 'name', e.target.value)}
                     className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none focus:ring-2 focus:ring-slate-300 ${theme.highlight}`}
-                    placeholder="e.g. Pre-Primary"
+                    placeholder="e.g. Primary Morning"
                   />
+                </div>
+                <div>
+                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>
+                    Level <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={shift.level}
+                    onChange={(e) => updateShift(shift.id, 'level', e.target.value)}
+                    className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none ${theme.highlight}`}
+                  >
+                    <option value="">Select...</option>
+                    <option value="Pre-Primary">Pre-Primary</option>
+                    <option value="Primary">Primary</option>
+                    <option value="Secondary">Secondary</option>
+                    <option value="Senior Secondary">Senior Secondary</option>
+                  </select>
                 </div>
                 <div>
                   <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Start Time</label>
@@ -502,7 +515,7 @@ function Step2Academic({ theme }: { theme: Theme }) {
           <Plus size={12} /> Add Shift
         </button>
         <p className={`text-[10px] ${theme.iconColor} mt-2`}>
-          {shifts.length} shift{shifts.length !== 1 ? 's' : ''} configured. Each shift can have its own class range, timings, and period structure.
+          {shifts.length} shift{shifts.length !== 1 ? 's' : ''} configured. Schools can have multiple shifts per level (e.g. 2 Primary shifts, 1 Secondary shift). Each shift has its own timings and period structure.
         </p>
       </div>
     </div>
@@ -1158,15 +1171,37 @@ function Step9Review({ theme, goToStep }: { theme: Theme; goToStep: (s: number) 
 }
 
 // ─── MAIN WIZARD COMPONENT ────────────────────────────
+// Step completion status: 'complete' | 'partial' | 'empty'
+type StepCompletionStatus = 'complete' | 'partial' | 'empty';
+
 export default function OnboardingWizard({ theme, onBack }: { theme: Theme; onBack: () => void }) {
   const [currentStep, setCurrentStep] = useState(1);
   const [visitedSteps, setVisitedSteps] = useState<Set<number>>(new Set([1]));
+  // Track completion status per step: simulated for blueprint (in production, would check actual form data)
+  const [stepStatus, setStepStatus] = useState<Record<number, StepCompletionStatus>>({
+    1: 'partial',  // Identity: partially filled (has defaults but user hasn't completed all)
+    2: 'partial',  // Academic: has default classes/sections but timing needs review
+    3: 'empty',    // Modules: not yet configured
+    4: 'empty',    // Roles: not yet configured
+    5: 'empty',    // Communication: not yet configured
+    6: 'empty',    // Fees: not yet configured
+    7: 'empty',    // HR: not yet configured
+    8: 'empty',    // Transport: not yet configured
+    9: 'empty',    // Review: not applicable until others are done
+  });
 
   useEffect(() => {
     setVisitedSteps(prev => {
       const next = new Set(prev);
       next.add(currentStep);
       return next;
+    });
+    // When a step is visited for the first time and was 'empty', mark it as 'partial'
+    setStepStatus(prev => {
+      if (prev[currentStep] === 'empty') {
+        return { ...prev, [currentStep]: 'partial' };
+      }
+      return prev;
     });
   }, [currentStep]);
 
@@ -1202,39 +1237,49 @@ export default function OnboardingWizard({ theme, onBack }: { theme: Theme; onBa
         <div className="flex items-center gap-1">
           {steps.map((step, i) => {
             const isCurrent = currentStep === step.id;
-            const isVisited = visitedSteps.has(step.id) && !isCurrent;
-            const isPast = step.id < currentStep;
-            // Visited past steps = complete (green), skipped past steps = warning (amber), future unvisited = gray
-            const btnClass = isCurrent
-              ? `${theme.primary} text-white`
-              : isPast && isVisited
-              ? 'bg-emerald-100 text-emerald-700'
-              : isPast && !isVisited
-              ? 'bg-amber-100 text-amber-700'
-              : isVisited
-              ? 'bg-blue-100 text-blue-600'
-              : `${theme.secondaryBg} ${theme.iconColor}`;
+            const status = stepStatus[step.id] || 'empty';
 
-            const StepIcon = isCurrent
+            // Icon selection based on completion status
+            const StatusIcon = isCurrent
               ? step.icon
-              : isPast && isVisited
+              : status === 'complete'
               ? CheckCircle
-              : isPast && !isVisited
-              ? AlertTriangle
-              : isVisited
-              ? CheckCircle
+              : status === 'partial'
+              ? AlertCircle
               : Circle;
 
-            const lineColor = isPast && visitedSteps.has(step.id) ? 'bg-emerald-400' : isPast ? 'bg-amber-300' : theme.secondaryBg;
+            // Button styling based on completion status
+            const btnClass = isCurrent
+              ? `${theme.primary} text-white`
+              : status === 'complete'
+              ? 'bg-emerald-100 text-emerald-700'
+              : status === 'partial'
+              ? 'bg-amber-100 text-amber-700'
+              : `${theme.secondaryBg} ${theme.iconColor}`;
+
+            // Connector line color based on completion status
+            const lineColor = status === 'complete'
+              ? 'bg-emerald-400'
+              : status === 'partial'
+              ? 'bg-amber-300'
+              : theme.secondaryBg;
+
+            const titleText = isCurrent
+              ? 'Current step'
+              : status === 'complete'
+              ? 'Complete — all fields filled'
+              : status === 'partial'
+              ? 'Incomplete — some fields filled'
+              : 'Not started — no fields filled';
 
             return (
               <React.Fragment key={step.id}>
                 <button
                   onClick={() => setCurrentStep(step.id)}
                   className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all ${btnClass}`}
-                  title={isCurrent ? 'Current step' : isVisited ? 'Visited' : isPast ? 'Skipped — not yet filled' : 'Not started'}
+                  title={titleText}
                 >
-                  <StepIcon size={10} />
+                  <StatusIcon size={10} />
                   <span className="hidden lg:inline">{step.short}</span>
                   <span className="lg:hidden">{step.id}</span>
                 </button>
@@ -1246,8 +1291,8 @@ export default function OnboardingWizard({ theme, onBack }: { theme: Theme; onBa
           })}
         </div>
         <div className={`flex items-center gap-4 mt-2 px-1`}>
-          <span className="flex items-center gap-1 text-[9px] text-emerald-600"><CheckCircle size={8} /> Completed</span>
-          <span className="flex items-center gap-1 text-[9px] text-amber-600"><AlertTriangle size={8} /> Skipped</span>
+          <span className="flex items-center gap-1 text-[9px] text-emerald-600"><CheckCircle size={8} /> Complete</span>
+          <span className="flex items-center gap-1 text-[9px] text-amber-600"><AlertCircle size={8} /> Incomplete</span>
           <span className={`flex items-center gap-1 text-[9px] ${theme.iconColor}`}><Circle size={8} /> Not started</span>
         </div>
       </div>

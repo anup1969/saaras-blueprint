@@ -112,6 +112,28 @@ function DashboardView({ theme, setActiveModule }: { theme: Theme; setActiveModu
         <StatCard icon={TrendingUp} label="Net Surplus" value={financialSummary.netSurplus} color="bg-purple-500" theme={theme} />
       </div>
 
+      {/* Fees Card */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <div className="flex items-center gap-2 mb-3">
+          <Banknote size={16} className={theme.iconColor} />
+          <h3 className={`text-sm font-bold ${theme.highlight}`}>Fees Overview</h3>
+        </div>
+        <div className="grid grid-cols-3 gap-4">
+          <div className={`${theme.secondaryBg} rounded-xl p-3 text-center`}>
+            <p className={`text-[10px] ${theme.iconColor} mb-1`}>Today&apos;s Collection</p>
+            <p className="text-lg font-bold text-emerald-600">{'\u20B9'}2,45,000</p>
+          </div>
+          <div className={`${theme.secondaryBg} rounded-xl p-3 text-center`}>
+            <p className={`text-[10px] ${theme.iconColor} mb-1`}>Total Collected (FY)</p>
+            <p className={`text-lg font-bold ${theme.highlight}`}>{'\u20B9'}1.2 Cr</p>
+          </div>
+          <div className={`${theme.secondaryBg} rounded-xl p-3 text-center`}>
+            <p className={`text-[10px] ${theme.iconColor} mb-1`}>Outstanding</p>
+            <p className="text-lg font-bold text-red-500">{'\u20B9'}18.5L</p>
+          </div>
+        </div>
+      </div>
+
       {/* Quick Cards Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* SQAAF Score Summary */}
@@ -585,7 +607,7 @@ function ApprovalsView({ theme }: { theme: Theme }) {
 }
 
 // ─── MAIN PAGE ─────────────────────────────────────────
-function TrusteeDashboard({ theme }: { theme?: Theme }) {
+function TrusteeDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   if (!theme) return null;
@@ -600,7 +622,7 @@ function TrusteeDashboard({ theme }: { theme?: Theme }) {
       case 'hr': return <HRManagementView theme={theme} />;
       case 'compliance': return <ComplianceView theme={theme} />;
       case 'approvals': return <ApprovalsView theme={theme} />;
-      case 'profile': return <StakeholderProfile role="trustee" theme={theme} onClose={() => setActiveModule('dashboard')} />;
+      case 'profile': return <StakeholderProfile role="trustee" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />;
       default: return <DashboardView theme={theme} setActiveModule={setActiveModule} />;
     }
   };

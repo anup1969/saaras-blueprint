@@ -229,7 +229,7 @@ const modules = [
 ];
 
 // ─── MAIN COMPONENT ────────────────────────────────
-function StudentDashboard({ theme }: { theme?: Theme }) {
+function StudentDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   if (!theme) return null;
@@ -268,7 +268,7 @@ function StudentDashboard({ theme }: { theme?: Theme }) {
         {activeModule === 'fees' && <FeesModule theme={theme} />}
         {activeModule === 'library' && <LibraryModule theme={theme} />}
         {activeModule === 'notices' && <NoticesModule theme={theme} />}
-        {activeModule === 'profile' && <StakeholderProfile role="student" theme={theme} onClose={() => setActiveModule('dashboard')} />}
+        {activeModule === 'profile' && <StakeholderProfile role="student" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>
     </div>
   );

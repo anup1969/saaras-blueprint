@@ -474,7 +474,7 @@ function ReceiptsView({ theme }: { theme: Theme }) {
 }
 
 // ─── MAIN PAGE ─────────────────────────────────────────
-function AccountsHeadDashboard({ theme }: { theme?: Theme }) {
+function AccountsHeadDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   if (!theme) return null;
@@ -489,7 +489,7 @@ function AccountsHeadDashboard({ theme }: { theme?: Theme }) {
       case 'bank': return <BankView theme={theme} />;
       case 'reports': return <ReportsView theme={theme} />;
       case 'receipts': return <ReceiptsView theme={theme} />;
-      case 'profile': return <StakeholderProfile role="accounts-head" theme={theme} onClose={() => setActiveModule('dashboard')} />;
+      case 'profile': return <StakeholderProfile role="accounts-head" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />;
       default: return <DashboardView theme={theme} setActiveModule={setActiveModule} />;
     }
   };

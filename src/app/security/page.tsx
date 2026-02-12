@@ -88,7 +88,7 @@ const modules = [
   { id: 'patrol-log', label: 'Patrol Log', icon: Footprints },
 ];
 
-function SecurityDashboard({ theme }: { theme?: Theme }) {
+function SecurityDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   if (!theme) return null;
@@ -125,7 +125,7 @@ function SecurityDashboard({ theme }: { theme?: Theme }) {
         {activeModule === 'gate-log' && <GateLogModule theme={theme} />}
         {activeModule === 'emergency' && <EmergencyModule theme={theme} />}
         {activeModule === 'patrol-log' && <PatrolLogModule theme={theme} />}
-        {activeModule === 'profile' && <StakeholderProfile role="security" theme={theme} onClose={() => setActiveModule('dashboard')} />}
+        {activeModule === 'profile' && <StakeholderProfile role="security" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>
     </div>
   );

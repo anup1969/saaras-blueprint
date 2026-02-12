@@ -127,7 +127,7 @@ const mockMaintenance = [
 
 // ─── MAIN COMPONENT ─────────────────────────────────
 
-function TransportHeadDashboard({ theme }: { theme?: Theme }) {
+function TransportHeadDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   if (!theme) return null;
@@ -165,7 +165,7 @@ function TransportHeadDashboard({ theme }: { theme?: Theme }) {
         {activeModule === 'gps-tracking' && <GPSTrackingModule theme={theme} />}
         {activeModule === 'students-by-route' && <StudentsByRouteModule theme={theme} />}
         {activeModule === 'maintenance' && <MaintenanceModule theme={theme} />}
-        {activeModule === 'profile' && <StakeholderProfile role="transport-head" theme={theme} onClose={() => setActiveModule('dashboard')} />}
+        {activeModule === 'profile' && <StakeholderProfile role="transport-head" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>
     </div>
   );

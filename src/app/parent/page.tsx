@@ -1519,7 +1519,7 @@ function PickupAuthModule({ theme, child }: { theme: Theme; child: ChildProfile 
 }
 
 // ─── MAIN PARENT DASHBOARD ──────────────────────────
-function ParentDashboard({ theme }: { theme?: Theme }) {
+function ParentDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [selectedChild, setSelectedChild] = useState('child1');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -1578,7 +1578,7 @@ function ParentDashboard({ theme }: { theme?: Theme }) {
         {activeModule === 'communication' && <CommunicationModule theme={theme} child={child} />}
         {activeModule === 'transport' && <TransportModule theme={theme} child={child} />}
         {activeModule === 'pickup' && <PickupAuthModule theme={theme} child={child} />}
-        {activeModule === 'profile' && <StakeholderProfile role="parent" theme={theme} onClose={() => setActiveModule('dashboard')} />}
+        {activeModule === 'profile' && <StakeholderProfile role="parent" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>
     </div>
   );

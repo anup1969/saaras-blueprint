@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { type Theme } from '@/lib/themes';
+import { themes, type Theme } from '@/lib/themes';
 import {
   User, Mail, Phone, Calendar, Clock, Download, Edit, Bell,
   Lock, Award, Bus, GraduationCap, Shield, Users, Monitor,
@@ -409,64 +409,94 @@ function FeesTab({ theme }: { theme: Theme }) {
   );
 }
 
-function AccountTab({ theme }: { theme: Theme }) {
+function AccountTab({ theme, themeIdx, onThemeChange }: { theme: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
   const [notifPrefs, setNotifPrefs] = useState({ email: true, sms: false, push: true, whatsapp: true });
   return (
-    <div className="grid grid-cols-2 gap-4">
-      {/* Left: Account actions */}
-      <div className="space-y-2">
-        <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1`}>Account</p>
-        <button className={`w-full flex items-center gap-3 p-4 ${theme.secondaryBg} rounded-xl text-left transition-all hover:opacity-80`}>
-          <KeyRound size={18} className={theme.primaryText} />
-          <div>
-            <div className={`text-xs font-bold ${theme.highlight}`}>Reset Password</div>
-            <div className={`text-[10px] ${theme.iconColor}`}>Change your login password</div>
-          </div>
-        </button>
-        <button className={`w-full flex items-center gap-3 p-4 ${theme.secondaryBg} rounded-xl text-left transition-all hover:opacity-80`}>
-          <Shield size={18} className={theme.primaryText} />
-          <div>
-            <div className={`text-xs font-bold ${theme.highlight}`}>Two-Factor Auth</div>
-            <div className={`text-[10px] ${theme.iconColor}`}>Add extra security to your account</div>
-          </div>
-        </button>
-        <button className="w-full flex items-center gap-3 p-4 bg-red-50 rounded-xl text-left hover:bg-red-100 transition-all">
-          <LogOut size={18} className="text-red-500" />
-          <div>
-            <div className="text-xs font-bold text-red-700">Logout</div>
-            <div className="text-[10px] text-red-500">Sign out of your account</div>
-          </div>
-        </button>
-      </div>
-      {/* Right: Notification Preferences */}
+    <div className="space-y-4">
+      {/* Theme Settings */}
       <div className={`${theme.secondaryBg} rounded-xl p-4`}>
         <div className="flex items-center gap-2 mb-3">
-          <Bell size={14} className={theme.primaryText} />
-          <p className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Notification Preferences</p>
+          <Monitor size={14} className={theme.primaryText} />
+          <p className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Theme</p>
         </div>
-        <div className="space-y-2.5">
-          {[
-            { key: 'email' as const, icon: Mail, label: 'Email Notifications', desc: 'Circulars, reports, receipts' },
-            { key: 'sms' as const, icon: MessageSquare, label: 'SMS Alerts', desc: 'Attendance, emergencies' },
-            { key: 'push' as const, icon: Bell, label: 'Push Notifications', desc: 'Real-time app alerts' },
-            { key: 'whatsapp' as const, icon: Phone, label: 'WhatsApp', desc: 'Fee reminders, circulars' },
-          ].map(item => (
-            <div key={item.key} className={`flex items-center justify-between p-2.5 rounded-lg ${theme.cardBg}`}>
-              <div className="flex items-center gap-2">
-                <item.icon size={12} className={theme.iconColor} />
-                <div>
-                  <p className={`text-xs font-medium ${theme.highlight}`}>{item.label}</p>
-                  <p className={`text-[10px] ${theme.iconColor}`}>{item.desc}</p>
-                </div>
+        <p className={`text-[10px] ${theme.iconColor} mb-3`}>Choose your preferred appearance</p>
+        <div className="flex gap-2">
+          {themes.map((t, i) => (
+            <button
+              key={t.id}
+              onClick={() => onThemeChange?.(i)}
+              className={`flex-1 p-3 rounded-xl text-center transition-all ${
+                i === (themeIdx ?? 0) ? `ring-2 ring-purple-400 ${t.primary} text-white` : `${theme.cardBg} border ${theme.border} ${theme.iconColor} hover:opacity-80`
+              }`}
+            >
+              <div className={`w-8 h-8 rounded-lg mx-auto mb-1.5 flex items-center justify-center text-sm font-bold ${
+                i === (themeIdx ?? 0) ? 'bg-white/20 text-white' : `${t.primary} text-white`
+              }`}>
+                {t.name[0]}
               </div>
-              <button
-                onClick={() => setNotifPrefs(p => ({ ...p, [item.key]: !p[item.key] }))}
-                className={`w-9 h-5 rounded-full transition-all relative ${notifPrefs[item.key] ? 'bg-emerald-500' : 'bg-slate-300'}`}
-              >
-                <div className={`w-3.5 h-3.5 rounded-full bg-white shadow absolute top-[3px] transition-all ${notifPrefs[item.key] ? 'right-[3px]' : 'left-[3px]'}`} />
-              </button>
-            </div>
+              <p className={`text-[10px] font-bold ${i === (themeIdx ?? 0) ? 'text-white' : theme.highlight}`}>{t.name}</p>
+              <p className={`text-[9px] ${i === (themeIdx ?? 0) ? 'text-white/70' : theme.iconColor}`}>{t.type === 'dark' ? 'Dark' : 'Light'}</p>
+            </button>
           ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        {/* Left: Account actions */}
+        <div className="space-y-2">
+          <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1`}>Account</p>
+          <button className={`w-full flex items-center gap-3 p-4 ${theme.secondaryBg} rounded-xl text-left transition-all hover:opacity-80`}>
+            <KeyRound size={18} className={theme.primaryText} />
+            <div>
+              <div className={`text-xs font-bold ${theme.highlight}`}>Reset Password</div>
+              <div className={`text-[10px] ${theme.iconColor}`}>Change your login password</div>
+            </div>
+          </button>
+          <button className={`w-full flex items-center gap-3 p-4 ${theme.secondaryBg} rounded-xl text-left transition-all hover:opacity-80`}>
+            <Shield size={18} className={theme.primaryText} />
+            <div>
+              <div className={`text-xs font-bold ${theme.highlight}`}>Two-Factor Auth</div>
+              <div className={`text-[10px] ${theme.iconColor}`}>Add extra security to your account</div>
+            </div>
+          </button>
+          <button className="w-full flex items-center gap-3 p-4 bg-red-50 rounded-xl text-left hover:bg-red-100 transition-all">
+            <LogOut size={18} className="text-red-500" />
+            <div>
+              <div className="text-xs font-bold text-red-700">Logout</div>
+              <div className="text-[10px] text-red-500">Sign out of your account</div>
+            </div>
+          </button>
+        </div>
+        {/* Right: Notification Preferences */}
+        <div className={`${theme.secondaryBg} rounded-xl p-4`}>
+          <div className="flex items-center gap-2 mb-3">
+            <Bell size={14} className={theme.primaryText} />
+            <p className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Notification Preferences</p>
+          </div>
+          <div className="space-y-2.5">
+            {[
+              { key: 'email' as const, icon: Mail, label: 'Email Notifications', desc: 'Circulars, reports, receipts' },
+              { key: 'sms' as const, icon: MessageSquare, label: 'SMS Alerts', desc: 'Attendance, emergencies' },
+              { key: 'push' as const, icon: Bell, label: 'Push Notifications', desc: 'Real-time app alerts' },
+              { key: 'whatsapp' as const, icon: Phone, label: 'WhatsApp', desc: 'Fee reminders, circulars' },
+            ].map(item => (
+              <div key={item.key} className={`flex items-center justify-between p-2.5 rounded-lg ${theme.cardBg}`}>
+                <div className="flex items-center gap-2">
+                  <item.icon size={12} className={theme.iconColor} />
+                  <div>
+                    <p className={`text-xs font-medium ${theme.highlight}`}>{item.label}</p>
+                    <p className={`text-[10px] ${theme.iconColor}`}>{item.desc}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setNotifPrefs(p => ({ ...p, [item.key]: !p[item.key] }))}
+                  className={`w-9 h-5 rounded-full transition-all relative ${notifPrefs[item.key] ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                >
+                  <div className={`w-3.5 h-3.5 rounded-full bg-white shadow absolute top-[3px] transition-all ${notifPrefs[item.key] ? 'right-[3px]' : 'left-[3px]'}`} />
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -479,7 +509,7 @@ const tabLabels: Record<ProfileTab, string> = {
   leave: 'Leave', fees: 'Fees', account: 'Account',
 };
 
-export default function StakeholderProfile({ role, theme, onClose }: { role: string; theme: Theme; onClose?: () => void }) {
+export default function StakeholderProfile({ role, theme, onClose, themeIdx, onThemeChange }: { role: string; theme: Theme; onClose?: () => void; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
   const config = profileConfigs[role];
   const [activeTab, setActiveTab] = useState<ProfileTab>(config?.tabs[0] || 'personal');
 
@@ -552,7 +582,7 @@ export default function StakeholderProfile({ role, theme, onClose }: { role: str
           {activeTab === 'attendance' && <AttendanceTab theme={theme} />}
           {activeTab === 'leave' && <LeaveTab theme={theme} />}
           {activeTab === 'fees' && <FeesTab theme={theme} />}
-          {activeTab === 'account' && <AccountTab theme={theme} />}
+          {activeTab === 'account' && <AccountTab theme={theme} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
         </div>
       </div>
     </div>

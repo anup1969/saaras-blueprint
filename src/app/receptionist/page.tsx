@@ -88,7 +88,7 @@ const mockDirectory = [
 
 // ─── MAIN COMPONENT ─────────────────────────────────
 
-function ReceptionistDashboard({ theme }: { theme?: Theme }) {
+function ReceptionistDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   if (!theme) return null;
@@ -126,7 +126,7 @@ function ReceptionistDashboard({ theme }: { theme?: Theme }) {
         {activeModule === 'courier' && <CourierModule theme={theme} />}
         {activeModule === 'appointments' && <AppointmentsModule theme={theme} />}
         {activeModule === 'directory' && <DirectoryModule theme={theme} />}
-        {activeModule === 'profile' && <StakeholderProfile role="receptionist" theme={theme} onClose={() => setActiveModule('dashboard')} />}
+        {activeModule === 'profile' && <StakeholderProfile role="receptionist" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>
     </div>
   );

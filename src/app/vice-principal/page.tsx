@@ -100,7 +100,7 @@ const mockCirculars = [
 
 // ─── MAIN COMPONENT ─────────────────────────────────
 
-function VicePrincipalDashboard({ theme }: { theme?: Theme }) {
+function VicePrincipalDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   if (!theme) return null;
@@ -138,7 +138,7 @@ function VicePrincipalDashboard({ theme }: { theme?: Theme }) {
         {activeModule === 'examinations' && <ExaminationsModule theme={theme} />}
         {activeModule === 'staff-duties' && <StaffDutiesModule theme={theme} />}
         {activeModule === 'circulars' && <CircularsModule theme={theme} />}
-        {activeModule === 'profile' && <StakeholderProfile role="vice-principal" theme={theme} onClose={() => setActiveModule('dashboard')} />}
+        {activeModule === 'profile' && <StakeholderProfile role="vice-principal" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>
     </div>
   );

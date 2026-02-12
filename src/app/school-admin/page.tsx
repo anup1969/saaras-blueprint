@@ -35,7 +35,7 @@ const modules = [
   { id: 'config', label: 'Configuration', icon: Settings },
 ];
 
-function SchoolAdminDashboard({ theme }: { theme?: Theme }) {
+function SchoolAdminDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   if (!theme) return null;
@@ -82,7 +82,7 @@ function SchoolAdminDashboard({ theme }: { theme?: Theme }) {
         {activeModule === 'reports' && <ReportsModule theme={theme} />}
         {activeModule === 'hr' && <HRManagementModule theme={theme} />}
         {activeModule === 'config' && <ConfigModule theme={theme} />}
-        {activeModule === 'profile' && <StakeholderProfile role="school-admin" theme={theme} onClose={() => setActiveModule('dashboard')} />}
+        {activeModule === 'profile' && <StakeholderProfile role="school-admin" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>
     </div>
   );
@@ -107,6 +107,28 @@ function DashboardHome({ theme, stats, onProfileClick }: { theme: Theme; stats: 
         <StatCard icon={UserPlus} label="New Enquiries" value={stats.newEnquiries} color="bg-purple-500" sub="this month" theme={theme} />
         <StatCard icon={Shield} label="Active Visitors" value={stats.activeVisitors} color="bg-orange-500" theme={theme} />
         <StatCard icon={Bell} label="Notifications" value="5" color="bg-red-500" sub="unread" theme={theme} />
+      </div>
+
+      {/* Fees Card */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <div className="flex items-center gap-2 mb-3">
+          <Banknote size={16} className={theme.iconColor} />
+          <h3 className={`text-sm font-bold ${theme.highlight}`}>Fees Overview</h3>
+        </div>
+        <div className="grid grid-cols-3 gap-4">
+          <div className={`${theme.secondaryBg} rounded-xl p-3 text-center`}>
+            <p className={`text-[10px] ${theme.iconColor} mb-1`}>Today&apos;s Collection</p>
+            <p className="text-lg font-bold text-emerald-600">{'\u20B9'}2,45,000</p>
+          </div>
+          <div className={`${theme.secondaryBg} rounded-xl p-3 text-center`}>
+            <p className={`text-[10px] ${theme.iconColor} mb-1`}>Total Collected (FY)</p>
+            <p className={`text-lg font-bold ${theme.highlight}`}>{'\u20B9'}1.2 Cr</p>
+          </div>
+          <div className={`${theme.secondaryBg} rounded-xl p-3 text-center`}>
+            <p className={`text-[10px] ${theme.iconColor} mb-1`}>Outstanding</p>
+            <p className="text-lg font-bold text-red-500">{'\u20B9'}18.5L</p>
+          </div>
+        </div>
       </div>
 
       {/* Quick Actions */}

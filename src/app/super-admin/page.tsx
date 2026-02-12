@@ -754,7 +754,7 @@ function AuditLogsView({ theme }: { theme: Theme }) {
 }
 
 // ─── MAIN PAGE ─────────────────────────────────────────
-function SuperAdminDashboard({ theme }: { theme?: Theme }) {
+function SuperAdminDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [showWizard, setShowWizard] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -782,7 +782,7 @@ function SuperAdminDashboard({ theme }: { theme?: Theme }) {
       case 'analytics': return <AnalyticsView theme={theme} />;
       case 'config': return <SystemConfigView theme={theme} />;
       case 'audit': return <AuditLogsView theme={theme} />;
-      case 'profile': return <StakeholderProfile role="super-admin" theme={theme} onClose={() => setActiveModule('dashboard')} />;
+      case 'profile': return <StakeholderProfile role="super-admin" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />;
       default: return <DashboardView theme={theme} setActiveModule={setActiveModule} onStartWizard={() => setShowWizard(true)} />;
     }
   };
