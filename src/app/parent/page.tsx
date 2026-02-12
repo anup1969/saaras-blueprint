@@ -12,7 +12,8 @@ import {
   Mail, Star, Award, BookOpen, ArrowRight, CreditCard,
   Receipt, UserCheck, User, GraduationCap, ClipboardCheck, BookMarked,
   AlertCircle, IndianRupee, Percent, TrendingDown, Notebook, PenTool,
-  CircleDot, Camera, UserPlus, Navigation, Map, Info
+  CircleDot, Camera, UserPlus, Navigation, Map, Info,
+  PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
 import StakeholderProfile from '@/components/StakeholderProfile';
 
@@ -1521,6 +1522,7 @@ function PickupAuthModule({ theme, child }: { theme: Theme; child: ChildProfile 
 function ParentDashboard({ theme }: { theme?: Theme }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [selectedChild, setSelectedChild] = useState('child1');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   if (!theme) return null;
 
   const child = childrenData.find(c => c.id === selectedChild)!;
@@ -1528,29 +1530,37 @@ function ParentDashboard({ theme }: { theme?: Theme }) {
   return (
     <div className="flex gap-4 -m-6">
       {/* Module sidebar */}
-      <div className={`w-48 ${theme.cardBg} border-r ${theme.border} min-h-screen p-2 space-y-0.5 shrink-0`}>
-        <p className={`text-[10px] font-bold ${theme.iconColor} uppercase px-3 py-2`}>Parent Portal</p>
+      <div className={`${sidebarCollapsed ? 'w-12' : 'w-48'} ${theme.cardBg} border-r ${theme.border} min-h-screen p-2 space-y-0.5 shrink-0 transition-all duration-200`}>
+        <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-between'} px-2 py-2`}>
+          {!sidebarCollapsed && <p className={`text-[10px] font-bold ${theme.iconColor} uppercase px-1`}>Parent Portal</p>}
+          <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} className={`p-1 rounded-lg ${theme.buttonHover} ${theme.iconColor} transition-all`}>
+            {sidebarCollapsed ? <PanelLeftOpen size={14} /> : <PanelLeftClose size={14} />}
+          </button>
+        </div>
         {modules.map(m => (
           <button
             key={m.id}
             onClick={() => setActiveModule(m.id)}
-            className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+            title={sidebarCollapsed ? m.label : undefined}
+            className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : 'gap-2'} px-3 py-2 rounded-lg text-xs font-medium transition-all ${
               activeModule === m.id ? `${theme.primary} text-white` : `${theme.iconColor} ${theme.buttonHover}`
             }`}
           >
-            <m.icon size={14} /> {m.label}
+            <m.icon size={14} /> {!sidebarCollapsed && m.label}
           </button>
         ))}
 
         {/* Parent Info */}
-        <div className={`mt-4 pt-4 border-t ${theme.border} px-3`}>
-          <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-2`}>Logged in as</p>
-          <div className={`p-2 rounded-xl ${theme.secondaryBg}`}>
-            <p className={`text-xs font-bold ${theme.highlight}`}>Rajesh Patel</p>
-            <p className={`text-[10px] ${theme.iconColor}`}>Father</p>
-            <p className={`text-[10px] ${theme.iconColor}`}>+91 98250 12345</p>
+        {!sidebarCollapsed && (
+          <div className={`mt-4 pt-4 border-t ${theme.border} px-3`}>
+            <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-2`}>Logged in as</p>
+            <div className={`p-2 rounded-xl ${theme.secondaryBg}`}>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Rajesh Patel</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Father</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>+91 98250 12345</p>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Module content */}
@@ -1568,7 +1578,7 @@ function ParentDashboard({ theme }: { theme?: Theme }) {
         {activeModule === 'communication' && <CommunicationModule theme={theme} child={child} />}
         {activeModule === 'transport' && <TransportModule theme={theme} child={child} />}
         {activeModule === 'pickup' && <PickupAuthModule theme={theme} child={child} />}
-        {activeModule === 'profile' && <StakeholderProfile role="parent" theme={theme} />}
+        {activeModule === 'profile' && <StakeholderProfile role="parent" theme={theme} onClose={() => setActiveModule('dashboard')} />}
       </div>
     </div>
   );

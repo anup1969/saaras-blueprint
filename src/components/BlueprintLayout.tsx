@@ -154,7 +154,7 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
               {pathname === '/' ? 'All Dashboards' : navItems.find(n => pathname.startsWith(n.href) && n.href !== '/')?.label || pathname}
             </span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <span className={`text-[10px] px-2 py-1 rounded-lg ${theme.secondaryBg} ${theme.iconColor}`}>
               BLUEPRINT MODE — Not a live system
             </span>
@@ -199,7 +199,13 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
                 </div>
               )}
             </div>
-            <span className={`text-xs font-bold ${theme.primaryText}`}>{currentUser.name}</span>
+            {/* Profile avatar with photo placeholder */}
+            <div className="flex items-center gap-2">
+              <span className={`text-xs font-bold ${theme.primaryText}`}>{currentUser.name}</span>
+              <div className={`w-8 h-8 rounded-full ${theme.primary} text-white flex items-center justify-center text-[10px] font-bold ring-2 ring-offset-1 ring-offset-transparent ${theme.border}`} title={currentUser.name}>
+                {currentUser.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+              </div>
+            </div>
           </div>
         </div>
 

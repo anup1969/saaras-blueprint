@@ -11,7 +11,8 @@ import {
   Users, Clock, Bell, Phone, MapPin, Camera, CreditCard,
   CheckCircle, XCircle, LogIn, LogOut, Car, Truck,
   ShieldAlert, Siren, Heart, Flame, Building2, Radio,
-  BadgeCheck, Printer, Hash, User, Baby, ArrowRight, FileText
+  BadgeCheck, Printer, Hash, User, Baby, ArrowRight, FileText,
+  PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
 
 // ─── MOCK DATA ──────────────────────────────────────
@@ -89,22 +90,29 @@ const modules = [
 
 function SecurityDashboard({ theme }: { theme?: Theme }) {
   const [activeModule, setActiveModule] = useState('dashboard');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   if (!theme) return null;
 
   return (
     <div className="flex gap-4 -m-6">
       {/* Module sidebar */}
-      <div className={`w-48 ${theme.cardBg} border-r ${theme.border} min-h-screen p-2 space-y-0.5 shrink-0`}>
-        <p className={`text-[10px] font-bold ${theme.iconColor} uppercase px-3 py-2`}>Security Modules</p>
+      <div className={`${sidebarCollapsed ? 'w-12' : 'w-48'} ${theme.cardBg} border-r ${theme.border} min-h-screen p-2 space-y-0.5 shrink-0 transition-all duration-200`}>
+        <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-between'} px-2 py-2`}>
+          {!sidebarCollapsed && <p className={`text-[10px] font-bold ${theme.iconColor} uppercase px-1`}>Security Modules</p>}
+          <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} className={`p-1 rounded-lg ${theme.buttonHover} ${theme.iconColor} transition-all`}>
+            {sidebarCollapsed ? <PanelLeftOpen size={14} /> : <PanelLeftClose size={14} />}
+          </button>
+        </div>
         {modules.map(m => (
           <button
             key={m.id}
             onClick={() => setActiveModule(m.id)}
-            className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+            title={sidebarCollapsed ? m.label : undefined}
+            className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : 'gap-2'} px-3 py-2 rounded-lg text-xs font-medium transition-all ${
               activeModule === m.id ? `${theme.primary} text-white` : `${theme.iconColor} ${theme.buttonHover}`
             }`}
           >
-            <m.icon size={14} /> {m.label}
+            <m.icon size={14} /> {!sidebarCollapsed && m.label}
           </button>
         ))}
       </div>
@@ -117,7 +125,7 @@ function SecurityDashboard({ theme }: { theme?: Theme }) {
         {activeModule === 'gate-log' && <GateLogModule theme={theme} />}
         {activeModule === 'emergency' && <EmergencyModule theme={theme} />}
         {activeModule === 'patrol-log' && <PatrolLogModule theme={theme} />}
-        {activeModule === 'profile' && <StakeholderProfile role="security" theme={theme} />}
+        {activeModule === 'profile' && <StakeholderProfile role="security" theme={theme} onClose={() => setActiveModule('dashboard')} />}
       </div>
     </div>
   );

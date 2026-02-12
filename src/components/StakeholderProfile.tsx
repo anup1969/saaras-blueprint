@@ -6,7 +6,8 @@ import {
   User, Mail, Phone, Calendar, Clock, Download, Edit, Bell,
   Lock, Award, Bus, GraduationCap, Shield, Users, Monitor,
   PhoneCall, Briefcase, Calculator, Eye, ShieldCheck, Headphones,
-  KeyRound, LogOut, Building2, UserCheck
+  KeyRound, LogOut, Building2, UserCheck, X, MessageSquare,
+  FileText, Megaphone
 } from 'lucide-react';
 
 // ─── TYPES ───────────────────────────────────────────
@@ -409,27 +410,65 @@ function FeesTab({ theme }: { theme: Theme }) {
 }
 
 function AccountTab({ theme }: { theme: Theme }) {
+  const [notifPrefs, setNotifPrefs] = useState({ email: true, sms: false, push: true, whatsapp: true });
   return (
-    <div className="space-y-2">
-      {[
-        { icon: KeyRound, label: 'Reset Password', desc: 'Change your login password', color: theme.primaryText },
-        { icon: Bell, label: 'Notification Preferences', desc: 'Manage how you receive alerts', color: theme.primaryText },
-      ].map(item => (
-        <button key={item.label} className={`w-full flex items-center gap-3 p-4 ${theme.secondaryBg} rounded-xl text-left transition-all hover:opacity-80`}>
-          <item.icon size={18} className={item.color} />
+    <div className="grid grid-cols-2 gap-4">
+      {/* Left: Account actions */}
+      <div className="space-y-2">
+        <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1`}>Account</p>
+        <button className={`w-full flex items-center gap-3 p-4 ${theme.secondaryBg} rounded-xl text-left transition-all hover:opacity-80`}>
+          <KeyRound size={18} className={theme.primaryText} />
           <div>
-            <div className={`text-xs font-bold ${theme.highlight}`}>{item.label}</div>
-            <div className={`text-[10px] ${theme.iconColor}`}>{item.desc}</div>
+            <div className={`text-xs font-bold ${theme.highlight}`}>Reset Password</div>
+            <div className={`text-[10px] ${theme.iconColor}`}>Change your login password</div>
           </div>
         </button>
-      ))}
-      <button className="w-full flex items-center gap-3 p-4 bg-red-50 rounded-xl text-left hover:bg-red-100 transition-all">
-        <LogOut size={18} className="text-red-500" />
-        <div>
-          <div className="text-xs font-bold text-red-700">Logout</div>
-          <div className="text-[10px] text-red-500">Sign out of your account</div>
+        <button className={`w-full flex items-center gap-3 p-4 ${theme.secondaryBg} rounded-xl text-left transition-all hover:opacity-80`}>
+          <Shield size={18} className={theme.primaryText} />
+          <div>
+            <div className={`text-xs font-bold ${theme.highlight}`}>Two-Factor Auth</div>
+            <div className={`text-[10px] ${theme.iconColor}`}>Add extra security to your account</div>
+          </div>
+        </button>
+        <button className="w-full flex items-center gap-3 p-4 bg-red-50 rounded-xl text-left hover:bg-red-100 transition-all">
+          <LogOut size={18} className="text-red-500" />
+          <div>
+            <div className="text-xs font-bold text-red-700">Logout</div>
+            <div className="text-[10px] text-red-500">Sign out of your account</div>
+          </div>
+        </button>
+      </div>
+      {/* Right: Notification Preferences */}
+      <div className={`${theme.secondaryBg} rounded-xl p-4`}>
+        <div className="flex items-center gap-2 mb-3">
+          <Bell size={14} className={theme.primaryText} />
+          <p className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Notification Preferences</p>
         </div>
-      </button>
+        <div className="space-y-2.5">
+          {[
+            { key: 'email' as const, icon: Mail, label: 'Email Notifications', desc: 'Circulars, reports, receipts' },
+            { key: 'sms' as const, icon: MessageSquare, label: 'SMS Alerts', desc: 'Attendance, emergencies' },
+            { key: 'push' as const, icon: Bell, label: 'Push Notifications', desc: 'Real-time app alerts' },
+            { key: 'whatsapp' as const, icon: Phone, label: 'WhatsApp', desc: 'Fee reminders, circulars' },
+          ].map(item => (
+            <div key={item.key} className={`flex items-center justify-between p-2.5 rounded-lg ${theme.cardBg}`}>
+              <div className="flex items-center gap-2">
+                <item.icon size={12} className={theme.iconColor} />
+                <div>
+                  <p className={`text-xs font-medium ${theme.highlight}`}>{item.label}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{item.desc}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setNotifPrefs(p => ({ ...p, [item.key]: !p[item.key] }))}
+                className={`w-9 h-5 rounded-full transition-all relative ${notifPrefs[item.key] ? 'bg-emerald-500' : 'bg-slate-300'}`}
+              >
+                <div className={`w-3.5 h-3.5 rounded-full bg-white shadow absolute top-[3px] transition-all ${notifPrefs[item.key] ? 'right-[3px]' : 'left-[3px]'}`} />
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
@@ -440,7 +479,7 @@ const tabLabels: Record<ProfileTab, string> = {
   leave: 'Leave', fees: 'Fees', account: 'Account',
 };
 
-export default function StakeholderProfile({ role, theme }: { role: string; theme: Theme }) {
+export default function StakeholderProfile({ role, theme, onClose }: { role: string; theme: Theme; onClose?: () => void }) {
   const config = profileConfigs[role];
   const [activeTab, setActiveTab] = useState<ProfileTab>(config?.tabs[0] || 'personal');
 
@@ -470,9 +509,16 @@ export default function StakeholderProfile({ role, theme }: { role: string; them
                 ))}
               </div>
             </div>
-            <button className={`px-3 py-1.5 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.highlight} flex items-center gap-1.5`}>
-              <Edit size={12} /> Edit Profile
-            </button>
+            <div className="flex items-center gap-2">
+              <button className={`px-3 py-1.5 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.highlight} flex items-center gap-1.5`}>
+                <Edit size={12} /> Edit Profile
+              </button>
+              {onClose && (
+                <button onClick={onClose} className={`p-1.5 rounded-xl ${theme.secondaryBg} ${theme.iconColor} hover:opacity-80 transition-all`} title="Close Profile">
+                  <X size={14} />
+                </button>
+              )}
+            </div>
           </div>
           {/* Quick info */}
           <div className="flex flex-wrap gap-3 mt-3">

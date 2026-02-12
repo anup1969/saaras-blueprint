@@ -11,7 +11,8 @@ import {
   Eye, Edit, Trash2, Download, Filter, ChevronDown, ChevronUp, Camera, File,
   Banknote, DollarSign, TrendingUp, AlertTriangle, FileText, Send, Megaphone, MapPin, Phone,
   Mail, Star, Award, BookOpen, ArrowRight, CreditCard, ArrowLeft, Save,
-  Upload, ClipboardCheck, Receipt, Printer, Hash, Heart, Building, Landmark, User
+  Upload, ClipboardCheck, Receipt, Printer, Hash, Heart, Building, Landmark, User,
+  PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
 import StakeholderProfile from '@/components/StakeholderProfile';
 
@@ -36,23 +37,30 @@ const modules = [
 
 function SchoolAdminDashboard({ theme }: { theme?: Theme }) {
   const [activeModule, setActiveModule] = useState('dashboard');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   if (!theme) return null;
   const stats = dashboardStats.schoolAdmin;
 
   return (
     <div className="flex gap-4 -m-6">
       {/* Module sidebar */}
-      <div className={`w-48 ${theme.cardBg} border-r ${theme.border} min-h-screen p-2 space-y-0.5 shrink-0`}>
-        <p className={`text-[10px] font-bold ${theme.iconColor} uppercase px-3 py-2`}>Modules</p>
+      <div className={`${sidebarCollapsed ? 'w-12' : 'w-48'} ${theme.cardBg} border-r ${theme.border} min-h-screen p-2 space-y-0.5 shrink-0 transition-all duration-200`}>
+        <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-between'} px-2 py-2`}>
+          {!sidebarCollapsed && <p className={`text-[10px] font-bold ${theme.iconColor} uppercase px-1`}>Modules</p>}
+          <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} className={`p-1 rounded-lg ${theme.buttonHover} ${theme.iconColor} transition-all`}>
+            {sidebarCollapsed ? <PanelLeftOpen size={14} /> : <PanelLeftClose size={14} />}
+          </button>
+        </div>
         {modules.map(m => (
           <button
             key={m.id}
             onClick={() => setActiveModule(m.id)}
-            className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+            title={sidebarCollapsed ? m.label : undefined}
+            className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : 'gap-2'} px-3 py-2 rounded-lg text-xs font-medium transition-all ${
               activeModule === m.id ? `${theme.primary} text-white` : `${theme.iconColor} ${theme.buttonHover}`
             }`}
           >
-            <m.icon size={14} /> {m.label}
+            <m.icon size={14} /> {!sidebarCollapsed && m.label}
           </button>
         ))}
       </div>
@@ -74,7 +82,7 @@ function SchoolAdminDashboard({ theme }: { theme?: Theme }) {
         {activeModule === 'reports' && <ReportsModule theme={theme} />}
         {activeModule === 'hr' && <HRManagementModule theme={theme} />}
         {activeModule === 'config' && <ConfigModule theme={theme} />}
-        {activeModule === 'profile' && <StakeholderProfile role="school-admin" theme={theme} />}
+        {activeModule === 'profile' && <StakeholderProfile role="school-admin" theme={theme} onClose={() => setActiveModule('dashboard')} />}
       </div>
     </div>
   );

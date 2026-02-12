@@ -8,7 +8,8 @@ import {
   Users, Home, UserPlus, Calendar, Clock, Banknote, Star, FileText, UserMinus, BarChart3,
   Settings, Bell, ChevronLeft, ChevronRight, Check, X, Plus,
   Eye, Edit, Phone, Mail, Trash2, Camera, Award, CheckCircle, XCircle,
-  GripVertical, Cake, Briefcase, Upload, MinusCircle, Wallet, GitBranch, Shield, User
+  GripVertical, Cake, Briefcase, Upload, MinusCircle, Wallet, GitBranch, Shield, User,
+  PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
 
 // ─── MOCK DATA ────────────────────────────────────────
@@ -409,15 +410,21 @@ function SettingsModule({ theme }: { theme: Theme }) {
 function HRManagerDashboard({ theme }: { theme?: Theme }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [selectedEmp, setSelectedEmp] = useState(employees[0]);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   if (!theme) return null;
 
   return (
     <div className="flex gap-4 -m-6">
-      <div className={`w-48 ${theme.cardBg} border-r ${theme.border} min-h-screen p-2 space-y-0.5 shrink-0`}>
-        <p className={`text-[10px] font-bold ${theme.iconColor} uppercase px-3 py-2`}>HR Modules</p>
+      <div className={`${sidebarCollapsed ? 'w-12' : 'w-48'} ${theme.cardBg} border-r ${theme.border} min-h-screen p-2 space-y-0.5 shrink-0 transition-all duration-200`}>
+        <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-between'} px-2 py-2`}>
+          {!sidebarCollapsed && <p className={`text-[10px] font-bold ${theme.iconColor} uppercase px-1`}>HR Modules</p>}
+          <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} className={`p-1 rounded-lg ${theme.buttonHover} ${theme.iconColor} transition-all`}>
+            {sidebarCollapsed ? <PanelLeftOpen size={14} /> : <PanelLeftClose size={14} />}
+          </button>
+        </div>
         {modules.map(m => (
-          <button key={m.id} onClick={() => setActiveModule(m.id)} className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all ${activeModule === m.id ? `${theme.primary} text-white` : `${theme.iconColor} ${theme.buttonHover}`}`}>
-            <m.icon size={14} /> {m.label}
+          <button key={m.id} onClick={() => setActiveModule(m.id)} title={sidebarCollapsed ? m.label : undefined} className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : 'gap-2'} px-3 py-2 rounded-lg text-xs font-medium transition-all ${activeModule === m.id ? `${theme.primary} text-white` : `${theme.iconColor} ${theme.buttonHover}`}`}>
+            <m.icon size={14} /> {!sidebarCollapsed && m.label}
           </button>
         ))}
       </div>
@@ -435,7 +442,7 @@ function HRManagerDashboard({ theme }: { theme?: Theme }) {
         {activeModule === 'offboarding' && <OffboardingModule theme={theme} />}
         {activeModule === 'reports' && <ReportsModule theme={theme} />}
         {activeModule === 'settings' && <SettingsModule theme={theme} />}
-        {activeModule === 'my-profile' && <StakeholderProfile role="hr-manager" theme={theme} />}
+        {activeModule === 'my-profile' && <StakeholderProfile role="hr-manager" theme={theme} onClose={() => setActiveModule('dashboard')} />}
       </div>
     </div>
   );

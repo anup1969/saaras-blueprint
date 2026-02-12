@@ -9,7 +9,8 @@ import {
   GraduationCap, Briefcase, Clock, AlertTriangle, FileText, Send,
   Calendar, Shield, ShieldCheck, Eye, Download, Plus, Check, X, Search,
   TrendingUp, Heart, ClipboardCheck, Star, DollarSign, Building2,
-  Bell, ArrowRight, MessageSquare, Award, Filter, User
+  Bell, ArrowRight, MessageSquare, Award, Filter, User, ListTodo, Circle,
+  PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
 import StakeholderProfile from '@/components/StakeholderProfile';
 
@@ -27,22 +28,29 @@ const modules = [
 
 function PrincipalDashboard({ theme }: { theme?: Theme }) {
   const [activeModule, setActiveModule] = useState('dashboard');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   if (!theme) return null;
 
   return (
     <div className="flex gap-4 -m-6">
       {/* Module sidebar */}
-      <div className={`w-48 ${theme.cardBg} border-r ${theme.border} min-h-screen p-2 space-y-0.5 shrink-0`}>
-        <p className={`text-[10px] font-bold ${theme.iconColor} uppercase px-3 py-2`}>Modules</p>
+      <div className={`${sidebarCollapsed ? 'w-12' : 'w-48'} ${theme.cardBg} border-r ${theme.border} min-h-screen p-2 space-y-0.5 shrink-0 transition-all duration-200`}>
+        <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-between'} px-2 py-2`}>
+          {!sidebarCollapsed && <p className={`text-[10px] font-bold ${theme.iconColor} uppercase px-1`}>Modules</p>}
+          <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} className={`p-1 rounded-lg ${theme.buttonHover} ${theme.iconColor} transition-all`}>
+            {sidebarCollapsed ? <PanelLeftOpen size={14} /> : <PanelLeftClose size={14} />}
+          </button>
+        </div>
         {modules.map(m => (
           <button
             key={m.id}
             onClick={() => setActiveModule(m.id)}
-            className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+            title={sidebarCollapsed ? m.label : undefined}
+            className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : 'gap-2'} px-3 py-2 rounded-lg text-xs font-medium transition-all ${
               activeModule === m.id ? `${theme.primary} text-white` : `${theme.iconColor} ${theme.buttonHover}`
             }`}
           >
-            <m.icon size={14} /> {m.label}
+            <m.icon size={14} /> {!sidebarCollapsed && m.label}
           </button>
         ))}
       </div>
@@ -57,7 +65,7 @@ function PrincipalDashboard({ theme }: { theme?: Theme }) {
         {activeModule === 'approvals' && <ApprovalsModule theme={theme} />}
         {activeModule === 'reports' && <ReportsModule theme={theme} />}
         {activeModule === 'announcements' && <AnnouncementsModule theme={theme} />}
-        {activeModule === 'profile' && <StakeholderProfile role="principal" theme={theme} />}
+        {activeModule === 'profile' && <StakeholderProfile role="principal" theme={theme} onClose={() => setActiveModule('dashboard')} />}
       </div>
     </div>
   );
@@ -71,37 +79,180 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
         <h1 className={`text-2xl font-bold ${theme.highlight}`}>Principal Dashboard</h1>
         <button onClick={onProfileClick} title="My Profile" className={`w-9 h-9 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold hover:opacity-90 transition-opacity`}>SM</button>
       </div>
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-        <StatCard icon={Users} label="Total Students" value="2,847" color="bg-blue-500" theme={theme} />
-        <StatCard icon={Briefcase} label="Total Staff" value="142" color="bg-indigo-500" theme={theme} />
+      {/* Student Attendance Card */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <Users size={16} className={theme.iconColor} />
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>Student Attendance</h3>
+            </div>
+            <p className={`text-xl font-bold ${theme.highlight}`}>2,598 / 2,847 <span className="text-sm font-medium text-emerald-600">Present</span></p>
+            <p className={`text-[10px] ${theme.iconColor} mt-1`}>Total Enrolled: 3,000 | Attendance Taken: 2,847 | Present: 2,598</p>
+          </div>
+          <div className="w-16 h-16 ml-4">
+            <svg viewBox="0 0 36 36" className="w-full h-full">
+              {/* Gray segment — Not Yet Taken: 153 / 3000 = 5.1% */}
+              <circle r="16" cx="18" cy="18" fill="none" stroke="#9ca3af" strokeWidth="3.5"
+                strokeDasharray={`${(153 / 3000) * 100.53} ${100.53 - (153 / 3000) * 100.53}`}
+                strokeDashoffset="25.13" transform="rotate(-90 18 18)" />
+              {/* Red segment — Absent: 249 / 3000 = 8.3% */}
+              <circle r="16" cx="18" cy="18" fill="none" stroke="#ef4444" strokeWidth="3.5"
+                strokeDasharray={`${(249 / 3000) * 100.53} ${100.53 - (249 / 3000) * 100.53}`}
+                strokeDashoffset={`${25.13 - (153 / 3000) * 100.53}`} transform="rotate(-90 18 18)" />
+              {/* Emerald segment — Present: 2598 / 3000 = 86.6% */}
+              <circle r="16" cx="18" cy="18" fill="none" stroke="#10b981" strokeWidth="3.5"
+                strokeDasharray={`${(2598 / 3000) * 100.53} ${100.53 - (2598 / 3000) * 100.53}`}
+                strokeDashoffset={`${25.13 - (153 / 3000) * 100.53 - (249 / 3000) * 100.53}`} transform="rotate(-90 18 18)" />
+              <text x="18" y="19" textAnchor="middle" dominantBaseline="middle" className="fill-current" style={{ fontSize: '6px', fontWeight: 700 }}>
+                <tspan className="text-emerald-600">87%</tspan>
+              </text>
+            </svg>
+          </div>
+        </div>
+        <div className="flex items-center gap-4 mt-2">
+          <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /><span className={`text-[10px] ${theme.iconColor}`}>Present (2,598)</span></div>
+          <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500 inline-block" /><span className={`text-[10px] ${theme.iconColor}`}>Absent (249)</span></div>
+          <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-gray-400 inline-block" /><span className={`text-[10px] ${theme.iconColor}`}>Not Yet Taken (153)</span></div>
+        </div>
+      </div>
+
+      {/* Staff Attendance Card — Split into Academic & Non-Academic */}
+      <div className="grid grid-cols-2 gap-4">
+        {/* Academic Staff */}
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <GraduationCap size={14} className={theme.iconColor} />
+                <h3 className={`text-xs font-bold ${theme.highlight}`}>Academic Staff</h3>
+              </div>
+              <p className={`text-lg font-bold ${theme.highlight}`}>72 / 78 <span className="text-xs font-medium text-emerald-600">Present</span></p>
+            </div>
+            <div className="w-12 h-12 ml-3">
+              <svg viewBox="0 0 36 36" className="w-full h-full">
+                {/* Red segment — Absent: 6 / 78 = 7.7% */}
+                <circle r="16" cx="18" cy="18" fill="none" stroke="#ef4444" strokeWidth="4"
+                  strokeDasharray={`${(6 / 78) * 100.53} ${100.53 - (6 / 78) * 100.53}`}
+                  strokeDashoffset="25.13" transform="rotate(-90 18 18)" />
+                {/* Emerald segment — Present: 72 / 78 = 92.3% */}
+                <circle r="16" cx="18" cy="18" fill="none" stroke="#10b981" strokeWidth="4"
+                  strokeDasharray={`${(72 / 78) * 100.53} ${100.53 - (72 / 78) * 100.53}`}
+                  strokeDashoffset={`${25.13 - (6 / 78) * 100.53}`} transform="rotate(-90 18 18)" />
+                <text x="18" y="19" textAnchor="middle" dominantBaseline="middle" style={{ fontSize: '7px', fontWeight: 700 }} className="fill-emerald-600">92%</text>
+              </svg>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 mt-2">
+            <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /><span className={`text-[10px] ${theme.iconColor}`}>Present (72)</span></div>
+            <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500 inline-block" /><span className={`text-[10px] ${theme.iconColor}`}>Absent (6)</span></div>
+          </div>
+        </div>
+
+        {/* Non-Academic Staff */}
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <Briefcase size={14} className={theme.iconColor} />
+                <h3 className={`text-xs font-bold ${theme.highlight}`}>Non-Academic Staff</h3>
+              </div>
+              <p className={`text-lg font-bold ${theme.highlight}`}>56 / 64 <span className="text-xs font-medium text-emerald-600">Present</span></p>
+            </div>
+            <div className="w-12 h-12 ml-3">
+              <svg viewBox="0 0 36 36" className="w-full h-full">
+                {/* Red segment — Absent: 8 / 64 = 12.5% */}
+                <circle r="16" cx="18" cy="18" fill="none" stroke="#ef4444" strokeWidth="4"
+                  strokeDasharray={`${(8 / 64) * 100.53} ${100.53 - (8 / 64) * 100.53}`}
+                  strokeDashoffset="25.13" transform="rotate(-90 18 18)" />
+                {/* Emerald segment — Present: 56 / 64 = 87.5% */}
+                <circle r="16" cx="18" cy="18" fill="none" stroke="#10b981" strokeWidth="4"
+                  strokeDasharray={`${(56 / 64) * 100.53} ${100.53 - (56 / 64) * 100.53}`}
+                  strokeDashoffset={`${25.13 - (8 / 64) * 100.53}`} transform="rotate(-90 18 18)" />
+                <text x="18" y="19" textAnchor="middle" dominantBaseline="middle" style={{ fontSize: '7px', fontWeight: 700 }} className="fill-emerald-600">88%</text>
+              </svg>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 mt-2">
+            <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /><span className={`text-[10px] ${theme.iconColor}`}>Present (56)</span></div>
+            <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500 inline-block" /><span className={`text-[10px] ${theme.iconColor}`}>Absent (8)</span></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Remaining Stat Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon={ClipboardCheck} label="Avg Attendance" value="94.2%" color="bg-emerald-500" theme={theme} />
         <StatCard icon={Award} label="Academic Performance" value="87.5%" color="bg-purple-500" theme={theme} />
         <StatCard icon={Clock} label="Pending Approvals" value="8" color="bg-amber-500" theme={theme} />
         <StatCard icon={Calendar} label="Parent Meetings Today" value="3" color="bg-teal-500" theme={theme} />
       </div>
 
-      {/* Recent Activity */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Recent Activity</h3>
-        <div className="space-y-2">
-          {[
-            { text: 'Fee defaulter report generated — 23 students with overdue balance', time: '15 min ago', type: 'report' },
-            { text: 'Staff leave approved — Ms. Priya Sharma (3 days CL)', time: '45 min ago', type: 'approval' },
-            { text: 'New admission batch processed — 12 students for Class I', time: '2 hours ago', type: 'admission' },
-            { text: 'Disciplinary case resolved — Arjun Singh (Class 8-B)', time: '3 hours ago', type: 'welfare' },
-            { text: 'Monthly attendance report submitted to board', time: '5 hours ago', type: 'report' },
-          ].map((a, i) => (
-            <div key={i} className={`flex items-center gap-3 p-2 rounded-xl ${theme.accentBg}`}>
-              <div className={`w-2 h-2 rounded-full ${
-                a.type === 'report' ? 'bg-blue-500' :
-                a.type === 'approval' ? 'bg-emerald-500' :
-                a.type === 'admission' ? 'bg-purple-500' :
-                'bg-amber-500'
-              }`} />
-              <p className={`text-xs ${theme.highlight} flex-1`}>{a.text}</p>
-              <span className={`text-[10px] ${theme.iconColor}`}>{a.time}</span>
-            </div>
-          ))}
+      {/* Recent Activity + Task Tracker — Side by Side */}
+      <div className="grid grid-cols-2 gap-4">
+        {/* Recent Activity */}
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Recent Activity</h3>
+          <div className="space-y-2">
+            {[
+              { text: 'Fee defaulter report generated — 23 students with overdue balance', time: '15 min ago', type: 'report' },
+              { text: 'Staff leave approved — Ms. Priya Sharma (3 days CL)', time: '45 min ago', type: 'approval' },
+              { text: 'New admission batch processed — 12 students for Class I', time: '2 hours ago', type: 'admission' },
+              { text: 'Disciplinary case resolved — Arjun Singh (Class 8-B)', time: '3 hours ago', type: 'welfare' },
+              { text: 'Monthly attendance report submitted to board', time: '5 hours ago', type: 'report' },
+            ].map((a, i) => (
+              <div key={i} className={`flex items-center gap-3 p-2 rounded-xl ${theme.accentBg}`}>
+                <div className={`w-2 h-2 rounded-full ${
+                  a.type === 'report' ? 'bg-blue-500' :
+                  a.type === 'approval' ? 'bg-emerald-500' :
+                  a.type === 'admission' ? 'bg-purple-500' :
+                  'bg-amber-500'
+                }`} />
+                <p className={`text-xs ${theme.highlight} flex-1`}>{a.text}</p>
+                <span className={`text-[10px] ${theme.iconColor}`}>{a.time}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Task Tracker */}
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <div className="flex items-center gap-2 mb-3">
+            <ListTodo size={16} className={theme.iconColor} />
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>Task Tracker</h3>
+          </div>
+          <div className="space-y-2">
+            {[
+              { task: 'Review mid-term exam papers', due: '15-Feb', priority: 'High', status: 'In Progress' },
+              { task: 'Submit SQAAF self-assessment', due: '20-Feb', priority: 'Urgent', status: 'Pending' },
+              { task: 'Approve staff leave requests (3)', due: 'Today', priority: 'High', status: 'Pending' },
+              { task: 'Prepare Annual Day speech', due: '25-Feb', priority: 'Normal', status: 'Not Started' },
+              { task: 'Review fee defaulter list', due: '12-Feb', priority: 'High', status: 'Completed' },
+            ].map((t, i) => (
+              <div key={i} className={`flex items-center gap-3 p-2.5 rounded-xl ${theme.accentBg} border-l-[3px] ${
+                t.priority === 'Urgent' ? 'border-l-red-500' :
+                t.priority === 'High' ? 'border-l-amber-500' :
+                'border-l-blue-500'
+              }`}>
+                {/* Checkbox circle */}
+                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                  t.status === 'Completed' ? 'border-emerald-500 bg-emerald-500' : `border-gray-300`
+                }`}>
+                  {t.status === 'Completed' && <Check size={10} className="text-white" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-xs font-bold ${theme.highlight} ${t.status === 'Completed' ? 'line-through opacity-60' : ''}`}>{t.task}</p>
+                  <p className={`text-[10px] ${theme.iconColor} mt-0.5`}>Due: {t.due}</p>
+                </div>
+                <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold whitespace-nowrap ${
+                  t.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' :
+                  t.status === 'In Progress' ? 'bg-blue-100 text-blue-700' :
+                  t.status === 'Pending' ? 'bg-amber-100 text-amber-700' :
+                  'bg-gray-100 text-gray-600'
+                }`}>{t.status}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 

@@ -9,7 +9,8 @@ import {
   Home, Banknote, CreditCard, Receipt, Users, FileText, BarChart3, Settings,
   Search, Plus, Eye, Download, Filter, Check, X, Calendar,
   DollarSign, TrendingUp, TrendingDown, AlertTriangle, ArrowRight,
-  Wallet, Building2, ChevronDown, Percent, Clock, Hash, Printer, User
+  Wallet, Building2, ChevronDown, Percent, Clock, Hash, Printer, User,
+  PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
 
 // ─── MOCK DATA ────────────────────────────────────────
@@ -475,6 +476,7 @@ function ReceiptsView({ theme }: { theme: Theme }) {
 // ─── MAIN PAGE ─────────────────────────────────────────
 function AccountsHeadDashboard({ theme }: { theme?: Theme }) {
   const [activeModule, setActiveModule] = useState('dashboard');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   if (!theme) return null;
 
   const renderContent = () => {
@@ -487,25 +489,31 @@ function AccountsHeadDashboard({ theme }: { theme?: Theme }) {
       case 'bank': return <BankView theme={theme} />;
       case 'reports': return <ReportsView theme={theme} />;
       case 'receipts': return <ReceiptsView theme={theme} />;
-      case 'profile': return <StakeholderProfile role="accounts-head" theme={theme} />;
+      case 'profile': return <StakeholderProfile role="accounts-head" theme={theme} onClose={() => setActiveModule('dashboard')} />;
       default: return <DashboardView theme={theme} setActiveModule={setActiveModule} />;
     }
   };
 
   return (
     <div className="flex gap-4 -m-6">
-      <div className={`w-48 ${theme.cardBg} border-r ${theme.border} min-h-screen p-2 space-y-0.5 shrink-0`}>
-        <p className={`text-[10px] font-bold ${theme.iconColor} uppercase px-3 py-2`}>Accounts</p>
+      <div className={`${sidebarCollapsed ? 'w-12' : 'w-48'} ${theme.cardBg} border-r ${theme.border} min-h-screen p-2 space-y-0.5 shrink-0 transition-all duration-200`}>
+        <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-between'} px-2 py-2`}>
+          {!sidebarCollapsed && <p className={`text-[10px] font-bold ${theme.iconColor} uppercase px-1`}>Accounts</p>}
+          <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} className={`p-1 rounded-lg ${theme.buttonHover} ${theme.iconColor} transition-all`}>
+            {sidebarCollapsed ? <PanelLeftOpen size={14} /> : <PanelLeftClose size={14} />}
+          </button>
+        </div>
         {modules.map(m => (
           <button
             key={m.id}
             onClick={() => setActiveModule(m.id)}
-            className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+            title={sidebarCollapsed ? m.label : undefined}
+            className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : 'gap-2'} px-3 py-2 rounded-lg text-xs font-medium transition-all ${
               activeModule === m.id ? `${theme.primary} text-white` : `${theme.iconColor} ${theme.buttonHover}`
             }`}
           >
             <m.icon size={14} />
-            {m.label}
+            {!sidebarCollapsed && m.label}
           </button>
         ))}
       </div>

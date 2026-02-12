@@ -9,7 +9,8 @@ import {
   Home, Eye, DollarSign, GraduationCap, Shield, Users, CheckCircle, XCircle,
   TrendingUp, TrendingDown, BarChart3, Calendar, FileText, AlertTriangle,
   Award, Star, Building2, Banknote, ArrowRight, Download, PieChart,
-  Briefcase, Clock, Target, ChevronRight, User
+  Briefcase, Clock, Target, ChevronRight, User,
+  PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
 
 // ─── MOCK DATA ────────────────────────────────────────
@@ -586,6 +587,7 @@ function ApprovalsView({ theme }: { theme: Theme }) {
 // ─── MAIN PAGE ─────────────────────────────────────────
 function TrusteeDashboard({ theme }: { theme?: Theme }) {
   const [activeModule, setActiveModule] = useState('dashboard');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   if (!theme) return null;
 
   const renderContent = () => {
@@ -598,7 +600,7 @@ function TrusteeDashboard({ theme }: { theme?: Theme }) {
       case 'hr': return <HRManagementView theme={theme} />;
       case 'compliance': return <ComplianceView theme={theme} />;
       case 'approvals': return <ApprovalsView theme={theme} />;
-      case 'profile': return <StakeholderProfile role="trustee" theme={theme} />;
+      case 'profile': return <StakeholderProfile role="trustee" theme={theme} onClose={() => setActiveModule('dashboard')} />;
       default: return <DashboardView theme={theme} setActiveModule={setActiveModule} />;
     }
   };
@@ -606,18 +608,24 @@ function TrusteeDashboard({ theme }: { theme?: Theme }) {
   return (
     <div className="flex gap-4 -m-6">
       {/* Module sidebar */}
-      <div className={`w-48 ${theme.cardBg} border-r ${theme.border} min-h-screen p-2 space-y-0.5 shrink-0`}>
-        <p className={`text-[10px] font-bold ${theme.iconColor} uppercase px-3 py-2`}>Governance</p>
+      <div className={`${sidebarCollapsed ? 'w-12' : 'w-48'} ${theme.cardBg} border-r ${theme.border} min-h-screen p-2 space-y-0.5 shrink-0 transition-all duration-200`}>
+        <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-between'} px-2 py-2`}>
+          {!sidebarCollapsed && <p className={`text-[10px] font-bold ${theme.iconColor} uppercase px-1`}>Governance</p>}
+          <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} className={`p-1 rounded-lg ${theme.buttonHover} ${theme.iconColor} transition-all`}>
+            {sidebarCollapsed ? <PanelLeftOpen size={14} /> : <PanelLeftClose size={14} />}
+          </button>
+        </div>
         {modules.map(m => (
           <button
             key={m.id}
             onClick={() => setActiveModule(m.id)}
-            className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+            title={sidebarCollapsed ? m.label : undefined}
+            className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : 'gap-2'} px-3 py-2 rounded-lg text-xs font-medium transition-all ${
               activeModule === m.id ? `${theme.primary} text-white` : `${theme.iconColor} ${theme.buttonHover}`
             }`}
           >
             <m.icon size={14} />
-            {m.label}
+            {!sidebarCollapsed && m.label}
           </button>
         ))}
       </div>
