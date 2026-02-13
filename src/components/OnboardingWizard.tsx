@@ -101,6 +101,11 @@ const INSTITUTION_TYPES = [
 // ─── STEP 1: SCHOOL IDENTITY ──────────────────────────
 function Step1Identity({ theme, onInstitutionTypeChange }: { theme: Theme; onInstitutionTypeChange?: (type: string) => void }) {
   const [institutionType, setInstitutionType] = useState('regular');
+  const [boardSelection, setBoardSelection] = useState('CBSE');
+  const [multiBoards, setMultiBoards] = useState<Record<string, boolean>>({
+    'CBSE': true, 'ICSE / ISC': false, 'State Board (Gujarat)': false, 'State Board (Maharashtra)': false,
+    'IB (International Baccalaureate)': false, 'Cambridge (IGCSE)': false,
+  });
   const [includesPrePrimary, setIncludesPrePrimary] = useState(false);
   const [prePrimaryPrograms, setPrePrimaryPrograms] = useState<Record<string, boolean>>({
     'Playgroup': false, 'Nursery': true, 'LKG': true, 'UKG': true,
@@ -187,8 +192,9 @@ function Step1Identity({ theme, onInstitutionTypeChange }: { theme: Theme; onIns
           <FormField label="Email" placeholder="info@school.edu" type="email" theme={theme} required />
           <FormField label="Website" placeholder="www.school.edu" theme={theme} />
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          <SelectField label="Academic Year" options={['April - March', 'June - May', 'January - December']} value="April - March" theme={theme} required hint="When does your academic year start?" />
+        <div className="grid grid-cols-3 gap-3">
+          <SelectField label="Academic Year Pattern" options={['April - March', 'June - May', 'January - December', 'Custom Start Month']} value="April - March" theme={theme} required hint="When does your academic year start?" />
+          <SelectField label="Current Academic Year" options={['2024-25', '2025-26', '2026-27']} value="2025-26" theme={theme} required hint="e.g. 2025-26" />
           <FormField label="Year of Establishment" placeholder="e.g. 1985" type="number" theme={theme} />
         </div>
       </div>
@@ -198,9 +204,26 @@ function Step1Identity({ theme, onInstitutionTypeChange }: { theme: Theme; onIns
         <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 space-y-3`}>
           <SectionTitle title="Board & School Type" theme={theme} />
           <div className="grid grid-cols-2 gap-3">
-            <SelectField label="Board Affiliation" options={['CBSE', 'ICSE / ISC', 'State Board (Gujarat)', 'State Board (Maharashtra)', 'IB (International Baccalaureate)', 'Cambridge (IGCSE)', 'Multiple Boards']} value="CBSE" theme={theme} required />
+            <SelectField label="Board Affiliation" options={['CBSE', 'ICSE / ISC', 'State Board (Gujarat)', 'State Board (Maharashtra)', 'IB (International Baccalaureate)', 'Cambridge (IGCSE)', 'Multiple Boards']} value={boardSelection} theme={theme} required onChange={setBoardSelection} />
             <FormField label="Affiliation Number" placeholder="e.g. 430126" theme={theme} hint="CBSE/ICSE affiliation ID" />
           </div>
+          {boardSelection === 'Multiple Boards' && (
+            <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+              <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-2`}>Select all applicable boards <span className="text-red-500">*</span></p>
+              <div className="grid grid-cols-2 gap-2">
+                {Object.entries(multiBoards).map(([board, checked]) => (
+                  <button key={board} onClick={() => setMultiBoards(p => ({ ...p, [board]: !p[board] }))}
+                    className={`flex items-center gap-2 p-2.5 rounded-xl border ${checked ? 'border-emerald-300 bg-emerald-50' : theme.border} cursor-pointer transition-all text-left`}>
+                    <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${checked ? 'bg-emerald-500 border-emerald-500' : theme.border}`}>
+                      {checked && <Check size={10} className="text-white" />}
+                    </div>
+                    <span className={`text-xs font-medium ${theme.highlight}`}>{board}</span>
+                  </button>
+                ))}
+              </div>
+              <p className={`text-[10px] ${theme.iconColor} mt-2`}>{Object.values(multiBoards).filter(Boolean).length} board(s) selected. Each board can have separate affiliation numbers and class configurations.</p>
+            </div>
+          )}
           <div className="grid grid-cols-3 gap-3">
             <SelectField label="School Type" options={['K-12 (Nursery to 12th)', 'K-10 (Nursery to 10th)', 'K-8 (Nursery to 8th)', '1-12 (No Pre-primary)', '6-12 (Secondary + Higher)', '11-12 (Higher Secondary only)', 'Custom']} value="K-12 (Nursery to 12th)" theme={theme} required />
             <SelectField label="Medium of Instruction" options={['English Medium', 'Hindi Medium', 'Gujarati Medium', 'Bilingual (English + Hindi)', 'Bilingual (English + Gujarati)', 'Trilingual', 'Other']} value="English Medium" theme={theme} required />

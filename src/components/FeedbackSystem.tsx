@@ -22,75 +22,122 @@ export default function FeedbackSystem({ currentPage, currentUser }: { currentPa
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState('');
   const [isListening, setIsListening] = useState(false);
+  const [interimText, setInterimText] = useState('');
   const recognitionRef = React.useRef<any>(null);
+  const shouldRestartRef = React.useRef(false);
+  const remarkRef = React.useRef(remark);
+
+  // Keep remarkRef in sync
+  useEffect(() => { remarkRef.current = remark; }, [remark]);
 
   // Check if Speech Recognition is supported
   const speechSupported = typeof window !== 'undefined' && ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
 
-  const toggleListening = () => {
-    if (isListening) {
-      // Stop listening
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-        recognitionRef.current = null;
-      }
-      setIsListening(false);
-      return;
+  const stopListening = useCallback(() => {
+    shouldRestartRef.current = false;
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch {}
+      recognitionRef.current = null;
     }
+    setIsListening(false);
+    setInterimText('');
+  }, []);
 
+  const startListening = useCallback(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) return;
+
+    // Clean up any existing instance
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch {}
+    }
 
     const recognition = new SpeechRecognition();
     recognition.lang = 'en-IN';
     recognition.continuous = true;
     recognition.interimResults = true;
-
-    let finalTranscript = '';
+    recognition.maxAlternatives = 1;
 
     recognition.onresult = (event: any) => {
-      let interim = '';
+      let finalText = '';
+      let interimResult = '';
+
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const transcript = event.results[i][0].transcript;
         if (event.results[i].isFinal) {
-          finalTranscript += transcript + ' ';
+          finalText += transcript;
         } else {
-          interim += transcript;
+          interimResult += transcript;
         }
       }
-      // Append finalized text to the remark
-      if (finalTranscript) {
+
+      // Show interim text live (gray preview)
+      setInterimText(interimResult);
+
+      // Append final text to remark
+      if (finalText) {
         setRemark(prev => {
-          const separator = prev && !prev.endsWith(' ') ? ' ' : '';
-          return prev + separator + finalTranscript.trim();
+          const separator = prev && !prev.endsWith(' ') && !prev.endsWith('\n') ? ' ' : '';
+          return prev + separator + finalText.trim();
         });
-        finalTranscript = '';
+        setInterimText('');
       }
     };
 
-    recognition.onerror = () => {
-      setIsListening(false);
-      recognitionRef.current = null;
+    recognition.onerror = (event: any) => {
+      // 'no-speech' and 'aborted' are normal — auto-restart
+      if (event.error === 'no-speech' || event.error === 'aborted') {
+        return; // onend will handle restart
+      }
+      // Real errors — stop completely
+      stopListening();
     };
 
     recognition.onend = () => {
-      setIsListening(false);
-      recognitionRef.current = null;
+      // Auto-restart if user hasn't clicked stop
+      // This is the KEY fix — Speech API stops after silence, we restart it
+      if (shouldRestartRef.current) {
+        try {
+          setTimeout(() => {
+            if (shouldRestartRef.current && recognitionRef.current === recognition) {
+              recognition.start();
+            }
+          }, 100);
+        } catch {
+          stopListening();
+        }
+      } else {
+        setIsListening(false);
+        setInterimText('');
+        recognitionRef.current = null;
+      }
     };
 
-    recognition.start();
-    recognitionRef.current = recognition;
-    setIsListening(true);
+    try {
+      recognition.start();
+      recognitionRef.current = recognition;
+      shouldRestartRef.current = true;
+      setIsListening(true);
+      setInterimText('');
+    } catch {
+      stopListening();
+    }
+  }, [stopListening]);
+
+  const toggleListening = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
+    }
   };
 
   // Clean up recognition when popup closes
   useEffect(() => {
-    if (!isOpen && recognitionRef.current) {
-      recognitionRef.current.stop();
-      recognitionRef.current = null;
-      setIsListening(false);
+    if (!isOpen) {
+      stopListening();
     }
-  }, [isOpen]);
+  }, [isOpen, stopListening]);
 
   // Load feedback for current page
   useEffect(() => {
@@ -274,10 +321,15 @@ export default function FeedbackSystem({ currentPage, currentUser }: { currentPa
               </button>
             </div>
             {isListening && (
-              <p className="text-[10px] text-red-400 mt-1 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                Listening... Click mic again or speak to add text
-              </p>
+              <div className="mt-1">
+                {interimText && (
+                  <p className="text-[10px] text-slate-500 italic mb-0.5">...{interimText}</p>
+                )}
+                <p className="text-[10px] text-red-400 flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                  Listening — speak naturally, pauses are OK. Click mic to stop.
+                </p>
+              </div>
             )}
 
             {/* Priority */}
