@@ -6,12 +6,13 @@ import { StatCard, TabBar, StatusBadge, SearchBar, DataTable, Toggle } from '@/c
 import { type Theme } from '@/lib/themes';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
+import { ChatsView } from '@/components/ChatModule';
 import {
   Home, Shield, UserCheck, ClipboardList, AlertTriangle, Footprints,
   Search, Plus, Eye, Edit, Filter, Download, ChevronDown,
   Users, Clock, Bell, Phone, MapPin, Camera, CreditCard,
   CheckCircle, XCircle, LogIn, LogOut, Car, Truck,
-  ShieldAlert, Siren, Heart, Flame, Building2, Radio,
+  ShieldAlert, Siren, Heart, Flame, Building2, Radio, MessageSquare,
   BadgeCheck, Printer, Hash, User, Baby, ArrowRight, FileText,
   PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
@@ -87,6 +88,7 @@ const modules = [
   { id: 'gate-log', label: 'Gate Log', icon: ClipboardList },
   { id: 'emergency', label: 'Emergency', icon: AlertTriangle },
   { id: 'patrol-log', label: 'Patrol Log', icon: Footprints },
+  { id: 'communication', label: 'Communication', icon: MessageSquare },
 ];
 
 function SecurityDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
@@ -126,6 +128,7 @@ function SecurityDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; 
         {activeModule === 'gate-log' && <GateLogModule theme={theme} />}
         {activeModule === 'emergency' && <EmergencyModule theme={theme} />}
         {activeModule === 'patrol-log' && <PatrolLogModule theme={theme} />}
+        {activeModule === 'communication' && <CommunicationModule theme={theme} />}
         {activeModule === 'profile' && <StakeholderProfile role="security" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>
     </div>
@@ -1059,6 +1062,65 @@ function PatrolLogModule({ theme }: { theme: Theme }) {
             theme={theme}
           />
         </>
+      )}
+    </div>
+  );
+}
+
+// ─── COMMUNICATION MODULE ────────────────────────────
+
+function CommunicationModule({ theme }: { theme: Theme }) {
+  const [commTab, setCommTab] = useState('Chat');
+  const tabs = ['Alerts', 'Messages', 'Chat'];
+
+  return (
+    <div className="space-y-4">
+      <h1 className={`text-2xl font-bold ${theme.highlight}`}>Communication</h1>
+      <TabBar tabs={tabs} active={commTab} onChange={setCommTab} theme={theme} />
+
+      {commTab === 'Chat' && (
+        <div className="h-[calc(100vh-220px)]">
+          <ChatsView theme={theme} compact />
+        </div>
+      )}
+
+      {commTab === 'Alerts' && (
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 space-y-2`}>
+          <h3 className={`text-sm font-bold ${theme.highlight} mb-2`}>Gate Alerts</h3>
+          {[
+            { title: 'Unauthorized Vehicle at Service Gate', detail: 'Unknown van attempted entry without pass. Turned away.', time: '11:45 AM', severity: 'Critical' },
+            { title: 'Fire Extinguisher Expired — Lab 2', detail: 'Found during morning patrol. Maintenance team notified.', time: '08:15 AM', severity: 'Warning' },
+            { title: 'CCTV #7 Angle Shifted', detail: 'First floor corridor camera needs adjustment. IT informed.', time: '09:00 AM', severity: 'Info' },
+          ].map((a, i) => (
+            <div key={i} className={`p-3 rounded-xl ${theme.accentBg} flex items-center gap-3`}>
+              <div className={`w-2 h-2 rounded-full ${a.severity === 'Critical' ? 'bg-red-500' : a.severity === 'Warning' ? 'bg-amber-500' : 'bg-blue-500'}`} />
+              <div className="flex-1">
+                <p className={`text-xs font-bold ${theme.highlight}`}>{a.title}</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>{a.detail}</p>
+              </div>
+              <span className={`text-[10px] ${theme.iconColor}`}>{a.time}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {commTab === 'Messages' && (
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 space-y-2`}>
+          <h3 className={`text-sm font-bold ${theme.highlight} mb-2`}>Recent Messages</h3>
+          {[
+            { from: 'Principal Office', text: 'CBSE inspector arriving at 11 AM. Ensure VIP parking is clear.', time: '09:00 AM' },
+            { from: 'Admin Officer', text: 'Vendor delivery expected at Service Gate between 2-3 PM.', time: '08:30 AM' },
+            { from: 'Transport Head', text: 'Bus #7 delayed. Inform parents waiting at main gate.', time: '07:45 AM' },
+          ].map((m, i) => (
+            <div key={i} className={`p-3 rounded-xl ${theme.accentBg}`}>
+              <div className="flex items-center justify-between mb-1">
+                <span className={`text-xs font-bold ${theme.highlight}`}>{m.from}</span>
+                <span className={`text-[10px] ${theme.iconColor}`}>{m.time}</span>
+              </div>
+              <p className={`text-xs ${theme.iconColor}`}>{m.text}</p>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

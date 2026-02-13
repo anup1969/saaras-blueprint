@@ -6,6 +6,7 @@ import { StatCard, TabBar, StatusBadge, SearchBar, DataTable } from '@/component
 import { type Theme } from '@/lib/themes';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
+import { ChatsView } from '@/components/ChatModule';
 import {
   Home, Building2, Headphones, BarChart3, RefreshCcw, Rocket,
   Search, Filter, Download, Eye, Edit, Phone, Mail, MessageSquare,
@@ -23,6 +24,7 @@ const modules = [
   { id: 'analytics', label: 'Usage Analytics', icon: BarChart3 },
   { id: 'renewals', label: 'Renewals', icon: RefreshCcw },
   { id: 'onboarding', label: 'Onboarding', icon: Rocket },
+  { id: 'communication', label: 'Communication', icon: MessageSquare },
 ];
 
 // ─── MOCK DATA ─────────────────────────────────────
@@ -148,6 +150,7 @@ function AccountManagerDashboard({ theme, themeIdx, onThemeChange }: { theme?: T
         {activeModule === 'analytics' && <AnalyticsModule theme={theme} />}
         {activeModule === 'renewals' && <RenewalsModule theme={theme} />}
         {activeModule === 'onboarding' && <OnboardingModule theme={theme} />}
+        {activeModule === 'communication' && <CommunicationModule theme={theme} />}
         {activeModule === 'profile' && <StakeholderProfile role="account-manager" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>
     </div>
@@ -646,6 +649,65 @@ function OnboardingModule({ theme }: { theme: Theme }) {
             </div>
           ))}
       </div>
+    </div>
+  );
+}
+
+// ─── COMMUNICATION MODULE ────────────────────────────
+
+function CommunicationModule({ theme }: { theme: Theme }) {
+  const [commTab, setCommTab] = useState('Chat');
+  const tabs = ['Messages', 'School Updates', 'Chat'];
+
+  return (
+    <div className="space-y-4">
+      <h1 className={`text-2xl font-bold ${theme.highlight}`}>Communication</h1>
+      <TabBar tabs={tabs} active={commTab} onChange={setCommTab} theme={theme} />
+
+      {commTab === 'Chat' && (
+        <div className="h-[calc(100vh-220px)]">
+          <ChatsView theme={theme} compact />
+        </div>
+      )}
+
+      {commTab === 'Messages' && (
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 space-y-2`}>
+          <h3 className={`text-sm font-bold ${theme.highlight} mb-2`}>Recent Messages</h3>
+          {[
+            { from: 'Mrs. Patel (Anand Niketan)', text: 'Data migration is 65% complete. Need help with fee history import.', time: '10:30 AM' },
+            { from: 'Mr. Desai (Eklavya School)', text: 'Training session 5 completed. Teachers are adapting well.', time: '09:15 AM' },
+            { from: 'Dr. Shah (Calorx Public)', text: 'Contract signed. When can we start the onboarding process?', time: 'Yesterday' },
+          ].map((m, i) => (
+            <div key={i} className={`p-3 rounded-xl ${theme.accentBg}`}>
+              <div className="flex items-center justify-between mb-1">
+                <span className={`text-xs font-bold ${theme.highlight}`}>{m.from}</span>
+                <span className={`text-[10px] ${theme.iconColor}`}>{m.time}</span>
+              </div>
+              <p className={`text-xs ${theme.iconColor}`}>{m.text}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {commTab === 'School Updates' && (
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 space-y-2`}>
+          <h3 className={`text-sm font-bold ${theme.highlight} mb-2`}>School Updates</h3>
+          {[
+            { school: 'Delhi Public School', update: 'NPS score improved from 8 to 9 after latest feature release.', time: '2h ago', type: 'Positive' },
+            { school: 'Udgam School', update: 'Login frequency dropped to 52%. Low adoption risk — needs intervention.', time: '1d ago', type: 'Warning' },
+            { school: 'Navrachana Vidyani', update: 'Renewal coming up on March 1. Last review was Feb 4 — schedule follow-up.', time: '2d ago', type: 'Action' },
+          ].map((u, i) => (
+            <div key={i} className={`p-3 rounded-xl ${theme.accentBg} flex items-center gap-3`}>
+              <div className={`w-2 h-2 rounded-full ${u.type === 'Positive' ? 'bg-emerald-500' : u.type === 'Warning' ? 'bg-red-500' : 'bg-amber-500'}`} />
+              <div className="flex-1">
+                <p className={`text-xs font-bold ${theme.highlight}`}>{u.school}</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>{u.update}</p>
+              </div>
+              <span className={`text-[10px] ${theme.iconColor}`}>{u.time}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

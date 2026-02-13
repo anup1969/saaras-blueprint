@@ -6,6 +6,7 @@ import { StatCard, TabBar, StatusBadge, SearchBar, DataTable } from '@/component
 import { type Theme } from '@/lib/themes';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
+import { ChatsView } from '@/components/ChatModule';
 import {
   Home, Users, UserPlus, Phone, Mail, Calendar, Clock, Search, Plus, Eye, Edit,
   Filter, Download, CheckCircle, AlertTriangle, ArrowRight, PhoneCall, PhoneIncoming,
@@ -23,6 +24,7 @@ const modules = [
   { id: 'courier', label: 'Courier/Mail', icon: Package },
   { id: 'appointments', label: 'Appointments', icon: Calendar },
   { id: 'directory', label: 'Directory', icon: BookOpen },
+  { id: 'communication', label: 'Communication', icon: MessageSquare },
 ];
 
 // ─── MOCK DATA ──────────────────────────────────────
@@ -127,6 +129,7 @@ function ReceptionistDashboard({ theme, themeIdx, onThemeChange }: { theme?: The
         {activeModule === 'courier' && <CourierModule theme={theme} />}
         {activeModule === 'appointments' && <AppointmentsModule theme={theme} />}
         {activeModule === 'directory' && <DirectoryModule theme={theme} />}
+        {activeModule === 'communication' && <CommunicationModule theme={theme} />}
         {activeModule === 'profile' && <StakeholderProfile role="receptionist" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>
     </div>
@@ -568,6 +571,64 @@ function DirectoryModule({ theme }: { theme: Theme }) {
           <button className={`px-3 py-1.5 rounded-lg ${theme.secondaryBg}`}>Next</button>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ─── COMMUNICATION MODULE ────────────────────────────
+
+function CommunicationModule({ theme }: { theme: Theme }) {
+  const [commTab, setCommTab] = useState('Chat');
+  const tabs = ['Messages', 'Notices', 'Chat'];
+
+  return (
+    <div className="space-y-4">
+      <h1 className={`text-2xl font-bold ${theme.highlight}`}>Communication</h1>
+      <TabBar tabs={tabs} active={commTab} onChange={setCommTab} theme={theme} />
+
+      {commTab === 'Chat' && (
+        <div className="h-[calc(100vh-220px)]">
+          <ChatsView theme={theme} compact />
+        </div>
+      )}
+
+      {commTab === 'Messages' && (
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 space-y-2`}>
+          <h3 className={`text-sm font-bold ${theme.highlight} mb-2`}>Recent Messages</h3>
+          {[
+            { from: 'Mrs. Priya Nair (Parent)', text: 'My son Arjun will be absent tomorrow due to a doctor appointment.', time: '10:15 AM' },
+            { from: 'Mr. Dinesh (Accounts)', text: 'Please send the fee query parent to accounts window 2.', time: '09:45 AM' },
+            { from: 'Principal Office', text: 'CBSE inspector arriving at 11 AM. Please arrange visitor pass.', time: '09:00 AM' },
+          ].map((m, i) => (
+            <div key={i} className={`p-3 rounded-xl ${theme.accentBg}`}>
+              <div className="flex items-center justify-between mb-1">
+                <span className={`text-xs font-bold ${theme.highlight}`}>{m.from}</span>
+                <span className={`text-[10px] ${theme.iconColor}`}>{m.time}</span>
+              </div>
+              <p className={`text-xs ${theme.iconColor}`}>{m.text}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {commTab === 'Notices' && (
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 space-y-2`}>
+          <h3 className={`text-sm font-bold ${theme.highlight} mb-2`}>Recent Notices</h3>
+          {[
+            { title: 'Republic Day Celebration', date: '26 Jan 2026', status: 'Published' },
+            { title: 'Annual Sports Day - Schedule', date: '15 Feb 2026', status: 'Draft' },
+            { title: 'PTM Notice - Class 1 to 5', date: '20 Feb 2026', status: 'Published' },
+          ].map((n, i) => (
+            <div key={i} className={`p-3 rounded-xl ${theme.accentBg} flex items-center justify-between`}>
+              <div>
+                <p className={`text-xs font-bold ${theme.highlight}`}>{n.title}</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>{n.date}</p>
+              </div>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${n.status === 'Published' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{n.status}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

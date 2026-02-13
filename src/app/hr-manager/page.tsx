@@ -4,12 +4,14 @@ import React, { useState } from 'react';
 import BlueprintLayout from '@/components/BlueprintLayout';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
+import { ChatsView } from '@/components/ChatModule';
+import { TabBar } from '@/components/shared';
 import { type Theme } from '@/lib/themes';
 import {
   Users, Home, UserPlus, Calendar, Clock, Banknote, Star, FileText, UserMinus, BarChart3,
   Settings, Bell, ChevronLeft, ChevronRight, Check, X, Plus,
   Eye, Edit, Phone, Mail, Trash2, Camera, Award, CheckCircle, XCircle,
-  GripVertical, Cake, Briefcase, Upload, MinusCircle, Wallet, GitBranch, Shield, User,
+  GripVertical, Cake, Briefcase, Upload, MinusCircle, Wallet, GitBranch, Shield, User, MessageSquare, Megaphone,
   PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
 
@@ -36,6 +38,7 @@ const modules = [
   { id: 'offboarding', label: 'Offboarding', icon: UserMinus },
   { id: 'reports', label: 'Reports', icon: BarChart3 },
   { id: 'settings', label: 'Settings', icon: Settings },
+  { id: 'communication', label: 'Communication', icon: MessageSquare },
 ];
 
 // ─── SHARED HELPERS ───────────────────────────────────
@@ -446,8 +449,61 @@ function HRManagerDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme;
         {activeModule === 'offboarding' && <OffboardingModule theme={theme} />}
         {activeModule === 'reports' && <ReportsModule theme={theme} />}
         {activeModule === 'settings' && <SettingsModule theme={theme} />}
+        {activeModule === 'communication' && <CommunicationModule theme={theme} />}
         {activeModule === 'my-profile' && <StakeholderProfile role="hr-manager" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>
+    </div>
+  );
+}
+
+// ─── COMMUNICATION MODULE ────────────────────────────
+function CommunicationModule({ theme }: { theme: Theme }) {
+  const [commTab, setCommTab] = useState('Chat');
+  const tabs = ['Messages', 'Notices', 'Chat'];
+  return (
+    <div className="space-y-3">
+      <h2 className={`text-lg font-bold ${theme.highlight}`}>Communication</h2>
+      <TabBar tabs={tabs} active={commTab} onChange={setCommTab} theme={theme} />
+      {commTab === 'Chat' && <ChatsView theme={theme} compact />}
+      {commTab === 'Messages' && (
+        <div className="space-y-2">
+          {[
+            { from: 'Principal Office', subject: 'New hire onboarding checklist updated', time: '11:00 AM', read: false },
+            { from: 'Accounts Head', subject: 'January payroll discrepancy — 2 staff', time: '09:45 AM', read: true },
+            { from: 'Teaching Staff — Mrs. Sharma', subject: 'Maternity leave application submitted', time: 'Yesterday', read: true },
+          ].map((msg, i) => (
+            <div key={i} className={`${theme.cardBg} rounded-xl border ${theme.border} p-3 flex items-center gap-3`}>
+              <div className={`w-8 h-8 rounded-full ${!msg.read ? theme.primary : theme.secondaryBg} flex items-center justify-center`}>
+                <Mail size={14} className={!msg.read ? 'text-white' : theme.iconColor} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`text-xs font-semibold ${theme.highlight} truncate`}>{msg.from}</p>
+                <p className={`text-[10px] ${theme.iconColor} truncate`}>{msg.subject}</p>
+              </div>
+              <span className={`text-[10px] ${theme.iconColor} shrink-0`}>{msg.time}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      {commTab === 'Notices' && (
+        <div className="space-y-2">
+          {[
+            { title: 'Staff Meeting — Friday 14 Feb, 3:00 PM', date: '11 Feb 2026', category: 'Internal' },
+            { title: 'PF Contribution Update — FY 2025-26', date: '08 Feb 2026', category: 'Compliance' },
+            { title: 'Annual Performance Review Cycle Begins', date: '05 Feb 2026', category: 'HR Policy' },
+          ].map((n, i) => (
+            <div key={i} className={`${theme.cardBg} rounded-xl border ${theme.border} p-3 flex items-center gap-3`}>
+              <div className={`w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center`}>
+                <Megaphone size={14} className="text-amber-500" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`text-xs font-semibold ${theme.highlight} truncate`}>{n.title}</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>{n.date} &middot; {n.category}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -9,11 +9,12 @@ import {
   Search, Bell, Clock, FileText, CheckCircle, XCircle, AlertTriangle,
   Download, ChevronDown, ChevronUp, Eye, Upload, Star, TrendingUp,
   BarChart3, Timer, Library, BookOpenCheck, IndianRupee, Receipt, CreditCard,
-  GraduationCap, User, ArrowRight,
+  GraduationCap, User, ArrowRight, MessageSquare,
   PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
+import { ChatsView } from '@/components/ChatModule';
 
 // ─── STUDENT PROFILE ────────────────────────────────
 const studentProfile = {
@@ -227,6 +228,7 @@ const modules = [
   { id: 'fees', label: 'Fees', icon: Banknote },
   { id: 'library', label: 'Library', icon: BookMarked },
   { id: 'notices', label: 'Notices', icon: Megaphone },
+  { id: 'communication', label: 'Communication', icon: MessageSquare },
 ];
 
 // ─── MAIN COMPONENT ────────────────────────────────
@@ -269,6 +271,7 @@ function StudentDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; t
         {activeModule === 'fees' && <FeesModule theme={theme} />}
         {activeModule === 'library' && <LibraryModule theme={theme} />}
         {activeModule === 'notices' && <NoticesModule theme={theme} />}
+        {activeModule === 'communication' && <CommunicationModule theme={theme} />}
         {activeModule === 'profile' && <StakeholderProfile role="student" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>
     </div>
@@ -1020,6 +1023,38 @@ function NoticesModule({ theme }: { theme: Theme }) {
 }
 
 // ─── EXPORT ─────────────────────────────────────────
+// ─── COMMUNICATION MODULE ────────────────────────────
+function CommunicationModule({ theme }: { theme: Theme }) {
+  const [commTab, setCommTab] = useState('Chat');
+  const tabs = ['Notices', 'Chat'];
+  return (
+    <div className="space-y-3">
+      <h2 className={`text-lg font-bold ${theme.highlight}`}>Communication</h2>
+      <TabBar tabs={tabs} active={commTab} onChange={setCommTab} theme={theme} />
+      {commTab === 'Chat' && <ChatsView theme={theme} compact />}
+      {commTab === 'Notices' && (
+        <div className="space-y-2">
+          {[
+            { title: 'Unit Test 3 Schedule — 18-22 Feb 2026', date: '10 Feb 2026', category: 'Academic' },
+            { title: 'PTM on 22nd February — Parents Invited', date: '09 Feb 2026', category: 'Event' },
+            { title: 'Sports Day Registration Open', date: '07 Feb 2026', category: 'Sports' },
+          ].map((n, i) => (
+            <div key={i} className={`${theme.cardBg} rounded-xl border ${theme.border} p-3 flex items-center gap-3`}>
+              <div className={`w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center`}>
+                <Megaphone size={14} className="text-amber-500" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`text-xs font-semibold ${theme.highlight} truncate`}>{n.title}</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>{n.date} &middot; {n.category}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Page() {
   return (
     <BlueprintLayout>

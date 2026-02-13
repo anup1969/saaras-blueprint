@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import BlueprintLayout from '@/components/BlueprintLayout';
 import { StatCard, TabBar, StatusBadge, DataTable } from '@/components/shared';
+import { ChatsView } from '@/components/ChatModule';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import { type Theme } from '@/lib/themes';
@@ -627,7 +628,7 @@ function CommunicationView({ theme }: { theme: Theme }) {
         </div>
       </div>
 
-      <TabBar tabs={['Announcements', 'Circulars', 'Notices']} active={commTab} onChange={setCommTab} theme={theme} />
+      <TabBar tabs={['Announcements', 'Circulars', 'Notices', 'Chat']} active={commTab} onChange={setCommTab} theme={theme} />
 
       {/* Announcements Tab */}
       {commTab === 'Announcements' && (
@@ -698,6 +699,9 @@ function CommunicationView({ theme }: { theme: Theme }) {
           ))}
         </div>
       )}
+
+      {/* ── Chat Tab ── */}
+      {commTab === 'Chat' && <ChatsView theme={theme} compact />}
 
       {/* New Announcement Modal */}
       {showNewAnnouncement && (

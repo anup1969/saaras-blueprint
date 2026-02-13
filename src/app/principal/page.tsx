@@ -15,6 +15,7 @@ import {
   CalendarClock, Sparkles, Bot, ChevronDown, Loader2, Bus, MapPin, Paperclip,
   ToggleLeft, ToggleRight, Percent
 } from 'lucide-react';
+import { ChatsView } from '@/components/ChatModule';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 
@@ -984,8 +985,6 @@ function CommunicationModule({ theme }: { theme: Theme }) {
   const [commTab, setCommTab] = useState<'Messages' | 'Announcements' | 'Chat'>('Messages');
   const [showNewAnnouncement, setShowNewAnnouncement] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
-  const [selectedChatContact, setSelectedChatContact] = useState<number | null>(null);
-  const [chatInput, setChatInput] = useState('');
   const [announcementForm, setAnnouncementForm] = useState({
     title: '', message: '', audience: 'All Staff', priority: 'Normal' as 'Normal' | 'Important' | 'Urgent', scheduleMode: 'now' as 'now' | 'later', scheduleDate: '',
     studentFilters: { grades: [] as string[], divisions: [] as string[], sectionGroups: [] as string[], houses: [] as string[] },
@@ -1155,115 +1154,7 @@ function CommunicationModule({ theme }: { theme: Theme }) {
       )}
 
       {/* ── Chat Tab ── */}
-      {commTab === 'Chat' && (() => {
-        const chatContacts = [
-          { id: 1, name: 'Rajesh Mehta', role: 'Vice Principal', online: true, avatar: 'RM',
-            messages: [
-              { from: 'them', text: 'Good morning! PTM schedule is confirmed for Saturday.', time: '9:15 AM' },
-              { from: 'me', text: 'Great. Please share the class-wise time slots.', time: '9:18 AM' },
-              { from: 'them', text: 'Sending now. Classes VI-VIII in morning, IX-X after lunch.', time: '9:20 AM' },
-            ]},
-          { id: 2, name: 'Priya Sharma', role: 'Class Teacher - VII A', online: true, avatar: 'PS',
-            messages: [
-              { from: 'them', text: 'Student progress reports for VII A are ready for your review.', time: '10:30 AM' },
-              { from: 'me', text: 'I will review them today. Any concerns?', time: '10:45 AM' },
-              { from: 'them', text: '3 students need attention — sharing details separately.', time: '10:48 AM' },
-            ]},
-          { id: 3, name: 'Amit Patel', role: 'Transport Head', online: false, avatar: 'AP',
-            messages: [
-              { from: 'them', text: 'Bus route #4 has been updated as per your request.', time: 'Yesterday' },
-              { from: 'me', text: 'Thanks. Did parents of affected students get notified?', time: 'Yesterday' },
-              { from: 'them', text: 'Yes, SMS and app notification sent to all 34 parents.', time: 'Yesterday' },
-            ]},
-          { id: 4, name: 'Sunita Iyer', role: 'Accounts Dept.', online: false, avatar: 'SI',
-            messages: [
-              { from: 'me', text: 'Please share the monthly fee collection report.', time: 'Yesterday' },
-              { from: 'them', text: 'Attached. Collection rate is 87% this month.', time: 'Yesterday' },
-            ]},
-        ];
-        const activeContact = chatContacts.find(c => c.id === selectedChatContact) || null;
-
-        return (
-          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} overflow-hidden`} style={{ height: '500px' }}>
-            <div className="flex h-full">
-              {/* Contacts sidebar */}
-              <div className={`w-1/3 border-r ${theme.border} flex flex-col`}>
-                <div className={`px-3 py-2.5 border-b ${theme.border}`}>
-                  <p className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Contacts</p>
-                </div>
-                <div className="flex-1 overflow-y-auto">
-                  {chatContacts.map(c => (
-                    <button
-                      key={c.id}
-                      onClick={() => setSelectedChatContact(c.id)}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-left transition-all ${theme.buttonHover} ${selectedChatContact === c.id ? theme.secondaryBg : ''} border-b ${theme.border}`}
-                    >
-                      <div className="relative shrink-0">
-                        <div className="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center text-[10px] font-bold">{c.avatar}</div>
-                        {c.online && <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-green-400 border-2 border-white" />}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className={`text-xs font-bold ${theme.highlight} truncate`}>{c.name}</p>
-                        <p className={`text-[10px] ${theme.iconColor} truncate`}>{c.role}</p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Chat area */}
-              <div className="flex-1 flex flex-col">
-                {activeContact ? (
-                  <>
-                    {/* Chat header */}
-                    <div className={`px-4 py-2.5 border-b ${theme.border} flex items-center gap-2.5`}>
-                      <div className="relative">
-                        <div className="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center text-[10px] font-bold">{activeContact.avatar}</div>
-                        {activeContact.online && <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-green-400 border-2 border-white" />}
-                      </div>
-                      <div>
-                        <p className={`text-xs font-bold ${theme.highlight}`}>{activeContact.name}</p>
-                        <p className={`text-[10px] ${activeContact.online ? 'text-green-500' : theme.iconColor}`}>{activeContact.online ? 'Online' : 'Offline'}</p>
-                      </div>
-                    </div>
-                    {/* Messages */}
-                    <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                      {activeContact.messages.map((m, i) => (
-                        <div key={i} className={`flex ${m.from === 'me' ? 'justify-end' : 'justify-start'}`}>
-                          <div className={`max-w-[70%] px-3 py-2 rounded-2xl ${m.from === 'me' ? 'bg-green-500 text-white' : `${theme.secondaryBg} ${theme.highlight}`}`}>
-                            <p className="text-xs leading-relaxed">{m.text}</p>
-                            <p className={`text-[9px] mt-1 ${m.from === 'me' ? 'text-green-100' : theme.iconColor} text-right`}>{m.time}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    {/* Input */}
-                    <div className={`px-3 py-2.5 border-t ${theme.border} flex items-center gap-2`}>
-                      <input
-                        type="text"
-                        value={chatInput}
-                        onChange={e => setChatInput(e.target.value)}
-                        placeholder="Type a message..."
-                        className={`flex-1 px-3 py-2 rounded-xl text-xs ${theme.inputBg || theme.secondaryBg} border ${theme.border} ${theme.highlight} outline-none`}
-                      />
-                      <button className="p-2 rounded-xl bg-green-500 text-white hover:bg-green-600 transition-all">
-                        <Send size={14} />
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <div className="flex-1 flex items-center justify-center">
-                    <div className="text-center">
-                      <MessageSquare size={32} className={theme.iconColor} />
-                      <p className={`text-xs ${theme.iconColor} mt-2`}>Select a contact to start chatting</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        );
-      })()}
+      {commTab === 'Chat' && <ChatsView theme={theme} compact />}
 
       {/* ── New Announcement Modal (REMARK 3) ── */}
       {showNewAnnouncement && (

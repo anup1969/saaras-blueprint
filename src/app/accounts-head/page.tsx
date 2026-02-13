@@ -5,12 +5,13 @@ import BlueprintLayout from '@/components/BlueprintLayout';
 import { StatCard, TabBar, StatusBadge, SearchBar, DataTable, Toggle } from '@/components/shared';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
+import { ChatsView } from '@/components/ChatModule';
 import { type Theme } from '@/lib/themes';
 import {
   Home, Banknote, CreditCard, Receipt, Users, FileText, BarChart3, Settings,
   Search, Plus, Eye, Download, Filter, Check, X, Calendar,
   DollarSign, TrendingUp, TrendingDown, AlertTriangle, ArrowRight,
-  Wallet, Building2, ChevronDown, Percent, Clock, Hash, Printer, User,
+  Wallet, Building2, ChevronDown, Percent, Clock, Hash, Printer, User, MessageSquare, Mail, Megaphone,
   PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
 
@@ -70,6 +71,7 @@ const modules = [
   { id: 'bank', label: 'Bank Reconciliation', icon: Building2 },
   { id: 'reports', label: 'Financial Reports', icon: BarChart3 },
   { id: 'receipts', label: 'Receipts', icon: Receipt },
+  { id: 'communication', label: 'Communication', icon: MessageSquare },
 ];
 
 // ─── DASHBOARD VIEW ────────────────────────────────────
@@ -477,6 +479,58 @@ function ReceiptsView({ theme }: { theme: Theme }) {
   );
 }
 
+// ─── COMMUNICATION MODULE ────────────────────────────
+function CommunicationModule({ theme }: { theme: Theme }) {
+  const [commTab, setCommTab] = useState('Chat');
+  const tabs = ['Messages', 'Notices', 'Chat'];
+  return (
+    <div className="space-y-3">
+      <h2 className={`text-lg font-bold ${theme.highlight}`}>Communication</h2>
+      <TabBar tabs={tabs} active={commTab} onChange={setCommTab} theme={theme} />
+      {commTab === 'Chat' && <ChatsView theme={theme} compact />}
+      {commTab === 'Messages' && (
+        <div className="space-y-2">
+          {[
+            { from: 'Principal Office', subject: 'Budget approval for Science Lab equipment', time: '10:15 AM', read: false },
+            { from: 'HR Manager', subject: 'February payroll data ready for processing', time: '09:00 AM', read: true },
+            { from: 'Transport Head', subject: 'Diesel advance request — 5 buses', time: 'Yesterday', read: true },
+          ].map((msg, i) => (
+            <div key={i} className={`${theme.cardBg} rounded-xl border ${theme.border} p-3 flex items-center gap-3`}>
+              <div className={`w-8 h-8 rounded-full ${!msg.read ? theme.primary : theme.secondaryBg} flex items-center justify-center`}>
+                <Mail size={14} className={!msg.read ? 'text-white' : theme.iconColor} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`text-xs font-semibold ${theme.highlight} truncate`}>{msg.from}</p>
+                <p className={`text-[10px] ${theme.iconColor} truncate`}>{msg.subject}</p>
+              </div>
+              <span className={`text-[10px] ${theme.iconColor} shrink-0`}>{msg.time}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      {commTab === 'Notices' && (
+        <div className="space-y-2">
+          {[
+            { title: 'Fee Payment Deadline — 15 Feb 2026', date: '10 Feb 2026', category: 'Fee Reminder' },
+            { title: 'Salary Disbursement — January Complete', date: '07 Feb 2026', category: 'Payroll' },
+            { title: 'GST Filing Due — Q3 FY 2025-26', date: '05 Feb 2026', category: 'Compliance' },
+          ].map((n, i) => (
+            <div key={i} className={`${theme.cardBg} rounded-xl border ${theme.border} p-3 flex items-center gap-3`}>
+              <div className={`w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center`}>
+                <Megaphone size={14} className="text-amber-500" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`text-xs font-semibold ${theme.highlight} truncate`}>{n.title}</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>{n.date} &middot; {n.category}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── MAIN PAGE ─────────────────────────────────────────
 function AccountsHeadDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
   const [activeModule, setActiveModule] = useState('dashboard');
@@ -493,6 +547,7 @@ function AccountsHeadDashboard({ theme, themeIdx, onThemeChange }: { theme?: The
       case 'bank': return <BankView theme={theme} />;
       case 'reports': return <ReportsView theme={theme} />;
       case 'receipts': return <ReceiptsView theme={theme} />;
+      case 'communication': return <CommunicationModule theme={theme} />;
       case 'profile': return <StakeholderProfile role="accounts-head" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />;
       default: return <DashboardView theme={theme} setActiveModule={setActiveModule} />;
     }

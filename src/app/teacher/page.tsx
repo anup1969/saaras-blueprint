@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
+import { ChatsView } from '@/components/ChatModule';
 
 // ─── MOCK DATA ──────────────────────────────────────
 
@@ -137,6 +138,7 @@ const modules = [
   { id: 'leave', label: 'Leave', icon: CalendarDays },
   { id: 'diary', label: 'Diary', icon: Notebook },
   { id: 'reports', label: 'Reports', icon: BarChart3 },
+  { id: 'communication', label: 'Communication', icon: MessageSquare },
 ];
 
 // ─── MAIN COMPONENT ─────────────────────────────────
@@ -193,6 +195,7 @@ function TeacherDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; t
           {activeModule === 'leave' && <LeaveModule theme={theme} />}
           {activeModule === 'diary' && <DiaryModule theme={theme} />}
           {activeModule === 'reports' && <ReportsModule theme={theme} />}
+          {activeModule === 'communication' && <CommunicationModule theme={theme} />}
           {activeModule === 'profile' && <StakeholderProfile role="teacher" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
         </div>
       </div>
@@ -1481,6 +1484,58 @@ function ReportsModule({ theme }: { theme: Theme }) {
 }
 
 // ─── EXPORT ─────────────────────────────────────────
+// ─── COMMUNICATION MODULE ────────────────────────────
+function CommunicationModule({ theme }: { theme: Theme }) {
+  const [commTab, setCommTab] = useState('Chat');
+  const tabs = ['Messages', 'Notices', 'Chat'];
+  return (
+    <div className="space-y-3">
+      <h2 className={`text-lg font-bold ${theme.highlight}`}>Communication</h2>
+      <TabBar tabs={tabs} active={commTab} onChange={setCommTab} theme={theme} />
+      {commTab === 'Chat' && <ChatsView theme={theme} compact />}
+      {commTab === 'Messages' && (
+        <div className="space-y-2">
+          {[
+            { from: 'Principal Office', subject: 'Staff meeting rescheduled to 3 PM', time: '10:30 AM', read: false },
+            { from: 'HR Department', subject: 'Salary slip for January 2026 available', time: '09:15 AM', read: true },
+            { from: 'Parent — Mrs. Kulkarni', subject: 'Regarding Diya\'s absence on 10 Feb', time: 'Yesterday', read: true },
+          ].map((msg, i) => (
+            <div key={i} className={`${theme.cardBg} rounded-xl border ${theme.border} p-3 flex items-center gap-3`}>
+              <div className={`w-8 h-8 rounded-full ${!msg.read ? theme.primary : theme.secondaryBg} flex items-center justify-center`}>
+                <Mail size={14} className={!msg.read ? 'text-white' : theme.iconColor} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`text-xs font-semibold ${theme.highlight} truncate`}>{msg.from}</p>
+                <p className={`text-[10px] ${theme.iconColor} truncate`}>{msg.subject}</p>
+              </div>
+              <span className={`text-[10px] ${theme.iconColor} shrink-0`}>{msg.time}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      {commTab === 'Notices' && (
+        <div className="space-y-2">
+          {[
+            { title: 'Unit Test 3 Schedule — Classes 8 to 10', date: '10 Feb 2026', category: 'Academic' },
+            { title: 'PTM Notice — 22nd February 2026', date: '09 Feb 2026', category: 'Event' },
+            { title: 'Revised Assembly Timing from March', date: '08 Feb 2026', category: 'Administrative' },
+          ].map((n, i) => (
+            <div key={i} className={`${theme.cardBg} rounded-xl border ${theme.border} p-3 flex items-center gap-3`}>
+              <div className={`w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center`}>
+                <Megaphone size={14} className="text-amber-500" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`text-xs font-semibold ${theme.highlight} truncate`}>{n.title}</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>{n.date} &middot; {n.category}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Page() {
   return (
     <BlueprintLayout>

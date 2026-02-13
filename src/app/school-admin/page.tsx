@@ -14,6 +14,7 @@ import {
   Upload, ClipboardCheck, Receipt, Printer, Hash, Heart, Building, Landmark, User,
   PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
+import { ChatsView } from '@/components/ChatModule';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 
@@ -1176,8 +1177,6 @@ function CommunicateModule({ theme }: { theme: Theme }) {
   const [tab, setTab] = useState('Announcements');
   const [showNewAnnouncement, setShowNewAnnouncement] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
-  const [selectedChatContact, setSelectedChatContact] = useState<number | null>(null);
-  const [chatInput, setChatInput] = useState('');
   const [announcementForm, setAnnouncementForm] = useState({
     title: '', message: '', audience: 'All Staff', priority: 'Normal' as 'Normal' | 'Important' | 'Urgent', scheduleMode: 'now' as 'now' | 'later', scheduleDate: '',
     studentFilters: { grades: [] as string[], divisions: [] as string[], sectionGroups: [] as string[], houses: [] as string[] },
@@ -1318,107 +1317,7 @@ function CommunicateModule({ theme }: { theme: Theme }) {
       )}
 
       {/* ── Chat Tab ── */}
-      {tab === 'Chat' && (() => {
-        const chatContacts = [
-          { id: 1, name: 'Dr. Ramesh Gupta', role: 'Principal', online: true, avatar: 'RG',
-            messages: [
-              { from: 'them', text: 'Please prepare the fee defaulters list for the board meeting.', time: '9:00 AM' },
-              { from: 'me', text: 'Already prepared. Sharing the report now.', time: '9:10 AM' },
-              { from: 'them', text: 'Great. Also include last quarter comparison.', time: '9:12 AM' },
-            ]},
-          { id: 2, name: 'Rajesh Mehta', role: 'Vice Principal', online: true, avatar: 'RM',
-            messages: [
-              { from: 'them', text: 'Need classroom allocation for the extra section.', time: '10:30 AM' },
-              { from: 'me', text: 'Room 204 is available. Shall I allocate?', time: '10:35 AM' },
-            ]},
-          { id: 3, name: 'Sunita Iyer', role: 'Accounts Head', online: false, avatar: 'SI',
-            messages: [
-              { from: 'me', text: 'Please share the salary disbursement status.', time: 'Yesterday' },
-              { from: 'them', text: 'All salaries processed. 2 pending bank verifications.', time: 'Yesterday' },
-            ]},
-          { id: 4, name: 'Amit Patel', role: 'Transport Head', online: true, avatar: 'AP',
-            messages: [
-              { from: 'them', text: 'Bus #7 maintenance is complete. Back on route tomorrow.', time: '2h ago' },
-              { from: 'me', text: 'Good. Notify the affected parents.', time: '2h ago' },
-            ]},
-        ];
-        const activeContact = chatContacts.find(c => c.id === selectedChatContact) || null;
-
-        return (
-          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} overflow-hidden`} style={{ height: '500px' }}>
-            <div className="flex h-full">
-              <div className={`w-1/3 border-r ${theme.border} flex flex-col`}>
-                <div className={`px-3 py-2.5 border-b ${theme.border}`}>
-                  <p className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Contacts</p>
-                </div>
-                <div className="flex-1 overflow-y-auto">
-                  {chatContacts.map(c => (
-                    <button
-                      key={c.id}
-                      onClick={() => setSelectedChatContact(c.id)}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-left transition-all ${theme.buttonHover} ${selectedChatContact === c.id ? theme.secondaryBg : ''} border-b ${theme.border}`}
-                    >
-                      <div className="relative shrink-0">
-                        <div className="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center text-[10px] font-bold">{c.avatar}</div>
-                        {c.online && <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-green-400 border-2 border-white" />}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className={`text-xs font-bold ${theme.highlight} truncate`}>{c.name}</p>
-                        <p className={`text-[10px] ${theme.iconColor} truncate`}>{c.role}</p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="flex-1 flex flex-col">
-                {activeContact ? (
-                  <>
-                    <div className={`px-4 py-2.5 border-b ${theme.border} flex items-center gap-2.5`}>
-                      <div className="relative">
-                        <div className="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center text-[10px] font-bold">{activeContact.avatar}</div>
-                        {activeContact.online && <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-green-400 border-2 border-white" />}
-                      </div>
-                      <div>
-                        <p className={`text-xs font-bold ${theme.highlight}`}>{activeContact.name}</p>
-                        <p className={`text-[10px] ${activeContact.online ? 'text-green-500' : theme.iconColor}`}>{activeContact.online ? 'Online' : 'Offline'}</p>
-                      </div>
-                    </div>
-                    <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                      {activeContact.messages.map((m, i) => (
-                        <div key={i} className={`flex ${m.from === 'me' ? 'justify-end' : 'justify-start'}`}>
-                          <div className={`max-w-[70%] px-3 py-2 rounded-2xl ${m.from === 'me' ? 'bg-green-500 text-white' : `${theme.secondaryBg} ${theme.highlight}`}`}>
-                            <p className="text-xs leading-relaxed">{m.text}</p>
-                            <p className={`text-[9px] mt-1 ${m.from === 'me' ? 'text-green-100' : theme.iconColor} text-right`}>{m.time}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <div className={`px-3 py-2.5 border-t ${theme.border} flex items-center gap-2`}>
-                      <input
-                        type="text"
-                        value={chatInput}
-                        onChange={e => setChatInput(e.target.value)}
-                        placeholder="Type a message..."
-                        className={`flex-1 px-3 py-2 rounded-xl text-xs ${theme.inputBg || theme.secondaryBg} border ${theme.border} ${theme.highlight} outline-none`}
-                      />
-                      <button className="p-2 rounded-xl bg-green-500 text-white hover:bg-green-600 transition-all">
-                        <Send size={14} />
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <div className="flex-1 flex items-center justify-center">
-                    <div className="text-center">
-                      <MessageSquare size={32} className={theme.iconColor} />
-                      <p className={`text-xs ${theme.iconColor} mt-2`}>Select a contact to start chatting</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        );
-      })()}
+      {tab === 'Chat' && <ChatsView theme={theme} compact />}
 
       {/* New Announcement Modal */}
       {showNewAnnouncement && (

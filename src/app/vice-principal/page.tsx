@@ -5,12 +5,13 @@ import BlueprintLayout from '@/components/BlueprintLayout';
 import { StatCard, TabBar, StatusBadge, SearchBar, DataTable } from '@/components/shared';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
+import { ChatsView } from '@/components/ChatModule';
 import { type Theme } from '@/lib/themes';
 import {
   Home, Users, UserCheck, Calendar, Clock, Shield, Search, Plus, Filter, Download,
   Eye, Edit, AlertTriangle, FileText, Send, BookOpen, ArrowRight,
   ClipboardCheck, Bell, CheckCircle, XCircle, Repeat, Gavel,
-  LayoutGrid, Megaphone, UserMinus, MapPin, Coffee, Award, User,
+  LayoutGrid, Megaphone, UserMinus, MapPin, Coffee, Award, User, MessageSquare, Mail,
   PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
 
@@ -23,6 +24,7 @@ const modules = [
   { id: 'examinations', label: 'Examinations', icon: BookOpen },
   { id: 'staff-duties', label: 'Staff Duties', icon: ClipboardCheck },
   { id: 'circulars', label: 'Circulars', icon: Megaphone },
+  { id: 'communication', label: 'Communication', icon: MessageSquare },
 ];
 
 // ─── MOCK DATA ──────────────────────────────────────
@@ -139,6 +141,7 @@ function VicePrincipalDashboard({ theme, themeIdx, onThemeChange }: { theme?: Th
         {activeModule === 'examinations' && <ExaminationsModule theme={theme} />}
         {activeModule === 'staff-duties' && <StaffDutiesModule theme={theme} />}
         {activeModule === 'circulars' && <CircularsModule theme={theme} />}
+        {activeModule === 'communication' && <CommunicationModule theme={theme} />}
         {activeModule === 'profile' && <StakeholderProfile role="vice-principal" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>
     </div>
@@ -724,6 +727,78 @@ function CircularsModule({ theme }: { theme: Theme }) {
 }
 
 // ─── EXPORT ─────────────────────────────────────────
+// ─── COMMUNICATION MODULE ────────────────────────────
+function CommunicationModule({ theme }: { theme: Theme }) {
+  const [commTab, setCommTab] = useState('Chat');
+  const tabs = ['Messages', 'Circulars', 'Announcements', 'Chat'];
+  return (
+    <div className="space-y-3">
+      <h2 className={`text-lg font-bold ${theme.highlight}`}>Communication</h2>
+      <TabBar tabs={tabs} active={commTab} onChange={setCommTab} theme={theme} />
+      {commTab === 'Chat' && <ChatsView theme={theme} compact />}
+      {commTab === 'Messages' && (
+        <div className="space-y-2">
+          {[
+            { from: 'Principal — Dr. R. Joshi', subject: 'Board inspection prep — action items', time: '10:45 AM', read: false },
+            { from: 'HOD Science — Mr. Patel', subject: 'Lab equipment requisition for Feb', time: '09:30 AM', read: true },
+            { from: 'Transport Head', subject: 'Bus route 5 driver on leave — cover needed', time: 'Yesterday', read: true },
+          ].map((msg, i) => (
+            <div key={i} className={`${theme.cardBg} rounded-xl border ${theme.border} p-3 flex items-center gap-3`}>
+              <div className={`w-8 h-8 rounded-full ${!msg.read ? theme.primary : theme.secondaryBg} flex items-center justify-center`}>
+                <Mail size={14} className={!msg.read ? 'text-white' : theme.iconColor} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`text-xs font-semibold ${theme.highlight} truncate`}>{msg.from}</p>
+                <p className={`text-[10px] ${theme.iconColor} truncate`}>{msg.subject}</p>
+              </div>
+              <span className={`text-[10px] ${theme.iconColor} shrink-0`}>{msg.time}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      {commTab === 'Circulars' && (
+        <div className="space-y-2">
+          {[
+            { title: 'Unit Test 3 Schedule — Classes 8 to 10', date: '10 Feb 2026', audience: 'All Teachers', status: 'Published' },
+            { title: 'PTM Notice — 22nd February 2026', date: '09 Feb 2026', audience: 'All Staff + Parents', status: 'Published' },
+            { title: 'Annual Day Rehearsal Schedule', date: '12 Feb 2026', audience: 'Selected Teachers', status: 'Draft' },
+          ].map((c, i) => (
+            <div key={i} className={`${theme.cardBg} rounded-xl border ${theme.border} p-3 flex items-center gap-3`}>
+              <div className={`w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center`}>
+                <Megaphone size={14} className="text-blue-500" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`text-xs font-semibold ${theme.highlight} truncate`}>{c.title}</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>{c.date} &middot; {c.audience}</p>
+              </div>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full ${c.status === 'Published' ? 'bg-emerald-500/20 text-emerald-500' : 'bg-amber-500/20 text-amber-500'}`}>{c.status}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      {commTab === 'Announcements' && (
+        <div className="space-y-2">
+          {[
+            { title: 'Republic Day Celebration — 26 Jan Highlights', date: '27 Jan 2026', type: 'School-wide' },
+            { title: 'New Library Wing Opening on 1 March', date: '05 Feb 2026', type: 'School-wide' },
+            { title: 'Parent Volunteer Program — Registrations Open', date: '08 Feb 2026', type: 'Parents' },
+          ].map((a, i) => (
+            <div key={i} className={`${theme.cardBg} rounded-xl border ${theme.border} p-3 flex items-center gap-3`}>
+              <div className={`w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center`}>
+                <Bell size={14} className="text-purple-500" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`text-xs font-semibold ${theme.highlight} truncate`}>{a.title}</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>{a.date} &middot; {a.type}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Page() {
   return (
     <BlueprintLayout>
