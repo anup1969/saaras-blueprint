@@ -107,12 +107,20 @@ function Step1Identity({ theme, onInstitutionTypeChange }: { theme: Theme; onIns
     'CBSE': true, 'ICSE / ISC': false, 'State Board (Gujarat)': false, 'State Board (Maharashtra)': false,
     'IB (International Baccalaureate)': false, 'Cambridge (IGCSE)': false,
   });
+  // REMARK 10: Multiple boards → different entities/school names
+  const [differentEntities, setDifferentEntities] = useState(false);
+  const [boardEntityNames, setBoardEntityNames] = useState<Record<string, string>>({});
+  // REMARK 13: Custom Start Month picker
+  const [academicYearPattern, setAcademicYearPattern] = useState('April - March');
+  const [customStartMonth, setCustomStartMonth] = useState('');
   const [includesPrePrimary, setIncludesPrePrimary] = useState(false);
   const [prePrimaryPrograms, setPrePrimaryPrograms] = useState<Record<string, boolean>>({
     'Playgroup': false, 'Nursery': true, 'LKG': true, 'UKG': true,
   });
   const isPreschool = institutionType === 'preschool';
   const isConnected = institutionType === 'connected';
+  const selectedBoards = Object.entries(multiBoards).filter(([, v]) => v).map(([k]) => k);
+  const multipleSelected = boardSelection === 'Multiple Boards' && selectedBoards.length > 1;
 
   const handleTypeChange = (type: string) => {
     setInstitutionType(type);
@@ -188,16 +196,54 @@ function Step1Identity({ theme, onInstitutionTypeChange }: { theme: Theme; onIns
           <SelectField label="State" options={['Gujarat', 'Maharashtra', 'Rajasthan', 'Delhi', 'Karnataka', 'Tamil Nadu', 'Uttar Pradesh', 'Other']} theme={theme} required />
           <FormField label="PIN Code" placeholder="380015" type="number" theme={theme} required />
         </div>
+        {/* REMARK 11 & 12: Primary/Secondary Phone & Email */}
         <div className="grid grid-cols-3 gap-3">
-          <FormField label="Phone" placeholder="+91 79 XXXX XXXX" theme={theme} required />
-          <FormField label="Email" placeholder="info@school.edu" type="email" theme={theme} required />
+          <FormField label="Primary Phone" placeholder="+91 79 XXXX XXXX" theme={theme} required />
+          <FormField label="Primary Email" placeholder="info@school.edu" type="email" theme={theme} required />
           <FormField label="Website" placeholder="www.school.edu" theme={theme} />
         </div>
+        <div className="grid grid-cols-2 gap-3">
+          <FormField label="Secondary Phone" placeholder="+91 79 XXXX XXXX" theme={theme} hint="Alternate contact number" />
+          <FormField label="Secondary Email" placeholder="admin@school.edu" type="email" theme={theme} hint="Alternate email for notifications" />
+        </div>
         <div className="grid grid-cols-3 gap-3">
-          <SelectField label="Academic Year Pattern" options={['April - March', 'June - May', 'January - December', 'Custom Start Month']} value="April - March" theme={theme} required hint="When does your academic year start?" />
+          <SelectField label="Academic Year Pattern" options={['April - March', 'June - May', 'January - December', 'Custom Start Month']} value={academicYearPattern} onChange={setAcademicYearPattern} theme={theme} required hint="When does your academic year start?" />
           <SelectField label="Current Academic Year" options={['2024-25', '2025-26', '2026-27']} value="2025-26" theme={theme} required hint="e.g. 2025-26" />
           <FormField label="Year of Establishment" placeholder="e.g. 1985" type="number" theme={theme} />
         </div>
+        {/* REMARK 13: Custom Start Month picker */}
+        {academicYearPattern === 'Custom Start Month' && (
+          <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+            <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-2 block`}>
+              Select Start Month <span className="text-red-500">*</span>
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map(month => (
+                <button
+                  key={month}
+                  onClick={() => setCustomStartMonth(month)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
+                    customStartMonth === month
+                      ? 'border-emerald-400 bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'
+                      : `${theme.border} ${theme.cardBg} ${theme.highlight} hover:bg-slate-50`
+                  }`}
+                >
+                  {month}
+                </button>
+              ))}
+            </div>
+            {customStartMonth && (
+              <p className={`text-[10px] ${theme.iconColor} mt-2`}>
+                <CheckCircle size={10} className="inline mr-1 text-emerald-500" />
+                Academic year will run from <strong>{customStartMonth}</strong> to <strong>{
+                  ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][
+                    (['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].indexOf(customStartMonth) + 11) % 12
+                  ]
+                }</strong>.
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Board & School Type — shown for Regular School and Connected School */}
@@ -223,6 +269,42 @@ function Step1Identity({ theme, onInstitutionTypeChange }: { theme: Theme; onIns
                 ))}
               </div>
               <p className={`text-[10px] ${theme.iconColor} mt-2`}>{Object.values(multiBoards).filter(Boolean).length} board(s) selected. Each board can have separate affiliation numbers and class configurations.</p>
+
+              {/* REMARK 10: Multiple boards → different entities/school names */}
+              {multipleSelected && (
+                <div className={`mt-3 p-3 rounded-xl border ${theme.border} ${theme.cardBg}`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <p className={`text-xs font-bold ${theme.highlight}`}>Are these boards under different school entities/names?</p>
+                      <p className={`text-[10px] ${theme.iconColor}`}>Different boards sometimes operate under separate legal entities or school names</p>
+                    </div>
+                    <Toggle on={differentEntities} onChange={() => setDifferentEntities(!differentEntities)} theme={theme} />
+                  </div>
+                  {differentEntities ? (
+                    <div className="space-y-2 mt-3 pt-3 border-t border-dashed border-slate-200">
+                      <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1`}>School Name / Entity per Board</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {selectedBoards.map(board => (
+                          <div key={board}>
+                            <label className={`text-[10px] ${theme.iconColor} mb-0.5 block`}>{board}</label>
+                            <input
+                              value={boardEntityNames[board] || ''}
+                              onChange={(e) => setBoardEntityNames(prev => ({ ...prev, [board]: e.target.value }))}
+                              placeholder={`Entity name for ${board}`}
+                              className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none focus:ring-2 focus:ring-slate-300 ${theme.highlight}`}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <p className={`text-[10px] ${theme.iconColor} mt-1`}>
+                      <CheckCircle size={10} className="inline mr-1 text-emerald-500" />
+                      All boards operate under the same school name.
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           )}
           <div className="grid grid-cols-3 gap-3">
@@ -409,6 +491,22 @@ function Step2Academic({ theme, institutionType }: { theme: Theme; institutionTy
 
   // State-managed shifts
   const [workingDays, setWorkingDays] = useState('Monday - Saturday');
+  // REMARKS 6, 7, 8, 9: Per-day schedule for Custom working days
+  type DayStatus = 'Regular' | 'Half Day' | 'Holiday for Students' | 'Complete Holiday';
+  const [daySchedule, setDaySchedule] = useState<Record<string, { status: DayStatus; halfDayEnd: string }>>({
+    'Monday': { status: 'Regular', halfDayEnd: '12:00' },
+    'Tuesday': { status: 'Regular', halfDayEnd: '12:00' },
+    'Wednesday': { status: 'Regular', halfDayEnd: '12:00' },
+    'Thursday': { status: 'Regular', halfDayEnd: '12:00' },
+    'Friday': { status: 'Regular', halfDayEnd: '12:00' },
+    'Saturday': { status: 'Half Day', halfDayEnd: '12:00' },
+  });
+  const updateDayStatus = (day: string, status: DayStatus) => {
+    setDaySchedule(prev => ({ ...prev, [day]: { ...prev[day], status } }));
+  };
+  const updateDayHalfEnd = (day: string, halfDayEnd: string) => {
+    setDaySchedule(prev => ({ ...prev, [day]: { ...prev[day], halfDayEnd } }));
+  };
   const [shifts, setShifts] = useState<ShiftEntry[]>([
     { id: 's1', name: 'Pre-Primary Morning', level: 'Pre-Primary', startTime: '08:00', endTime: '12:00', periods: 5, periodDuration: 35 },
     { id: 's2', name: 'Primary Morning', level: 'Primary', startTime: '08:00', endTime: '14:00', periods: 7, periodDuration: 40 },
@@ -722,6 +820,80 @@ function Step2Academic({ theme, institutionType }: { theme: Theme; institutionTy
           <SelectField label="Working Days (applies to all shifts)" options={['Monday - Friday', 'Monday - Saturday', 'Custom']} value={workingDays} onChange={setWorkingDays} theme={theme} required />
         </div>
 
+        {/* REMARKS 6, 7, 8, 9: Per-day schedule when Custom working days is selected */}
+        {workingDays === 'Custom' && (
+          <div className={`mb-4 p-4 rounded-xl ${theme.secondaryBg} border ${theme.border}`}>
+            <div className="mb-3">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Per-Day Schedule Configuration</p>
+              <p className={`text-[10px] ${theme.iconColor} mt-0.5`}>Configure each day individually — set regular, half-day, or holiday status</p>
+            </div>
+            <div className="space-y-2">
+              {/* Header row */}
+              <div className="grid grid-cols-6 gap-2 items-center">
+                <span className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Day</span>
+                <span className={`text-[10px] font-bold ${theme.iconColor} uppercase text-center`}>Regular</span>
+                <span className={`text-[10px] font-bold ${theme.iconColor} uppercase text-center`}>Half Day</span>
+                <span className={`text-[10px] font-bold ${theme.iconColor} uppercase text-center`}>Students Off</span>
+                <span className={`text-[10px] font-bold ${theme.iconColor} uppercase text-center`}>All Holiday</span>
+                <span className={`text-[10px] font-bold ${theme.iconColor} uppercase text-center`}>Half-Day End</span>
+              </div>
+              {Object.entries(daySchedule).map(([day, config]) => (
+                <div key={day} className={`grid grid-cols-6 gap-2 items-center p-2 rounded-lg ${
+                  config.status === 'Complete Holiday' ? 'bg-red-50' :
+                  config.status === 'Holiday for Students' ? 'bg-amber-50' :
+                  config.status === 'Half Day' ? 'bg-blue-50' :
+                  theme.cardBg
+                }`}>
+                  <span className={`text-xs font-bold ${theme.highlight}`}>{day}</span>
+                  {(['Regular', 'Half Day', 'Holiday for Students', 'Complete Holiday'] as DayStatus[]).map(status => (
+                    <div key={status} className="flex justify-center">
+                      <button
+                        onClick={() => updateDayStatus(day, status)}
+                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-all ${
+                          config.status === status
+                            ? status === 'Complete Holiday' ? 'bg-red-500 border-red-500' :
+                              status === 'Holiday for Students' ? 'bg-amber-500 border-amber-500' :
+                              status === 'Half Day' ? 'bg-blue-500 border-blue-500' :
+                              'bg-emerald-500 border-emerald-500'
+                            : theme.border
+                        }`}
+                      >
+                        {config.status === status && <Check size={10} className="text-white" />}
+                      </button>
+                    </div>
+                  ))}
+                  <div className="flex justify-center">
+                    {config.status === 'Half Day' ? (
+                      <input
+                        type="time"
+                        value={config.halfDayEnd}
+                        onChange={(e) => updateDayHalfEnd(day, e.target.value)}
+                        className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] outline-none w-full ${theme.highlight}`}
+                      />
+                    ) : (
+                      <span className={`text-[10px] ${theme.iconColor}`}>—</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 space-y-1">
+              <p className={`text-[10px] ${theme.iconColor}`}>
+                <Info size={10} className="inline mr-1 text-blue-500" />
+                <strong>Students Off:</strong> Students have a holiday, but admin/staff are working (e.g., some Saturdays).
+              </p>
+              <p className={`text-[10px] ${theme.iconColor}`}>
+                <Info size={10} className="inline mr-1 text-blue-500" />
+                <strong>Half Day:</strong> Adjusted end time for all shifts — specify the half-day end time.
+              </p>
+              <p className={`text-[10px] ${theme.iconColor}`}>
+                <AlertCircle size={10} className="inline mr-1 text-amber-500" />
+                Saturday schedules can differ — e.g., students off but admin staff working. Use "Students Off" for this scenario.
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="space-y-3">
           {shifts.map((shift, idx) => (
             <div key={shift.id} className={`p-4 rounded-xl ${theme.secondaryBg} relative`}>
@@ -931,27 +1103,6 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
   const [addonStudentCount, setAddonStudentCount] = useState(0);
   const [addonPeriod, setAddonPeriod] = useState(periodOptions[0]);
 
-  // When plan changes, reset limits to defaults
-  const handlePlanChange = (planId: string) => {
-    setSelectedPlan(planId);
-    setStorage(storageDefaults[planId] ?? 10);
-    setDataBucket(storageDefaults[planId] ?? 10);
-    setMaxStaff(staffDefaults[planId] ?? 100);
-    setMaxStudents(studentDefaults[planId] ?? 0);
-  };
-
-  // When SKU type changes, pick the best default tier
-  const handleSkuChange = (sku: 'sms-pack' | 'sms-students') => {
-    setSkuType(sku);
-    if (sku === 'sms-pack') {
-      handlePlanChange('enterprise');
-      setAddStudentLicenses(false);
-      setAddonStudentCount(0);
-    } else {
-      handlePlanChange('powerpack');
-    }
-  };
-
   // ─── MODULE TOGGLES ───
   const allModuleNames = [
     'Dashboard', 'Student Management', 'Staff Management', 'Fee Management',
@@ -964,34 +1115,16 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
     'API Access', 'White Label Branding',
   ];
 
-  const [modules, setModules] = useState<Record<string, boolean>>(() => {
-    const init: Record<string, boolean> = {};
-    allModuleNames.forEach(m => { init[m] = true; });
-    init['Inventory Management'] = false;
-    init['Hostel Management'] = false;
-    init['Alumni Management'] = false;
-    init['Canteen Management'] = true;
-    return init;
-  });
-
   const coreModules = ['Dashboard', 'Student Management', 'Staff Management', 'Fee Management', 'Attendance', 'Timetable', 'Parent Portal', 'Student Portal', 'Communication / Chat', 'Online Payment', 'Enquiry / Admission', 'Homework / Assignments'];
   const proModules = ['Transport Management', 'Visitor Management', 'Library', 'Examination & Report Cards', 'HR & Payroll', 'Leave Management', 'Certificates', 'Canteen Management'];
   const entModules = ['SQAAF / Quality Assessment', 'Inventory Management', 'Hostel Management', 'Alumni Management', 'Advanced Analytics', 'Custom Reports Builder', 'API Access', 'White Label Branding'];
 
-  // Get excluded modules for current tier
-  const excludedModules: string[] = (skuType === 'sms-students' && 'excludedModules' in currentTier)
-    ? (currentTier as typeof smsStudentTiers[0]).excludedModules
-    : [];
-
-  const isModuleExcluded = (name: string) => excludedModules.includes(name);
-
-  const toggleModule = (name: string) => {
-    if (coreModules.includes(name)) return;
-    if (isModuleExcluded(name)) return;
-    setModules(p => ({ ...p, [name]: !p[name] }));
-  };
-
-  const enabledCount = Object.entries(modules).filter(([name, on]) => on && !isModuleExcluded(name)).length;
+  // REMARK 3: Default modules match the default plan (powerpack = all enabled)
+  const [modules, setModules] = useState<Record<string, boolean>>(() => {
+    const init: Record<string, boolean> = {};
+    allModuleNames.forEach(m => { init[m] = true; });
+    return init;
+  });
 
   // ─── SUPPORT OPTIONS ───
   const supportChannels = [
@@ -1021,11 +1154,99 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
   const includedSupport = getIncludedSupport();
   const allSupportUnlimited = includedSupport.length === supportChannels.length;
 
+  // REMARK 4: Default support toggles to ONLY tier-included channels (no 7-day trial)
   const [supportToggles, setSupportToggles] = useState<Record<string, boolean>>(() => {
     const init: Record<string, boolean> = {};
-    supportChannels.forEach(c => { init[c.id] = true; }); // Start with all on (7-day trial)
+    const defaultIncluded = getIncludedSupport();
+    supportChannels.forEach(c => { init[c.id] = defaultIncluded.includes(c.id); });
     return init;
   });
+
+  // When plan changes, reset limits to defaults AND auto-set module toggles
+  const handlePlanChange = (planId: string) => {
+    setSelectedPlan(planId);
+    setStorage(storageDefaults[planId] ?? 10);
+    setDataBucket(storageDefaults[planId] ?? 10);
+    setMaxStaff(staffDefaults[planId] ?? 100);
+    setMaxStudents(studentDefaults[planId] ?? 0);
+
+    // ─── REMARK 3: Auto-set module toggles based on plan ───
+    const newModules: Record<string, boolean> = {};
+    const standardExcluded = ['Transport Management', 'HR & Payroll', 'Canteen Management', 'Alumni Management'];
+
+    if (skuType === 'sms-students') {
+      if (planId === 'standard') {
+        // Standard: core + pro enabled EXCEPT excluded ones
+        allModuleNames.forEach(m => {
+          if (standardExcluded.includes(m)) {
+            newModules[m] = false;
+          } else if (coreModules.includes(m) || proModules.includes(m)) {
+            newModules[m] = true;
+          } else {
+            newModules[m] = false;
+          }
+        });
+      } else {
+        // 360 and Power Pack: ALL modules enabled
+        allModuleNames.forEach(m => { newModules[m] = true; });
+      }
+    } else {
+      // SMS Pack tiers
+      if (planId === 'starter') {
+        // Starter: only core modules checked
+        allModuleNames.forEach(m => { newModules[m] = coreModules.includes(m); });
+      } else if (planId === 'professional') {
+        // Professional: core + pro
+        allModuleNames.forEach(m => { newModules[m] = coreModules.includes(m) || proModules.includes(m); });
+      } else {
+        // Enterprise: all modules
+        allModuleNames.forEach(m => { newModules[m] = true; });
+      }
+    }
+    setModules(newModules);
+
+    // ─── REMARK 4: Auto-set support toggles based on plan ───
+    const newSupport: Record<string, boolean> = {};
+    let included: string[] = ['inbuilt-chat'];
+    if (skuType === 'sms-pack') {
+      if (planId === 'starter') included = ['inbuilt-chat'];
+      else if (planId === 'professional') included = ['inbuilt-chat', 'live-agent'];
+      else if (planId === 'enterprise') included = ['inbuilt-chat', 'live-agent', 'ai-chat', 'whatsapp', 'email', 'phone', 'gmeet'];
+    } else {
+      if (planId === 'standard') included = ['inbuilt-chat'];
+      else if (planId === '360') included = ['inbuilt-chat', 'live-agent'];
+      else if (planId === 'powerpack') included = ['inbuilt-chat', 'live-agent', 'ai-chat', 'whatsapp', 'email', 'phone', 'gmeet'];
+    }
+    supportChannels.forEach(c => { newSupport[c.id] = included.includes(c.id); });
+    setSupportToggles(newSupport);
+  };
+
+  // When SKU type changes, pick the best default tier
+  const handleSkuChange = (sku: 'sms-pack' | 'sms-students') => {
+    setSkuType(sku);
+    if (sku === 'sms-pack') {
+      handlePlanChange('enterprise');
+      setAddStudentLicenses(false);
+      setAddonStudentCount(0);
+    } else {
+      handlePlanChange('powerpack');
+    }
+  };
+
+  // Get excluded modules for current tier
+  const excludedModules: string[] = (skuType === 'sms-students' && 'excludedModules' in currentTier)
+    ? (currentTier as typeof smsStudentTiers[0]).excludedModules
+    : [];
+
+  const isModuleExcluded = (name: string) => excludedModules.includes(name);
+
+  const toggleModule = (name: string) => {
+    if (coreModules.includes(name)) return;
+    if (isModuleExcluded(name)) return;
+    setModules(p => ({ ...p, [name]: !p[name] }));
+  };
+
+  const enabledCount = Object.entries(modules).filter(([name, on]) => on && !isModuleExcluded(name)).length;
 
   const toggleSupport = (id: string) => {
     if (includedSupport.includes(id)) return; // locked ON
@@ -1105,82 +1326,99 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
       </div>
 
       {/* ── SECTION 2: PLAN TIER SELECTION (SKU-specific tiers) ── */}
+      {/* REMARK 2: Compact selector buttons + full detail card for selected tier only */}
       <div>
         <SectionTitle
           title="Step 2: Select Plan Tier"
           subtitle={skuType === 'sms-pack' ? 'Software-only tiers (blue) — no student licenses included' : `SMS+Students tiers (emerald/gold) — includes ${studentLabel.toLowerCase()} licenses`}
           theme={theme}
         />
-        <div className="grid grid-cols-3 gap-4">
+
+        {/* Compact tier selector buttons */}
+        <div className="flex gap-3 mb-4">
           {activeTiers.map(tier => {
             const isSelected = tier.id === selectedPlan;
             return (
               <button key={tier.id} onClick={() => handlePlanChange(tier.id)}
-                className={`p-5 rounded-2xl border-2 cursor-pointer transition-all text-left ${
-                  isSelected ? `${tier.colorBorder} ${theme.cardBg} ring-2 ${tier.colorRing}` : `${theme.border} ${theme.cardBg}`
+                className={`flex-1 px-4 py-3 rounded-xl border-2 cursor-pointer transition-all text-center ${
+                  isSelected
+                    ? `${tier.colorBorder} ${tier.colorBg} ring-2 ${tier.colorRing} shadow-sm`
+                    : `${theme.border} ${theme.cardBg} hover:border-slate-300`
                 }`}>
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center justify-center gap-2">
                   <div className={`w-3 h-3 rounded-full border-2 ${isSelected ? `${tier.colorDot} border-transparent` : theme.border}`} />
-                  <span className={`text-sm font-bold ${theme.highlight}`}>{tier.name}</span>
-                  {isSelected && <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${tier.colorBadge}`}>SELECTED</span>}
+                  <span className={`text-sm font-bold ${isSelected ? theme.highlight : theme.iconColor}`}>{tier.name}</span>
                 </div>
-
-                {/* Editable price */}
-                <div className="flex items-baseline gap-1 mb-1">
-                  <span className={`text-lg font-bold ${theme.primaryText}`}>&#8377;</span>
-                  <input
-                    type="text"
-                    value={tierPrices[tier.id]}
-                    onClick={e => e.stopPropagation()}
-                    onChange={e => { e.stopPropagation(); updateTierPrice(tier.id, e.target.value); }}
-                    className={`text-lg font-bold ${theme.primaryText} bg-transparent border-b border-transparent hover:border-dashed hover:border-slate-300 focus:border-solid focus:border-blue-400 outline-none w-24 transition-all`}
-                  />
-                  <span className={`text-xs ${theme.iconColor}`}>/yr</span>
+                <div className="flex items-baseline justify-center gap-1 mt-1">
+                  <span className={`text-xs ${theme.iconColor}`}>&#8377;</span>
+                  <span className={`text-sm font-bold ${theme.primaryText}`}>{tierPrices[tier.id]}</span>
+                  <span className={`text-[10px] ${theme.iconColor}`}>/yr</span>
                 </div>
-
-                <p className={`text-[10px] ${theme.iconColor} mt-1`}>{tier.desc}</p>
-                <p className={`text-[10px] ${theme.iconColor}`}>{tier.modules} modules &middot; {tier.storage}</p>
-
-                {/* SMS-S specific info */}
-                {skuType === 'sms-students' && 'students' in tier && (
-                  <div className="mt-2 pt-2 border-t border-dashed border-slate-200">
-                    <p className={`text-[10px] ${theme.iconColor}`}>{(tier as typeof smsStudentTiers[0]).students} {studentLabel.toLowerCase()}</p>
-                    <p className={`text-[10px] ${theme.iconColor}`}>{tier.staff} staff</p>
-                  </div>
-                )}
-
-                {/* SMS Pack info */}
-                {skuType === 'sms-pack' && (
-                  <div className="mt-2 pt-2 border-t border-dashed border-slate-200">
-                    <p className={`text-[10px] ${theme.iconColor}`}>0 {studentLabel.toLowerCase()} (SMS Pack)</p>
-                    <p className={`text-[10px] ${theme.iconColor}`}>{tier.staff} staff</p>
-                  </div>
-                )}
-
-                {/* Power Pack AI features badge */}
-                {'aiFeatures' in tier && (tier as typeof smsStudentTiers[2]).aiFeatures && (
-                  <div className="mt-2 pt-2 border-t border-dashed border-amber-200">
-                    <div className="flex items-center gap-1 mb-1">
-                      <Sparkles size={10} className="text-amber-500" />
-                      <span className="text-[10px] font-bold text-amber-600">AI Features Included</span>
-                    </div>
-                    <div className="flex flex-wrap gap-1">
-                      {(tier as typeof smsStudentTiers[2]).aiFeatures!.map((f: string) => (
-                        <span key={f} className="text-[9px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">{f}</span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Excluded modules warning for Standard */}
-                {'excludedModules' in tier && (tier as typeof smsStudentTiers[0]).excludedModules.length > 0 && (
-                  <div className="mt-2 pt-2 border-t border-dashed border-slate-200">
-                    <p className="text-[9px] text-red-500 font-medium">Not included: {(tier as typeof smsStudentTiers[0]).excludedModules.join(', ')}</p>
-                  </div>
-                )}
               </button>
             );
           })}
+        </div>
+
+        {/* Full detail card for selected tier ONLY */}
+        <div className={`p-5 rounded-2xl border-2 ${currentTier.colorBorder} ${theme.cardBg} ring-2 ${currentTier.colorRing}`}>
+          <div className="flex items-center gap-2 mb-3">
+            <div className={`w-3 h-3 rounded-full ${currentTier.colorDot}`} />
+            <span className={`text-base font-bold ${theme.highlight}`}>{currentTier.name}</span>
+            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${currentTier.colorBadge}`}>SELECTED</span>
+          </div>
+
+          {/* Editable price */}
+          <div className="flex items-baseline gap-1 mb-2">
+            <span className={`text-lg font-bold ${theme.primaryText}`}>&#8377;</span>
+            <input
+              type="text"
+              value={tierPrices[currentTier.id]}
+              onChange={e => updateTierPrice(currentTier.id, e.target.value)}
+              className={`text-lg font-bold ${theme.primaryText} bg-transparent border-b border-dashed border-slate-300 focus:border-solid focus:border-blue-400 outline-none w-28 transition-all`}
+            />
+            <span className={`text-xs ${theme.iconColor}`}>/yr</span>
+          </div>
+
+          <p className={`text-xs ${theme.iconColor} mt-1`}>{currentTier.desc}</p>
+          <p className={`text-xs ${theme.iconColor}`}>{currentTier.modules} modules &middot; {currentTier.storage}</p>
+
+          {/* SMS-S specific info */}
+          {skuType === 'sms-students' && 'students' in currentTier && (
+            <div className="mt-3 pt-3 border-t border-dashed border-slate-200 flex gap-6">
+              <p className={`text-xs ${theme.iconColor}`}><strong>{(currentTier as typeof smsStudentTiers[0]).students}</strong> {studentLabel.toLowerCase()}</p>
+              <p className={`text-xs ${theme.iconColor}`}><strong>{currentTier.staff}</strong> staff</p>
+            </div>
+          )}
+
+          {/* SMS Pack info */}
+          {skuType === 'sms-pack' && (
+            <div className="mt-3 pt-3 border-t border-dashed border-slate-200 flex gap-6">
+              <p className={`text-xs ${theme.iconColor}`}><strong>0</strong> {studentLabel.toLowerCase()} (SMS Pack)</p>
+              <p className={`text-xs ${theme.iconColor}`}><strong>{currentTier.staff}</strong> staff</p>
+            </div>
+          )}
+
+          {/* Power Pack AI features badge */}
+          {'aiFeatures' in currentTier && (currentTier as typeof smsStudentTiers[2]).aiFeatures && (
+            <div className="mt-3 pt-3 border-t border-dashed border-amber-200">
+              <div className="flex items-center gap-1 mb-2">
+                <Sparkles size={12} className="text-amber-500" />
+                <span className="text-xs font-bold text-amber-600">AI Features Included</span>
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {(currentTier as typeof smsStudentTiers[2]).aiFeatures!.map((f: string) => (
+                  <span key={f} className="text-[10px] px-2 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">{f}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Excluded modules warning for Standard */}
+          {'excludedModules' in currentTier && (currentTier as typeof smsStudentTiers[0]).excludedModules.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-dashed border-slate-200">
+              <p className="text-[10px] text-red-500 font-medium">Not included: {(currentTier as typeof smsStudentTiers[0]).excludedModules.join(', ')}</p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -1327,12 +1565,12 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
           theme={theme}
         />
 
-        {/* Trial notice */}
+        {/* REMARK 4: Tier-based defaults notice (no 7-day trial) */}
         {!allSupportUnlimited && (
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-start gap-2 mb-4">
-            <Clock size={12} className="text-blue-500 mt-0.5 shrink-0" />
+            <Info size={12} className="text-blue-500 mt-0.5 shrink-0" />
             <p className="text-[10px] text-blue-700">
-              <strong>First 7 days: All support channels active (trial period).</strong> After the trial, only channels included in your plan remain free. Others become paid add-ons.
+              <strong>Tier-based defaults:</strong> Only channels included in your {currentTier.name} plan are enabled by default. Additional channels are available as paid add-ons. Super Admin can enable add-on channels.
             </p>
           </div>
         )}
@@ -1368,8 +1606,9 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
                   {isIncluded && (
                     <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-bold">INCLUDED</span>
                   )}
-                  {!isIncluded && isOn && !allSupportUnlimited && (
-                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-bold">ADD-ON</span>
+                  {/* REMARK 4: Show Add-on badge for ALL non-included channels (on or off) */}
+                  {!isIncluded && !allSupportUnlimited && (
+                    <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold ${isOn ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'}`}>ADD-ON</span>
                   )}
                   {isIncluded ? (
                     <Lock size={10} className="text-emerald-400" />
@@ -1392,6 +1631,14 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
                   Object.values(supportToggles).filter(Boolean).length - includedSupport.length
                 } add-on${Object.values(supportToggles).filter(Boolean).length - includedSupport.length !== 1 ? 's' : ''} enabled.`
             }
+          </p>
+        </div>
+
+        {/* REMARK 5: Visibility note for other dashboards */}
+        <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-3 flex items-start gap-2 mt-3">
+          <Eye size={12} className="text-indigo-500 mt-0.5 shrink-0" />
+          <p className="text-[10px] text-indigo-700">
+            <strong>Dashboard Visibility:</strong> Support configuration is visible to School Admin, Principal, and Trustees dashboards (read-only). Add-on channels require purchase approval from Super Admin.
           </p>
         </div>
       </div>

@@ -67,7 +67,7 @@ function PrincipalDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme;
                   isParentActive ? `${theme.primary} text-white` : `${theme.iconColor} ${theme.buttonHover}`
                 }`}
               >
-                <m.icon size={sidebarCollapsed ? 18 : 14} />
+                <m.icon size={sidebarCollapsed ? 20 : 14} />
                 {!sidebarCollapsed && <span className="flex-1 text-left">{m.label}</span>}
                 {!sidebarCollapsed && hasSubItems && (
                   <ChevronDown size={12} className={`transition-transform ${isParentExpanded ? 'rotate-180' : ''}`} />
@@ -114,7 +114,17 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className={`text-2xl font-bold ${theme.highlight}`}>Principal Dashboard</h1>
-        <button onClick={onProfileClick} title="My Profile" className={`w-9 h-9 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold hover:opacity-90 transition-opacity`}>SM</button>
+        <div className="flex items-center gap-2">
+          {/* Notification Bell */}
+          <button title="Notifications" className={`relative w-9 h-9 rounded-full ${theme.secondaryBg} flex items-center justify-center ${theme.buttonHover} transition-all`}>
+            <Bell size={16} className={theme.iconColor} />
+            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">3</span>
+          </button>
+          {/* Profile Avatar */}
+          <button onClick={onProfileClick} title="My Profile" className={`w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white flex items-center justify-center hover:opacity-90 transition-opacity ring-2 ring-white shadow-sm`}>
+            <User size={16} />
+          </button>
+        </div>
       </div>
       {/* Attendance Row — Student + Academic Staff + Non-Academic Staff */}
       <div className="grid grid-cols-3 gap-3">
@@ -126,10 +136,10 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
                 <Users size={14} className={theme.iconColor} />
                 <h3 className={`text-xs font-bold ${theme.highlight}`}>Students</h3>
               </div>
-              <p className={`text-lg font-bold ${theme.highlight}`}>2,598 / 2,847</p>
+              <p className={`text-2xl font-bold ${theme.highlight}`}>2,598 / 2,847</p>
               <p className={`text-xs ${theme.iconColor} mt-0.5`}>Enrolled: 3,000</p>
             </div>
-            <div className="w-14 h-14 ml-2 shrink-0">
+            <div className="w-20 h-20 ml-2 shrink-0">
               <svg viewBox="0 0 36 36" className="w-full h-full">
                 <circle r="16" cx="18" cy="18" fill="none" stroke="#9ca3af" strokeWidth="4"
                   strokeDasharray={`${(153 / 3000) * 100.53} ${100.53 - (153 / 3000) * 100.53}`}
@@ -140,14 +150,14 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
                 <circle r="16" cx="18" cy="18" fill="none" stroke="#10b981" strokeWidth="4"
                   strokeDasharray={`${(2598 / 3000) * 100.53} ${100.53 - (2598 / 3000) * 100.53}`}
                   strokeDashoffset={`${25.13 - (153 / 3000) * 100.53 - (249 / 3000) * 100.53}`} transform="rotate(-90 18 18)" />
-                <text x="18" y="19" textAnchor="middle" dominantBaseline="middle" className="fill-emerald-600" style={{ fontSize: '8px', fontWeight: 700 }}>87%</text>
+                <text x="18" y="19" textAnchor="middle" dominantBaseline="middle" className="fill-emerald-600" style={{ fontSize: '10px', fontWeight: 700 }}>87%</text>
               </svg>
             </div>
           </div>
           <div className="flex items-center gap-3 mt-2">
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /><span className={`text-[10px] ${theme.iconColor}`}>2,598</span></span>
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500 inline-block" /><span className={`text-[10px] ${theme.iconColor}`}>249</span></span>
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-gray-400 inline-block" /><span className={`text-[10px] ${theme.iconColor}`}>153</span></span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /><span className={`text-xs ${theme.iconColor}`}>2,598</span></span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500 inline-block" /><span className={`text-xs ${theme.iconColor}`}>249</span></span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-gray-400 inline-block" /><span className={`text-xs ${theme.iconColor}`}>153</span></span>
           </div>
         </div>
 
@@ -159,10 +169,10 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
                 <GraduationCap size={14} className={theme.iconColor} />
                 <h3 className={`text-xs font-bold ${theme.highlight}`}>Academic Staff</h3>
               </div>
-              <p className={`text-lg font-bold ${theme.highlight}`}>72 / 78</p>
+              <p className={`text-2xl font-bold ${theme.highlight}`}>72 / 78</p>
               <p className={`text-xs text-emerald-600 mt-0.5`}>92% Present</p>
             </div>
-            <div className="w-14 h-14 ml-2 shrink-0">
+            <div className="w-20 h-20 ml-2 shrink-0">
               <svg viewBox="0 0 36 36" className="w-full h-full">
                 <circle r="16" cx="18" cy="18" fill="none" stroke="#ef4444" strokeWidth="4"
                   strokeDasharray={`${(6 / 78) * 100.53} ${100.53 - (6 / 78) * 100.53}`}
@@ -170,13 +180,13 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
                 <circle r="16" cx="18" cy="18" fill="none" stroke="#10b981" strokeWidth="4"
                   strokeDasharray={`${(72 / 78) * 100.53} ${100.53 - (72 / 78) * 100.53}`}
                   strokeDashoffset={`${25.13 - (6 / 78) * 100.53}`} transform="rotate(-90 18 18)" />
-                <text x="18" y="19" textAnchor="middle" dominantBaseline="middle" className="fill-emerald-600" style={{ fontSize: '8px', fontWeight: 700 }}>92%</text>
+                <text x="18" y="19" textAnchor="middle" dominantBaseline="middle" className="fill-emerald-600" style={{ fontSize: '10px', fontWeight: 700 }}>92%</text>
               </svg>
             </div>
           </div>
           <div className="flex items-center gap-3 mt-2">
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /><span className={`text-[10px] ${theme.iconColor}`}>72</span></span>
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500 inline-block" /><span className={`text-[10px] ${theme.iconColor}`}>6</span></span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /><span className={`text-xs ${theme.iconColor}`}>72</span></span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500 inline-block" /><span className={`text-xs ${theme.iconColor}`}>6</span></span>
           </div>
         </div>
 
@@ -188,10 +198,10 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
                 <Briefcase size={14} className={theme.iconColor} />
                 <h3 className={`text-xs font-bold ${theme.highlight}`}>Non-Academic</h3>
               </div>
-              <p className={`text-lg font-bold ${theme.highlight}`}>56 / 64</p>
+              <p className={`text-2xl font-bold ${theme.highlight}`}>56 / 64</p>
               <p className={`text-xs text-emerald-600 mt-0.5`}>88% Present</p>
             </div>
-            <div className="w-14 h-14 ml-2 shrink-0">
+            <div className="w-20 h-20 ml-2 shrink-0">
               <svg viewBox="0 0 36 36" className="w-full h-full">
                 <circle r="16" cx="18" cy="18" fill="none" stroke="#ef4444" strokeWidth="4"
                   strokeDasharray={`${(8 / 64) * 100.53} ${100.53 - (8 / 64) * 100.53}`}
@@ -199,23 +209,39 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
                 <circle r="16" cx="18" cy="18" fill="none" stroke="#10b981" strokeWidth="4"
                   strokeDasharray={`${(56 / 64) * 100.53} ${100.53 - (56 / 64) * 100.53}`}
                   strokeDashoffset={`${25.13 - (8 / 64) * 100.53}`} transform="rotate(-90 18 18)" />
-                <text x="18" y="19" textAnchor="middle" dominantBaseline="middle" className="fill-emerald-600" style={{ fontSize: '8px', fontWeight: 700 }}>88%</text>
+                <text x="18" y="19" textAnchor="middle" dominantBaseline="middle" className="fill-emerald-600" style={{ fontSize: '10px', fontWeight: 700 }}>88%</text>
               </svg>
             </div>
           </div>
           <div className="flex items-center gap-3 mt-2">
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /><span className={`text-[10px] ${theme.iconColor}`}>56</span></span>
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500 inline-block" /><span className={`text-[10px] ${theme.iconColor}`}>8</span></span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /><span className={`text-xs ${theme.iconColor}`}>56</span></span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500 inline-block" /><span className={`text-xs ${theme.iconColor}`}>8</span></span>
           </div>
         </div>
       </div>
 
-      {/* Stat Cards — including Fees inline */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Stat Cards + Quick Actions — same row */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <StatCard icon={ClipboardCheck} label="Avg Attendance" value="94.2%" color="bg-emerald-500" theme={theme} />
         <StatCard icon={Award} label="Academic Performance" value="87.5%" color="bg-purple-500" theme={theme} />
         <StatCard icon={Clock} label="Pending Approvals" value="8" color="bg-amber-500" theme={theme} />
         <StatCard icon={Banknote} label="Today's Collection" value={`\u20B92,45,000`} color="bg-green-500" sub="Outstanding: \u20B918.5L" theme={theme} />
+        {/* Quick Actions — compact icon row */}
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-3 flex flex-col justify-center`}>
+          <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-2`}>Quick Actions</p>
+          <div className="flex items-center gap-2">
+            {[
+              { label: 'Reports', icon: BarChart3, color: 'bg-blue-500' },
+              { label: 'Approve', icon: CheckCircle, color: 'bg-emerald-500' },
+              { label: 'Circular', icon: Send, color: 'bg-indigo-500' },
+              { label: 'Meeting', icon: Calendar, color: 'bg-purple-500' },
+            ].map(a => (
+              <button key={a.label} title={a.label} className={`w-8 h-8 rounded-lg ${a.color} flex items-center justify-center text-white hover:opacity-80 transition-opacity`}>
+                <a.icon size={14} />
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Recent Activity + Task Tracker — Side by Side */}
@@ -247,24 +273,6 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
 
         {/* Task Tracker — Full Task Management Dashboard */}
         <TaskTrackerPanel theme={theme} role="principal" />
-      </div>
-
-      {/* Quick Actions */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Quick Actions</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-          {[
-            { label: 'View Reports', icon: BarChart3, color: 'bg-blue-500' },
-            { label: 'Approve Requests', icon: CheckCircle, color: 'bg-emerald-500' },
-            { label: 'Send Circular', icon: Send, color: 'bg-indigo-500' },
-            { label: 'Schedule Meeting', icon: Calendar, color: 'bg-purple-500' },
-          ].map(a => (
-            <button key={a.label} className={`flex items-center gap-2 p-3 rounded-xl ${theme.secondaryBg} ${theme.buttonHover} transition-all`}>
-              <div className={`w-8 h-8 rounded-lg ${a.color} flex items-center justify-center text-white`}><a.icon size={14} /></div>
-              <span className={`text-xs font-bold ${theme.highlight}`}>{a.label}</span>
-            </button>
-          ))}
-        </div>
       </div>
     </div>
   );
