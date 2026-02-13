@@ -981,11 +981,49 @@ function ReportsModule({ theme }: { theme: Theme }) {
 
 // ─── COMMUNICATION MODULE (with Announcements tab — REMARK 2) ────────────────
 function CommunicationModule({ theme }: { theme: Theme }) {
-  const [commTab, setCommTab] = useState<'Messages' | 'Announcements'>('Messages');
+  const [commTab, setCommTab] = useState<'Messages' | 'Announcements' | 'Chat'>('Messages');
   const [showNewAnnouncement, setShowNewAnnouncement] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [selectedChatContact, setSelectedChatContact] = useState<number | null>(null);
+  const [chatInput, setChatInput] = useState('');
   const [announcementForm, setAnnouncementForm] = useState({
     title: '', message: '', audience: 'All Staff', priority: 'Normal' as 'Normal' | 'Important' | 'Urgent', scheduleMode: 'now' as 'now' | 'later', scheduleDate: '',
+    studentFilters: { grades: [] as string[], divisions: [] as string[], sectionGroups: [] as string[], houses: [] as string[] },
   });
+
+  // Recipient count calculator based on audience selection
+  const getRecipientCounts = () => {
+    const counts: { group: string; count: number }[] = [];
+    const audience = announcementForm.audience;
+    if (audience === 'All Staff' || audience === 'Selected Groups') {
+      counts.push({ group: 'Academic Staff', count: 78 });
+      counts.push({ group: 'Non-Academic Staff', count: 38 });
+    }
+    if (audience === 'Teachers') {
+      counts.push({ group: 'Teaching Staff', count: 78 });
+    }
+    if (audience === 'Parents' || audience === 'Selected Groups') {
+      counts.push({ group: 'Parents', count: 2847 });
+    }
+    if (audience === 'Students' || audience === 'Selected Groups') {
+      const sf = announcementForm.studentFilters;
+      const hasFilters = sf.grades.length > 0 || sf.divisions.length > 0 || sf.sectionGroups.length > 0 || sf.houses.length > 0;
+      if (audience === 'Students' && hasFilters) {
+        let studentCount = 0;
+        if (sf.grades.length > 0) studentCount += sf.grades.length * 120;
+        else studentCount = 2847;
+        if (sf.divisions.length > 0) studentCount = Math.round(studentCount * sf.divisions.length / 4);
+        if (sf.sectionGroups.length > 0) studentCount = Math.round(studentCount * sf.sectionGroups.length / 4);
+        if (sf.houses.length > 0) studentCount = Math.round(studentCount * sf.houses.length / 4);
+        counts.push({ group: 'Students (filtered)', count: Math.min(studentCount, 2847) });
+      } else {
+        counts.push({ group: 'Students', count: 2847 });
+      }
+    }
+    return counts;
+  };
+
+  const totalRecipients = getRecipientCounts().reduce((sum, r) => sum + r.count, 0);
 
   const messages = [
     { id: 1, type: 'Circular', subject: 'Annual Day Rehearsal Schedule', from: 'Principal Office', to: 'All Staff + Parents', date: '11-Feb-2026', status: 'Sent', reads: '2,145 / 2,847' },
@@ -1049,7 +1087,7 @@ function CommunicationModule({ theme }: { theme: Theme }) {
       </div>
 
       {/* Tab Bar */}
-      <TabBar tabs={['Messages', 'Announcements']} active={commTab} onChange={(t) => setCommTab(t as 'Messages' | 'Announcements')} theme={theme} />
+      <TabBar tabs={['Messages', 'Announcements', 'Chat']} active={commTab} onChange={(t) => setCommTab(t as 'Messages' | 'Announcements' | 'Chat')} theme={theme} />
 
       {/* ── Messages Tab ── */}
       {commTab === 'Messages' && (
@@ -1116,6 +1154,117 @@ function CommunicationModule({ theme }: { theme: Theme }) {
         </>
       )}
 
+      {/* ── Chat Tab ── */}
+      {commTab === 'Chat' && (() => {
+        const chatContacts = [
+          { id: 1, name: 'Rajesh Mehta', role: 'Vice Principal', online: true, avatar: 'RM',
+            messages: [
+              { from: 'them', text: 'Good morning! PTM schedule is confirmed for Saturday.', time: '9:15 AM' },
+              { from: 'me', text: 'Great. Please share the class-wise time slots.', time: '9:18 AM' },
+              { from: 'them', text: 'Sending now. Classes VI-VIII in morning, IX-X after lunch.', time: '9:20 AM' },
+            ]},
+          { id: 2, name: 'Priya Sharma', role: 'Class Teacher - VII A', online: true, avatar: 'PS',
+            messages: [
+              { from: 'them', text: 'Student progress reports for VII A are ready for your review.', time: '10:30 AM' },
+              { from: 'me', text: 'I will review them today. Any concerns?', time: '10:45 AM' },
+              { from: 'them', text: '3 students need attention — sharing details separately.', time: '10:48 AM' },
+            ]},
+          { id: 3, name: 'Amit Patel', role: 'Transport Head', online: false, avatar: 'AP',
+            messages: [
+              { from: 'them', text: 'Bus route #4 has been updated as per your request.', time: 'Yesterday' },
+              { from: 'me', text: 'Thanks. Did parents of affected students get notified?', time: 'Yesterday' },
+              { from: 'them', text: 'Yes, SMS and app notification sent to all 34 parents.', time: 'Yesterday' },
+            ]},
+          { id: 4, name: 'Sunita Iyer', role: 'Accounts Dept.', online: false, avatar: 'SI',
+            messages: [
+              { from: 'me', text: 'Please share the monthly fee collection report.', time: 'Yesterday' },
+              { from: 'them', text: 'Attached. Collection rate is 87% this month.', time: 'Yesterday' },
+            ]},
+        ];
+        const activeContact = chatContacts.find(c => c.id === selectedChatContact) || null;
+
+        return (
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} overflow-hidden`} style={{ height: '500px' }}>
+            <div className="flex h-full">
+              {/* Contacts sidebar */}
+              <div className={`w-1/3 border-r ${theme.border} flex flex-col`}>
+                <div className={`px-3 py-2.5 border-b ${theme.border}`}>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Contacts</p>
+                </div>
+                <div className="flex-1 overflow-y-auto">
+                  {chatContacts.map(c => (
+                    <button
+                      key={c.id}
+                      onClick={() => setSelectedChatContact(c.id)}
+                      className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-left transition-all ${theme.buttonHover} ${selectedChatContact === c.id ? theme.secondaryBg : ''} border-b ${theme.border}`}
+                    >
+                      <div className="relative shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center text-[10px] font-bold">{c.avatar}</div>
+                        {c.online && <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-green-400 border-2 border-white" />}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className={`text-xs font-bold ${theme.highlight} truncate`}>{c.name}</p>
+                        <p className={`text-[10px] ${theme.iconColor} truncate`}>{c.role}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Chat area */}
+              <div className="flex-1 flex flex-col">
+                {activeContact ? (
+                  <>
+                    {/* Chat header */}
+                    <div className={`px-4 py-2.5 border-b ${theme.border} flex items-center gap-2.5`}>
+                      <div className="relative">
+                        <div className="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center text-[10px] font-bold">{activeContact.avatar}</div>
+                        {activeContact.online && <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-green-400 border-2 border-white" />}
+                      </div>
+                      <div>
+                        <p className={`text-xs font-bold ${theme.highlight}`}>{activeContact.name}</p>
+                        <p className={`text-[10px] ${activeContact.online ? 'text-green-500' : theme.iconColor}`}>{activeContact.online ? 'Online' : 'Offline'}</p>
+                      </div>
+                    </div>
+                    {/* Messages */}
+                    <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                      {activeContact.messages.map((m, i) => (
+                        <div key={i} className={`flex ${m.from === 'me' ? 'justify-end' : 'justify-start'}`}>
+                          <div className={`max-w-[70%] px-3 py-2 rounded-2xl ${m.from === 'me' ? 'bg-green-500 text-white' : `${theme.secondaryBg} ${theme.highlight}`}`}>
+                            <p className="text-xs leading-relaxed">{m.text}</p>
+                            <p className={`text-[9px] mt-1 ${m.from === 'me' ? 'text-green-100' : theme.iconColor} text-right`}>{m.time}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {/* Input */}
+                    <div className={`px-3 py-2.5 border-t ${theme.border} flex items-center gap-2`}>
+                      <input
+                        type="text"
+                        value={chatInput}
+                        onChange={e => setChatInput(e.target.value)}
+                        placeholder="Type a message..."
+                        className={`flex-1 px-3 py-2 rounded-xl text-xs ${theme.inputBg || theme.secondaryBg} border ${theme.border} ${theme.highlight} outline-none`}
+                      />
+                      <button className="p-2 rounded-xl bg-green-500 text-white hover:bg-green-600 transition-all">
+                        <Send size={14} />
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex-1 flex items-center justify-center">
+                    <div className="text-center">
+                      <MessageSquare size={32} className={theme.iconColor} />
+                      <p className={`text-xs ${theme.iconColor} mt-2`}>Select a contact to start chatting</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* ── New Announcement Modal (REMARK 3) ── */}
       {showNewAnnouncement && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowNewAnnouncement(false)}>
@@ -1158,7 +1307,7 @@ function CommunicationModule({ theme }: { theme: Theme }) {
                 <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>Audience</label>
                 <select
                   value={announcementForm.audience}
-                  onChange={e => setAnnouncementForm(prev => ({ ...prev, audience: e.target.value }))}
+                  onChange={e => setAnnouncementForm(prev => ({ ...prev, audience: e.target.value, studentFilters: { grades: [], divisions: [], sectionGroups: [], houses: [] } }))}
                   className={`w-full px-3 py-2.5 rounded-xl text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight} outline-none focus:ring-2 focus:ring-blue-300`}
                 >
                   <option>All Staff</option>
@@ -1185,6 +1334,131 @@ function CommunicationModule({ theme }: { theme: Theme }) {
                 </div>
               </div>
             </div>
+
+            {/* Student Sub-Filters (shown when audience = Students) */}
+            {announcementForm.audience === 'Students' && (
+              <div className={`p-3 rounded-xl border ${theme.border} ${theme.secondaryBg} space-y-3`}>
+                <p className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Student Filters</p>
+
+                {/* Grade-wise */}
+                <div>
+                  <label className={`text-[10px] font-medium ${theme.iconColor} block mb-1`}>Grade-wise</label>
+                  <div className="flex flex-wrap gap-1">
+                    {Array.from({ length: 12 }, (_, i) => `Grade ${i + 1}`).map(g => (
+                      <button
+                        key={g}
+                        onClick={() => setAnnouncementForm(prev => ({
+                          ...prev,
+                          studentFilters: {
+                            ...prev.studentFilters,
+                            grades: prev.studentFilters.grades.includes(g)
+                              ? prev.studentFilters.grades.filter(x => x !== g)
+                              : [...prev.studentFilters.grades, g]
+                          }
+                        }))}
+                        className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                          announcementForm.studentFilters.grades.includes(g)
+                            ? `${theme.primary} text-white`
+                            : `${theme.cardBg} ${theme.iconColor} border ${theme.border}`
+                        }`}
+                      >
+                        {g.replace('Grade ', '')}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Division */}
+                <div>
+                  <label className={`text-[10px] font-medium ${theme.iconColor} block mb-1`}>Division</label>
+                  <div className="flex gap-1.5">
+                    {['A', 'B', 'C', 'D'].map(d => (
+                      <button
+                        key={d}
+                        onClick={() => setAnnouncementForm(prev => ({
+                          ...prev,
+                          studentFilters: {
+                            ...prev.studentFilters,
+                            divisions: prev.studentFilters.divisions.includes(d)
+                              ? prev.studentFilters.divisions.filter(x => x !== d)
+                              : [...prev.studentFilters.divisions, d]
+                          }
+                        }))}
+                        className={`px-3 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                          announcementForm.studentFilters.divisions.includes(d)
+                            ? `${theme.primary} text-white`
+                            : `${theme.cardBg} ${theme.iconColor} border ${theme.border}`
+                        }`}
+                      >
+                        {d}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Section Group */}
+                <div>
+                  <label className={`text-[10px] font-medium ${theme.iconColor} block mb-1`}>Section Group</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {['Pre-Primary', 'Primary', 'Secondary', 'Senior Secondary'].map(s => (
+                      <button
+                        key={s}
+                        onClick={() => setAnnouncementForm(prev => ({
+                          ...prev,
+                          studentFilters: {
+                            ...prev.studentFilters,
+                            sectionGroups: prev.studentFilters.sectionGroups.includes(s)
+                              ? prev.studentFilters.sectionGroups.filter(x => x !== s)
+                              : [...prev.studentFilters.sectionGroups, s]
+                          }
+                        }))}
+                        className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                          announcementForm.studentFilters.sectionGroups.includes(s)
+                            ? `${theme.primary} text-white`
+                            : `${theme.cardBg} ${theme.iconColor} border ${theme.border}`
+                        }`}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* House-wise */}
+                <div>
+                  <label className={`text-[10px] font-medium ${theme.iconColor} block mb-1`}>House-wise</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[
+                      { name: 'Red House', color: 'bg-red-500' },
+                      { name: 'Blue House', color: 'bg-blue-500' },
+                      { name: 'Green House', color: 'bg-green-500' },
+                      { name: 'Yellow House', color: 'bg-yellow-500' },
+                    ].map(h => (
+                      <button
+                        key={h.name}
+                        onClick={() => setAnnouncementForm(prev => ({
+                          ...prev,
+                          studentFilters: {
+                            ...prev.studentFilters,
+                            houses: prev.studentFilters.houses.includes(h.name)
+                              ? prev.studentFilters.houses.filter(x => x !== h.name)
+                              : [...prev.studentFilters.houses, h.name]
+                          }
+                        }))}
+                        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                          announcementForm.studentFilters.houses.includes(h.name)
+                            ? `${theme.primary} text-white`
+                            : `${theme.cardBg} ${theme.iconColor} border ${theme.border}`
+                        }`}
+                      >
+                        <span className={`w-2 h-2 rounded-full ${h.color}`} />
+                        {h.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Attachment */}
             <button className={`flex items-center gap-2 px-3 py-2 rounded-xl ${theme.secondaryBg} ${theme.buttonHover} transition-all`}>
@@ -1223,13 +1497,85 @@ function CommunicationModule({ theme }: { theme: Theme }) {
               )}
             </div>
 
-            {/* Send Button */}
+            {/* Preview Button (opens confirmation step) */}
             <button
-              onClick={() => { setShowNewAnnouncement(false); setAnnouncementForm({ title: '', message: '', audience: 'All Staff', priority: 'Normal', scheduleMode: 'now', scheduleDate: '' }); }}
+              onClick={() => setShowPreview(true)}
               className={`w-full py-3 rounded-xl ${theme.primary} text-white text-sm font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity`}
             >
-              <Send size={14} /> {announcementForm.scheduleMode === 'now' ? 'Send Announcement' : 'Schedule Announcement'}
+              <Eye size={14} /> Preview &amp; Confirm
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Preview / Confirmation Modal ── */}
+      {showPreview && (
+        <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4" onClick={() => setShowPreview(false)}>
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} shadow-2xl w-full max-w-md p-6 space-y-4`} onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className={`w-8 h-8 rounded-xl bg-amber-500 flex items-center justify-center text-white`}><Eye size={16} /></div>
+                <h2 className={`text-base font-bold ${theme.highlight}`}>Confirm Announcement</h2>
+              </div>
+              <button onClick={() => setShowPreview(false)} className={`p-1.5 rounded-lg ${theme.buttonHover}`}><X size={16} className={theme.iconColor} /></button>
+            </div>
+
+            {/* Announcement Preview */}
+            <div className={`p-4 rounded-xl ${theme.secondaryBg} border ${theme.border} space-y-2`}>
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>{announcementForm.title || '(No title)'}</h3>
+              <p className={`text-xs ${theme.iconColor} leading-relaxed`}>{announcementForm.message || '(No message)'}</p>
+              <div className="flex items-center gap-2 pt-1">
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${priorityStyle(announcementForm.priority)}`}>{announcementForm.priority}</span>
+                <span className={`text-[10px] ${theme.iconColor}`}>{announcementForm.scheduleMode === 'now' ? 'Send immediately' : `Scheduled: ${announcementForm.scheduleDate || 'Not set'}`}</span>
+              </div>
+            </div>
+
+            {/* Recipient Breakdown */}
+            <div className={`p-4 rounded-xl border-2 border-dashed ${theme.border} space-y-2`}>
+              <p className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>This will be sent to:</p>
+              <div className="space-y-1.5">
+                {getRecipientCounts().map(r => (
+                  <div key={r.group} className="flex items-center justify-between">
+                    <span className={`text-xs font-medium ${theme.highlight}`}>{r.group}</span>
+                    <span className={`text-xs font-bold ${theme.primaryText}`}>{r.count.toLocaleString()}</span>
+                  </div>
+                ))}
+              </div>
+              <div className={`flex items-center justify-between pt-2 border-t ${theme.border}`}>
+                <span className={`text-xs font-bold ${theme.highlight}`}>Total Recipients</span>
+                <span className={`text-sm font-bold ${theme.primaryText}`}>{totalRecipients.toLocaleString()}</span>
+              </div>
+            </div>
+
+            {/* Student filter summary */}
+            {announcementForm.audience === 'Students' && (
+              <div className={`text-[10px] ${theme.iconColor} space-y-0.5`}>
+                {announcementForm.studentFilters.grades.length > 0 && <p>Grades: {announcementForm.studentFilters.grades.join(', ')}</p>}
+                {announcementForm.studentFilters.divisions.length > 0 && <p>Divisions: {announcementForm.studentFilters.divisions.join(', ')}</p>}
+                {announcementForm.studentFilters.sectionGroups.length > 0 && <p>Sections: {announcementForm.studentFilters.sectionGroups.join(', ')}</p>}
+                {announcementForm.studentFilters.houses.length > 0 && <p>Houses: {announcementForm.studentFilters.houses.join(', ')}</p>}
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowPreview(false)}
+                className={`flex-1 py-2.5 rounded-xl ${theme.secondaryBg} ${theme.highlight} text-xs font-bold flex items-center justify-center gap-1.5 ${theme.buttonHover} transition-all`}
+              >
+                <Edit2 size={12} /> Edit
+              </button>
+              <button
+                onClick={() => {
+                  setShowPreview(false);
+                  setShowNewAnnouncement(false);
+                  setAnnouncementForm({ title: '', message: '', audience: 'All Staff', priority: 'Normal', scheduleMode: 'now', scheduleDate: '', studentFilters: { grades: [], divisions: [], sectionGroups: [], houses: [] } });
+                }}
+                className={`flex-1 py-2.5 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center justify-center gap-1.5 hover:opacity-90 transition-opacity`}
+              >
+                <Send size={12} /> {announcementForm.scheduleMode === 'now' ? 'Confirm & Send' : 'Confirm & Schedule'}
+              </button>
+            </div>
           </div>
         </div>
       )}

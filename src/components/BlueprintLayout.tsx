@@ -8,12 +8,13 @@ import {
   UserCheck, Briefcase, Calculator, Phone, Bus, ShieldCheck, Headphones,
   Home, ChevronLeft, Menu, LogOut, MessageSquare, Bell,
   FileText, CheckCircle, Calendar, AlertTriangle, ClipboardCheck,
-  Palette, Maximize2, Minimize2
+  Palette, Maximize2, Minimize2, MessageCircle, X, Send
 } from 'lucide-react';
 import { themes, VIVID_VARIANTS, type Theme } from '@/lib/themes';
 import { getLoggedInUser, logoutUser, type TeamMember } from '@/lib/auth';
 import FeedbackSystem from './FeedbackSystem';
 import LoginPage from './LoginPage';
+import TaskTrackerPopup from './TaskTrackerPopup';
 
 const VIVID_THEME_IDX = 4; // Virtual index for Vivid (beyond the 4 base themes)
 
@@ -38,16 +39,16 @@ const navItems = [
 
 // Color swatch options for the Vivid accent picker
 const vividColorOptions = [
-  { name: 'Rose', bg: 'bg-rose-300' },
-  { name: 'Red', bg: 'bg-red-300' },
-  { name: 'Orange', bg: 'bg-orange-300' },
-  { name: 'Amber', bg: 'bg-amber-300' },
-  { name: 'Emerald', bg: 'bg-emerald-300' },
-  { name: 'Teal', bg: 'bg-teal-300' },
-  { name: 'Cyan', bg: 'bg-cyan-300' },
-  { name: 'Blue', bg: 'bg-blue-300' },
-  { name: 'Indigo', bg: 'bg-indigo-300' },
-  { name: 'Purple', bg: 'bg-purple-300' },
+  { name: 'Rose', bg: 'bg-rose-200' },
+  { name: 'Red', bg: 'bg-red-200' },
+  { name: 'Orange', bg: 'bg-orange-200' },
+  { name: 'Amber', bg: 'bg-amber-200' },
+  { name: 'Emerald', bg: 'bg-emerald-200' },
+  { name: 'Teal', bg: 'bg-teal-200' },
+  { name: 'Cyan', bg: 'bg-cyan-200' },
+  { name: 'Blue', bg: 'bg-blue-200' },
+  { name: 'Indigo', bg: 'bg-indigo-200' },
+  { name: 'Purple', bg: 'bg-purple-200' },
 ];
 
 // Swatch colors for the main theme row buttons
@@ -67,9 +68,18 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
   const [showNotifications, setShowNotifications] = useState(false);
   const [showThemePicker, setShowThemePicker] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [selectedVividColor, setSelectedVividColor] = useState('Rose');
+  const [selectedVividColor, setSelectedVividColor] = useState('Indigo');
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatMsg, setChatMsg] = useState('');
+  // Task Tracker popup state
+  const [taskPopupOpen, setTaskPopupOpen] = useState(false);
+  const [taskPopupMode, setTaskPopupMode] = useState<'login' | 'idle'>('login');
+  const [loginPopupShown, setLoginPopupShown] = useState(false);
+  const [loginPopupDisabled, setLoginPopupDisabled] = useState(false);
+  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const notifRef = useRef<HTMLDivElement>(null);
   const themePickerRef = useRef<HTMLDivElement>(null);
+  const chatRef = useRef<HTMLDivElement>(null);
 
   // Compute the active theme: base themes for idx 0-3, Vivid variant for idx 4
   const theme: Theme = useMemo(() => {
@@ -100,6 +110,16 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
   }, [showThemePicker]);
 
   useEffect(() => {
+    const handleClickOutsideChat = (e: MouseEvent) => {
+      if (chatRef.current && !chatRef.current.contains(e.target as Node)) {
+        setChatOpen(false);
+      }
+    };
+    if (chatOpen) document.addEventListener('mousedown', handleClickOutsideChat);
+    return () => document.removeEventListener('mousedown', handleClickOutsideChat);
+  }, [chatOpen]);
+
+  useEffect(() => {
     const user = getLoggedInUser();
     setCurrentUser(user);
     setLoading(false);
@@ -112,6 +132,54 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
+
+  // ─── Task Tracker: Login popup (1s delay after page load, once per session) ───
+  useEffect(() => {
+    if (!currentUser || loginPopupShown || loginPopupDisabled) return;
+    // Check sessionStorage so it only shows once per browser session
+    const alreadyShown = sessionStorage.getItem('saaras-task-popup-shown');
+    if (alreadyShown) {
+      setLoginPopupShown(true);
+      return;
+    }
+    const timer = setTimeout(() => {
+      setTaskPopupMode('login');
+      setTaskPopupOpen(true);
+      setLoginPopupShown(true);
+      sessionStorage.setItem('saaras-task-popup-shown', 'true');
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [currentUser, loginPopupShown, loginPopupDisabled]);
+
+  // ─── Task Tracker: Inactivity timer (5 min default for blueprint) ───
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const IDLE_TIMEOUT = 5 * 60 * 1000; // 5 minutes
+
+    const resetIdleTimer = () => {
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+      idleTimerRef.current = setTimeout(() => {
+        // Only show idle popup if task popup is not already open
+        if (!taskPopupOpen) {
+          setTaskPopupMode('idle');
+          setTaskPopupOpen(true);
+        }
+      }, IDLE_TIMEOUT);
+    };
+
+    // Activity events to listen for
+    const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'];
+    events.forEach(event => window.addEventListener(event, resetIdleTimer));
+
+    // Start the idle timer initially
+    resetIdleTimer();
+
+    return () => {
+      events.forEach(event => window.removeEventListener(event, resetIdleTimer));
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    };
+  }, [currentUser, taskPopupOpen]);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -337,6 +405,83 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
           })}
         </div>
       </main>
+
+      {/* Floating Chat Widget */}
+      <div ref={chatRef} className="fixed bottom-6 right-6 z-50">
+        {chatOpen && (
+          <div className={`mb-3 w-[300px] h-[400px] ${theme.cardBg} border ${theme.border} rounded-2xl shadow-2xl flex flex-col overflow-hidden`}>
+            {/* Chat Header */}
+            <div className="flex items-center justify-between px-3 py-2.5 bg-green-500 text-white rounded-t-2xl">
+              <div className="flex items-center gap-2">
+                <MessageCircle size={14} />
+                <span className="text-xs font-bold">Quick Chat</span>
+              </div>
+              <button onClick={() => setChatOpen(false)} className="p-1 rounded-lg hover:bg-green-600 transition-all">
+                <X size={12} />
+              </button>
+            </div>
+
+            {/* Conversations List */}
+            <div className="flex-1 overflow-y-auto">
+              {[
+                { name: 'Rajesh Mehta', role: 'Vice Principal', msg: 'PTM schedule confirmed for Saturday', time: '2m ago', unread: true, avatar: 'RM' },
+                { name: 'Priya Sharma', role: 'Class Teacher - VII A', msg: 'Student reports ready for review', time: '15m ago', unread: true, avatar: 'PS' },
+                { name: 'Amit Patel', role: 'Transport Head', msg: 'Bus route #4 updated as per request', time: '1h ago', unread: false, avatar: 'AP' },
+                { name: 'Sunita Iyer', role: 'Accounts Dept.', msg: 'Fee collection report attached', time: '2h ago', unread: false, avatar: 'SI' },
+              ].map((c, i) => (
+                <div key={i} className={`flex items-center gap-2.5 px-3 py-2.5 cursor-pointer transition-all ${theme.buttonHover} ${c.unread ? theme.secondaryBg : ''} border-b ${theme.border}`}>
+                  <div className={`w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center text-[10px] font-bold shrink-0`}>
+                    {c.avatar}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <p className={`text-xs font-bold ${theme.highlight} truncate`}>{c.name}</p>
+                      <span className={`text-[9px] ${theme.iconColor} shrink-0 ml-1`}>{c.time}</span>
+                    </div>
+                    <p className={`text-[10px] ${theme.iconColor} truncate`}>{c.role}</p>
+                    <p className={`text-[10px] ${c.unread ? theme.highlight + ' font-semibold' : theme.iconColor} truncate`}>{c.msg}</p>
+                  </div>
+                  {c.unread && <div className="w-2 h-2 rounded-full bg-green-500 shrink-0" />}
+                </div>
+              ))}
+            </div>
+
+            {/* Message Input */}
+            <div className={`px-3 py-2 border-t ${theme.border} flex items-center gap-2`}>
+              <input
+                type="text"
+                value={chatMsg}
+                onChange={e => setChatMsg(e.target.value)}
+                placeholder="Type a message..."
+                className={`flex-1 px-2.5 py-1.5 rounded-xl text-[10px] ${theme.inputBg || theme.secondaryBg} border ${theme.border} ${theme.highlight} outline-none`}
+              />
+              <button className="p-1.5 rounded-xl bg-green-500 text-white hover:bg-green-600 transition-all">
+                <Send size={12} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Chat Bubble */}
+        <button
+          onClick={() => setChatOpen(!chatOpen)}
+          className="w-12 h-12 rounded-full bg-green-500 text-white flex items-center justify-center shadow-lg hover:bg-green-600 transition-all hover:scale-105 relative"
+          title="Quick Chat"
+        >
+          <MessageCircle size={22} />
+          <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-[10px] text-white font-bold flex items-center justify-center ring-2 ring-white">2</span>
+        </button>
+      </div>
+
+      {/* Task Tracker Popup */}
+      <TaskTrackerPopup
+        theme={theme}
+        userName={currentUser.name}
+        isOpen={taskPopupOpen}
+        onClose={() => setTaskPopupOpen(false)}
+        triggerMode={taskPopupMode}
+        onDisableLoginPopup={() => setLoginPopupDisabled(true)}
+      />
 
       {/* Feedback system */}
       <FeedbackSystem currentPage={pathname} currentUser={currentUser.name} />
