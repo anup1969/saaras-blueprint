@@ -70,11 +70,72 @@ function SectionTitle({ title, subtitle, theme }: { title: string; subtitle?: st
   );
 }
 
+// ─── INSTITUTION TYPE DEFINITIONS ─────────────────────
+const INSTITUTION_TYPES = [
+  {
+    id: 'preschool',
+    label: 'Preschool / Daycare',
+    desc: 'Standalone pre-primary: Playgroup, Nursery, LKG, UKG. No board affiliation. Activity-based learning, daily reports, developmental milestones.',
+    icon: '🎒',
+    grades: 'Playgroup – UKG',
+    features: ['Daily Activity Log', 'Meal Tracking', 'Nap Tracker', 'Developmental Milestones', 'Parent Daily Reports'],
+  },
+  {
+    id: 'regular',
+    label: 'Regular School',
+    desc: 'Traditional school (Class 1–12 or subsets, with/without pre-primary wing). Board affiliated. Full academic management.',
+    icon: '🏫',
+    grades: 'Pre-primary + Class 1–12',
+    features: ['Board Exams', 'LMS & Homework', 'Report Cards', 'Streams (11-12)', 'SQAAF Compliance'],
+  },
+  {
+    id: 'integrated',
+    label: 'Integrated (Pre-primary + Regular)',
+    desc: 'Preschool + Regular school under one roof. Separate wings/campuses. Pre-primary has activity-based learning, regular wing has board academics.',
+    icon: '🏢',
+    grades: 'Playgroup – Class 12',
+    features: ['Both preschool & regular features', 'Separate wing configs', 'Unified fee management', 'Cross-wing reporting'],
+  },
+];
+
 // ─── STEP 1: SCHOOL IDENTITY ──────────────────────────
 function Step1Identity({ theme }: { theme: Theme }) {
+  const [institutionType, setInstitutionType] = useState('regular');
+  const isPreschool = institutionType === 'preschool';
+
   return (
     <div className="space-y-6">
       <SectionTitle title="School Basic Information" subtitle="Collected from school management during onboarding call" theme={theme} />
+
+      {/* ── INSTITUTION TYPE — FIRST QUESTION ── */}
+      <div className={`${theme.cardBg} rounded-2xl border-2 border-amber-300 p-4 space-y-3`}>
+        <SectionTitle title="Institution Type" subtitle="This determines which modules and features are available — select first" theme={theme} />
+        <div className="grid grid-cols-3 gap-3">
+          {INSTITUTION_TYPES.map(t => (
+            <button key={t.id} onClick={() => setInstitutionType(t.id)}
+              className={`p-4 rounded-xl border-2 cursor-pointer text-left transition-all ${
+                institutionType === t.id ? 'border-amber-400 bg-amber-50 ring-2 ring-amber-200' : `${theme.border} ${theme.cardBg}`
+              }`}>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xl">{t.icon}</span>
+                <span className={`text-sm font-bold ${theme.highlight}`}>{t.label}</span>
+              </div>
+              {institutionType === t.id && <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-bold mb-2 inline-block">SELECTED</span>}
+              <p className={`text-[10px] ${theme.iconColor} mb-2`}>{t.desc}</p>
+              <p className={`text-[10px] font-bold ${theme.iconColor}`}>Grades: {t.grades}</p>
+              <div className="flex flex-wrap gap-1 mt-2">
+                {t.features.map(f => (
+                  <span key={f} className={`text-[9px] px-1.5 py-0.5 rounded ${institutionType === t.id ? 'bg-amber-100 text-amber-700' : `${theme.secondaryBg} ${theme.iconColor}`}`}>{f}</span>
+                ))}
+              </div>
+            </button>
+          ))}
+        </div>
+        <p className={`text-[10px] ${theme.iconColor}`}>
+          <AlertTriangle size={10} className="inline mr-1 text-amber-500" />
+          <strong>Note:</strong> Institution type affects available modules, assessments, student profiles, and reports. Can be changed later by Super Admin.
+        </p>
+      </div>
 
       <div className="flex gap-4">
         <div className={`w-24 h-24 rounded-2xl border-2 border-dashed ${theme.border} flex flex-col items-center justify-center cursor-pointer ${theme.buttonHover}`}>
@@ -82,8 +143,8 @@ function Step1Identity({ theme }: { theme: Theme }) {
           <span className={`text-[10px] ${theme.iconColor} mt-1`}>Logo</span>
         </div>
         <div className="flex-1 space-y-3">
-          <FormField label="School Name" placeholder="e.g. Delhi Public School, Ahmedabad" theme={theme} required />
-          <FormField label="Short Name / Abbreviation" placeholder="e.g. DPS Ahmedabad" theme={theme} hint="Used in reports, receipts, SMS" />
+          <FormField label={isPreschool ? 'Preschool / Daycare Name' : 'School Name'} placeholder={isPreschool ? 'e.g. Little Stars Preschool, Ahmedabad' : 'e.g. Delhi Public School, Ahmedabad'} theme={theme} required />
+          <FormField label="Short Name / Abbreviation" placeholder={isPreschool ? 'e.g. Little Stars' : 'e.g. DPS Ahmedabad'} theme={theme} hint="Used in reports, receipts, SMS" />
         </div>
       </div>
 
@@ -102,28 +163,75 @@ function Step1Identity({ theme }: { theme: Theme }) {
         </div>
       </div>
 
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 space-y-3`}>
-        <SectionTitle title="Board & School Type" theme={theme} />
-        <div className="grid grid-cols-2 gap-3">
-          <SelectField label="Board Affiliation" options={['CBSE', 'ICSE / ISC', 'State Board (Gujarat)', 'State Board (Maharashtra)', 'IB (International Baccalaureate)', 'Cambridge (IGCSE)', 'Multiple Boards']} value="CBSE" theme={theme} required />
-          <FormField label="Affiliation Number" placeholder="e.g. 430126" theme={theme} hint="CBSE/ICSE affiliation ID" />
+      {/* Board & School Type — HIDDEN for pure preschool */}
+      {!isPreschool && (
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 space-y-3`}>
+          <SectionTitle title="Board & School Type" theme={theme} />
+          <div className="grid grid-cols-2 gap-3">
+            <SelectField label="Board Affiliation" options={['CBSE', 'ICSE / ISC', 'State Board (Gujarat)', 'State Board (Maharashtra)', 'IB (International Baccalaureate)', 'Cambridge (IGCSE)', 'Multiple Boards']} value="CBSE" theme={theme} required />
+            <FormField label="Affiliation Number" placeholder="e.g. 430126" theme={theme} hint="CBSE/ICSE affiliation ID" />
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <SelectField label="School Type" options={['K-12 (Nursery to 12th)', 'K-10 (Nursery to 10th)', 'K-8 (Nursery to 8th)', '1-12 (No Pre-primary)', '6-12 (Secondary + Higher)', '11-12 (Higher Secondary only)', 'Custom']} value="K-12 (Nursery to 12th)" theme={theme} required />
+            <SelectField label="Medium of Instruction" options={['English Medium', 'Hindi Medium', 'Gujarati Medium', 'Bilingual (English + Hindi)', 'Bilingual (English + Gujarati)', 'Trilingual', 'Other']} value="English Medium" theme={theme} required />
+            <SelectField label="School Category" options={['Co-educational', 'Boys Only', 'Girls Only']} value="Co-educational" theme={theme} required />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <SelectField label="Academic Year" options={['April - March', 'June - May', 'January - December']} value="April - March" theme={theme} required hint="When does your academic year start?" />
+            <FormField label="Year of Establishment" placeholder="e.g. 1985" type="number" theme={theme} />
+          </div>
         </div>
-        <div className="grid grid-cols-3 gap-3">
-          <SelectField label="School Type" options={['K-12 (Nursery to 12th)', 'K-10 (Nursery to 10th)', 'K-8 (Nursery to 8th)', '1-12 (No Pre-primary)', '6-12 (Secondary + Higher)', '11-12 (Higher Secondary only)', 'Custom']} value="K-12 (Nursery to 12th)" theme={theme} required />
-          <SelectField label="Medium of Instruction" options={['English Medium', 'Hindi Medium', 'Gujarati Medium', 'Bilingual (English + Hindi)', 'Bilingual (English + Gujarati)', 'Trilingual', 'Other']} value="English Medium" theme={theme} required />
-          <SelectField label="School Category" options={['Co-educational', 'Boys Only', 'Girls Only']} value="Co-educational" theme={theme} required />
+      )}
+
+      {/* Preschool-specific config — ONLY for preschool */}
+      {isPreschool && (
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 space-y-3`}>
+          <SectionTitle title="Preschool Configuration" subtitle="Age groups, programs, and daily schedule" theme={theme} />
+          <div className="grid grid-cols-2 gap-3">
+            <SelectField label="Programs Offered" options={['Playgroup + Nursery + LKG + UKG', 'Nursery + LKG + UKG', 'Playgroup + Nursery only', 'Daycare + Playgroup + Nursery + LKG + UKG', 'Custom']} value="Playgroup + Nursery + LKG + UKG" theme={theme} required />
+            <SelectField label="Age Range" options={['1.5 – 6 years', '2 – 6 years', '2.5 – 5 years', '3 – 6 years']} value="2 – 6 years" theme={theme} required />
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <SelectField label="Medium of Instruction" options={['English', 'Hindi', 'Gujarati', 'Bilingual', 'Trilingual']} value="English" theme={theme} required />
+            <SelectField label="Academic Year" options={['April - March', 'June - May', 'January - December']} value="April - March" theme={theme} required />
+            <FormField label="Year of Establishment" placeholder="e.g. 2015" type="number" theme={theme} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <SelectField label="Meals Provided" options={['None (parents send tiffin)', 'Snacks only', 'Breakfast + Lunch', 'All meals + Snacks', 'Optional meal plan']} value="Snacks only" theme={theme} />
+            <SelectField label="Daycare / Extended Hours" options={['No — fixed timings only', 'Yes — before school (7 AM)', 'Yes — after school (till 6 PM)', 'Full daycare (7 AM – 7 PM)']} value="No — fixed timings only" theme={theme} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <SelectField label="CCTV for Parents" options={['Not available', 'Live streaming (app)', 'Recorded clips shared daily', 'Phase 2 — planned']} value="Phase 2 — planned" theme={theme} hint="Live classroom viewing for parent assurance" />
+            <SelectField label="School Category" options={['Co-educational', 'Boys Only', 'Girls Only']} value="Co-educational" theme={theme} required />
+          </div>
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          <SelectField label="Academic Year" options={['April - March', 'June - May', 'January - December']} value="April - March" theme={theme} required hint="When does your academic year start?" />
-          <FormField label="Year of Establishment" placeholder="e.g. 1985" type="number" theme={theme} />
+      )}
+
+      {/* Integrated — show both board + preschool wings */}
+      {institutionType === 'integrated' && (
+        <div className={`bg-blue-50 rounded-2xl border border-blue-200 p-4`}>
+          <SectionTitle title="Integrated School — Wing Configuration" subtitle="Configure pre-primary and regular wings separately" theme={theme} />
+          <div className="grid grid-cols-2 gap-4">
+            <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+              <p className={`text-xs font-bold ${theme.highlight} mb-1`}>🎒 Pre-Primary Wing</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Activity-based learning, daily reports, developmental milestones. No board affiliation.</p>
+              <SelectField label="Programs" options={['Playgroup + Nursery + LKG + UKG', 'Nursery + LKG + UKG', 'LKG + UKG only']} value="Playgroup + Nursery + LKG + UKG" theme={theme} />
+            </div>
+            <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+              <p className={`text-xs font-bold ${theme.highlight} mb-1`}>🏫 Regular Wing</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Board-affiliated, traditional academics, exams, report cards.</p>
+              <SelectField label="Grade Range" options={['Class 1 – 12', 'Class 1 – 10', 'Class 1 – 8', 'Class 6 – 12']} value="Class 1 – 12" theme={theme} />
+            </div>
+          </div>
+          <p className={`text-[10px] ${theme.iconColor} mt-2`}>Both wings share: Fees, Transport, Communication, HR, Security. Each wing has separate: Timetable, Assessment, Daily schedule.</p>
         </div>
-      </div>
+      )}
 
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 space-y-3`}>
         <SectionTitle title="Key Contacts" subtitle="People SA will coordinate with during onboarding" theme={theme} />
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="Principal Name" placeholder="Dr. Ramesh Patel" theme={theme} required />
-          <FormField label="Principal Phone" placeholder="+91 98765 XXXXX" theme={theme} />
+          <FormField label={isPreschool ? 'Director / Head Name' : 'Principal Name'} placeholder={isPreschool ? 'Mrs. Priya Shah' : 'Dr. Ramesh Patel'} theme={theme} required />
+          <FormField label={isPreschool ? 'Director Phone' : 'Principal Phone'} placeholder="+91 98765 XXXXX" theme={theme} />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <FormField label="School Admin / IT Contact" placeholder="Name" theme={theme} />
