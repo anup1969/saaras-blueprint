@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { MessageSquarePlus, X, Send, MessageCircle, ChevronUp, ChevronDown } from 'lucide-react';
+import { MessageSquarePlus, X, Send, MessageCircle, ChevronUp, ChevronDown, Mic } from 'lucide-react';
 import { submitFeedback, getFeedback, type FeedbackItem } from '@/lib/supabase';
 
 interface FeedbackPosition {
@@ -21,6 +21,76 @@ export default function FeedbackSystem({ currentPage, currentUser }: { currentPa
   const [showPanel, setShowPanel] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState('');
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = React.useRef<any>(null);
+
+  // Check if Speech Recognition is supported
+  const speechSupported = typeof window !== 'undefined' && ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
+
+  const toggleListening = () => {
+    if (isListening) {
+      // Stop listening
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+        recognitionRef.current = null;
+      }
+      setIsListening(false);
+      return;
+    }
+
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-IN';
+    recognition.continuous = true;
+    recognition.interimResults = true;
+
+    let finalTranscript = '';
+
+    recognition.onresult = (event: any) => {
+      let interim = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript + ' ';
+        } else {
+          interim += transcript;
+        }
+      }
+      // Append finalized text to the remark
+      if (finalTranscript) {
+        setRemark(prev => {
+          const separator = prev && !prev.endsWith(' ') ? ' ' : '';
+          return prev + separator + finalTranscript.trim();
+        });
+        finalTranscript = '';
+      }
+    };
+
+    recognition.onerror = () => {
+      setIsListening(false);
+      recognitionRef.current = null;
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+      recognitionRef.current = null;
+    };
+
+    recognition.start();
+    recognitionRef.current = recognition;
+    setIsListening(true);
+  };
+
+  // Clean up recognition when popup closes
+  useEffect(() => {
+    if (!isOpen && recognitionRef.current) {
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+      setIsListening(false);
+    }
+  }, [isOpen]);
 
   // Load feedback for current page
   useEffect(() => {
@@ -169,15 +239,46 @@ export default function FeedbackSystem({ currentPage, currentUser }: { currentPa
               ))}
             </div>
 
-            {/* Remark */}
-            <textarea
-              value={remark}
-              onChange={e => setRemark(e.target.value)}
-              placeholder="Describe what you want..."
-              className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl p-3 outline-none focus:border-purple-500 resize-none"
-              rows={3}
-              autoFocus
-            />
+            {/* Remark with voice input */}
+            <div className="relative">
+              <textarea
+                value={remark}
+                onChange={e => setRemark(e.target.value)}
+                placeholder="Describe what you want..."
+                className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl p-3 pr-10 outline-none focus:border-purple-500 resize-none"
+                rows={3}
+                autoFocus
+              />
+              <button
+                onClick={toggleListening}
+                disabled={!speechSupported}
+                className={`absolute top-2 right-2 p-1.5 rounded-lg transition-all ${
+                  !speechSupported
+                    ? 'text-slate-600 cursor-not-allowed'
+                    : isListening
+                    ? 'text-red-400 bg-red-500/20 animate-pulse'
+                    : 'text-slate-400 hover:text-purple-400 hover:bg-slate-700'
+                }`}
+                title={
+                  !speechSupported
+                    ? 'Voice input not supported in this browser'
+                    : isListening
+                    ? 'Stop listening'
+                    : 'Start voice input'
+                }
+              >
+                <Mic size={14} />
+                {isListening && (
+                  <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-red-500 animate-ping" />
+                )}
+              </button>
+            </div>
+            {isListening && (
+              <p className="text-[10px] text-red-400 mt-1 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                Listening... Click mic again or speak to add text
+              </p>
+            )}
 
             {/* Priority */}
             <div className="flex items-center gap-2 mt-2 mb-3">

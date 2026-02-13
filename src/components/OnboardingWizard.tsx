@@ -75,7 +75,7 @@ const INSTITUTION_TYPES = [
   {
     id: 'preschool',
     label: 'Preschool / Daycare',
-    desc: 'Standalone pre-primary: Playgroup, Nursery, LKG, UKG. No board affiliation. Activity-based learning, daily reports, developmental milestones.',
+    desc: 'Standalone pre-primary: Playgroup, Nursery, LKG, UKG. No board affiliation, activity-based learning.',
     icon: '🎒',
     grades: 'Playgroup – UKG',
     features: ['Daily Activity Log', 'Meal Tracking', 'Nap Tracker', 'Developmental Milestones', 'Parent Daily Reports'],
@@ -83,26 +83,35 @@ const INSTITUTION_TYPES = [
   {
     id: 'regular',
     label: 'Regular School',
-    desc: 'Traditional school (Class 1–12 or subsets, with/without pre-primary wing). Board affiliated. Full academic management.',
+    desc: 'Traditional school: Pre-primary + Class 1–12 (or subsets). Board affiliated (CBSE, ICSE, State, IB, etc.). May or may not have pre-primary wing.',
     icon: '🏫',
     grades: 'Pre-primary + Class 1–12',
     features: ['Board Exams', 'LMS & Homework', 'Report Cards', 'Streams (11-12)', 'SQAAF Compliance'],
   },
   {
-    id: 'integrated',
-    label: 'Integrated (Pre-primary + Regular)',
-    desc: 'Preschool + Regular school under one roof. Separate wings/campuses. Pre-primary has activity-based learning, regular wing has board academics.',
-    icon: '🏢',
-    grades: 'Playgroup – Class 12',
-    features: ['Both preschool & regular features', 'Separate wing configs', 'Unified fee management', 'Cross-wing reporting'],
+    id: 'connected',
+    label: 'Connected School',
+    desc: 'Part of a school network — mother school, sub-school, sister concern, or franchisee. Connected schools share reporting and may share configurations.',
+    icon: '🔗',
+    grades: 'Varies by connection type',
+    features: ['Shared Reporting', 'Group Admin', 'Cross-school Transfers', 'Consolidated Analytics', 'Network Policies'],
   },
 ];
 
 // ─── STEP 1: SCHOOL IDENTITY ──────────────────────────
-function Step1Identity({ theme }: { theme: Theme }) {
+function Step1Identity({ theme, onInstitutionTypeChange }: { theme: Theme; onInstitutionTypeChange?: (type: string) => void }) {
   const [institutionType, setInstitutionType] = useState('regular');
-  const [isMultiBranch, setIsMultiBranch] = useState(false);
+  const [includesPrePrimary, setIncludesPrePrimary] = useState(false);
+  const [prePrimaryPrograms, setPrePrimaryPrograms] = useState<Record<string, boolean>>({
+    'Playgroup': false, 'Nursery': true, 'LKG': true, 'UKG': true,
+  });
   const isPreschool = institutionType === 'preschool';
+  const isConnected = institutionType === 'connected';
+
+  const handleTypeChange = (type: string) => {
+    setInstitutionType(type);
+    onInstitutionTypeChange?.(type);
+  };
 
   return (
     <div className="space-y-6">
@@ -113,7 +122,7 @@ function Step1Identity({ theme }: { theme: Theme }) {
         <SectionTitle title="Institution Type" subtitle="This determines which modules and features are available — select first" theme={theme} />
         <div className="grid grid-cols-3 gap-3">
           {INSTITUTION_TYPES.map(t => (
-            <button key={t.id} onClick={() => setInstitutionType(t.id)}
+            <button key={t.id} onClick={() => handleTypeChange(t.id)}
               className={`p-4 rounded-xl border-2 cursor-pointer text-left transition-all ${
                 institutionType === t.id ? 'border-amber-400 bg-amber-50 ring-2 ring-amber-200' : `${theme.border} ${theme.cardBg}`
               }`}>
@@ -138,25 +147,21 @@ function Step1Identity({ theme }: { theme: Theme }) {
         </p>
       </div>
 
-      {/* ── BRANCH / MULTI-SCHOOL CONFIGURATION ── */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 space-y-3`}>
-        <SectionTitle title="Branch / Multi-School Configuration" subtitle="Does this institution have multiple branches?" theme={theme} />
-        <div className="flex items-center gap-3">
-          <Toggle on={isMultiBranch} onChange={() => setIsMultiBranch(!isMultiBranch)} theme={theme} />
-          <span className={`text-xs font-medium ${theme.highlight}`}>This is a multi-branch institution</span>
-        </div>
-        {isMultiBranch && (
-          <div className="space-y-3 pt-2 border-t border-dashed border-slate-200">
-            <SelectField label="Branch Type" options={['Single Branch', 'Sister Concern', 'Baby Concern (Sub-branch)', 'Franchisee', 'Group School']} theme={theme} required />
+      {/* ── BRANCH / MULTI-SCHOOL CONFIGURATION — Only for Connected School ── */}
+      {isConnected && (
+        <div className={`${theme.cardBg} rounded-2xl border-2 border-blue-300 p-4 space-y-3`}>
+          <SectionTitle title="Branch / Multi-School Configuration" subtitle="Connected schools share reporting and may share configurations" theme={theme} />
+          <div className="space-y-3">
+            <SelectField label="Branch Type" options={['Mother School', 'Sub School', 'Sister Concern', 'Franchisee Provider', 'Franchised School']} theme={theme} required />
             <FormField label="Parent Organization / Group Name" placeholder="e.g. DPS Society, Ryan International" theme={theme} />
             <FormField label="Number of Branches" placeholder="e.g. 5" type="number" theme={theme} />
             <p className={`text-[10px] ${theme.iconColor}`}>
               <AlertCircle size={10} className="inline mr-1 text-blue-500" />
-              <strong>Note:</strong> Multi-branch schools are linked under a Group Admin. Each branch gets independent configuration but shares consolidated reporting.
+              <strong>Note:</strong> Connected schools are linked under a Group Admin. Each branch gets independent configuration but shares consolidated reporting, cross-school transfers, and network policies.
             </p>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="flex gap-4">
         <div className={`w-24 h-24 rounded-2xl border-2 border-dashed ${theme.border} flex flex-col items-center justify-center cursor-pointer ${theme.buttonHover}`}>
@@ -188,7 +193,7 @@ function Step1Identity({ theme }: { theme: Theme }) {
         </div>
       </div>
 
-      {/* Board & School Type — HIDDEN for pure preschool */}
+      {/* Board & School Type — shown for Regular School and Connected School */}
       {!isPreschool && (
         <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 space-y-3`}>
           <SectionTitle title="Board & School Type" theme={theme} />
@@ -226,23 +231,33 @@ function Step1Identity({ theme }: { theme: Theme }) {
         </div>
       )}
 
-      {/* Integrated — show both board + preschool wings */}
-      {institutionType === 'integrated' && (
-        <div className={`bg-blue-50 rounded-2xl border border-blue-200 p-4`}>
-          <SectionTitle title="Integrated School — Wing Configuration" subtitle="Configure pre-primary and regular wings separately" theme={theme} />
-          <div className="grid grid-cols-2 gap-4">
-            <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
-              <p className={`text-xs font-bold ${theme.highlight} mb-1`}>🎒 Pre-Primary Wing</p>
-              <p className={`text-[10px] ${theme.iconColor}`}>Activity-based learning, daily reports, developmental milestones. No board affiliation.</p>
-              <SelectField label="Programs" options={['Playgroup + Nursery + LKG + UKG', 'Nursery + LKG + UKG', 'LKG + UKG only']} value="Playgroup + Nursery + LKG + UKG" theme={theme} />
-            </div>
-            <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
-              <p className={`text-xs font-bold ${theme.highlight} mb-1`}>🏫 Regular Wing</p>
-              <p className={`text-[10px] ${theme.iconColor}`}>Board-affiliated, traditional academics, exams, report cards.</p>
-              <SelectField label="Grade Range" options={['Class 1 – 12', 'Class 1 – 10', 'Class 1 – 8', 'Class 6 – 12']} value="Class 1 – 12" theme={theme} />
-            </div>
+      {/* Regular School — Pre-Primary Wing toggle */}
+      {institutionType === 'regular' && (
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 space-y-3`}>
+          <div className="flex items-center justify-between">
+            <SectionTitle title="Includes Pre-Primary Wing?" subtitle="Does this school have a pre-primary section (Playgroup, Nursery, LKG, UKG)?" theme={theme} />
+            <Toggle on={includesPrePrimary} onChange={() => setIncludesPrePrimary(!includesPrePrimary)} theme={theme} />
           </div>
-          <p className={`text-[10px] ${theme.iconColor} mt-2`}>Both wings share: Fees, Transport, Communication, HR, Security. Each wing has separate: Timetable, Assessment, Daily schedule.</p>
+          {includesPrePrimary && (
+            <div className="space-y-3 pt-2 border-t border-dashed border-slate-200">
+              <p className={`text-[10px] ${theme.iconColor}`}>Select the pre-primary programs offered by this school:</p>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(prePrimaryPrograms).map(([prog, on]) => (
+                  <button key={prog} onClick={() => setPrePrimaryPrograms(p => ({ ...p, [prog]: !p[prog] }))}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-xl border ${on ? 'border-emerald-300 bg-emerald-50' : theme.border} cursor-pointer transition-all`}>
+                    <div className={`w-3.5 h-3.5 rounded border-2 flex items-center justify-center ${on ? 'bg-emerald-500 border-emerald-500' : theme.border}`}>
+                      {on && <Check size={8} className="text-white" />}
+                    </div>
+                    <span className={`text-xs ${theme.highlight}`}>{prog}</span>
+                  </button>
+                ))}
+              </div>
+              <p className={`text-[10px] ${theme.iconColor}`}>
+                <AlertCircle size={10} className="inline mr-1 text-blue-500" />
+                Pre-primary wing will have activity-based learning features alongside the regular board-affiliated academics.
+              </p>
+            </div>
+          )}
         </div>
       )}
 
@@ -283,7 +298,30 @@ type HouseEntry = { id: string; name: string; colorIndex: number; mascot: string
 type ShiftEntry = { id: string; name: string; level: string; startTime: string; endTime: string; periods: number; periodDuration: number };
 
 // ─── STEP 2: ACADEMIC STRUCTURE ───────────────────────
-function Step2Academic({ theme }: { theme: Theme }) {
+function Step2Academic({ theme, institutionType }: { theme: Theme; institutionType: string }) {
+  const isPreschool = institutionType === 'preschool';
+
+  // ─── PRESCHOOL-specific state ───
+  const [ageGroups, setAgeGroups] = useState<Record<string, boolean>>({
+    'Playgroup (1.5–2.5 yrs)': true,
+    'Nursery (2.5–3.5 yrs)': true,
+    'Junior KG (3.5–4.5 yrs)': true,
+    'Senior KG (4.5–5.5 yrs)': true,
+  });
+  const [preschoolGroups, setPreschoolGroups] = useState<Record<string, string[]>>({
+    'Playgroup': ['Butterflies', 'Sunshine'],
+    'Nursery': ['Rainbow', 'Stars'],
+    'Junior KG': ['Dolphins', 'Pandas'],
+    'Senior KG': ['Eagles', 'Lions'],
+  });
+  const [preschoolHouseEnabled, setPreschoolHouseEnabled] = useState(false);
+  const [preschoolShifts, setPreschoolShifts] = useState([
+    { id: 'ps1', name: 'Morning', startTime: '08:00', endTime: '12:00' },
+    { id: 'ps2', name: 'Afternoon', startTime: '12:00', endTime: '16:00' },
+    { id: 'ps3', name: 'Full Day', startTime: '08:00', endTime: '16:00' },
+  ]);
+
+  // ─── Regular school state ───
   const [classes, setClasses] = useState<Record<string, boolean>>({
     'Nursery': true, 'LKG': true, 'UKG': true,
     'Class 1': true, 'Class 2': true, 'Class 3': true, 'Class 4': true, 'Class 5': true,
@@ -389,6 +427,116 @@ function Step2Academic({ theme }: { theme: Theme }) {
     setHouses(prev => prev.map(h => h.id === id ? { ...h, [field]: value } : h));
   };
 
+  // ─── PRESCHOOL VERSION ───
+  if (isPreschool) {
+    const addPreschoolGroup = (level: string) => {
+      const name = window.prompt(`Enter new group name for ${level}:`);
+      if (name && name.trim()) {
+        setPreschoolGroups(prev => {
+          const current = prev[level] || [];
+          if (current.includes(name.trim())) return prev;
+          return { ...prev, [level]: [...current, name.trim()] };
+        });
+      }
+    };
+    const removePreschoolGroup = (level: string, groupName: string) => {
+      setPreschoolGroups(prev => {
+        const current = prev[level] || [];
+        if (current.length <= 1) { window.alert('Each age group must have at least 1 group.'); return prev; }
+        return { ...prev, [level]: current.filter(g => g !== groupName) };
+      });
+    };
+
+    return (
+      <div className="space-y-6">
+        <SectionTitle title="Academic Structure — Preschool" subtitle="Define age groups, activity groups, and daily schedule" theme={theme} />
+
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <SectionTitle title="Age Groups" subtitle="Click to toggle which age groups are offered" theme={theme} />
+          <div className="grid grid-cols-2 gap-3">
+            {Object.entries(ageGroups).map(([name, checked]) => (
+              <button key={name} onClick={() => setAgeGroups(p => ({ ...p, [name]: !p[name] }))}
+                className={`flex items-center gap-3 p-3 rounded-xl border ${checked ? 'border-emerald-300 bg-emerald-50' : `${theme.border}`} cursor-pointer transition-all`}>
+                <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${checked ? 'bg-emerald-500 border-emerald-500' : theme.border}`}>
+                  {checked && <Check size={10} className="text-white" />}
+                </div>
+                <span className={`text-xs font-medium ${theme.highlight}`}>{name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <SectionTitle title="Groups per Age Level" subtitle="Fun group names for each age level (instead of sections A/B/C)" theme={theme} />
+          <div className="space-y-2">
+            {Object.entries(preschoolGroups).map(([level, groups]) => (
+              <div key={level} className={`flex items-center gap-4 p-3 rounded-xl ${theme.secondaryBg}`}>
+                <span className={`text-xs font-bold ${theme.highlight} w-28`}>{level}</span>
+                <div className="flex gap-1 flex-wrap">
+                  {groups.map(g => (
+                    <span key={g} className={`text-[10px] px-2.5 py-1 rounded-lg ${theme.primary} text-white font-bold flex items-center gap-1`}>
+                      {g}
+                      <button onClick={() => removePreschoolGroup(level, g)} title={`Remove group ${g}`}>
+                        <X size={8} className="cursor-pointer opacity-70 hover:opacity-100" />
+                      </button>
+                    </span>
+                  ))}
+                  <button onClick={() => addPreschoolGroup(level)}
+                    className={`text-[10px] px-2 py-1 rounded-lg border ${theme.border} ${theme.iconColor} hover:bg-slate-100 transition-colors`}
+                    title="Add new group">
+                    <Plus size={10} />
+                  </button>
+                </div>
+                <span className={`text-[10px] ${theme.iconColor} ml-auto whitespace-nowrap`}>~15 per group</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <div className="flex items-center justify-between mb-3">
+            <SectionTitle title="House System" subtitle="Optional — most preschools do not use houses" theme={theme} />
+            <Toggle on={preschoolHouseEnabled} onChange={() => setPreschoolHouseEnabled(!preschoolHouseEnabled)} theme={theme} />
+          </div>
+          {!preschoolHouseEnabled && (
+            <p className={`text-[10px] ${theme.iconColor}`}>House system is disabled (default for preschools). Toggle on if your preschool uses house groups.</p>
+          )}
+          {preschoolHouseEnabled && (
+            <p className={`text-[10px] ${theme.iconColor}`}>Configure house names and colors in the same way as regular schools.</p>
+          )}
+        </div>
+
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <SectionTitle title="Daily Schedule / Shifts" subtitle="Preschool timings are typically simpler" theme={theme} />
+          <div className="space-y-2">
+            {preschoolShifts.map((shift) => (
+              <div key={shift.id} className={`flex items-center gap-4 p-3 rounded-xl ${theme.secondaryBg}`}>
+                <Clock size={14} className={theme.primaryText} />
+                <span className={`text-xs font-bold ${theme.highlight} w-24`}>{shift.name}</span>
+                <div className="flex items-center gap-2">
+                  <span className={`text-[10px] ${theme.iconColor}`}>Start:</span>
+                  <input type="time" value={shift.startTime}
+                    onChange={(e) => setPreschoolShifts(prev => prev.map(s => s.id === shift.id ? { ...s, startTime: e.target.value } : s))}
+                    className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`text-[10px] ${theme.iconColor}`}>End:</span>
+                  <input type="time" value={shift.endTime}
+                    onChange={(e) => setPreschoolShifts(prev => prev.map(s => s.id === shift.id ? { ...s, endTime: e.target.value } : s))}
+                    className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`} />
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className={`text-[10px] ${theme.iconColor} mt-2`}>
+            Morning (8–12), Afternoon (12–4), Full Day (8–4) are common preschool timings. Adjust as needed.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── REGULAR / CONNECTED SCHOOL VERSION ───
   return (
     <div className="space-y-6">
       <SectionTitle title="Academic Structure" subtitle="Define classes, sections, streams, and house system" theme={theme} />
@@ -650,7 +798,7 @@ function Step2Academic({ theme }: { theme: Theme }) {
 }
 
 // ─── STEP 3: PLAN & MODULES ──────────────────────────
-function Step3Modules({ theme }: { theme: Theme }) {
+function Step3Modules({ theme, institutionType }: { theme: Theme; institutionType: string }) {
   const [selectedPlan, setSelectedPlan] = useState('enterprise');
   const [modules, setModules] = useState<Record<string, boolean>>({
     'Dashboard': true, 'Student Management': true, 'Staff Management': true, 'Fee Management': true,
@@ -687,6 +835,15 @@ function Step3Modules({ theme }: { theme: Theme }) {
   return (
     <div className="space-y-6">
       <SectionTitle title="Subscription Plan & Modules" subtitle="Select plan and customize module access" theme={theme} />
+
+      {institutionType === 'preschool' && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3 flex items-start gap-2">
+          <AlertTriangle size={14} className="text-amber-500 mt-0.5 shrink-0" />
+          <p className={`text-xs text-amber-800`}>
+            <strong>Preschool Mode:</strong> Some modules are not available for preschool (Board Exams, LMS Advanced, SQAAF). Preschool-specific modules will be auto-enabled.
+          </p>
+        </div>
+      )}
 
       <div className="grid grid-cols-3 gap-4">
         {plans.map(p => (
@@ -750,7 +907,7 @@ function Step3Modules({ theme }: { theme: Theme }) {
 }
 
 // ─── STEP 4: ROLES & PERMISSIONS ─────────────────────
-function Step4Roles({ theme }: { theme: Theme }) {
+function Step4Roles({ theme, institutionType }: { theme: Theme; institutionType: string }) {
   const [roles, setRoles] = useState<Record<string, boolean>>({
     'School Admin': true, 'Principal': true, 'Vice Principal': true, 'Teacher': true,
     'HR Manager': true, 'Accounts Head': true, 'Receptionist': true, 'Transport Head': true,
@@ -778,6 +935,15 @@ function Step4Roles({ theme }: { theme: Theme }) {
   return (
     <div className="space-y-6">
       <SectionTitle title="Stakeholder Roles & Permissions" subtitle="Activate dashboards and define approval workflows" theme={theme} />
+
+      {institutionType === 'preschool' && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3 flex items-start gap-2">
+          <AlertTriangle size={14} className="text-amber-500 mt-0.5 shrink-0" />
+          <p className={`text-xs text-amber-800`}>
+            <strong>Preschool Mode:</strong> Preschool roles: Director (instead of Principal), Caregiver (instead of Teacher), Coordinator. Role names will be adapted in the live system.
+          </p>
+        </div>
+      )}
 
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
         <SectionTitle title="Active Stakeholder Dashboards" subtitle="Which roles should have their own dashboard?" theme={theme} />
@@ -853,7 +1019,7 @@ function Step4Roles({ theme }: { theme: Theme }) {
 }
 
 // ─── STEP 5: COMMUNICATION ───────────────────────────
-function Step5Communication({ theme }: { theme: Theme }) {
+function Step5Communication({ theme, institutionType }: { theme: Theme; institutionType: string }) {
   const [dmPerms, setDmPerms] = useState<Record<string, boolean>>({
     'Teacher→Teacher (Same Dept)': true, 'Teacher→Teacher (Any Dept)': true,
     'Teacher→Admin / Office': true, 'Teacher→Principal / VP': true,
@@ -949,7 +1115,7 @@ function Step5Communication({ theme }: { theme: Theme }) {
 }
 
 // ─── STEP 6: FEE STRUCTURE ───────────────────────────
-function Step6Fees({ theme }: { theme: Theme }) {
+function Step6Fees({ theme, institutionType }: { theme: Theme; institutionType: string }) {
   const [feeHeads, setFeeHeads] = useState<Record<string, boolean>>({
     'Tuition Fee': true, 'Admission Fee': true, 'Annual Charges': true, 'Transport Fee': true,
     'Activity / Extra-curricular Fee': true, 'Lab Fee': true, 'Library Fee': false, 'Exam Fee': true,
@@ -973,6 +1139,15 @@ function Step6Fees({ theme }: { theme: Theme }) {
   return (
     <div className="space-y-6">
       <SectionTitle title="Fee Structure (Basic Setup)" subtitle="Define fee heads and class categories — detailed amounts can be configured later" theme={theme} />
+
+      {institutionType === 'preschool' && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3 flex items-start gap-2">
+          <AlertTriangle size={14} className="text-amber-500 mt-0.5 shrink-0" />
+          <p className={`text-xs text-amber-800`}>
+            <strong>Preschool Mode:</strong> Preschool fees typically include: Monthly tuition, Admission, Activity Kit, Meals (if provided). Board exam and lab fees are not applicable.
+          </p>
+        </div>
+      )}
 
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
         <SectionTitle title="Fee Heads" subtitle="What fees does the school charge?" theme={theme} />
@@ -1049,7 +1224,7 @@ function Step6Fees({ theme }: { theme: Theme }) {
 }
 
 // ─── STEP 7: HR & STAFF ─────────────────────────────
-function Step7HR({ theme }: { theme: Theme }) {
+function Step7HR({ theme, institutionType }: { theme: Theme; institutionType: string }) {
   const [departments, setDepartments] = useState(['Teaching', 'Administration', 'Accounts', 'IT / Computer', 'Library', 'Transport', 'Security', 'Housekeeping', 'Lab', 'Sports', 'Medical']);
   const [leaveCarry, setLeaveCarry] = useState<Record<string, boolean>>({
     'Casual Leave (CL)': false, 'Sick Leave (SL)': false, 'Earned Leave (EL)': true,
@@ -1122,7 +1297,7 @@ function Step7HR({ theme }: { theme: Theme }) {
 }
 
 // ─── STEP 8: TRANSPORT ───────────────────────────────
-function Step8Transport({ theme }: { theme: Theme }) {
+function Step8Transport({ theme, institutionType }: { theme: Theme; institutionType: string }) {
   const [transportOn, setTransportOn] = useState(true);
   const [tracking, setTracking] = useState<Record<string, boolean>>({
     'GPS Live Tracking': true, 'Parent Tracking App': true, 'Auto-notification on Arrival': true,
@@ -1303,6 +1478,7 @@ type StepCompletionStatus = 'complete' | 'partial' | 'empty';
 
 export default function OnboardingWizard({ theme, onBack }: { theme: Theme; onBack: () => void }) {
   const [currentStep, setCurrentStep] = useState(1);
+  const [institutionType, setInstitutionType] = useState('regular');
   const [visitedSteps, setVisitedSteps] = useState<Set<number>>(new Set([1]));
   // Track completion status per step: simulated for blueprint (in production, would check actual form data)
   const [stepStatus, setStepStatus] = useState<Record<number, StepCompletionStatus>>({
@@ -1334,16 +1510,16 @@ export default function OnboardingWizard({ theme, onBack }: { theme: Theme; onBa
 
   const renderStep = () => {
     switch (currentStep) {
-      case 1: return <Step1Identity theme={theme} />;
-      case 2: return <Step2Academic theme={theme} />;
-      case 3: return <Step3Modules theme={theme} />;
-      case 4: return <Step4Roles theme={theme} />;
-      case 5: return <Step5Communication theme={theme} />;
-      case 6: return <Step6Fees theme={theme} />;
-      case 7: return <Step7HR theme={theme} />;
-      case 8: return <Step8Transport theme={theme} />;
+      case 1: return <Step1Identity theme={theme} onInstitutionTypeChange={setInstitutionType} />;
+      case 2: return <Step2Academic theme={theme} institutionType={institutionType} />;
+      case 3: return <Step3Modules theme={theme} institutionType={institutionType} />;
+      case 4: return <Step4Roles theme={theme} institutionType={institutionType} />;
+      case 5: return <Step5Communication theme={theme} institutionType={institutionType} />;
+      case 6: return <Step6Fees theme={theme} institutionType={institutionType} />;
+      case 7: return <Step7HR theme={theme} institutionType={institutionType} />;
+      case 8: return <Step8Transport theme={theme} institutionType={institutionType} />;
       case 9: return <Step9Review theme={theme} goToStep={setCurrentStep} />;
-      default: return <Step1Identity theme={theme} />;
+      default: return <Step1Identity theme={theme} onInstitutionTypeChange={setInstitutionType} />;
     }
   };
 
