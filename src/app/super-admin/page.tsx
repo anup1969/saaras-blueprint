@@ -604,18 +604,18 @@ const analyticsSchools = [
       { name: 'Homework', actions: 18900 },
     ],
     topEmployees: [
-      { name: 'Rajesh Kumar', role: 'Vice Principal', sessions: 142, lastActive: '5 min ago' },
-      { name: 'Priya Sharma', role: 'Academic Coord.', sessions: 128, lastActive: '12 min ago' },
-      { name: 'Amit Patel', role: 'Fee Accountant', sessions: 119, lastActive: '1 hr ago' },
-      { name: 'Sneha Desai', role: 'Class Teacher', sessions: 105, lastActive: '30 min ago' },
-      { name: 'Vikram Singh', role: 'Sports Head', sessions: 98, lastActive: '2 hr ago' },
+      { name: 'Rajesh Kumar', role: 'Vice Principal', sessions: 142, lastActive: '5 min ago', usageMins: 285 },
+      { name: 'Priya Sharma', role: 'Academic Coord.', sessions: 128, lastActive: '12 min ago', usageMins: 262 },
+      { name: 'Amit Patel', role: 'Fee Accountant', sessions: 119, lastActive: '1 hr ago', usageMins: 245 },
+      { name: 'Sneha Desai', role: 'Class Teacher', sessions: 105, lastActive: '30 min ago', usageMins: 228 },
+      { name: 'Vikram Singh', role: 'Sports Head', sessions: 98, lastActive: '2 hr ago', usageMins: 210 },
     ],
     worstEmployees: [
-      { name: 'Deepak Joshi', role: 'Lab Assistant', sessions: 3, lastActive: '18 days ago' },
-      { name: 'Meena Rao', role: 'Librarian', sessions: 5, lastActive: '15 days ago' },
-      { name: 'Suresh Nair', role: 'Peon Supervisor', sessions: 7, lastActive: '12 days ago' },
-      { name: 'Kavita Bhat', role: 'Art Teacher', sessions: 9, lastActive: '10 days ago' },
-      { name: 'Ramesh Yadav', role: 'PT Teacher', sessions: 11, lastActive: '8 days ago' },
+      { name: 'Deepak Joshi', role: 'Lab Assistant', sessions: 3, lastActive: '18 days ago', usageMins: 5 },
+      { name: 'Meena Rao', role: 'Librarian', sessions: 5, lastActive: '15 days ago', usageMins: 8 },
+      { name: 'Suresh Nair', role: 'Peon Supervisor', sessions: 7, lastActive: '12 days ago', usageMins: 11 },
+      { name: 'Kavita Bhat', role: 'Art Teacher', sessions: 9, lastActive: '10 days ago', usageMins: 14 },
+      { name: 'Ramesh Yadav', role: 'PT Teacher', sessions: 11, lastActive: '8 days ago', usageMins: 18 },
     ],
     alarms: [
       { message: '5 staff members haven\'t logged in for 15+ days', severity: 'red' as const },
@@ -646,18 +646,18 @@ const analyticsSchools = [
       { name: 'Timetable', actions: 28900 },
     ],
     topEmployees: [
-      { name: 'Fr. Joseph', role: 'Principal', sessions: 155, lastActive: '10 min ago' },
-      { name: 'Anita Fernandes', role: 'VP Academics', sessions: 140, lastActive: '20 min ago' },
-      { name: 'Rohit Mehta', role: 'Admin Head', sessions: 132, lastActive: '45 min ago' },
-      { name: 'Sonia D\'Souza', role: 'Exam Coord.', sessions: 121, lastActive: '1 hr ago' },
-      { name: 'Michael Thomas', role: 'IT Admin', sessions: 115, lastActive: '30 min ago' },
+      { name: 'Fr. Joseph', role: 'Principal', sessions: 155, lastActive: '10 min ago', usageMins: 298 },
+      { name: 'Anita Fernandes', role: 'VP Academics', sessions: 140, lastActive: '20 min ago', usageMins: 270 },
+      { name: 'Rohit Mehta', role: 'Admin Head', sessions: 132, lastActive: '45 min ago', usageMins: 255 },
+      { name: 'Sonia D\'Souza', role: 'Exam Coord.', sessions: 121, lastActive: '1 hr ago', usageMins: 238 },
+      { name: 'Michael Thomas', role: 'IT Admin', sessions: 115, lastActive: '30 min ago', usageMins: 220 },
     ],
     worstEmployees: [
-      { name: 'Prakash Verma', role: 'Security Head', sessions: 2, lastActive: '22 days ago' },
-      { name: 'Lalita Devi', role: 'Ayah', sessions: 4, lastActive: '19 days ago' },
-      { name: 'Ganesh Pillai', role: 'Store Keeper', sessions: 6, lastActive: '14 days ago' },
-      { name: 'Fatima Sheikh', role: 'Music Teacher', sessions: 8, lastActive: '11 days ago' },
-      { name: 'Ravi Kulkarni', role: 'Driver Coord.', sessions: 10, lastActive: '9 days ago' },
+      { name: 'Prakash Verma', role: 'Security Head', sessions: 2, lastActive: '22 days ago', usageMins: 6 },
+      { name: 'Lalita Devi', role: 'Ayah', sessions: 4, lastActive: '19 days ago', usageMins: 9 },
+      { name: 'Ganesh Pillai', role: 'Store Keeper', sessions: 6, lastActive: '14 days ago', usageMins: 12 },
+      { name: 'Fatima Sheikh', role: 'Music Teacher', sessions: 8, lastActive: '11 days ago', usageMins: 15 },
+      { name: 'Ravi Kulkarni', role: 'Driver Coord.', sessions: 10, lastActive: '9 days ago', usageMins: 18 },
     ],
     alarms: [
       { message: '3 staff members haven\'t logged in for 15+ days', severity: 'red' as const },
@@ -686,18 +686,18 @@ const analyticsSchools = [
       { name: 'Homework', actions: 5400 },
     ],
     topEmployees: [
-      { name: 'Hemant Shah', role: 'Principal', sessions: 88, lastActive: '1 hr ago' },
-      { name: 'Nisha Jain', role: 'Accountant', sessions: 72, lastActive: '2 hr ago' },
-      { name: 'Dilip Pandya', role: 'Admin Officer', sessions: 65, lastActive: '3 hr ago' },
-      { name: 'Poonam Trivedi', role: 'Class Teacher', sessions: 58, lastActive: '4 hr ago' },
-      { name: 'Chirag Patel', role: 'IT Support', sessions: 52, lastActive: '1 hr ago' },
+      { name: 'Hemant Shah', role: 'Principal', sessions: 88, lastActive: '1 hr ago', usageMins: 240 },
+      { name: 'Nisha Jain', role: 'Accountant', sessions: 72, lastActive: '2 hr ago', usageMins: 218 },
+      { name: 'Dilip Pandya', role: 'Admin Officer', sessions: 65, lastActive: '3 hr ago', usageMins: 205 },
+      { name: 'Poonam Trivedi', role: 'Class Teacher', sessions: 58, lastActive: '4 hr ago', usageMins: 195 },
+      { name: 'Chirag Patel', role: 'IT Support', sessions: 52, lastActive: '1 hr ago', usageMins: 188 },
     ],
     worstEmployees: [
-      { name: 'Bharat Solanki', role: 'Gardener Sup.', sessions: 1, lastActive: '25 days ago' },
-      { name: 'Jaya Amin', role: 'Craft Teacher', sessions: 2, lastActive: '20 days ago' },
-      { name: 'Kishore Raval', role: 'Clerk', sessions: 4, lastActive: '16 days ago' },
-      { name: 'Usha Vyas', role: 'Nurse', sessions: 5, lastActive: '13 days ago' },
-      { name: 'Manoj Thakkar', role: 'Watchman Sup.', sessions: 6, lastActive: '11 days ago' },
+      { name: 'Bharat Solanki', role: 'Gardener Sup.', sessions: 1, lastActive: '25 days ago', usageMins: 5 },
+      { name: 'Jaya Amin', role: 'Craft Teacher', sessions: 2, lastActive: '20 days ago', usageMins: 7 },
+      { name: 'Kishore Raval', role: 'Clerk', sessions: 4, lastActive: '16 days ago', usageMins: 10 },
+      { name: 'Usha Vyas', role: 'Nurse', sessions: 5, lastActive: '13 days ago', usageMins: 13 },
+      { name: 'Manoj Thakkar', role: 'Watchman Sup.', sessions: 6, lastActive: '11 days ago', usageMins: 16 },
     ],
     alarms: [
       { message: 'Data bucket at 55% — approaching limit on Basic plan', severity: 'amber' as const },
@@ -727,18 +727,18 @@ const analyticsSchools = [
       { name: 'Timetable', actions: 12400 },
     ],
     topEmployees: [
-      { name: 'Dr. Meera Joshi', role: 'Director', sessions: 135, lastActive: '8 min ago' },
-      { name: 'Karan Bhatt', role: 'Vice Principal', sessions: 122, lastActive: '20 min ago' },
-      { name: 'Shreya Patel', role: 'Exam Officer', sessions: 108, lastActive: '1 hr ago' },
-      { name: 'Nitin Doshi', role: 'Fee Manager', sessions: 96, lastActive: '45 min ago' },
-      { name: 'Avni Thakkar', role: 'Class Teacher', sessions: 89, lastActive: '2 hr ago' },
+      { name: 'Dr. Meera Joshi', role: 'Director', sessions: 135, lastActive: '8 min ago', usageMins: 275 },
+      { name: 'Karan Bhatt', role: 'Vice Principal', sessions: 122, lastActive: '20 min ago', usageMins: 258 },
+      { name: 'Shreya Patel', role: 'Exam Officer', sessions: 108, lastActive: '1 hr ago', usageMins: 235 },
+      { name: 'Nitin Doshi', role: 'Fee Manager', sessions: 96, lastActive: '45 min ago', usageMins: 215 },
+      { name: 'Avni Thakkar', role: 'Class Teacher', sessions: 89, lastActive: '2 hr ago', usageMins: 198 },
     ],
     worstEmployees: [
-      { name: 'Gopal Makwana', role: 'Lab Boy', sessions: 4, lastActive: '14 days ago' },
-      { name: 'Sarla Parmar', role: 'Peon', sessions: 5, lastActive: '12 days ago' },
-      { name: 'Jayesh Raval', role: 'Driver', sessions: 7, lastActive: '10 days ago' },
-      { name: 'Pushpa Nayak', role: 'Kitchen Staff', sessions: 8, lastActive: '9 days ago' },
-      { name: 'Vishal Gohel', role: 'Gardener', sessions: 9, lastActive: '7 days ago' },
+      { name: 'Gopal Makwana', role: 'Lab Boy', sessions: 4, lastActive: '14 days ago', usageMins: 8 },
+      { name: 'Sarla Parmar', role: 'Peon', sessions: 5, lastActive: '12 days ago', usageMins: 10 },
+      { name: 'Jayesh Raval', role: 'Driver', sessions: 7, lastActive: '10 days ago', usageMins: 14 },
+      { name: 'Pushpa Nayak', role: 'Kitchen Staff', sessions: 8, lastActive: '9 days ago', usageMins: 16 },
+      { name: 'Vishal Gohel', role: 'Gardener', sessions: 9, lastActive: '7 days ago', usageMins: 19 },
     ],
     alarms: [
       { message: '2 staff members haven\'t logged in for 14+ days', severity: 'amber' as const },
@@ -766,18 +766,18 @@ const analyticsSchools = [
       { name: 'Homework', actions: 5200 },
     ],
     topEmployees: [
-      { name: 'Tushar Mehta', role: 'Admin Head', sessions: 68, lastActive: '3 hr ago' },
-      { name: 'Reena Chauhan', role: 'Accountant', sessions: 55, lastActive: '5 hr ago' },
-      { name: 'Sunil Pandey', role: 'Class Teacher', sessions: 42, lastActive: '8 hr ago' },
-      { name: 'Alka Joshi', role: 'Receptionist', sessions: 38, lastActive: '6 hr ago' },
-      { name: 'Deepa Shah', role: 'Clerk', sessions: 32, lastActive: '1 day ago' },
+      { name: 'Tushar Mehta', role: 'Admin Head', sessions: 68, lastActive: '3 hr ago', usageMins: 210 },
+      { name: 'Reena Chauhan', role: 'Accountant', sessions: 55, lastActive: '5 hr ago', usageMins: 195 },
+      { name: 'Sunil Pandey', role: 'Class Teacher', sessions: 42, lastActive: '8 hr ago', usageMins: 178 },
+      { name: 'Alka Joshi', role: 'Receptionist', sessions: 38, lastActive: '6 hr ago', usageMins: 165 },
+      { name: 'Deepa Shah', role: 'Clerk', sessions: 32, lastActive: '1 day ago', usageMins: 148 },
     ],
     worstEmployees: [
-      { name: 'Mahesh Solanki', role: 'VP Academics', sessions: 2, lastActive: '28 days ago' },
-      { name: 'Sunita Rawat', role: 'HOD Science', sessions: 3, lastActive: '24 days ago' },
-      { name: 'Arun Mishra', role: 'HOD Math', sessions: 3, lastActive: '22 days ago' },
-      { name: 'Geeta Sharma', role: 'Coordinator', sessions: 4, lastActive: '20 days ago' },
-      { name: 'Vijay Patil', role: 'Sports Teacher', sessions: 5, lastActive: '18 days ago' },
+      { name: 'Mahesh Solanki', role: 'VP Academics', sessions: 2, lastActive: '28 days ago', usageMins: 5 },
+      { name: 'Sunita Rawat', role: 'HOD Science', sessions: 3, lastActive: '24 days ago', usageMins: 7 },
+      { name: 'Arun Mishra', role: 'HOD Math', sessions: 3, lastActive: '22 days ago', usageMins: 9 },
+      { name: 'Geeta Sharma', role: 'Coordinator', sessions: 4, lastActive: '20 days ago', usageMins: 12 },
+      { name: 'Vijay Patil', role: 'Sports Teacher', sessions: 5, lastActive: '18 days ago', usageMins: 15 },
     ],
     alarms: [
       { message: '12 staff members haven\'t logged in for 15+ days', severity: 'red' as const },
@@ -951,7 +951,7 @@ function AnalyticsView({ theme }: { theme: Theme }) {
             {s.topModules.map((mod, i) => {
               const maxActions = s.topModules[0].actions;
               const pct = Math.round((mod.actions / maxActions) * 100);
-              const colors = ['bg-blue-500', 'bg-emerald-500', 'bg-purple-500', 'bg-amber-500', 'bg-pink-500'];
+              const colors = ['bg-slate-400', 'bg-slate-300', 'bg-blue-200', 'bg-emerald-200', 'bg-stone-300'];
               return (
                 <div key={mod.name} className="flex items-center gap-3">
                   <span className={`text-[10px] font-bold ${theme.iconColor} w-4 text-right`}>{i + 1}</span>
@@ -985,6 +985,7 @@ function AnalyticsView({ theme }: { theme: Theme }) {
                   </div>
                   <div className="text-right shrink-0">
                     <p className={`text-xs font-bold text-emerald-600`}>{emp.sessions} sessions</p>
+                    <p className={`text-[10px] font-bold text-emerald-500`}>{emp.usageMins} mins/day</p>
                     <p className={`text-[10px] ${theme.iconColor}`}>{emp.lastActive}</p>
                   </div>
                 </div>
@@ -1007,6 +1008,7 @@ function AnalyticsView({ theme }: { theme: Theme }) {
                   </div>
                   <div className="text-right shrink-0">
                     <p className={`text-xs font-bold ${i < 2 ? 'text-red-600' : 'text-amber-600'}`}>{emp.sessions} sessions</p>
+                    <p className={`text-[10px] font-bold ${i < 2 ? 'text-red-500' : 'text-amber-500'}`}>{emp.usageMins} mins/day</p>
                     <p className={`text-[10px] ${i < 2 ? 'text-red-400' : 'text-amber-400'}`}>{emp.lastActive}</p>
                   </div>
                 </div>

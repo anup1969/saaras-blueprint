@@ -101,6 +101,7 @@ const INSTITUTION_TYPES = [
 // ─── STEP 1: SCHOOL IDENTITY ──────────────────────────
 function Step1Identity({ theme }: { theme: Theme }) {
   const [institutionType, setInstitutionType] = useState('regular');
+  const [isMultiBranch, setIsMultiBranch] = useState(false);
   const isPreschool = institutionType === 'preschool';
 
   return (
@@ -137,6 +138,26 @@ function Step1Identity({ theme }: { theme: Theme }) {
         </p>
       </div>
 
+      {/* ── BRANCH / MULTI-SCHOOL CONFIGURATION ── */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 space-y-3`}>
+        <SectionTitle title="Branch / Multi-School Configuration" subtitle="Does this institution have multiple branches?" theme={theme} />
+        <div className="flex items-center gap-3">
+          <Toggle on={isMultiBranch} onChange={() => setIsMultiBranch(!isMultiBranch)} theme={theme} />
+          <span className={`text-xs font-medium ${theme.highlight}`}>This is a multi-branch institution</span>
+        </div>
+        {isMultiBranch && (
+          <div className="space-y-3 pt-2 border-t border-dashed border-slate-200">
+            <SelectField label="Branch Type" options={['Single Branch', 'Sister Concern', 'Baby Concern (Sub-branch)', 'Franchisee', 'Group School']} theme={theme} required />
+            <FormField label="Parent Organization / Group Name" placeholder="e.g. DPS Society, Ryan International" theme={theme} />
+            <FormField label="Number of Branches" placeholder="e.g. 5" type="number" theme={theme} />
+            <p className={`text-[10px] ${theme.iconColor}`}>
+              <AlertCircle size={10} className="inline mr-1 text-blue-500" />
+              <strong>Note:</strong> Multi-branch schools are linked under a Group Admin. Each branch gets independent configuration but shares consolidated reporting.
+            </p>
+          </div>
+        )}
+      </div>
+
       <div className="flex gap-4">
         <div className={`w-24 h-24 rounded-2xl border-2 border-dashed ${theme.border} flex flex-col items-center justify-center cursor-pointer ${theme.buttonHover}`}>
           <Upload size={20} className={theme.iconColor} />
@@ -161,6 +182,10 @@ function Step1Identity({ theme }: { theme: Theme }) {
           <FormField label="Email" placeholder="info@school.edu" type="email" theme={theme} required />
           <FormField label="Website" placeholder="www.school.edu" theme={theme} />
         </div>
+        <div className="grid grid-cols-2 gap-3">
+          <SelectField label="Academic Year" options={['April - March', 'June - May', 'January - December']} value="April - March" theme={theme} required hint="When does your academic year start?" />
+          <FormField label="Year of Establishment" placeholder="e.g. 1985" type="number" theme={theme} />
+        </div>
       </div>
 
       {/* Board & School Type — HIDDEN for pure preschool */}
@@ -176,10 +201,6 @@ function Step1Identity({ theme }: { theme: Theme }) {
             <SelectField label="Medium of Instruction" options={['English Medium', 'Hindi Medium', 'Gujarati Medium', 'Bilingual (English + Hindi)', 'Bilingual (English + Gujarati)', 'Trilingual', 'Other']} value="English Medium" theme={theme} required />
             <SelectField label="School Category" options={['Co-educational', 'Boys Only', 'Girls Only']} value="Co-educational" theme={theme} required />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <SelectField label="Academic Year" options={['April - March', 'June - May', 'January - December']} value="April - March" theme={theme} required hint="When does your academic year start?" />
-            <FormField label="Year of Establishment" placeholder="e.g. 1985" type="number" theme={theme} />
-          </div>
         </div>
       )}
 
@@ -191,10 +212,9 @@ function Step1Identity({ theme }: { theme: Theme }) {
             <SelectField label="Programs Offered" options={['Playgroup + Nursery + LKG + UKG', 'Nursery + LKG + UKG', 'Playgroup + Nursery only', 'Daycare + Playgroup + Nursery + LKG + UKG', 'Custom']} value="Playgroup + Nursery + LKG + UKG" theme={theme} required />
             <SelectField label="Age Range" options={['1.5 – 6 years', '2 – 6 years', '2.5 – 5 years', '3 – 6 years']} value="2 – 6 years" theme={theme} required />
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <SelectField label="Medium of Instruction" options={['English', 'Hindi', 'Gujarati', 'Bilingual', 'Trilingual']} value="English" theme={theme} required />
-            <SelectField label="Academic Year" options={['April - March', 'June - May', 'January - December']} value="April - March" theme={theme} required />
-            <FormField label="Year of Establishment" placeholder="e.g. 2015" type="number" theme={theme} />
+            <SelectField label="School Category" options={['Co-educational', 'Boys Only', 'Girls Only']} value="Co-educational" theme={theme} required />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <SelectField label="Meals Provided" options={['None (parents send tiffin)', 'Snacks only', 'Breakfast + Lunch', 'All meals + Snacks', 'Optional meal plan']} value="Snacks only" theme={theme} />
@@ -202,7 +222,6 @@ function Step1Identity({ theme }: { theme: Theme }) {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <SelectField label="CCTV for Parents" options={['Not available', 'Live streaming (app)', 'Recorded clips shared daily', 'Phase 2 — planned']} value="Phase 2 — planned" theme={theme} hint="Live classroom viewing for parent assurance" />
-            <SelectField label="School Category" options={['Co-educational', 'Boys Only', 'Girls Only']} value="Co-educational" theme={theme} required />
           </div>
         </div>
       )}

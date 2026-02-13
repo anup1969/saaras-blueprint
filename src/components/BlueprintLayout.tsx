@@ -43,6 +43,7 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
   const [showNotifications, setShowNotifications] = useState(false);
   const [showThemePicker, setShowThemePicker] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [selectedVividColor, setSelectedVividColor] = useState('Rose');
   const notifRef = useRef<HTMLDivElement>(null);
   const themePickerRef = useRef<HTMLDivElement>(null);
   const theme = themes[themeIdx];
@@ -180,7 +181,7 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
                 <Palette size={14} />
               </button>
               {showThemePicker && (
-                <div className={`absolute right-0 top-10 w-48 ${theme.cardBg} border ${theme.border} rounded-xl shadow-2xl z-50 overflow-hidden`}>
+                <div className={`absolute right-0 top-10 w-56 ${theme.cardBg} border ${theme.border} rounded-xl shadow-2xl z-50 overflow-hidden`}>
                   <div className={`px-3 py-2 border-b ${theme.border}`}>
                     <span className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Select Theme</span>
                   </div>
@@ -190,20 +191,52 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
                       sage: 'bg-[#5c6b5d]',
                       stone: 'bg-[#78716c]',
                       neon: 'bg-indigo-500',
-                      vivid: 'bg-pink-500',
+                      vivid: 'bg-rose-400',
                     };
+                    const isVivid = t.id === 'vivid';
+                    const vividColorOptions = [
+                      { name: 'Red', bg: 'bg-red-300' },
+                      { name: 'Orange', bg: 'bg-orange-300' },
+                      { name: 'Amber', bg: 'bg-amber-300' },
+                      { name: 'Emerald', bg: 'bg-emerald-300' },
+                      { name: 'Teal', bg: 'bg-teal-300' },
+                      { name: 'Cyan', bg: 'bg-cyan-300' },
+                      { name: 'Blue', bg: 'bg-blue-300' },
+                      { name: 'Indigo', bg: 'bg-indigo-300' },
+                      { name: 'Purple', bg: 'bg-purple-300' },
+                      { name: 'Rose', bg: 'bg-rose-300' },
+                    ];
                     return (
-                      <button
-                        key={t.id}
-                        onClick={() => { setThemeIdx(i); setShowThemePicker(false); }}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 text-left transition-all ${
-                          i === themeIdx ? `${theme.secondaryBg}` : `${theme.buttonHover}`
-                        }`}
-                      >
-                        <span className={`w-4 h-4 rounded-full ${swatchColors[t.id] || t.primary} shrink-0 ${i === themeIdx ? 'ring-2 ring-offset-1 ring-purple-400' : ''}`} />
-                        <span className={`text-xs font-medium ${theme.highlight}`}>{t.name}</span>
-                        {i === themeIdx && <span className={`text-[10px] ml-auto ${theme.primaryText} font-bold`}>Active</span>}
-                      </button>
+                      <div key={t.id}>
+                        <button
+                          onClick={() => { setThemeIdx(i); if (!isVivid) setShowThemePicker(false); }}
+                          className={`w-full flex items-center gap-3 px-3 py-2.5 text-left transition-all ${
+                            i === themeIdx ? `${theme.secondaryBg}` : `${theme.buttonHover}`
+                          }`}
+                        >
+                          <span className={`w-4 h-4 rounded-full ${swatchColors[t.id] || t.primary} shrink-0 ${i === themeIdx ? 'ring-2 ring-offset-1 ring-purple-400' : ''}`} />
+                          <span className={`text-xs font-medium ${theme.highlight}`}>{t.name}</span>
+                          {i === themeIdx && <span className={`text-[10px] ml-auto ${theme.primaryText} font-bold`}>Active</span>}
+                        </button>
+                        {isVivid && i === themeIdx && (
+                          <div className={`px-3 pb-2.5 pt-1`}>
+                            <p className={`text-[9px] font-bold ${theme.iconColor} uppercase mb-1.5`}>Accent Color</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {vividColorOptions.map(vc => (
+                                <button
+                                  key={vc.name}
+                                  onClick={() => { setSelectedVividColor(vc.name); }}
+                                  title={vc.name}
+                                  className={`w-5 h-5 rounded-full ${vc.bg} transition-all hover:scale-110 ${
+                                    selectedVividColor === vc.name ? 'ring-2 ring-offset-1 ring-slate-400 scale-110' : ''
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                            <p className={`text-[9px] ${theme.iconColor} mt-1.5`}>Selected: {selectedVividColor}</p>
+                          </div>
+                        )}
+                      </div>
                     );
                   })}
                 </div>
