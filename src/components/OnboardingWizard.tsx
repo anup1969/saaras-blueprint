@@ -7,7 +7,7 @@ import {
   Building2, GraduationCap, Users, Shield, MessageSquare,
   Banknote, Briefcase, Bus, Check, ChevronRight, ChevronLeft, Save, Rocket,
   Upload, Plus, X, Eye, AlertTriangle, CheckCircle, Lock, Circle, AlertCircle,
-  Layers, ArrowRight, Download, Megaphone, Clock
+  Layers, ArrowRight, Download, Megaphone, Clock, Package, Info
 } from 'lucide-react';
 
 // ─── WIZARD STEPS ─────────────────────────────────────
@@ -822,7 +822,40 @@ function Step2Academic({ theme, institutionType }: { theme: Theme; institutionTy
 
 // ─── STEP 3: PLAN & MODULES ──────────────────────────
 function Step3Modules({ theme, institutionType }: { theme: Theme; institutionType: string }) {
+  const studentLabel = institutionType === 'preschool' ? 'Children' : 'Students';
+
+  // SKU type: 'sms-pack' = software only, 'sms-students' = software + student licenses
+  const [skuType, setSkuType] = useState<'sms-pack' | 'sms-students'>('sms-students');
   const [selectedPlan, setSelectedPlan] = useState('enterprise');
+
+  // Editable limits
+  const storageDefaults: Record<string, number> = { starter: 10, professional: 25, enterprise: 50 };
+  const studentDefaults: Record<string, number> = { starter: 1000, professional: 3000, enterprise: 99999 };
+  const staffDefaults: Record<string, number> = { starter: 100, professional: 150, enterprise: 99999 };
+
+  const [storage, setStorage] = useState(storageDefaults['enterprise']);
+  const [maxStudents, setMaxStudents] = useState(studentDefaults['enterprise']);
+  const [maxStaff, setMaxStaff] = useState(staffDefaults['enterprise']);
+  const [dataBucket, setDataBucket] = useState(storageDefaults['enterprise']);
+  const [subscriptionPeriod, setSubscriptionPeriod] = useState('Current Academic Year (2025-26)');
+
+  // SMS Pack optional student add-on
+  const [addStudentLicenses, setAddStudentLicenses] = useState(false);
+  const [addonStudentCount, setAddonStudentCount] = useState(0);
+  const [addonPeriod, setAddonPeriod] = useState('Current Academic Year (2025-26)');
+
+  // When plan changes, reset limits to defaults
+  const handlePlanChange = (planId: string) => {
+    setSelectedPlan(planId);
+    setStorage(storageDefaults[planId]);
+    setDataBucket(storageDefaults[planId]);
+    setMaxStaff(staffDefaults[planId]);
+    if (skuType === 'sms-students') {
+      setMaxStudents(studentDefaults[planId]);
+    }
+  };
+
+  // Module toggles
   const [modules, setModules] = useState<Record<string, boolean>>({
     'Dashboard': true, 'Student Management': true, 'Staff Management': true, 'Fee Management': true,
     'Attendance': true, 'Timetable': true, 'Parent Portal': true, 'Student Portal': true,
@@ -834,58 +867,267 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
     'API Access': false, 'White Label Branding': true,
   });
 
-  const plans = [
-    { id: 'starter', name: 'Starter', price: '₹25,000/yr', modules: 12, color: 'bg-blue-500', desc: 'Small schools up to 1000 students' },
-    { id: 'professional', name: 'Professional', price: '₹75,000/yr', modules: 18, color: 'bg-purple-500', desc: 'Mid-size schools up to 3000 students' },
-    { id: 'enterprise', name: 'Enterprise', price: '₹1,50,000/yr', modules: 27, color: 'bg-amber-500', desc: 'Large schools, unlimited' },
-  ];
-
   const coreModules = ['Dashboard', 'Student Management', 'Staff Management', 'Fee Management', 'Attendance', 'Timetable', 'Parent Portal', 'Student Portal', 'Communication / Chat', 'Online Payment', 'Enquiry / Admission', 'Homework / Assignments'];
   const proModules = ['Transport Management', 'Visitor Management', 'Library', 'Examination & Report Cards', 'HR & Payroll', 'Leave Management', 'Certificates'];
   const entModules = ['SQAAF / Quality Assessment', 'Inventory Management', 'Hostel Management', 'Alumni Management', 'Advanced Analytics', 'Custom Reports Builder', 'API Access', 'White Label Branding'];
 
   const toggleModule = (name: string) => {
-    if (coreModules.includes(name)) return; // Core modules can't be toggled off
+    if (coreModules.includes(name)) return;
     setModules(p => ({ ...p, [name]: !p[name] }));
   };
 
   const enabledCount = Object.values(modules).filter(Boolean).length;
 
-  const storageMap: Record<string, string> = { starter: '10 GB', professional: '25 GB', enterprise: '50 GB' };
-  const studentMap: Record<string, string> = { starter: '1,000', professional: '3,000', enterprise: 'Unlimited' };
-  const staffMap: Record<string, string> = { starter: '50', professional: '150', enterprise: 'Unlimited' };
+  const plans = [
+    { id: 'starter', name: 'Starter', price: '₹25,000/yr', modules: 12, color: 'bg-blue-500', students: 'Up to 1,000', staff: '100' },
+    { id: 'professional', name: 'Professional', price: '₹75,000/yr', modules: 18, color: 'bg-purple-500', students: 'Up to 3,000', staff: '150' },
+    { id: 'enterprise', name: 'Enterprise', price: '₹1,50,000/yr', modules: 27, color: 'bg-amber-500', students: 'Unlimited', staff: 'Unlimited' },
+  ];
+
+  const periodOptions = ['Current Academic Year (2025-26)', '1 Year', '2 Years', 'Custom'];
+
+  // Shared input style
+  const inputCls = `w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none focus:ring-2 focus:ring-slate-300 ${theme.highlight}`;
+  const labelCls = `text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`;
 
   return (
     <div className="space-y-6">
-      <SectionTitle title="Subscription Plan & Modules" subtitle="Select plan and customize module access" theme={theme} />
+      <SectionTitle title="Subscription Plan & Modules" subtitle="Choose your SKU type, plan tier, and customize limits" theme={theme} />
 
+      {/* Preschool notice */}
       {institutionType === 'preschool' && (
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3 flex items-start gap-2">
           <AlertTriangle size={14} className="text-amber-500 mt-0.5 shrink-0" />
-          <p className={`text-xs text-amber-800`}>
+          <p className="text-xs text-amber-800">
             <strong>Preschool Mode:</strong> Some modules are not available for preschool (Board Exams, LMS Advanced, SQAAF). Preschool-specific modules will be auto-enabled.
           </p>
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-4">
-        {plans.map(p => (
-          <button key={p.id} onClick={() => setSelectedPlan(p.id)}
+      {/* ── SECTION 1: SKU TYPE SELECTION ── */}
+      <div>
+        <SectionTitle title="Step 1: Choose SKU Type" subtitle="Select the licensing model for this school" theme={theme} />
+        <div className="grid grid-cols-2 gap-4">
+          {/* SMS Pack card */}
+          <button
+            onClick={() => { setSkuType('sms-pack'); setAddStudentLicenses(false); setAddonStudentCount(0); }}
             className={`p-5 rounded-2xl border-2 cursor-pointer transition-all text-left ${
-              p.id === selectedPlan ? `border-amber-400 ${theme.cardBg} ring-2 ring-amber-200` : `${theme.border} ${theme.cardBg}`
-            }`}>
-            <div className="flex items-center gap-2 mb-2">
-              <div className={`w-3 h-3 rounded-full border-2 ${p.id === selectedPlan ? `${p.color} border-transparent` : theme.border}`} />
-              <span className={`text-sm font-bold ${theme.highlight}`}>{p.name}</span>
-              {p.id === selectedPlan && <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-bold">SELECTED</span>}
+              skuType === 'sms-pack'
+                ? `border-blue-400 ${theme.cardBg} ring-2 ring-blue-200`
+                : `${theme.border} ${theme.cardBg} hover:border-slate-300`
+            }`}
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${skuType === 'sms-pack' ? 'bg-blue-100' : theme.secondaryBg}`}>
+                <Package size={20} className={skuType === 'sms-pack' ? 'text-blue-600' : theme.iconColor} />
+              </div>
+              <div>
+                <span className={`text-sm font-bold ${theme.highlight} block`}>SMS Pack</span>
+                <span className={`text-[10px] ${theme.iconColor}`}>School Management Software</span>
+              </div>
+              {skuType === 'sms-pack' && <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold">SELECTED</span>}
             </div>
-            <p className={`text-lg font-bold ${theme.primaryText}`}>{p.price}</p>
-            <p className={`text-[10px] ${theme.iconColor} mt-1`}>{p.desc}</p>
-            <p className={`text-[10px] ${theme.iconColor}`}>Up to {p.modules} modules</p>
+            <p className={`text-[11px] ${theme.iconColor} leading-relaxed`}>
+              Software-only subscription. Manage staff, operations, fees, and more. No {studentLabel.toLowerCase()} licenses included by default.
+            </p>
           </button>
-        ))}
+
+          {/* SMS + Students card */}
+          <button
+            onClick={() => { setSkuType('sms-students'); setMaxStudents(studentDefaults[selectedPlan]); }}
+            className={`p-5 rounded-2xl border-2 cursor-pointer transition-all text-left ${
+              skuType === 'sms-students'
+                ? `border-emerald-400 ${theme.cardBg} ring-2 ring-emerald-200`
+                : `${theme.border} ${theme.cardBg} hover:border-slate-300`
+            }`}
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${skuType === 'sms-students' ? 'bg-emerald-100' : theme.secondaryBg}`}>
+                <GraduationCap size={20} className={skuType === 'sms-students' ? 'text-emerald-600' : theme.iconColor} />
+              </div>
+              <div>
+                <span className={`text-sm font-bold ${theme.highlight} block`}>SMS + {studentLabel}</span>
+                <span className={`text-[10px] ${theme.iconColor}`}>Complete School Management</span>
+              </div>
+              {skuType === 'sms-students' && <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold">SELECTED</span>}
+            </div>
+            <p className={`text-[11px] ${theme.iconColor} leading-relaxed`}>
+              Complete school management with {studentLabel.toLowerCase()} licenses. Includes all modules plus {studentLabel.toLowerCase()} portal, parent portal, and {studentLabel.toLowerCase()}-specific features.
+            </p>
+          </button>
+        </div>
       </div>
 
+      {/* ── SECTION 2: PLAN TIER SELECTION ── */}
+      <div>
+        <SectionTitle
+          title="Step 2: Select Plan Tier"
+          subtitle={skuType === 'sms-pack' ? 'Software-only tiers — no student licenses included' : `Includes ${studentLabel.toLowerCase()} licenses with each tier`}
+          theme={theme}
+        />
+        <div className="grid grid-cols-3 gap-4">
+          {plans.map(p => (
+            <button key={p.id} onClick={() => handlePlanChange(p.id)}
+              className={`p-5 rounded-2xl border-2 cursor-pointer transition-all text-left ${
+                p.id === selectedPlan ? `border-amber-400 ${theme.cardBg} ring-2 ring-amber-200` : `${theme.border} ${theme.cardBg}`
+              }`}>
+              <div className="flex items-center gap-2 mb-2">
+                <div className={`w-3 h-3 rounded-full border-2 ${p.id === selectedPlan ? `${p.color} border-transparent` : theme.border}`} />
+                <span className={`text-sm font-bold ${theme.highlight}`}>{p.name}</span>
+                {p.id === selectedPlan && <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-bold">SELECTED</span>}
+              </div>
+              <p className={`text-lg font-bold ${theme.primaryText}`}>{p.price}</p>
+              <p className={`text-[10px] ${theme.iconColor} mt-1`}>Up to {p.modules} modules</p>
+              {skuType === 'sms-students' && (
+                <div className="mt-2 pt-2 border-t border-dashed border-slate-200">
+                  <p className={`text-[10px] ${theme.iconColor}`}>{p.students} {studentLabel.toLowerCase()}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{p.staff} staff</p>
+                </div>
+              )}
+              {skuType === 'sms-pack' && (
+                <div className="mt-2 pt-2 border-t border-dashed border-slate-200">
+                  <p className={`text-[10px] ${theme.iconColor}`}>0 {studentLabel.toLowerCase()} (SMS Pack)</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{p.staff} staff</p>
+                </div>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── SECTION 3: EDITABLE LIMITS & CUSTOMIZATION ── */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5`}>
+        <SectionTitle
+          title="Customizable Limits"
+          subtitle={`Defaults based on ${plans.find(p => p.id === selectedPlan)?.name} plan — all values editable by Super Admin`}
+          theme={theme}
+        />
+
+        {/* SMS Pack limits */}
+        {skuType === 'sms-pack' && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-3 gap-4">
+              {/* Storage */}
+              <div>
+                <label className={labelCls}>Storage (GB)</label>
+                <input type="number" min={1} value={storage} onChange={e => setStorage(Number(e.target.value))}
+                  className={inputCls} />
+              </div>
+              {/* Staff */}
+              <div>
+                <label className={labelCls}>Staff / Employees</label>
+                <input type="number" min={1} value={maxStaff === 99999 ? '' : maxStaff}
+                  placeholder={maxStaff === 99999 ? 'Unlimited' : ''}
+                  onChange={e => setMaxStaff(e.target.value === '' ? 99999 : Number(e.target.value))}
+                  className={inputCls} />
+                {maxStaff === 99999 && <p className={`text-[10px] ${theme.iconColor} mt-1`}>Unlimited (leave blank for unlimited)</p>}
+              </div>
+              {/* Students — locked for SMS Pack */}
+              <div>
+                <label className={labelCls}>{studentLabel}</label>
+                <div className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-sm ${theme.iconColor}`}>
+                  0 (SMS Pack — no {studentLabel.toLowerCase()} licenses)
+                </div>
+                <p className={`text-[10px] ${theme.iconColor} mt-1`}>Super Admin can add {studentLabel.toLowerCase()} licenses for a dedicated period</p>
+              </div>
+            </div>
+
+            {/* Optional: Add Student Licenses */}
+            <div className={`rounded-xl border-2 border-dashed ${addStudentLicenses ? 'border-blue-300 bg-blue-50/50' : `${theme.border}`} p-4`}>
+              <button
+                onClick={() => setAddStudentLicenses(!addStudentLicenses)}
+                className="flex items-center gap-2 cursor-pointer w-full text-left"
+              >
+                <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${addStudentLicenses ? 'bg-blue-500 border-blue-500' : theme.border}`}>
+                  {addStudentLicenses && <Check size={12} className="text-white" />}
+                </div>
+                <span className={`text-xs font-bold ${theme.highlight}`}>Add {studentLabel} Licenses (Optional)</span>
+                <Info size={12} className={theme.iconColor} />
+              </button>
+
+              {addStudentLicenses && (
+                <div className="mt-4 grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelCls}>Number of {studentLabel}</label>
+                    <input type="number" min={1} value={addonStudentCount || ''} placeholder="e.g. 500"
+                      onChange={e => setAddonStudentCount(Number(e.target.value))}
+                      className={inputCls} />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Subscription Period</label>
+                    <select value={addonPeriod} onChange={e => setAddonPeriod(e.target.value)} className={inputCls}>
+                      {periodOptions.map(o => <option key={o} value={o}>{o}</option>)}
+                    </select>
+                  </div>
+                  <div className="col-span-2 bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-start gap-2">
+                    <Info size={12} className="text-blue-500 mt-0.5 shrink-0" />
+                    <p className="text-[10px] text-blue-700">
+                      Adding {studentLabel.toLowerCase()} licenses converts this to <strong>SMS + {studentLabel}</strong> pricing for the selected period.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* SMS + Students limits */}
+        {skuType === 'sms-students' && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              {/* Storage */}
+              <div>
+                <label className={labelCls}>Storage (GB)</label>
+                <input type="number" min={1} value={storage} onChange={e => setStorage(Number(e.target.value))}
+                  className={inputCls} />
+              </div>
+              {/* Data Bucket */}
+              <div>
+                <label className={labelCls}>Data Bucket (GB)</label>
+                <input type="number" min={1} value={dataBucket} onChange={e => setDataBucket(Number(e.target.value))}
+                  className={inputCls} />
+              </div>
+              {/* Max Students */}
+              <div>
+                <label className={labelCls}>Max {studentLabel}</label>
+                <input type="number" min={1} value={maxStudents === 99999 ? '' : maxStudents}
+                  placeholder={maxStudents === 99999 ? 'Unlimited' : ''}
+                  onChange={e => setMaxStudents(e.target.value === '' ? 99999 : Number(e.target.value))}
+                  className={inputCls} />
+                {maxStudents === 99999 && <p className={`text-[10px] ${theme.iconColor} mt-1`}>Unlimited (leave blank for unlimited)</p>}
+              </div>
+              {/* Max Staff */}
+              <div>
+                <label className={labelCls}>Max Staff / Employees</label>
+                <input type="number" min={1} value={maxStaff === 99999 ? '' : maxStaff}
+                  placeholder={maxStaff === 99999 ? 'Unlimited' : ''}
+                  onChange={e => setMaxStaff(e.target.value === '' ? 99999 : Number(e.target.value))}
+                  className={inputCls} />
+                {maxStaff === 99999 && <p className={`text-[10px] ${theme.iconColor} mt-1`}>Unlimited (leave blank for unlimited)</p>}
+              </div>
+            </div>
+
+            {/* Subscription Period */}
+            <div>
+              <label className={labelCls}>Subscription Period</label>
+              <select value={subscriptionPeriod} onChange={e => setSubscriptionPeriod(e.target.value)} className={inputCls}>
+                {periodOptions.map(o => <option key={o} value={o}>{o}</option>)}
+              </select>
+            </div>
+
+            <div className={`${theme.secondaryBg} rounded-xl p-3 flex items-start gap-2`}>
+              <Info size={12} className={`${theme.iconColor} mt-0.5 shrink-0`} />
+              <p className={`text-[10px] ${theme.iconColor}`}>
+                All values are customizable by Super Admin per school requirements. Defaults are set based on the selected plan tier.
+              </p>
+            </div>
+          </div>
+        )}
+
+        <p className={`text-[10px] ${theme.iconColor} mt-3`}>{enabledCount} modules enabled</p>
+      </div>
+
+      {/* ── SECTION 4: MODULE TOGGLES ── */}
       {[
         { cat: 'Core (All Plans)', list: coreModules, locked: true },
         { cat: 'Professional+', list: proModules, locked: false },
@@ -906,25 +1148,6 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
           </div>
         </div>
       ))}
-
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <SectionTitle title="Storage & Limits" subtitle={`Based on ${plans.find(p => p.id === selectedPlan)?.name} plan`} theme={theme} />
-        <div className="grid grid-cols-3 gap-3">
-          <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
-            <p className={`text-lg font-bold ${theme.highlight}`}>{storageMap[selectedPlan]}</p>
-            <p className={`text-[10px] ${theme.iconColor}`}>Total Storage</p>
-          </div>
-          <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
-            <p className={`text-lg font-bold ${theme.highlight}`}>{studentMap[selectedPlan]}</p>
-            <p className={`text-[10px] ${theme.iconColor}`}>Students</p>
-          </div>
-          <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
-            <p className={`text-lg font-bold ${theme.highlight}`}>{staffMap[selectedPlan]}</p>
-            <p className={`text-[10px] ${theme.iconColor}`}>Staff</p>
-          </div>
-        </div>
-        <p className={`text-[10px] ${theme.iconColor} mt-2`}>{enabledCount} modules enabled</p>
-      </div>
     </div>
   );
 }
