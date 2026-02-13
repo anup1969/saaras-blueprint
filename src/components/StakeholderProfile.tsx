@@ -7,11 +7,11 @@ import {
   Lock, Award, Bus, GraduationCap, Shield, Users, Monitor,
   PhoneCall, Briefcase, Calculator, Eye, ShieldCheck, Headphones,
   KeyRound, LogOut, Building2, UserCheck, X, MessageSquare,
-  FileText, Megaphone
+  FileText, Megaphone, Settings, ListTodo, Timer, Camera, Save, Check
 } from 'lucide-react';
 
 // ─── TYPES ───────────────────────────────────────────
-type ProfileTab = 'personal' | 'salary' | 'attendance' | 'leave' | 'fees' | 'account';
+type ProfileTab = 'personal' | 'salary' | 'attendance' | 'leave' | 'fees' | 'account' | 'settings';
 type FieldType = 'editable' | 'locked';
 type PersonalField = { label: string; value: string; type?: FieldType };
 
@@ -36,7 +36,7 @@ const profileConfigs: Record<string, ProfileConfig> = {
       { icon: Calendar, text: 'Joined: 15-Jun-2019' }, { icon: Clock, text: '6.5 Yrs' },
       { icon: Phone, text: '+91 98765 43210' }, { icon: Mail, text: 'priya.sharma@school.edu' },
     ],
-    tabs: ['personal', 'salary', 'attendance', 'leave', 'account'],
+    tabs: ['personal', 'salary', 'attendance', 'leave', 'account', 'settings'],
     personal: {
       left: [{ label: 'Full Name', value: 'Priya Sharma' }, { label: 'DOB', value: '15-Mar-1990' }, { label: 'Gender', value: 'Female' }, { label: 'Blood Group', value: 'B+' }, { label: 'Marital Status', value: 'Married' }, { label: 'Nationality', value: 'Indian' }],
       right: [{ label: 'Phone', value: '+91 98765 43210', type: 'editable' }, { label: 'Email', value: 'priya@gmail.com', type: 'editable' }, { label: 'Address', value: '12, Satellite Rd, Ahmedabad', type: 'editable' }, { label: 'Aadhaar', value: 'XXXX-XXXX-1234', type: 'locked' }, { label: 'PAN', value: 'XXXXX4567X', type: 'locked' }, { label: 'Emergency Contact', value: '+91 98765 99999', type: 'editable' }],
@@ -50,7 +50,7 @@ const profileConfigs: Record<string, ProfileConfig> = {
       { icon: Calendar, text: 'DOB: 12-May-2011' }, { icon: Bus, text: 'Route 7' },
       { icon: Building2, text: 'Admission: DPS/2020/1547' },
     ],
-    tabs: ['personal', 'fees', 'account'],
+    tabs: ['personal', 'fees', 'account', 'settings'],
     personal: {
       left: [{ label: 'Full Name', value: 'Arjun Mehta' }, { label: 'DOB', value: '12-May-2011' }, { label: 'Gender', value: 'Male' }, { label: 'Blood Group', value: 'O+' }, { label: 'Nationality', value: 'Indian' }, { label: 'Religion', value: 'Hindu' }, { label: 'Category', value: 'General' }, { label: 'House', value: 'Red House' }],
       right: [{ label: 'Father', value: 'Rajesh Mehta', type: 'locked' }, { label: 'Mother', value: 'Sneha Mehta', type: 'locked' }, { label: 'Parent Phone', value: '+91 99887 76655', type: 'locked' }, { label: 'Parent Email', value: 'rajesh.mehta@gmail.com', type: 'locked' }, { label: 'Address', value: '45, Bodakdev, Ahmedabad', type: 'locked' }, { label: 'Previous School', value: "St. Xavier's Primary", type: 'locked' }, { label: 'Joined', value: '01-Apr-2020', type: 'locked' }],
@@ -63,7 +63,7 @@ const profileConfigs: Record<string, ProfileConfig> = {
       { icon: Phone, text: '+91 99887 76655' }, { icon: Mail, text: 'rajesh.mehta@gmail.com' },
       { icon: Users, text: 'Arjun (10th A), Riya (7th B)' },
     ],
-    tabs: ['personal', 'account'],
+    tabs: ['personal', 'account', 'settings'],
     personal: {
       left: [{ label: 'Full Name', value: 'Rajesh Mehta' }, { label: 'DOB', value: '08-Sep-1980' }, { label: 'Gender', value: 'Male' }, { label: 'Relation', value: 'Father' }, { label: 'Occupation', value: 'Business Owner' }, { label: 'Nationality', value: 'Indian' }],
       right: [{ label: 'Phone', value: '+91 99887 76655', type: 'editable' }, { label: 'Email', value: 'rajesh.mehta@gmail.com', type: 'editable' }, { label: 'Address', value: '45, Bodakdev, Ahmedabad 380054', type: 'editable' }, { label: 'Spouse', value: 'Sneha Mehta', type: 'locked' }, { label: 'Spouse Phone', value: '+91 99887 76656', type: 'editable' }, { label: 'Aadhaar', value: 'XXXX-XXXX-9876', type: 'locked' }],
@@ -76,7 +76,7 @@ const profileConfigs: Record<string, ProfileConfig> = {
       { icon: Calendar, text: 'Joined: 01-Apr-2015' }, { icon: Clock, text: '11 Yrs' },
       { icon: Phone, text: '+91 98765 00001' }, { icon: Mail, text: 'principal@school.edu' },
     ],
-    tabs: ['personal', 'salary', 'account'],
+    tabs: ['personal', 'salary', 'account', 'settings'],
     personal: {
       left: [{ label: 'Full Name', value: 'Dr. Suresh Mehta' }, { label: 'DOB', value: '10-Jan-1970' }, { label: 'Gender', value: 'Male' }, { label: 'Blood Group', value: 'A+' }, { label: 'Marital Status', value: 'Married' }, { label: 'Qualification', value: 'Ph.D Education, M.Ed, B.Ed' }],
       right: [{ label: 'Phone', value: '+91 98765 00001', type: 'editable' }, { label: 'Email', value: 'suresh.mehta@gmail.com', type: 'editable' }, { label: 'Address', value: '1, Science City Rd, Ahmedabad', type: 'editable' }, { label: 'Aadhaar', value: 'XXXX-XXXX-0001', type: 'locked' }, { label: 'PAN', value: 'XXXXX0001X', type: 'locked' }, { label: 'Emergency Contact', value: '+91 98765 00002', type: 'editable' }],
@@ -90,7 +90,7 @@ const profileConfigs: Record<string, ProfileConfig> = {
       { icon: Calendar, text: 'Joined: 15-Jun-2016' }, { icon: Clock, text: '9.5 Yrs' },
       { icon: Phone, text: '+91 98765 00010' }, { icon: Mail, text: 'vp@school.edu' },
     ],
-    tabs: ['personal', 'salary', 'attendance', 'account'],
+    tabs: ['personal', 'salary', 'attendance', 'account', 'settings'],
     personal: {
       left: [{ label: 'Full Name', value: 'Rekha Joshi' }, { label: 'DOB', value: '22-Aug-1975' }, { label: 'Gender', value: 'Female' }, { label: 'Blood Group', value: 'B+' }, { label: 'Marital Status', value: 'Married' }, { label: 'Qualification', value: 'M.Ed, B.Ed' }],
       right: [{ label: 'Phone', value: '+91 98765 00010', type: 'editable' }, { label: 'Email', value: 'rekha.joshi@gmail.com', type: 'editable' }, { label: 'Address', value: '14, Paldi, Ahmedabad', type: 'editable' }, { label: 'Aadhaar', value: 'XXXX-XXXX-0010', type: 'locked' }, { label: 'PAN', value: 'XXXXX0010X', type: 'locked' }, { label: 'Emergency Contact', value: '+91 98765 00011', type: 'editable' }],
@@ -104,7 +104,7 @@ const profileConfigs: Record<string, ProfileConfig> = {
       { icon: Calendar, text: 'Joined: 12-Feb-2018' }, { icon: Phone, text: '+91 99112 33445' },
       { icon: Mail, text: 'kavita@school.edu' },
     ],
-    tabs: ['personal', 'salary', 'attendance', 'account'],
+    tabs: ['personal', 'salary', 'attendance', 'account', 'settings'],
     personal: {
       left: [{ label: 'Full Name', value: 'Kavita Reddy' }, { label: 'DOB', value: '25-Dec-1985' }, { label: 'Gender', value: 'Female' }, { label: 'Blood Group', value: 'O-' }, { label: 'Marital Status', value: 'Married' }, { label: 'Qualification', value: 'MBA (HR), SHRM-CP' }],
       right: [{ label: 'Phone', value: '+91 99112 33445', type: 'editable' }, { label: 'Email', value: 'kavita.reddy@gmail.com', type: 'editable' }, { label: 'Address', value: '34, Thaltej, Ahmedabad', type: 'editable' }, { label: 'Aadhaar', value: 'XXXX-XXXX-6789', type: 'locked' }, { label: 'PAN', value: 'XXXXX6789X', type: 'locked' }, { label: 'Emergency Contact', value: '+91 99112 88888', type: 'editable' }],
@@ -118,7 +118,7 @@ const profileConfigs: Record<string, ProfileConfig> = {
       { icon: Calendar, text: 'Joined: 01-Jul-2017' }, { icon: Phone, text: '+91 98765 77701' },
       { icon: Mail, text: 'accounts@school.edu' },
     ],
-    tabs: ['personal', 'salary', 'attendance', 'account'],
+    tabs: ['personal', 'salary', 'attendance', 'account', 'settings'],
     personal: {
       left: [{ label: 'Full Name', value: 'Ramesh Patel' }, { label: 'DOB', value: '05-Mar-1978' }, { label: 'Gender', value: 'Male' }, { label: 'Blood Group', value: 'A-' }, { label: 'Marital Status', value: 'Married' }, { label: 'Qualification', value: 'CA, M.Com' }],
       right: [{ label: 'Phone', value: '+91 98765 77701', type: 'editable' }, { label: 'Email', value: 'ramesh.patel@gmail.com', type: 'editable' }, { label: 'Address', value: '67, CG Road, Ahmedabad', type: 'editable' }, { label: 'Aadhaar', value: 'XXXX-XXXX-7701', type: 'locked' }, { label: 'PAN', value: 'XXXXX7701X', type: 'locked' }, { label: 'Emergency Contact', value: '+91 98765 77702', type: 'editable' }],
@@ -132,7 +132,7 @@ const profileConfigs: Record<string, ProfileConfig> = {
       { icon: Calendar, text: 'Joined: 01-Aug-2021' }, { icon: Phone, text: '+91 77665 54433' },
       { icon: Mail, text: 'anita@school.edu' },
     ],
-    tabs: ['personal', 'salary', 'attendance', 'account'],
+    tabs: ['personal', 'salary', 'attendance', 'account', 'settings'],
     personal: {
       left: [{ label: 'Full Name', value: 'Anita Desai' }, { label: 'DOB', value: '30-Apr-1988' }, { label: 'Gender', value: 'Female' }, { label: 'Blood Group', value: 'A+' }, { label: 'Marital Status', value: 'Married' }, { label: 'Qualification', value: 'B.Com' }],
       right: [{ label: 'Phone', value: '+91 77665 54433', type: 'editable' }, { label: 'Email', value: 'anita.desai@gmail.com', type: 'editable' }, { label: 'Address', value: '12, Vastrapur, Ahmedabad', type: 'editable' }, { label: 'Aadhaar', value: 'XXXX-XXXX-2345', type: 'locked' }, { label: 'PAN', value: 'XXXXX2345X', type: 'locked' }, { label: 'Emergency Contact', value: '+91 77665 99999', type: 'editable' }],
@@ -146,7 +146,7 @@ const profileConfigs: Record<string, ProfileConfig> = {
       { icon: Calendar, text: 'Joined: 05-Jan-2016' }, { icon: Phone, text: '+91 98765 12345' },
       { icon: Mail, text: 'irfan@school.edu' },
     ],
-    tabs: ['personal', 'salary', 'attendance', 'account'],
+    tabs: ['personal', 'salary', 'attendance', 'account', 'settings'],
     personal: {
       left: [{ label: 'Full Name', value: 'Mohammed Irfan' }, { label: 'DOB', value: '05-Aug-1980' }, { label: 'Gender', value: 'Male' }, { label: 'Blood Group', value: 'A+' }, { label: 'Marital Status', value: 'Married' }, { label: 'Nationality', value: 'Indian' }],
       right: [{ label: 'Phone', value: '+91 98765 12345', type: 'editable' }, { label: 'Email', value: 'irfan@gmail.com', type: 'editable' }, { label: 'Address', value: '78, Maninagar, Ahmedabad', type: 'editable' }, { label: 'Aadhaar', value: 'XXXX-XXXX-5678', type: 'locked' }, { label: 'Driving License', value: 'GJ01-2015-XXXXX', type: 'locked' }, { label: 'Emergency Contact', value: '+91 98765 11122', type: 'editable' }],
@@ -160,7 +160,7 @@ const profileConfigs: Record<string, ProfileConfig> = {
       { icon: Calendar, text: 'Joined: 10-Mar-2019' }, { icon: Phone, text: '+91 98765 44401' },
       { icon: Mail, text: 'security@school.edu' },
     ],
-    tabs: ['personal', 'salary', 'attendance', 'account'],
+    tabs: ['personal', 'salary', 'attendance', 'account', 'settings'],
     personal: {
       left: [{ label: 'Full Name', value: 'Raju Kanabar' }, { label: 'DOB', value: '15-Jun-1975' }, { label: 'Gender', value: 'Male' }, { label: 'Blood Group', value: 'O+' }, { label: 'Marital Status', value: 'Married' }, { label: 'Background', value: 'Ex-Army, 12 Yrs' }],
       right: [{ label: 'Phone', value: '+91 98765 44401', type: 'editable' }, { label: 'Email', value: 'raju.k@gmail.com', type: 'editable' }, { label: 'Address', value: '90, Isanpur, Ahmedabad', type: 'editable' }, { label: 'Aadhaar', value: 'XXXX-XXXX-4401', type: 'locked' }, { label: 'PAN', value: 'XXXXX4401X', type: 'locked' }, { label: 'Emergency Contact', value: '+91 98765 44402', type: 'editable' }],
@@ -174,7 +174,7 @@ const profileConfigs: Record<string, ProfileConfig> = {
       { icon: Calendar, text: 'Since: 2010' }, { icon: Phone, text: '+91 98765 00100' },
       { icon: Mail, text: 'chairman@school.edu' },
     ],
-    tabs: ['personal', 'account'],
+    tabs: ['personal', 'account', 'settings'],
     personal: {
       left: [{ label: 'Full Name', value: 'Jayantbhai Shah' }, { label: 'DOB', value: '20-Nov-1955' }, { label: 'Gender', value: 'Male' }, { label: 'Designation', value: 'Chairman' }, { label: 'Tenure', value: '2023-2028' }, { label: 'Nationality', value: 'Indian' }],
       right: [{ label: 'Phone', value: '+91 98765 00100', type: 'editable' }, { label: 'Email', value: 'jayant.shah@gmail.com', type: 'editable' }, { label: 'Address', value: 'Shahibaug, Ahmedabad', type: 'locked' }, { label: 'Occupation', value: 'Industrialist', type: 'locked' }, { label: 'Trust Role', value: 'Chairman & Signatory', type: 'locked' }],
@@ -187,7 +187,7 @@ const profileConfigs: Record<string, ProfileConfig> = {
       { icon: Calendar, text: 'Joined: 01-Apr-2018' }, { icon: Phone, text: '+91 98765 55501' },
       { icon: Mail, text: 'admin@school.edu' },
     ],
-    tabs: ['personal', 'salary', 'account'],
+    tabs: ['personal', 'salary', 'account', 'settings'],
     personal: {
       left: [{ label: 'Full Name', value: 'Deepak Verma' }, { label: 'DOB', value: '12-Feb-1982' }, { label: 'Gender', value: 'Male' }, { label: 'Blood Group', value: 'AB+' }, { label: 'Marital Status', value: 'Married' }, { label: 'Qualification', value: 'MBA, B.Ed' }],
       right: [{ label: 'Phone', value: '+91 98765 55501', type: 'editable' }, { label: 'Email', value: 'deepak.verma@gmail.com', type: 'editable' }, { label: 'Address', value: '22, Satellite, Ahmedabad', type: 'editable' }, { label: 'Aadhaar', value: 'XXXX-XXXX-5501', type: 'locked' }, { label: 'PAN', value: 'XXXXX5501X', type: 'locked' }, { label: 'Emergency Contact', value: '+91 98765 55502', type: 'editable' }],
@@ -201,7 +201,7 @@ const profileConfigs: Record<string, ProfileConfig> = {
       { icon: Phone, text: '+91 XXXXX XXXXX' }, { icon: Mail, text: 'piush008@gmail.com' },
       { icon: Shield, text: 'Full Access' },
     ],
-    tabs: ['personal', 'account'],
+    tabs: ['personal', 'account', 'settings'],
     personal: {
       left: [{ label: 'Full Name', value: 'Piush Thakker' }, { label: 'Role', value: 'System Administrator' }, { label: 'Access Level', value: 'Super Admin' }],
       right: [{ label: 'Phone', value: '+91 XXXXX XXXXX', type: 'editable' }, { label: 'Email', value: 'piush008@gmail.com', type: 'editable' }, { label: '2FA', value: 'Enabled', type: 'locked' }],
@@ -214,7 +214,7 @@ const profileConfigs: Record<string, ProfileConfig> = {
       { icon: Calendar, text: 'Joined: 15-Sep-2023' }, { icon: Phone, text: '+91 98765 88801' },
       { icon: Mail, text: 'snehal@saaras.ai' },
     ],
-    tabs: ['personal', 'salary', 'account'],
+    tabs: ['personal', 'salary', 'account', 'settings'],
     personal: {
       left: [{ label: 'Full Name', value: 'Snehal Parikh' }, { label: 'DOB', value: '18-Jul-1990' }, { label: 'Gender', value: 'Female' }, { label: 'Blood Group', value: 'B+' }, { label: 'Marital Status', value: 'Single' }, { label: 'Qualification', value: 'MBA Marketing' }],
       right: [{ label: 'Phone', value: '+91 98765 88801', type: 'editable' }, { label: 'Email', value: 'snehal.p@gmail.com', type: 'editable' }, { label: 'Address', value: '45, SG Highway, Ahmedabad', type: 'editable' }, { label: 'Aadhaar', value: 'XXXX-XXXX-8801', type: 'locked' }, { label: 'PAN', value: 'XXXXX8801X', type: 'locked' }, { label: 'Emergency Contact', value: '+91 98765 88802', type: 'editable' }],
@@ -526,18 +526,126 @@ function AccountTab({ theme, themeIdx, onThemeChange }: { theme: Theme; themeIdx
 }
 
 // ─── MAIN COMPONENT ──────────────────────────────────
+// ─── SETTINGS TAB ────────────────────────────────────
+function SettingsTab({ theme }: { theme: Theme }) {
+  const [todoOnLogin, setTodoOnLogin] = useState(true);
+  const [todoOnIdle, setTodoOnIdle] = useState(true);
+  const [idleMinutes, setIdleMinutes] = useState(5);
+  const [defaultView, setDefaultView] = useState('dashboard');
+  const [compactSidebar, setCompactSidebar] = useState(false);
+
+  const SettingToggle = ({ on, onChange }: { on: boolean; onChange: () => void }) => (
+    <button onClick={onChange} className={`w-10 h-5.5 rounded-full transition-all relative ${on ? 'bg-emerald-500' : 'bg-slate-300'}`} style={{ width: 40, height: 22 }}>
+      <div className={`w-4 h-4 rounded-full bg-white shadow absolute top-[3px] transition-all ${on ? 'right-[3px]' : 'left-[3px]'}`} />
+    </button>
+  );
+
+  return (
+    <div className="space-y-4">
+      {/* Task / To-Do Preferences */}
+      <div className={`${theme.secondaryBg} rounded-xl p-4`}>
+        <div className="flex items-center gap-2 mb-3">
+          <ListTodo size={14} className={theme.primaryText} />
+          <p className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Task / To-Do Preferences</p>
+        </div>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-3 rounded-lg ${theme.cardBg}`}>
+            <div className="flex items-center gap-3">
+              <ListTodo size={16} className={theme.primaryText} />
+              <div>
+                <p className={`text-xs font-bold ${theme.highlight}`}>Show Task List on Login</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Task tracker popup appears when you log in</p>
+              </div>
+            </div>
+            <SettingToggle on={todoOnLogin} onChange={() => setTodoOnLogin(!todoOnLogin)} />
+          </div>
+          <div className={`flex items-center justify-between p-3 rounded-lg ${theme.cardBg}`}>
+            <div className="flex items-center gap-3">
+              <Timer size={16} className={theme.primaryText} />
+              <div>
+                <p className={`text-xs font-bold ${theme.highlight}`}>Show Task List on Inactivity</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Task tracker popup appears after idle screen time</p>
+              </div>
+            </div>
+            <SettingToggle on={todoOnIdle} onChange={() => setTodoOnIdle(!todoOnIdle)} />
+          </div>
+          {todoOnIdle && (
+            <div className={`flex items-center gap-3 p-3 rounded-lg ${theme.cardBg} ml-8`}>
+              <p className={`text-xs ${theme.iconColor}`}>Idle timeout:</p>
+              <div className="flex items-center gap-1">
+                {[3, 5, 10, 15].map(m => (
+                  <button key={m} onClick={() => setIdleMinutes(m)}
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${idleMinutes === m ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.iconColor}`}`}>
+                    {m} min
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Display Preferences */}
+      <div className={`${theme.secondaryBg} rounded-xl p-4`}>
+        <div className="flex items-center gap-2 mb-3">
+          <Settings size={14} className={theme.primaryText} />
+          <p className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Display Preferences</p>
+        </div>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-3 rounded-lg ${theme.cardBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Default Landing Page</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Which module opens when you log in</p>
+            </div>
+            <select value={defaultView} onChange={(e) => setDefaultView(e.target.value)}
+              className={`px-3 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`}>
+              <option value="dashboard">Dashboard</option>
+              <option value="calendar">Calendar</option>
+              <option value="communication">Communication</option>
+              <option value="reports">Reports</option>
+            </select>
+          </div>
+          <div className={`flex items-center justify-between p-3 rounded-lg ${theme.cardBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Start with Compact Sidebar</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Sidebar starts collapsed on login</p>
+            </div>
+            <SettingToggle on={compactSidebar} onChange={() => setCompactSidebar(!compactSidebar)} />
+          </div>
+        </div>
+      </div>
+
+      {/* Save hint */}
+      <p className={`text-[10px] ${theme.iconColor} text-center`}>
+        Settings are saved automatically and apply to all your sessions.
+      </p>
+    </div>
+  );
+}
+
 const tabLabels: Record<ProfileTab, string> = {
   personal: 'Personal', salary: 'Salary', attendance: 'Attendance',
-  leave: 'Leave', fees: 'Fees', account: 'Account',
+  leave: 'Leave', fees: 'Fees', account: 'Account', settings: 'Settings',
 };
 
 export default function StakeholderProfile({ role, theme, onClose, themeIdx, onThemeChange }: { role: string; theme: Theme; onClose?: () => void; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
   const config = profileConfigs[role];
   const [activeTab, setActiveTab] = useState<ProfileTab>(config?.tabs[0] || 'personal');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState(config?.name || '');
+  const [editSaved, setEditSaved] = useState(false);
 
   if (!config) return <div className={`text-xs ${theme.iconColor}`}>Profile not configured for role: {role}</div>;
 
   const Icon = config.icon;
+
+  const handleSaveProfile = () => {
+    setIsEditing(false);
+    setEditSaved(true);
+    setTimeout(() => setEditSaved(false), 2000);
+  };
+
+  const displayName = isEditing ? editName : (editSaved ? editName : config.name);
 
   return (
     <div className="space-y-4">
@@ -547,24 +655,56 @@ export default function StakeholderProfile({ role, theme, onClose, themeIdx, onT
           <Icon size={80} className="absolute right-6 top-1/2 -translate-y-1/2 text-white/10" />
         </div>
         <div className={`${theme.cardBg} border ${theme.border} rounded-b-2xl px-5 pt-12 pb-4 -mt-8 relative`}>
-          {/* Avatar */}
-          <div className={`absolute -top-10 left-5 w-20 h-20 rounded-full border-4 ${theme.cardBg} ${theme.primary} flex items-center justify-center text-2xl font-bold text-white shadow-lg`}>
-            {config.name.split(' ').map(n => n[0]).join('')}
+          {/* Avatar with camera overlay in edit mode */}
+          <div className={`absolute -top-10 left-5 w-20 h-20 rounded-full border-4 ${theme.cardBg} ${theme.primary} flex items-center justify-center text-2xl font-bold text-white shadow-lg group cursor-pointer relative`}>
+            {displayName.split(' ').map(n => n[0]).join('')}
+            {isEditing && (
+              <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <Camera size={20} className="text-white" />
+              </div>
+            )}
           </div>
           <div className="flex items-start justify-between">
             <div>
-              <h2 className={`text-lg font-bold ${theme.highlight}`}>{config.name}</h2>
+              {isEditing ? (
+                <input value={editName} onChange={(e) => setEditName(e.target.value)} autoFocus
+                  className={`text-lg font-bold ${theme.highlight} bg-transparent border-b-2 border-blue-400 outline-none pb-0.5`}
+                  placeholder="Enter your name" />
+              ) : (
+                <h2 className={`text-lg font-bold ${theme.highlight}`}>{displayName}</h2>
+              )}
               <p className={`text-xs ${theme.iconColor}`}>{config.role}{config.empId ? ` • ${config.empId}` : ''}</p>
               <div className="flex gap-1.5 mt-1.5">
                 {config.badges.map(b => (
                   <span key={b.text} className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${badgeColors[b.color] || badgeColors.blue}`}>{b.text}</span>
                 ))}
               </div>
+              {isEditing && (
+                <p className={`text-[10px] ${theme.iconColor} mt-2 flex items-center gap-1`}>
+                  <Camera size={10} /> Hover on avatar to change profile picture. Only name and photo are editable.
+                </p>
+              )}
             </div>
             <div className="flex items-center gap-2">
-              <button className={`px-3 py-1.5 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.highlight} flex items-center gap-1.5`}>
-                <Edit size={12} /> Edit Profile
-              </button>
+              {isEditing ? (
+                <>
+                  <button onClick={handleSaveProfile} className="px-3 py-1.5 bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5">
+                    <Save size={12} /> Save
+                  </button>
+                  <button onClick={() => { setIsEditing(false); setEditName(config.name); }} className={`px-3 py-1.5 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.iconColor} flex items-center gap-1.5`}>
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <button onClick={() => setIsEditing(true)} className={`px-3 py-1.5 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.highlight} flex items-center gap-1.5`}>
+                  <Edit size={12} /> Edit Profile
+                </button>
+              )}
+              {editSaved && (
+                <span className="text-[10px] px-2 py-1 rounded-lg bg-emerald-100 text-emerald-700 font-bold flex items-center gap-1">
+                  <Check size={10} /> Saved
+                </span>
+              )}
               {onClose && (
                 <button onClick={onClose} className={`p-1.5 rounded-xl ${theme.secondaryBg} ${theme.iconColor} hover:opacity-80 transition-all`} title="Close Profile">
                   <X size={14} />
@@ -605,6 +745,7 @@ export default function StakeholderProfile({ role, theme, onClose, themeIdx, onT
           {activeTab === 'leave' && <LeaveTab theme={theme} />}
           {activeTab === 'fees' && <FeesTab theme={theme} />}
           {activeTab === 'account' && <AccountTab theme={theme} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
+          {activeTab === 'settings' && <SettingsTab theme={theme} />}
         </div>
       </div>
     </div>
