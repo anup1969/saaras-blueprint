@@ -7,7 +7,8 @@ import {
   Building2, GraduationCap, Users, Shield, MessageSquare,
   Banknote, Briefcase, Bus, Check, ChevronRight, ChevronLeft, Save, Rocket,
   Upload, Plus, X, Eye, AlertTriangle, CheckCircle, Lock, Circle, AlertCircle,
-  Layers, ArrowRight, Download, Megaphone, Clock, Package, Info
+  Layers, ArrowRight, Download, Megaphone, Clock, Package, Info,
+  Headphones, Bot, Phone, Mail, Video, Sparkles, Calendar
 } from 'lucide-react';
 
 // ─── WIZARD STEPS ─────────────────────────────────────
@@ -826,65 +827,210 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
 
   // SKU type: 'sms-pack' = software only, 'sms-students' = software + student licenses
   const [skuType, setSkuType] = useState<'sms-pack' | 'sms-students'>('sms-students');
-  const [selectedPlan, setSelectedPlan] = useState('enterprise');
+  const [selectedPlan, setSelectedPlan] = useState('powerpack');
 
-  // Editable limits
-  const storageDefaults: Record<string, number> = { starter: 10, professional: 25, enterprise: 50 };
-  const studentDefaults: Record<string, number> = { starter: 1000, professional: 3000, enterprise: 99999 };
-  const staffDefaults: Record<string, number> = { starter: 100, professional: 150, enterprise: 99999 };
+  // ─── SEPARATE TIER DEFINITIONS PER SKU ───
+  const smsPackTiers = [
+    {
+      id: 'starter', name: 'Starter', defaultPrice: '25,000', modules: 12,
+      desc: 'Small teams, up to 100 employees', staff: '100', storage: '10 GB',
+      colorBorder: 'border-blue-300', colorRing: 'ring-blue-200', colorBg: 'bg-blue-50',
+      colorBadge: 'bg-blue-100 text-blue-700', colorDot: 'bg-blue-400',
+    },
+    {
+      id: 'professional', name: 'Professional', defaultPrice: '75,000', modules: 18,
+      desc: 'Mid-size, up to 150 employees', staff: '150', storage: '25 GB',
+      colorBorder: 'border-blue-400', colorRing: 'ring-blue-300', colorBg: 'bg-blue-50',
+      colorBadge: 'bg-blue-100 text-blue-700', colorDot: 'bg-blue-500',
+    },
+    {
+      id: 'enterprise', name: 'Enterprise', defaultPrice: '1,50,000', modules: 27,
+      desc: 'Large, unlimited employees', staff: 'Unlimited', storage: '50 GB',
+      colorBorder: 'border-blue-500', colorRing: 'ring-blue-300', colorBg: 'bg-blue-50',
+      colorBadge: 'bg-blue-100 text-blue-700', colorDot: 'bg-blue-600',
+    },
+  ];
 
-  const [storage, setStorage] = useState(storageDefaults['enterprise']);
-  const [maxStudents, setMaxStudents] = useState(studentDefaults['enterprise']);
-  const [maxStaff, setMaxStaff] = useState(staffDefaults['enterprise']);
-  const [dataBucket, setDataBucket] = useState(storageDefaults['enterprise']);
-  const [subscriptionPeriod, setSubscriptionPeriod] = useState('Current Academic Year (2025-26)');
+  const smsStudentTiers = [
+    {
+      id: 'standard', name: 'Standard', defaultPrice: '50,000', modules: 15,
+      desc: 'Small school, limited modules', students: '500', staff: '100', storage: '15 GB',
+      excludedModules: ['Transport Management', 'HR & Payroll', 'Canteen Management', 'Alumni Management'],
+      colorBorder: 'border-emerald-300', colorRing: 'ring-emerald-200', colorBg: 'bg-emerald-50',
+      colorBadge: 'bg-emerald-100 text-emerald-700', colorDot: 'bg-emerald-400',
+    },
+    {
+      id: '360', name: '360', defaultPrice: '1,25,000', modules: 27,
+      desc: 'All modules for any size school', students: '3,000', staff: '300', storage: '40 GB',
+      excludedModules: [] as string[],
+      colorBorder: 'border-emerald-400', colorRing: 'ring-emerald-300', colorBg: 'bg-emerald-50',
+      colorBadge: 'bg-emerald-100 text-emerald-700', colorDot: 'bg-emerald-500',
+    },
+    {
+      id: 'powerpack', name: 'Power Pack (AI)', defaultPrice: '2,50,000', modules: 27,
+      desc: 'All modules + ALL AI features', students: 'Unlimited', staff: 'Unlimited', storage: '100 GB',
+      excludedModules: [] as string[],
+      colorBorder: 'border-amber-400', colorRing: 'ring-amber-300', colorBg: 'bg-amber-50',
+      colorBadge: 'bg-amber-100 text-amber-700', colorDot: 'bg-amber-500',
+      aiFeatures: ['AI Timetable', 'AI Question Paper', 'AI Homework', 'AI Support Bot', 'AI Planner'],
+    },
+  ];
+
+  const activeTiers = skuType === 'sms-pack' ? smsPackTiers : smsStudentTiers;
+  const currentTier = activeTiers.find(t => t.id === selectedPlan) || activeTiers[activeTiers.length - 1];
+
+  // ─── EDITABLE PRICING ───
+  const [tierPrices, setTierPrices] = useState<Record<string, string>>({
+    starter: '25,000', professional: '75,000', enterprise: '1,50,000',
+    standard: '50,000', '360': '1,25,000', powerpack: '2,50,000',
+  });
+
+  const updateTierPrice = (tierId: string, val: string) => {
+    setTierPrices(prev => ({ ...prev, [tierId]: val.replace(/[^0-9,]/g, '') }));
+  };
+
+  // ─── EDITABLE LIMITS ───
+  const storageDefaults: Record<string, number> = {
+    starter: 10, professional: 25, enterprise: 50,
+    standard: 15, '360': 40, powerpack: 100,
+  };
+  const studentDefaults: Record<string, number> = {
+    starter: 0, professional: 0, enterprise: 0,
+    standard: 500, '360': 3000, powerpack: 99999,
+  };
+  const staffDefaults: Record<string, number> = {
+    starter: 100, professional: 150, enterprise: 99999,
+    standard: 100, '360': 300, powerpack: 99999,
+  };
+
+  const [storage, setStorage] = useState(storageDefaults['powerpack']);
+  const [maxStudents, setMaxStudents] = useState(studentDefaults['powerpack']);
+  const [maxStaff, setMaxStaff] = useState(staffDefaults['powerpack']);
+  const [dataBucket, setDataBucket] = useState(storageDefaults['powerpack']);
+
+  // ─── SUBSCRIPTION PERIOD ───
+  const today = new Date();
+  const todayStr = today.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
+  const oneYearLater = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
+  const twoYearsLater = new Date(today.getFullYear() + 2, today.getMonth(), today.getDate());
+  const oneYearStr = oneYearLater.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
+  const twoYearsStr = twoYearsLater.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
+
+  const periodOptions = [
+    `Current Academic Year (ends March 2026)`,
+    `1 Year from today (${todayStr} - ${oneYearStr})`,
+    `2 Years from today (${todayStr} - ${twoYearsStr})`,
+    'Custom',
+  ];
+  const [subscriptionPeriod, setSubscriptionPeriod] = useState(periodOptions[0]);
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
 
   // SMS Pack optional student add-on
   const [addStudentLicenses, setAddStudentLicenses] = useState(false);
   const [addonStudentCount, setAddonStudentCount] = useState(0);
-  const [addonPeriod, setAddonPeriod] = useState('Current Academic Year (2025-26)');
+  const [addonPeriod, setAddonPeriod] = useState(periodOptions[0]);
 
   // When plan changes, reset limits to defaults
   const handlePlanChange = (planId: string) => {
     setSelectedPlan(planId);
-    setStorage(storageDefaults[planId]);
-    setDataBucket(storageDefaults[planId]);
-    setMaxStaff(staffDefaults[planId]);
-    if (skuType === 'sms-students') {
-      setMaxStudents(studentDefaults[planId]);
+    setStorage(storageDefaults[planId] ?? 10);
+    setDataBucket(storageDefaults[planId] ?? 10);
+    setMaxStaff(staffDefaults[planId] ?? 100);
+    setMaxStudents(studentDefaults[planId] ?? 0);
+  };
+
+  // When SKU type changes, pick the best default tier
+  const handleSkuChange = (sku: 'sms-pack' | 'sms-students') => {
+    setSkuType(sku);
+    if (sku === 'sms-pack') {
+      handlePlanChange('enterprise');
+      setAddStudentLicenses(false);
+      setAddonStudentCount(0);
+    } else {
+      handlePlanChange('powerpack');
     }
   };
 
-  // Module toggles
-  const [modules, setModules] = useState<Record<string, boolean>>({
-    'Dashboard': true, 'Student Management': true, 'Staff Management': true, 'Fee Management': true,
-    'Attendance': true, 'Timetable': true, 'Parent Portal': true, 'Student Portal': true,
-    'Communication / Chat': true, 'Online Payment': true, 'Enquiry / Admission': true, 'Homework / Assignments': true,
-    'Transport Management': true, 'Visitor Management': true, 'Library': true,
-    'Examination & Report Cards': true, 'HR & Payroll': true, 'Leave Management': true, 'Certificates': true,
-    'SQAAF / Quality Assessment': true, 'Inventory Management': false, 'Hostel Management': false,
-    'Alumni Management': false, 'Advanced Analytics': true, 'Custom Reports Builder': true,
-    'API Access': false, 'White Label Branding': true,
+  // ─── MODULE TOGGLES ───
+  const allModuleNames = [
+    'Dashboard', 'Student Management', 'Staff Management', 'Fee Management',
+    'Attendance', 'Timetable', 'Parent Portal', 'Student Portal',
+    'Communication / Chat', 'Online Payment', 'Enquiry / Admission', 'Homework / Assignments',
+    'Transport Management', 'Visitor Management', 'Library',
+    'Examination & Report Cards', 'HR & Payroll', 'Leave Management', 'Certificates',
+    'Canteen Management', 'SQAAF / Quality Assessment', 'Inventory Management', 'Hostel Management',
+    'Alumni Management', 'Advanced Analytics', 'Custom Reports Builder',
+    'API Access', 'White Label Branding',
+  ];
+
+  const [modules, setModules] = useState<Record<string, boolean>>(() => {
+    const init: Record<string, boolean> = {};
+    allModuleNames.forEach(m => { init[m] = true; });
+    init['Inventory Management'] = false;
+    init['Hostel Management'] = false;
+    init['Alumni Management'] = false;
+    init['Canteen Management'] = true;
+    return init;
   });
 
   const coreModules = ['Dashboard', 'Student Management', 'Staff Management', 'Fee Management', 'Attendance', 'Timetable', 'Parent Portal', 'Student Portal', 'Communication / Chat', 'Online Payment', 'Enquiry / Admission', 'Homework / Assignments'];
-  const proModules = ['Transport Management', 'Visitor Management', 'Library', 'Examination & Report Cards', 'HR & Payroll', 'Leave Management', 'Certificates'];
+  const proModules = ['Transport Management', 'Visitor Management', 'Library', 'Examination & Report Cards', 'HR & Payroll', 'Leave Management', 'Certificates', 'Canteen Management'];
   const entModules = ['SQAAF / Quality Assessment', 'Inventory Management', 'Hostel Management', 'Alumni Management', 'Advanced Analytics', 'Custom Reports Builder', 'API Access', 'White Label Branding'];
+
+  // Get excluded modules for current tier
+  const excludedModules: string[] = (skuType === 'sms-students' && 'excludedModules' in currentTier)
+    ? (currentTier as typeof smsStudentTiers[0]).excludedModules
+    : [];
+
+  const isModuleExcluded = (name: string) => excludedModules.includes(name);
 
   const toggleModule = (name: string) => {
     if (coreModules.includes(name)) return;
+    if (isModuleExcluded(name)) return;
     setModules(p => ({ ...p, [name]: !p[name] }));
   };
 
-  const enabledCount = Object.values(modules).filter(Boolean).length;
+  const enabledCount = Object.entries(modules).filter(([name, on]) => on && !isModuleExcluded(name)).length;
 
-  const plans = [
-    { id: 'starter', name: 'Starter', price: '₹25,000/yr', modules: 12, color: 'bg-blue-500', students: 'Up to 1,000', staff: '100' },
-    { id: 'professional', name: 'Professional', price: '₹75,000/yr', modules: 18, color: 'bg-purple-500', students: 'Up to 3,000', staff: '150' },
-    { id: 'enterprise', name: 'Enterprise', price: '₹1,50,000/yr', modules: 27, color: 'bg-amber-500', students: 'Unlimited', staff: 'Unlimited' },
+  // ─── SUPPORT OPTIONS ───
+  const supportChannels = [
+    { id: 'inbuilt-chat', name: 'In-built Chat Support', desc: 'Text chat within ERP', icon: MessageSquare },
+    { id: 'live-agent', name: 'Chat with Live Agent', desc: 'Human support agent', icon: Headphones },
+    { id: 'ai-chat', name: 'AI-Powered Chat Support', desc: 'Conversational AI bot', icon: Bot },
+    { id: 'whatsapp', name: 'WhatsApp Support', desc: 'WhatsApp messaging', icon: MessageSquare },
+    { id: 'email', name: 'Email Support', desc: 'Email ticket support', icon: Mail },
+    { id: 'phone', name: 'Phone Call Support', desc: 'Direct phone support', icon: Phone },
+    { id: 'gmeet', name: 'Google Meet Support', desc: 'Video call support', icon: Video },
   ];
 
-  const periodOptions = ['Current Academic Year (2025-26)', '1 Year', '2 Years', 'Custom'];
+  // Determine which support channels are included (locked ON) based on tier
+  const getIncludedSupport = (): string[] => {
+    if (skuType === 'sms-pack') {
+      if (selectedPlan === 'starter') return ['inbuilt-chat'];
+      if (selectedPlan === 'professional') return ['inbuilt-chat', 'live-agent'];
+      if (selectedPlan === 'enterprise') return ['inbuilt-chat', 'live-agent', 'ai-chat', 'whatsapp', 'email', 'phone', 'gmeet'];
+    } else {
+      if (selectedPlan === 'standard') return ['inbuilt-chat'];
+      if (selectedPlan === '360') return ['inbuilt-chat', 'live-agent'];
+      if (selectedPlan === 'powerpack') return ['inbuilt-chat', 'live-agent', 'ai-chat', 'whatsapp', 'email', 'phone', 'gmeet'];
+    }
+    return ['inbuilt-chat'];
+  };
+
+  const includedSupport = getIncludedSupport();
+  const allSupportUnlimited = includedSupport.length === supportChannels.length;
+
+  const [supportToggles, setSupportToggles] = useState<Record<string, boolean>>(() => {
+    const init: Record<string, boolean> = {};
+    supportChannels.forEach(c => { init[c.id] = true; }); // Start with all on (7-day trial)
+    return init;
+  });
+
+  const toggleSupport = (id: string) => {
+    if (includedSupport.includes(id)) return; // locked ON
+    setSupportToggles(p => ({ ...p, [id]: !p[id] }));
+  };
 
   // Shared input style
   const inputCls = `w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none focus:ring-2 focus:ring-slate-300 ${theme.highlight}`;
@@ -910,7 +1056,7 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
         <div className="grid grid-cols-2 gap-4">
           {/* SMS Pack card */}
           <button
-            onClick={() => { setSkuType('sms-pack'); setAddStudentLicenses(false); setAddonStudentCount(0); }}
+            onClick={() => handleSkuChange('sms-pack')}
             className={`p-5 rounded-2xl border-2 cursor-pointer transition-all text-left ${
               skuType === 'sms-pack'
                 ? `border-blue-400 ${theme.cardBg} ring-2 ring-blue-200`
@@ -934,7 +1080,7 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
 
           {/* SMS + Students card */}
           <button
-            onClick={() => { setSkuType('sms-students'); setMaxStudents(studentDefaults[selectedPlan]); }}
+            onClick={() => handleSkuChange('sms-students')}
             className={`p-5 rounded-2xl border-2 cursor-pointer transition-all text-left ${
               skuType === 'sms-students'
                 ? `border-emerald-400 ${theme.cardBg} ring-2 ring-emerald-200`
@@ -958,40 +1104,83 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
         </div>
       </div>
 
-      {/* ── SECTION 2: PLAN TIER SELECTION ── */}
+      {/* ── SECTION 2: PLAN TIER SELECTION (SKU-specific tiers) ── */}
       <div>
         <SectionTitle
           title="Step 2: Select Plan Tier"
-          subtitle={skuType === 'sms-pack' ? 'Software-only tiers — no student licenses included' : `Includes ${studentLabel.toLowerCase()} licenses with each tier`}
+          subtitle={skuType === 'sms-pack' ? 'Software-only tiers (blue) — no student licenses included' : `SMS+Students tiers (emerald/gold) — includes ${studentLabel.toLowerCase()} licenses`}
           theme={theme}
         />
         <div className="grid grid-cols-3 gap-4">
-          {plans.map(p => (
-            <button key={p.id} onClick={() => handlePlanChange(p.id)}
-              className={`p-5 rounded-2xl border-2 cursor-pointer transition-all text-left ${
-                p.id === selectedPlan ? `border-amber-400 ${theme.cardBg} ring-2 ring-amber-200` : `${theme.border} ${theme.cardBg}`
-              }`}>
-              <div className="flex items-center gap-2 mb-2">
-                <div className={`w-3 h-3 rounded-full border-2 ${p.id === selectedPlan ? `${p.color} border-transparent` : theme.border}`} />
-                <span className={`text-sm font-bold ${theme.highlight}`}>{p.name}</span>
-                {p.id === selectedPlan && <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-bold">SELECTED</span>}
-              </div>
-              <p className={`text-lg font-bold ${theme.primaryText}`}>{p.price}</p>
-              <p className={`text-[10px] ${theme.iconColor} mt-1`}>Up to {p.modules} modules</p>
-              {skuType === 'sms-students' && (
-                <div className="mt-2 pt-2 border-t border-dashed border-slate-200">
-                  <p className={`text-[10px] ${theme.iconColor}`}>{p.students} {studentLabel.toLowerCase()}</p>
-                  <p className={`text-[10px] ${theme.iconColor}`}>{p.staff} staff</p>
+          {activeTiers.map(tier => {
+            const isSelected = tier.id === selectedPlan;
+            return (
+              <button key={tier.id} onClick={() => handlePlanChange(tier.id)}
+                className={`p-5 rounded-2xl border-2 cursor-pointer transition-all text-left ${
+                  isSelected ? `${tier.colorBorder} ${theme.cardBg} ring-2 ${tier.colorRing}` : `${theme.border} ${theme.cardBg}`
+                }`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className={`w-3 h-3 rounded-full border-2 ${isSelected ? `${tier.colorDot} border-transparent` : theme.border}`} />
+                  <span className={`text-sm font-bold ${theme.highlight}`}>{tier.name}</span>
+                  {isSelected && <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${tier.colorBadge}`}>SELECTED</span>}
                 </div>
-              )}
-              {skuType === 'sms-pack' && (
-                <div className="mt-2 pt-2 border-t border-dashed border-slate-200">
-                  <p className={`text-[10px] ${theme.iconColor}`}>0 {studentLabel.toLowerCase()} (SMS Pack)</p>
-                  <p className={`text-[10px] ${theme.iconColor}`}>{p.staff} staff</p>
+
+                {/* Editable price */}
+                <div className="flex items-baseline gap-1 mb-1">
+                  <span className={`text-lg font-bold ${theme.primaryText}`}>&#8377;</span>
+                  <input
+                    type="text"
+                    value={tierPrices[tier.id]}
+                    onClick={e => e.stopPropagation()}
+                    onChange={e => { e.stopPropagation(); updateTierPrice(tier.id, e.target.value); }}
+                    className={`text-lg font-bold ${theme.primaryText} bg-transparent border-b border-transparent hover:border-dashed hover:border-slate-300 focus:border-solid focus:border-blue-400 outline-none w-24 transition-all`}
+                  />
+                  <span className={`text-xs ${theme.iconColor}`}>/yr</span>
                 </div>
-              )}
-            </button>
-          ))}
+
+                <p className={`text-[10px] ${theme.iconColor} mt-1`}>{tier.desc}</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>{tier.modules} modules &middot; {tier.storage}</p>
+
+                {/* SMS-S specific info */}
+                {skuType === 'sms-students' && 'students' in tier && (
+                  <div className="mt-2 pt-2 border-t border-dashed border-slate-200">
+                    <p className={`text-[10px] ${theme.iconColor}`}>{(tier as typeof smsStudentTiers[0]).students} {studentLabel.toLowerCase()}</p>
+                    <p className={`text-[10px] ${theme.iconColor}`}>{tier.staff} staff</p>
+                  </div>
+                )}
+
+                {/* SMS Pack info */}
+                {skuType === 'sms-pack' && (
+                  <div className="mt-2 pt-2 border-t border-dashed border-slate-200">
+                    <p className={`text-[10px] ${theme.iconColor}`}>0 {studentLabel.toLowerCase()} (SMS Pack)</p>
+                    <p className={`text-[10px] ${theme.iconColor}`}>{tier.staff} staff</p>
+                  </div>
+                )}
+
+                {/* Power Pack AI features badge */}
+                {'aiFeatures' in tier && (tier as typeof smsStudentTiers[2]).aiFeatures && (
+                  <div className="mt-2 pt-2 border-t border-dashed border-amber-200">
+                    <div className="flex items-center gap-1 mb-1">
+                      <Sparkles size={10} className="text-amber-500" />
+                      <span className="text-[10px] font-bold text-amber-600">AI Features Included</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {(tier as typeof smsStudentTiers[2]).aiFeatures!.map((f: string) => (
+                        <span key={f} className="text-[9px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">{f}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Excluded modules warning for Standard */}
+                {'excludedModules' in tier && (tier as typeof smsStudentTiers[0]).excludedModules.length > 0 && (
+                  <div className="mt-2 pt-2 border-t border-dashed border-slate-200">
+                    <p className="text-[9px] text-red-500 font-medium">Not included: {(tier as typeof smsStudentTiers[0]).excludedModules.join(', ')}</p>
+                  </div>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -999,7 +1188,7 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5`}>
         <SectionTitle
           title="Customizable Limits"
-          subtitle={`Defaults based on ${plans.find(p => p.id === selectedPlan)?.name} plan — all values editable by Super Admin`}
+          subtitle={`Defaults based on ${currentTier.name} plan -- all values editable by Super Admin`}
           theme={theme}
         />
 
@@ -1007,13 +1196,10 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
         {skuType === 'sms-pack' && (
           <div className="space-y-4">
             <div className="grid grid-cols-3 gap-4">
-              {/* Storage */}
               <div>
                 <label className={labelCls}>Storage (GB)</label>
-                <input type="number" min={1} value={storage} onChange={e => setStorage(Number(e.target.value))}
-                  className={inputCls} />
+                <input type="number" min={1} value={storage} onChange={e => setStorage(Number(e.target.value))} className={inputCls} />
               </div>
-              {/* Staff */}
               <div>
                 <label className={labelCls}>Staff / Employees</label>
                 <input type="number" min={1} value={maxStaff === 99999 ? '' : maxStaff}
@@ -1022,11 +1208,10 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
                   className={inputCls} />
                 {maxStaff === 99999 && <p className={`text-[10px] ${theme.iconColor} mt-1`}>Unlimited (leave blank for unlimited)</p>}
               </div>
-              {/* Students — locked for SMS Pack */}
               <div>
                 <label className={labelCls}>{studentLabel}</label>
                 <div className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-sm ${theme.iconColor}`}>
-                  0 (SMS Pack — no {studentLabel.toLowerCase()} licenses)
+                  0 (SMS Pack -- no {studentLabel.toLowerCase()} licenses)
                 </div>
                 <p className={`text-[10px] ${theme.iconColor} mt-1`}>Super Admin can add {studentLabel.toLowerCase()} licenses for a dedicated period</p>
               </div>
@@ -1044,7 +1229,6 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
                 <span className={`text-xs font-bold ${theme.highlight}`}>Add {studentLabel} Licenses (Optional)</span>
                 <Info size={12} className={theme.iconColor} />
               </button>
-
               {addStudentLicenses && (
                 <div className="mt-4 grid grid-cols-2 gap-4">
                   <div>
@@ -1075,19 +1259,14 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
         {skuType === 'sms-students' && (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              {/* Storage */}
               <div>
                 <label className={labelCls}>Storage (GB)</label>
-                <input type="number" min={1} value={storage} onChange={e => setStorage(Number(e.target.value))}
-                  className={inputCls} />
+                <input type="number" min={1} value={storage} onChange={e => setStorage(Number(e.target.value))} className={inputCls} />
               </div>
-              {/* Data Bucket */}
               <div>
                 <label className={labelCls}>Data Bucket (GB)</label>
-                <input type="number" min={1} value={dataBucket} onChange={e => setDataBucket(Number(e.target.value))}
-                  className={inputCls} />
+                <input type="number" min={1} value={dataBucket} onChange={e => setDataBucket(Number(e.target.value))} className={inputCls} />
               </div>
-              {/* Max Students */}
               <div>
                 <label className={labelCls}>Max {studentLabel}</label>
                 <input type="number" min={1} value={maxStudents === 99999 ? '' : maxStudents}
@@ -1096,7 +1275,6 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
                   className={inputCls} />
                 {maxStudents === 99999 && <p className={`text-[10px] ${theme.iconColor} mt-1`}>Unlimited (leave blank for unlimited)</p>}
               </div>
-              {/* Max Staff */}
               <div>
                 <label className={labelCls}>Max Staff / Employees</label>
                 <input type="number" min={1} value={maxStaff === 99999 ? '' : maxStaff}
@@ -1106,48 +1284,177 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
                 {maxStaff === 99999 && <p className={`text-[10px] ${theme.iconColor} mt-1`}>Unlimited (leave blank for unlimited)</p>}
               </div>
             </div>
-
-            {/* Subscription Period */}
-            <div>
-              <label className={labelCls}>Subscription Period</label>
-              <select value={subscriptionPeriod} onChange={e => setSubscriptionPeriod(e.target.value)} className={inputCls}>
-                {periodOptions.map(o => <option key={o} value={o}>{o}</option>)}
-              </select>
-            </div>
-
-            <div className={`${theme.secondaryBg} rounded-xl p-3 flex items-start gap-2`}>
-              <Info size={12} className={`${theme.iconColor} mt-0.5 shrink-0`} />
-              <p className={`text-[10px] ${theme.iconColor}`}>
-                All values are customizable by Super Admin per school requirements. Defaults are set based on the selected plan tier.
-              </p>
-            </div>
           </div>
         )}
+
+        {/* ── SUBSCRIPTION PERIOD (shared for both SKU types) ── */}
+        <div className="mt-4">
+          <label className={labelCls}>Subscription Period</label>
+          <select value={subscriptionPeriod} onChange={e => setSubscriptionPeriod(e.target.value)} className={inputCls}>
+            {periodOptions.map(o => <option key={o} value={o}>{o}</option>)}
+          </select>
+
+          {/* Custom date range picker */}
+          {subscriptionPeriod === 'Custom' && (
+            <div className="mt-3 grid grid-cols-2 gap-4">
+              <div>
+                <label className={labelCls}>Start Date</label>
+                <input type="date" value={customStartDate} onChange={e => setCustomStartDate(e.target.value)} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>End Date</label>
+                <input type="date" value={customEndDate} onChange={e => setCustomEndDate(e.target.value)} className={inputCls} />
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className={`${theme.secondaryBg} rounded-xl p-3 flex items-start gap-2 mt-3`}>
+          <Info size={12} className={`${theme.iconColor} mt-0.5 shrink-0`} />
+          <p className={`text-[10px] ${theme.iconColor}`}>
+            All values are customizable by Super Admin per school requirements. Defaults are set based on the selected plan tier.
+          </p>
+        </div>
 
         <p className={`text-[10px] ${theme.iconColor} mt-3`}>{enabledCount} modules enabled</p>
       </div>
 
-      {/* ── SECTION 4: MODULE TOGGLES ── */}
+      {/* ── SECTION 3.5: SUPPORT CONFIGURATION ── */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5`}>
+        <SectionTitle
+          title="Support Configuration"
+          subtitle={`Configure support channels for the ${currentTier.name} plan`}
+          theme={theme}
+        />
+
+        {/* Trial notice */}
+        {!allSupportUnlimited && (
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-start gap-2 mb-4">
+            <Clock size={12} className="text-blue-500 mt-0.5 shrink-0" />
+            <p className="text-[10px] text-blue-700">
+              <strong>First 7 days: All support channels active (trial period).</strong> After the trial, only channels included in your plan remain free. Others become paid add-ons.
+            </p>
+          </div>
+        )}
+
+        {allSupportUnlimited && (
+          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-start gap-2 mb-4">
+            <CheckCircle size={12} className="text-emerald-500 mt-0.5 shrink-0" />
+            <p className="text-[10px] text-emerald-700">
+              <strong>{currentTier.name} plan:</strong> ALL support channels included unlimited. No add-on required.
+            </p>
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 gap-3">
+          {supportChannels.map(ch => {
+            const isIncluded = includedSupport.includes(ch.id);
+            const isOn = isIncluded || supportToggles[ch.id];
+            const IconComp = ch.icon;
+            return (
+              <div key={ch.id}
+                className={`flex items-center justify-between p-3 rounded-xl border ${
+                  isIncluded ? 'border-emerald-200 bg-emerald-50/50' : `${theme.border} ${theme.secondaryBg}`
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <IconComp size={14} className={isIncluded ? 'text-emerald-500' : theme.iconColor} />
+                  <div>
+                    <span className={`text-xs font-medium ${theme.highlight}`}>{ch.name}</span>
+                    <p className={`text-[9px] ${theme.iconColor}`}>{ch.desc}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {isIncluded && (
+                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-bold">INCLUDED</span>
+                  )}
+                  {!isIncluded && isOn && !allSupportUnlimited && (
+                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-bold">ADD-ON</span>
+                  )}
+                  {isIncluded ? (
+                    <Lock size={10} className="text-emerald-400" />
+                  ) : (
+                    <Toggle on={isOn} onChange={() => toggleSupport(ch.id)} theme={theme} />
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Support tier summary */}
+        <div className={`${theme.secondaryBg} rounded-xl p-3 mt-4`}>
+          <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1`}>Support Summary for {currentTier.name}</p>
+          <p className={`text-[10px] ${theme.iconColor}`}>
+            {allSupportUnlimited
+              ? 'All 7 support channels included unlimited with this plan.'
+              : `${includedSupport.length} channel${includedSupport.length !== 1 ? 's' : ''} included free. ${
+                  Object.values(supportToggles).filter(Boolean).length - includedSupport.length
+                } add-on${Object.values(supportToggles).filter(Boolean).length - includedSupport.length !== 1 ? 's' : ''} enabled.`
+            }
+          </p>
+        </div>
+      </div>
+
+      {/* ── SECTION 4: MODULE TOGGLES (adapt per tier) ── */}
       {[
         { cat: 'Core (All Plans)', list: coreModules, locked: true },
-        { cat: 'Professional+', list: proModules, locked: false },
-        { cat: 'Enterprise Only', list: entModules, locked: false },
+        { cat: skuType === 'sms-pack' ? 'Professional+' : '360+', list: proModules, locked: false },
+        { cat: skuType === 'sms-pack' ? 'Enterprise Only' : 'Power Pack', list: entModules, locked: false },
       ].map(cat => (
         <div key={cat.cat} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
           <SectionTitle title={cat.cat} theme={theme} />
           <div className="space-y-2">
-            {cat.list.map(name => (
-              <div key={name} className={`flex items-center justify-between p-3 rounded-xl ${theme.secondaryBg}`}>
-                <div className="flex items-center gap-2">
-                  {cat.locked && <Lock size={10} className={theme.iconColor} />}
-                  <span className={`text-xs font-medium ${theme.highlight}`}>{name}</span>
+            {cat.list.map(name => {
+              const excluded = isModuleExcluded(name);
+              return (
+                <div key={name} className={`flex items-center justify-between p-3 rounded-xl ${
+                  excluded ? 'bg-slate-100 opacity-60' : theme.secondaryBg
+                }`}>
+                  <div className="flex items-center gap-2">
+                    {cat.locked && <Lock size={10} className={theme.iconColor} />}
+                    <span className={`text-xs font-medium ${excluded ? 'text-slate-400 line-through' : theme.highlight}`}>{name}</span>
+                    {excluded && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-100 text-red-500 font-bold ml-1">
+                        Not in {currentTier.name} plan
+                      </span>
+                    )}
+                  </div>
+                  {excluded ? (
+                    <Lock size={10} className="text-slate-300" />
+                  ) : (
+                    <Toggle on={modules[name]} onChange={() => toggleModule(name)} theme={theme} />
+                  )}
                 </div>
-                <Toggle on={modules[name]} onChange={() => toggleModule(name)} theme={theme} />
+              );
+            })}
+          </div>
+        </div>
+      ))}
+
+      {/* AI Features section — only for Power Pack */}
+      {skuType === 'sms-students' && selectedPlan === 'powerpack' && (
+        <div className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-2xl border-2 border-amber-300 p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles size={16} className="text-amber-500" />
+            <SectionTitle title="AI Features (Power Pack Exclusive)" subtitle="All AI features are included and active in Power Pack tier" theme={theme} />
+          </div>
+          <div className="space-y-2">
+            {['AI Timetable Generator', 'AI Question Paper Generator', 'AI Homework Assistance', 'AI Support Bot (Natural Language)', 'AI Planner (Academic Calendar)'].map(name => (
+              <div key={name} className="flex items-center justify-between p-3 rounded-xl bg-amber-100/50">
+                <div className="flex items-center gap-2">
+                  <Sparkles size={10} className="text-amber-500" />
+                  <span className="text-xs font-medium text-amber-900">{name}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-200 text-amber-700 font-bold">INCLUDED</span>
+                  <Lock size={10} className="text-amber-400" />
+                </div>
               </div>
             ))}
           </div>
         </div>
-      ))}
+      )}
     </div>
   );
 }

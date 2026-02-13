@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -10,10 +10,12 @@ import {
   FileText, CheckCircle, Calendar, AlertTriangle, ClipboardCheck,
   Palette, Maximize2, Minimize2
 } from 'lucide-react';
-import { themes, type Theme } from '@/lib/themes';
+import { themes, VIVID_VARIANTS, type Theme } from '@/lib/themes';
 import { getLoggedInUser, logoutUser, type TeamMember } from '@/lib/auth';
 import FeedbackSystem from './FeedbackSystem';
 import LoginPage from './LoginPage';
+
+const VIVID_THEME_IDX = 4; // Virtual index for Vivid (beyond the 4 base themes)
 
 const navItems = [
   { href: '/', label: 'Home', icon: Home },
@@ -34,6 +36,28 @@ const navItems = [
   { href: '/chat', label: 'Chat', icon: MessageSquare },
 ];
 
+// Color swatch options for the Vivid accent picker
+const vividColorOptions = [
+  { name: 'Rose', bg: 'bg-rose-300' },
+  { name: 'Red', bg: 'bg-red-300' },
+  { name: 'Orange', bg: 'bg-orange-300' },
+  { name: 'Amber', bg: 'bg-amber-300' },
+  { name: 'Emerald', bg: 'bg-emerald-300' },
+  { name: 'Teal', bg: 'bg-teal-300' },
+  { name: 'Cyan', bg: 'bg-cyan-300' },
+  { name: 'Blue', bg: 'bg-blue-300' },
+  { name: 'Indigo', bg: 'bg-indigo-300' },
+  { name: 'Purple', bg: 'bg-purple-300' },
+];
+
+// Swatch colors for the main theme row buttons
+const baseSwatchColors: Record<string, string> = {
+  blue: 'bg-slate-600',
+  sage: 'bg-[#5c6b5d]',
+  stone: 'bg-[#78716c]',
+  neon: 'bg-indigo-500',
+};
+
 export default function BlueprintLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [themeIdx, setThemeIdx] = useState(0);
@@ -46,7 +70,14 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
   const [selectedVividColor, setSelectedVividColor] = useState('Rose');
   const notifRef = useRef<HTMLDivElement>(null);
   const themePickerRef = useRef<HTMLDivElement>(null);
-  const theme = themes[themeIdx];
+
+  // Compute the active theme: base themes for idx 0-3, Vivid variant for idx 4
+  const theme: Theme = useMemo(() => {
+    if (themeIdx === VIVID_THEME_IDX) {
+      return VIVID_VARIANTS[selectedVividColor] || VIVID_VARIANTS['Rose'];
+    }
+    return themes[themeIdx] || themes[0];
+  }, [themeIdx, selectedVividColor]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -108,6 +139,12 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
   if (!currentUser) {
     return <LoginPage onLogin={handleLogin} />;
   }
+
+  // Build the list of theme rows for the picker: 4 base + 1 Vivid
+  const themePickerRows = [
+    ...themes.map((t, i) => ({ theme: t, idx: i, isVivid: false })),
+    { theme: VIVID_VARIANTS[selectedVividColor], idx: VIVID_THEME_IDX, isVivid: true },
+  ];
 
   return (
     <div className={`min-h-screen ${theme.bodyBg} flex`}>
@@ -185,40 +222,29 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
                   <div className={`px-3 py-2 border-b ${theme.border}`}>
                     <span className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Select Theme</span>
                   </div>
-                  {themes.map((t, i) => {
-                    const swatchColors: Record<string, string> = {
-                      blue: 'bg-slate-600',
-                      sage: 'bg-[#5c6b5d]',
-                      stone: 'bg-[#78716c]',
-                      neon: 'bg-indigo-500',
-                      vivid: 'bg-rose-400',
-                    };
-                    const isVivid = t.id === 'vivid';
-                    const vividColorOptions = [
-                      { name: 'Red', bg: 'bg-red-300' },
-                      { name: 'Orange', bg: 'bg-orange-300' },
-                      { name: 'Amber', bg: 'bg-amber-300' },
-                      { name: 'Emerald', bg: 'bg-emerald-300' },
-                      { name: 'Teal', bg: 'bg-teal-300' },
-                      { name: 'Cyan', bg: 'bg-cyan-300' },
-                      { name: 'Blue', bg: 'bg-blue-300' },
-                      { name: 'Indigo', bg: 'bg-indigo-300' },
-                      { name: 'Purple', bg: 'bg-purple-300' },
-                      { name: 'Rose', bg: 'bg-rose-300' },
-                    ];
+                  {themePickerRows.map((row) => {
+                    const isActive = row.idx === themeIdx;
+                    const swatchColor = row.isVivid
+                      ? (vividColorOptions.find(vc => vc.name === selectedVividColor)?.bg || 'bg-rose-300')
+                      : (baseSwatchColors[row.theme.id] || row.theme.primary);
+                    const displayName = row.isVivid ? 'Vivid' : row.theme.name;
+
                     return (
-                      <div key={t.id}>
+                      <div key={row.isVivid ? 'vivid' : row.theme.id}>
                         <button
-                          onClick={() => { setThemeIdx(i); if (!isVivid) setShowThemePicker(false); }}
+                          onClick={() => {
+                            setThemeIdx(row.idx);
+                            if (!row.isVivid) setShowThemePicker(false);
+                          }}
                           className={`w-full flex items-center gap-3 px-3 py-2.5 text-left transition-all ${
-                            i === themeIdx ? `${theme.secondaryBg}` : `${theme.buttonHover}`
+                            isActive ? `${theme.secondaryBg}` : `${theme.buttonHover}`
                           }`}
                         >
-                          <span className={`w-4 h-4 rounded-full ${swatchColors[t.id] || t.primary} shrink-0 ${i === themeIdx ? 'ring-2 ring-offset-1 ring-purple-400' : ''}`} />
-                          <span className={`text-xs font-medium ${theme.highlight}`}>{t.name}</span>
-                          {i === themeIdx && <span className={`text-[10px] ml-auto ${theme.primaryText} font-bold`}>Active</span>}
+                          <span className={`w-4 h-4 rounded-full ${swatchColor} shrink-0 ${isActive ? 'ring-2 ring-offset-1 ring-purple-400' : ''}`} />
+                          <span className={`text-xs font-medium ${theme.highlight}`}>{displayName}</span>
+                          {isActive && <span className={`text-[10px] ml-auto ${theme.primaryText} font-bold`}>Active</span>}
                         </button>
-                        {isVivid && i === themeIdx && (
+                        {row.isVivid && isActive && (
                           <div className={`px-3 pb-2.5 pt-1`}>
                             <p className={`text-[9px] font-bold ${theme.iconColor} uppercase mb-1.5`}>Accent Color</p>
                             <div className="flex flex-wrap gap-1.5">

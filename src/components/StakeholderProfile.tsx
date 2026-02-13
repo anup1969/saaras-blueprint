@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { themes, type Theme } from '@/lib/themes';
+import { themes, VIVID_VARIANTS, type Theme } from '@/lib/themes';
 import {
   User, Mail, Phone, Calendar, Clock, Download, Edit, Bell,
   Lock, Award, Bus, GraduationCap, Shield, Users, Monitor,
@@ -438,6 +438,28 @@ function AccountTab({ theme, themeIdx, onThemeChange }: { theme: Theme; themeIdx
               <p className={`text-[9px] ${i === (themeIdx ?? 0) ? 'text-white/70' : theme.iconColor}`}>{t.type === 'dark' ? 'Dark' : 'Light'}</p>
             </button>
           ))}
+          {/* Vivid theme button (index 4) */}
+          {(() => {
+            const vividTheme = VIVID_VARIANTS['Rose'];
+            const isVividActive = (themeIdx ?? 0) === 4;
+            return (
+              <button
+                key="vivid"
+                onClick={() => onThemeChange?.(4)}
+                className={`flex-1 p-3 rounded-xl text-center transition-all ${
+                  isVividActive ? `ring-2 ring-purple-400 ${vividTheme.primary} text-white` : `${theme.cardBg} border ${theme.border} ${theme.iconColor} hover:opacity-80`
+                }`}
+              >
+                <div className={`w-8 h-8 rounded-lg mx-auto mb-1.5 flex items-center justify-center text-sm font-bold ${
+                  isVividActive ? 'bg-white/20 text-white' : `${vividTheme.primary} text-white`
+                }`}>
+                  V
+                </div>
+                <p className={`text-[10px] font-bold ${isVividActive ? 'text-white' : theme.highlight}`}>Vivid</p>
+                <p className={`text-[9px] ${isVividActive ? 'text-white/70' : theme.iconColor}`}>Light</p>
+              </button>
+            );
+          })()}
         </div>
       </div>
 
