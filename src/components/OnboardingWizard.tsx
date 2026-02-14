@@ -606,7 +606,18 @@ const HOUSE_COLOR_PALETTE = [
 ];
 
 type HouseEntry = { id: string; name: string; colorIndex: number; mascot: string };
-type ShiftEntry = { id: string; name: string; level: string; startTime: string; endTime: string; periods: number; periodDuration: number };
+type BreakEntry = { id: string; name: string; afterPeriod: number; duration: number };
+type DayTimetable = { enabled: boolean; reportingTime: string; firstBell: string; startTime: string; endTime: string; periods: number; periodDuration: number; breaks: BreakEntry[] };
+type ShiftEntry = {
+  id: string; name: string; level: string;
+  // Default day config
+  reportingTime: string; firstBell: string; startTime: string; endTime: string;
+  periods: number; periodDuration: number;
+  breaks: BreakEntry[];
+  // Per-day overrides
+  useSaturdaySchedule: boolean;
+  saturdayConfig: { endTime: string; periods: number; breaks: BreakEntry[] };
+};
 
 // ─── STEP 2: ACADEMIC STRUCTURE ───────────────────────
 function Step2Academic({ theme, institutionType }: { theme: Theme; institutionType: string }) {
@@ -712,14 +723,19 @@ function Step2Academic({ theme, institutionType }: { theme: Theme; institutionTy
   const updateDayHalfEnd = (day: string, halfDayEnd: string) => {
     setDaySchedule(prev => ({ ...prev, [day]: { ...prev[day], halfDayEnd } }));
   };
+  const defaultBreaks = (periods: number): BreakEntry[] => [
+    { id: 'b1', name: 'Short Break', afterPeriod: Math.floor(periods / 3), duration: 10 },
+    { id: 'b2', name: 'Lunch Break', afterPeriod: Math.floor(periods * 2 / 3), duration: 30 },
+  ];
   const [shifts, setShifts] = useState<ShiftEntry[]>([
-    { id: 's1', name: 'Pre-Primary Morning', level: 'Pre-Primary', startTime: '08:00', endTime: '12:00', periods: 5, periodDuration: 35 },
-    { id: 's2', name: 'Primary Morning', level: 'Primary', startTime: '08:00', endTime: '14:00', periods: 7, periodDuration: 40 },
-    { id: 's3', name: 'Secondary', level: 'Secondary', startTime: '08:00', endTime: '14:30', periods: 8, periodDuration: 40 },
+    { id: 's1', name: 'Pre-Primary Morning', level: 'Pre-Primary', reportingTime: '07:45', firstBell: '07:55', startTime: '08:00', endTime: '12:00', periods: 5, periodDuration: 35, breaks: [{ id: 'b1', name: 'Snack Break', afterPeriod: 2, duration: 15 }], useSaturdaySchedule: false, saturdayConfig: { endTime: '11:00', periods: 3, breaks: [] } },
+    { id: 's2', name: 'Primary Morning', level: 'Primary', reportingTime: '07:30', firstBell: '07:50', startTime: '08:00', endTime: '14:00', periods: 7, periodDuration: 40, breaks: [{ id: 'b1', name: 'Short Break', afterPeriod: 3, duration: 10 }, { id: 'b2', name: 'Lunch Break', afterPeriod: 5, duration: 30 }], useSaturdaySchedule: true, saturdayConfig: { endTime: '12:00', periods: 5, breaks: [{ id: 'sb1', name: 'Break', afterPeriod: 3, duration: 10 }] } },
+    { id: 's3', name: 'Secondary', level: 'Secondary', reportingTime: '07:30', firstBell: '07:50', startTime: '08:00', endTime: '14:30', periods: 8, periodDuration: 40, breaks: [{ id: 'b1', name: 'Short Break', afterPeriod: 3, duration: 10 }, { id: 'b2', name: 'Lunch Break', afterPeriod: 6, duration: 30 }], useSaturdaySchedule: true, saturdayConfig: { endTime: '12:30', periods: 5, breaks: [{ id: 'sb1', name: 'Break', afterPeriod: 3, duration: 15 }] } },
   ]);
 
   const addShift = () => {
-    setShifts(prev => [...prev, { id: `s${Date.now()}`, name: '', level: '', startTime: '08:00', endTime: '14:00', periods: 7, periodDuration: 40 }]);
+    const newBreaks = defaultBreaks(7);
+    setShifts(prev => [...prev, { id: `s${Date.now()}`, name: '', level: '', reportingTime: '07:30', firstBell: '07:50', startTime: '08:00', endTime: '14:00', periods: 7, periodDuration: 40, breaks: newBreaks, useSaturdaySchedule: false, saturdayConfig: { endTime: '12:00', periods: 5, breaks: [] } }]);
   };
 
   const removeShift = (id: string) => {
@@ -730,8 +746,29 @@ function Step2Academic({ theme, institutionType }: { theme: Theme; institutionTy
     setShifts(prev => prev.filter(s => s.id !== id));
   };
 
-  const updateShift = (id: string, field: keyof ShiftEntry, value: string | number) => {
+  const updateShift = (id: string, field: string, value: string | number | boolean) => {
     setShifts(prev => prev.map(s => s.id === id ? { ...s, [field]: value } : s));
+  };
+  const addBreak = (shiftId: string) => {
+    setShifts(prev => prev.map(s => s.id === shiftId ? { ...s, breaks: [...s.breaks, { id: `b${Date.now()}`, name: 'Break', afterPeriod: Math.floor(s.periods / 2), duration: 15 }] } : s));
+  };
+  const removeBreak = (shiftId: string, breakId: string) => {
+    setShifts(prev => prev.map(s => s.id === shiftId ? { ...s, breaks: s.breaks.filter(b => b.id !== breakId) } : s));
+  };
+  const updateBreak = (shiftId: string, breakId: string, field: string, value: string | number) => {
+    setShifts(prev => prev.map(s => s.id === shiftId ? { ...s, breaks: s.breaks.map(b => b.id === breakId ? { ...b, [field]: value } : b) } : s));
+  };
+  const addSatBreak = (shiftId: string) => {
+    setShifts(prev => prev.map(s => s.id === shiftId ? { ...s, saturdayConfig: { ...s.saturdayConfig, breaks: [...s.saturdayConfig.breaks, { id: `sb${Date.now()}`, name: 'Break', afterPeriod: 2, duration: 10 }] } } : s));
+  };
+  const removeSatBreak = (shiftId: string, breakId: string) => {
+    setShifts(prev => prev.map(s => s.id === shiftId ? { ...s, saturdayConfig: { ...s.saturdayConfig, breaks: s.saturdayConfig.breaks.filter(b => b.id !== breakId) } } : s));
+  };
+  const updateSatBreak = (shiftId: string, breakId: string, field: string, value: string | number) => {
+    setShifts(prev => prev.map(s => s.id === shiftId ? { ...s, saturdayConfig: { ...s.saturdayConfig, breaks: s.saturdayConfig.breaks.map(b => b.id === breakId ? { ...b, [field]: value } : b) } } : s));
+  };
+  const updateSatConfig = (shiftId: string, field: string, value: string | number) => {
+    setShifts(prev => prev.map(s => s.id === shiftId ? { ...s, saturdayConfig: { ...s.saturdayConfig, [field]: value } } : s));
   };
 
   const addHouse = () => {
@@ -1020,7 +1057,7 @@ function Step2Academic({ theme, institutionType }: { theme: Theme; institutionTy
       </div>
 
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <SectionTitle title="School Timings & Shifts" subtitle="Schools can have multiple shifts — e.g. Pre-Primary, Primary, Secondary with different timings" theme={theme} />
+        <SectionTitle title="School Timings & Shifts" subtitle="Fully configurable: reporting time, bell schedule, breaks, per-day variations — each shift is independent" theme={theme} />
         <div className="mb-4">
           <SelectField label="Working Days (applies to all shifts)" options={['Monday - Friday', 'Monday - Saturday', 'Custom']} value={workingDays} onChange={setWorkingDays} theme={theme} required />
         </div>
@@ -1033,7 +1070,6 @@ function Step2Academic({ theme, institutionType }: { theme: Theme; institutionTy
               <p className={`text-[10px] ${theme.iconColor} mt-0.5`}>Configure each day individually — set regular, half-day, or holiday status</p>
             </div>
             <div className="space-y-2">
-              {/* Header row */}
               <div className="grid grid-cols-6 gap-2 items-center">
                 <span className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Day</span>
                 <span className={`text-[10px] font-bold ${theme.iconColor} uppercase text-center`}>Regular</span>
@@ -1069,12 +1105,9 @@ function Step2Academic({ theme, institutionType }: { theme: Theme; institutionTy
                   ))}
                   <div className="flex justify-center">
                     {config.status === 'Half Day' ? (
-                      <input
-                        type="time"
-                        value={config.halfDayEnd}
+                      <input type="time" value={config.halfDayEnd}
                         onChange={(e) => updateDayHalfEnd(day, e.target.value)}
-                        className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] outline-none w-full ${theme.highlight}`}
-                      />
+                        className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] outline-none w-full ${theme.highlight}`} />
                     ) : (
                       <span className={`text-[10px] ${theme.iconColor}`}>—</span>
                     )}
@@ -1088,20 +1121,16 @@ function Step2Academic({ theme, institutionType }: { theme: Theme; institutionTy
                 <strong>Students Off:</strong> Students have a holiday, but admin/staff are working (e.g., some Saturdays).
               </p>
               <p className={`text-[10px] ${theme.iconColor}`}>
-                <Info size={10} className="inline mr-1 text-blue-500" />
-                <strong>Half Day:</strong> Adjusted end time for all shifts — specify the half-day end time.
-              </p>
-              <p className={`text-[10px] ${theme.iconColor}`}>
                 <AlertCircle size={10} className="inline mr-1 text-amber-500" />
-                Saturday schedules can differ — e.g., students off but admin staff working. Use "Students Off" for this scenario.
+                Saturday schedules can differ — use per-shift Saturday config below for different timings.
               </p>
             </div>
           </div>
         )}
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           {shifts.map((shift, idx) => (
-            <div key={shift.id} className={`p-4 rounded-xl ${theme.secondaryBg} relative`}>
+            <div key={shift.id} className={`p-4 rounded-xl border-2 ${idx === 0 ? 'border-emerald-300' : `${theme.border}`} ${theme.secondaryBg} relative space-y-4`}>
               <button
                 onClick={() => removeShift(shift.id)}
                 className={`absolute top-3 right-3 w-5 h-5 rounded-full flex items-center justify-center border ${theme.border} hover:bg-red-100 transition-colors`}
@@ -1110,32 +1139,22 @@ function Step2Academic({ theme, institutionType }: { theme: Theme; institutionTy
                 <X size={10} className="text-red-500" />
               </button>
 
-              <div className="flex items-center gap-2 mb-3">
+              <div className="flex items-center gap-2">
                 <Clock size={14} className={theme.primaryText} />
-                <span className={`text-xs font-bold ${theme.highlight}`}>Shift {idx + 1}</span>
+                <span className={`text-sm font-bold ${theme.highlight}`}>Shift {idx + 1}: {shift.name || '(Unnamed)'}</span>
               </div>
 
-              <div className="grid grid-cols-6 gap-3">
+              {/* Row 1: Name + Level */}
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>
-                    Shift Name <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    value={shift.name}
-                    onChange={(e) => updateShift(shift.id, 'name', e.target.value)}
-                    className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none focus:ring-2 focus:ring-slate-300 ${theme.highlight}`}
-                    placeholder="e.g. Primary Morning"
-                  />
+                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Shift Name <span className="text-red-500">*</span></label>
+                  <input value={shift.name} onChange={(e) => updateShift(shift.id, 'name', e.target.value)}
+                    className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none ${theme.highlight}`} placeholder="e.g. Primary Morning" />
                 </div>
                 <div>
-                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>
-                    Level <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={shift.level}
-                    onChange={(e) => updateShift(shift.id, 'level', e.target.value)}
-                    className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none ${theme.highlight}`}
-                  >
+                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Level <span className="text-red-500">*</span></label>
+                  <select value={shift.level} onChange={(e) => updateShift(shift.id, 'level', e.target.value)}
+                    className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none ${theme.highlight}`}>
                     <option value="">Select...</option>
                     <option value="Pre-Primary">Pre-Primary</option>
                     <option value="Primary">Primary</option>
@@ -1143,42 +1162,156 @@ function Step2Academic({ theme, institutionType }: { theme: Theme; institutionTy
                     <option value="Senior Secondary">Senior Secondary</option>
                   </select>
                 </div>
+              </div>
+
+              {/* Row 2: Reporting, First Bell, First Period, End Time */}
+              <div className="grid grid-cols-4 gap-3">
                 <div>
-                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Start Time</label>
-                  <input
-                    type="time"
-                    value={shift.startTime}
-                    onChange={(e) => updateShift(shift.id, 'startTime', e.target.value)}
-                    className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none ${theme.highlight}`}
-                  />
+                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Reporting Time</label>
+                  <input type="time" value={shift.reportingTime} onChange={(e) => updateShift(shift.id, 'reportingTime', e.target.value)}
+                    className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none ${theme.highlight}`} />
+                  <p className={`text-[9px] ${theme.iconColor} mt-0.5`}>Students arrive by</p>
                 </div>
                 <div>
-                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>End Time</label>
-                  <input
-                    type="time"
-                    value={shift.endTime}
-                    onChange={(e) => updateShift(shift.id, 'endTime', e.target.value)}
-                    className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none ${theme.highlight}`}
-                  />
+                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>First Bell</label>
+                  <input type="time" value={shift.firstBell} onChange={(e) => updateShift(shift.id, 'firstBell', e.target.value)}
+                    className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none ${theme.highlight}`} />
+                  <p className={`text-[9px] ${theme.iconColor} mt-0.5`}>Assembly / Line-up bell</p>
                 </div>
                 <div>
-                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Periods/Day</label>
-                  <input
-                    type="number"
-                    value={shift.periods}
-                    onChange={(e) => updateShift(shift.id, 'periods', parseInt(e.target.value) || 0)}
-                    className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none ${theme.highlight}`}
-                  />
+                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>1st Period Starts</label>
+                  <input type="time" value={shift.startTime} onChange={(e) => updateShift(shift.id, 'startTime', e.target.value)}
+                    className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none ${theme.highlight}`} />
+                  <p className={`text-[9px] ${theme.iconColor} mt-0.5`}>Teaching starts</p>
                 </div>
                 <div>
-                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Period (mins)</label>
-                  <input
-                    type="number"
-                    value={shift.periodDuration}
-                    onChange={(e) => updateShift(shift.id, 'periodDuration', parseInt(e.target.value) || 0)}
-                    className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none ${theme.highlight}`}
-                  />
+                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>School Ends</label>
+                  <input type="time" value={shift.endTime} onChange={(e) => updateShift(shift.id, 'endTime', e.target.value)}
+                    className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none ${theme.highlight}`} />
+                  <p className={`text-[9px] ${theme.iconColor} mt-0.5`}>Dismissal bell</p>
                 </div>
+              </div>
+
+              {/* Row 3: Periods + Duration */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Periods Per Day</label>
+                  <input type="number" value={shift.periods} onChange={(e) => updateShift(shift.id, 'periods', parseInt(e.target.value) || 0)}
+                    className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none ${theme.highlight}`} />
+                </div>
+                <div>
+                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Period Duration (mins)</label>
+                  <input type="number" value={shift.periodDuration} onChange={(e) => updateShift(shift.id, 'periodDuration', parseInt(e.target.value) || 0)}
+                    className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none ${theme.highlight}`} />
+                </div>
+              </div>
+
+              {/* Break Configuration */}
+              <div className={`p-3 rounded-xl border ${theme.border} ${theme.cardBg} space-y-2`}>
+                <div className="flex items-center justify-between">
+                  <p className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Breaks (Mon–Fri)</p>
+                  <button onClick={() => addBreak(shift.id)}
+                    className={`text-[10px] px-2 py-1 rounded-lg ${theme.primary} text-white font-bold flex items-center gap-1`}>
+                    <Plus size={8} /> Add Break
+                  </button>
+                </div>
+                {shift.breaks.length === 0 && (
+                  <p className={`text-[10px] ${theme.iconColor}`}>No breaks configured. Click &quot;Add Break&quot; to add one.</p>
+                )}
+                {shift.breaks.map(brk => (
+                  <div key={brk.id} className={`grid grid-cols-4 gap-2 items-end p-2 rounded-lg ${theme.secondaryBg}`}>
+                    <div>
+                      <label className={`text-[9px] ${theme.iconColor} font-bold`}>Break Name</label>
+                      <input value={brk.name} onChange={(e) => updateBreak(shift.id, brk.id, 'name', e.target.value)}
+                        className={`w-full px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight}`} />
+                    </div>
+                    <div>
+                      <label className={`text-[9px] ${theme.iconColor} font-bold`}>After Period #</label>
+                      <input type="number" min={1} max={shift.periods} value={brk.afterPeriod}
+                        onChange={(e) => updateBreak(shift.id, brk.id, 'afterPeriod', parseInt(e.target.value) || 1)}
+                        className={`w-full px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight}`} />
+                    </div>
+                    <div>
+                      <label className={`text-[9px] ${theme.iconColor} font-bold`}>Duration (mins)</label>
+                      <input type="number" min={5} value={brk.duration}
+                        onChange={(e) => updateBreak(shift.id, brk.id, 'duration', parseInt(e.target.value) || 5)}
+                        className={`w-full px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight}`} />
+                    </div>
+                    <button onClick={() => removeBreak(shift.id, brk.id)}
+                      className={`px-2 py-1.5 rounded-lg border ${theme.border} text-red-500 text-[10px] font-bold hover:bg-red-50 transition-colors`}>
+                      Remove
+                    </button>
+                  </div>
+                ))}
+                {shift.breaks.length > 0 && (
+                  <p className={`text-[9px] ${theme.iconColor}`}>
+                    Schedule: {Array.from({ length: shift.periods }, (_, i) => {
+                      const brk = shift.breaks.find(b => b.afterPeriod === i + 1);
+                      return `P${i + 1}${brk ? ` → ${brk.name} (${brk.duration}m)` : ''}`;
+                    }).join(' → ')}
+                  </p>
+                )}
+              </div>
+
+              {/* Saturday Different Schedule Toggle */}
+              <div className={`p-3 rounded-xl border-2 border-dashed ${shift.useSaturdaySchedule ? 'border-blue-300 bg-blue-50/30' : theme.border} ${theme.cardBg} space-y-2`}>
+                <button onClick={() => updateShift(shift.id, 'useSaturdaySchedule', !shift.useSaturdaySchedule)}
+                  className="flex items-center gap-2 cursor-pointer w-full text-left">
+                  <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${shift.useSaturdaySchedule ? 'bg-blue-500 border-blue-500' : theme.border}`}>
+                    {shift.useSaturdaySchedule && <Check size={12} className="text-white" />}
+                  </div>
+                  <span className={`text-[10px] font-bold ${theme.highlight}`}>Different Saturday Schedule</span>
+                  <span className={`text-[9px] ${theme.iconColor}`}>(fewer periods, shorter day)</span>
+                </button>
+                {shift.useSaturdaySchedule && (
+                  <div className="mt-2 space-y-2">
+                    <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <label className={`text-[9px] ${theme.iconColor} font-bold`}>Sat End Time</label>
+                        <input type="time" value={shift.saturdayConfig.endTime}
+                          onChange={(e) => updateSatConfig(shift.id, 'endTime', e.target.value)}
+                          className={`w-full px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight}`} />
+                      </div>
+                      <div>
+                        <label className={`text-[9px] ${theme.iconColor} font-bold`}>Sat Periods</label>
+                        <input type="number" value={shift.saturdayConfig.periods}
+                          onChange={(e) => updateSatConfig(shift.id, 'periods', parseInt(e.target.value) || 0)}
+                          className={`w-full px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight}`} />
+                      </div>
+                      <div className="flex items-end">
+                        <button onClick={() => addSatBreak(shift.id)}
+                          className={`text-[10px] px-2 py-1.5 rounded-lg ${theme.primary} text-white font-bold flex items-center gap-1`}>
+                          <Plus size={8} /> Sat Break
+                        </button>
+                      </div>
+                    </div>
+                    {shift.saturdayConfig.breaks.map(brk => (
+                      <div key={brk.id} className={`grid grid-cols-4 gap-2 items-end p-2 rounded-lg ${theme.secondaryBg}`}>
+                        <div>
+                          <label className={`text-[9px] ${theme.iconColor} font-bold`}>Break Name</label>
+                          <input value={brk.name} onChange={(e) => updateSatBreak(shift.id, brk.id, 'name', e.target.value)}
+                            className={`w-full px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight}`} />
+                        </div>
+                        <div>
+                          <label className={`text-[9px] ${theme.iconColor} font-bold`}>After Period #</label>
+                          <input type="number" min={1} value={brk.afterPeriod}
+                            onChange={(e) => updateSatBreak(shift.id, brk.id, 'afterPeriod', parseInt(e.target.value) || 1)}
+                            className={`w-full px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight}`} />
+                        </div>
+                        <div>
+                          <label className={`text-[9px] ${theme.iconColor} font-bold`}>Duration (mins)</label>
+                          <input type="number" min={5} value={brk.duration}
+                            onChange={(e) => updateSatBreak(shift.id, brk.id, 'duration', parseInt(e.target.value) || 5)}
+                            className={`w-full px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight}`} />
+                        </div>
+                        <button onClick={() => removeSatBreak(shift.id, brk.id)}
+                          className={`px-2 py-1.5 rounded-lg border ${theme.border} text-red-500 text-[10px] font-bold hover:bg-red-50`}>
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -1191,8 +1324,16 @@ function Step2Academic({ theme, institutionType }: { theme: Theme; institutionTy
           <Plus size={12} /> Add Shift
         </button>
         <p className={`text-[10px] ${theme.iconColor} mt-2`}>
-          {shifts.length} shift{shifts.length !== 1 ? 's' : ''} configured. Schools can have multiple shifts per level (e.g. 2 Primary shifts, 1 Secondary shift). Each shift has its own timings and period structure.
+          {shifts.length} shift{shifts.length !== 1 ? 's' : ''} configured. Each shift has its own timings, period structure, break schedule, and optional Saturday variation.
         </p>
+
+        {/* Bell Schedule Preview */}
+        <div className={`mt-3 p-3 rounded-xl ${theme.accentBg} flex items-start gap-2`}>
+          <Info size={12} className={`${theme.iconColor} mt-0.5 shrink-0`} />
+          <p className={`text-[10px] ${theme.iconColor}`}>
+            <strong>Bell Schedule:</strong> Auto-generated from the above configuration. Bells ring at: Reporting time, First bell (assembly), Period start/end, Break start/end, and Dismissal. Schools can customize bell sounds in settings.
+          </p>
+        </div>
       </div>
     </div>
   );
