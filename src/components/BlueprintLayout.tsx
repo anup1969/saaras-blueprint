@@ -35,6 +35,7 @@ const navItems = [
   { href: '/security', label: 'Security', icon: ShieldCheck },
   { href: '/account-manager', label: 'Account Manager', icon: Headphones },
   { href: '/chat', label: 'Chat', icon: MessageSquare },
+  { href: '/auth', label: 'Auth / Login', icon: Shield },
 ];
 
 // Color swatch options for the Vivid accent picker
