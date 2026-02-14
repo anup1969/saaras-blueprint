@@ -107,6 +107,26 @@ function Step1Identity({ theme, onInstitutionTypeChange }: { theme: Theme; onIns
     'CBSE': true, 'ICSE / ISC': false, 'State Board (Gujarat)': false, 'State Board (Maharashtra)': false,
     'IB (International Baccalaureate)': false, 'Cambridge (IGCSE)': false,
   });
+  // Multi-school (Connected) state
+  const [numSchools, setNumSchools] = useState(2);
+  const [schoolConfigs, setSchoolConfigs] = useState([
+    { name: '', type: 'Regular School', board: 'CBSE', shortName: '' },
+    { name: '', type: 'Regular School', board: 'IB (International Baccalaureate)', shortName: '' },
+  ]);
+  const [sharedRoles, setSharedRoles] = useState<Record<string, boolean>>({
+    'Trustee': true, 'School Admin': true, 'HR Manager': true, 'Accounts Head': true,
+    'Principal': false, 'Vice Principal': false, 'Receptionist': false, 'Transport Head': false, 'Security': false,
+  });
+  const updateSchoolConfig = (idx: number, field: string, value: string) => {
+    setSchoolConfigs(prev => prev.map((s, i) => i === idx ? { ...s, [field]: value } : s));
+  };
+  const handleNumSchoolsChange = (n: number) => {
+    setNumSchools(n);
+    setSchoolConfigs(prev => {
+      if (n > prev.length) return [...prev, ...Array(n - prev.length).fill(null).map(() => ({ name: '', type: 'Regular School', board: 'CBSE', shortName: '' }))];
+      return prev.slice(0, n);
+    });
+  };
   // REMARK 10: Multiple boards → different entities/school names
   const [differentEntities, setDifferentEntities] = useState(false);
   const [boardEntityNames, setBoardEntityNames] = useState<Record<string, string>>({});
@@ -161,18 +181,88 @@ function Step1Identity({ theme, onInstitutionTypeChange }: { theme: Theme; onIns
         </p>
       </div>
 
-      {/* ── BRANCH / MULTI-SCHOOL CONFIGURATION — Only for Connected School ── */}
+      {/* ── ORGANISATION & MULTI-SCHOOL CONFIGURATION — Only for Connected School ── */}
       {isConnected && (
-        <div className={`${theme.cardBg} rounded-2xl border-2 border-blue-300 p-4 space-y-3`}>
-          <SectionTitle title="Branch / Multi-School Configuration" subtitle="Connected schools share reporting and may share configurations" theme={theme} />
-          <div className="space-y-3">
-            <SelectField label="Branch Type" options={['Mother School', 'Sub School', 'Sister Concern', 'Franchisee Provider', 'Franchised School']} theme={theme} required />
-            <FormField label="Parent Organization / Group Name" placeholder="e.g. DPS Society, Ryan International" theme={theme} />
-            <FormField label="Number of Branches" placeholder="e.g. 5" type="number" theme={theme} />
+        <div className="space-y-4">
+          {/* Organisation Setup */}
+          <div className={`${theme.cardBg} rounded-2xl border-2 border-blue-300 p-4 space-y-3`}>
+            <SectionTitle title="Organisation Setup" subtitle="The trust or management entity that owns multiple schools" theme={theme} />
+            <div className="grid grid-cols-2 gap-3">
+              <FormField label="Organisation / Trust Name" placeholder="e.g. DPS Society, Ryan International Group" theme={theme} required />
+              <SelectField label="Organisation Type" options={['Sister Concern (Same Campus)', 'School Chain (Different Cities)', 'Franchise Model', 'Trust / Society']} theme={theme} required />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>
+                  Number of Schools <span className="text-red-500">*</span>
+                </label>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => numSchools > 2 && handleNumSchoolsChange(numSchools - 1)} className={`w-8 h-8 rounded-lg ${theme.secondaryBg} ${theme.highlight} font-bold text-sm ${theme.buttonHover}`}>−</button>
+                  <span className={`text-lg font-bold ${theme.highlight} w-8 text-center`}>{numSchools}</span>
+                  <button onClick={() => numSchools < 10 && handleNumSchoolsChange(numSchools + 1)} className={`w-8 h-8 rounded-lg ${theme.secondaryBg} ${theme.highlight} font-bold text-sm ${theme.buttonHover}`}>+</button>
+                </div>
+              </div>
+              <FormField label="Registration Number" placeholder="e.g. Trust/Society registration" theme={theme} />
+            </div>
+          </div>
+
+          {/* Per-School Configuration Cards */}
+          <div className={`${theme.cardBg} rounded-2xl border-2 border-indigo-300 p-4 space-y-3`}>
+            <SectionTitle title="Per-School Configuration" subtitle={`Configure each of the ${numSchools} schools individually — each gets its own type, board, and setup`} theme={theme} />
+            <div className="space-y-3">
+              {schoolConfigs.map((sc, idx) => (
+                <div key={idx} className={`p-4 rounded-xl border-2 ${idx === 0 ? 'border-emerald-300 bg-emerald-50/5' : `${theme.border} ${theme.secondaryBg}`}`}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${idx === 0 ? 'bg-emerald-100 text-emerald-700' : `${theme.accentBg} ${theme.iconColor}`}`}>
+                      School {idx + 1} {idx === 0 && '(Primary)'}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-4 gap-3">
+                    <FormField label="School Name" placeholder={`e.g. DPS ${idx === 0 ? 'CBSE' : 'International'}`} value={sc.name} onChange={(v) => updateSchoolConfig(idx, 'name', v)} theme={theme} required />
+                    <FormField label="Short Name" placeholder={`e.g. DPS-${idx === 0 ? 'CBSE' : 'IB'}`} value={sc.shortName} onChange={(v) => updateSchoolConfig(idx, 'shortName', v)} theme={theme} />
+                    <SelectField label="School Type" options={['Regular School', 'Preschool / Daycare', 'International School', 'Residential School']} value={sc.type} onChange={(v) => updateSchoolConfig(idx, 'type', v)} theme={theme} required />
+                    <SelectField label="Board" options={['CBSE', 'ICSE / ISC', 'State Board', 'IB (International Baccalaureate)', 'Cambridge (IGCSE)', 'No Board (Preschool)']} value={sc.board} onChange={(v) => updateSchoolConfig(idx, 'board', v)} theme={theme} required />
+                  </div>
+                </div>
+              ))}
+            </div>
             <p className={`text-[10px] ${theme.iconColor}`}>
-              <AlertCircle size={10} className="inline mr-1 text-blue-500" />
-              <strong>Note:</strong> Connected schools are linked under a Group Admin. Each branch gets independent configuration but shares consolidated reporting, cross-school transfers, and network policies.
+              <Info size={10} className="inline mr-1 text-indigo-500" />
+              Each school gets its own database schema, principal, teachers, students, and configuration. Academic structure (classes, sections, houses) is set up per school in the next step.
             </p>
+          </div>
+
+          {/* Shared Roles Configuration */}
+          <div className={`${theme.cardBg} rounded-2xl border-2 border-purple-300 p-4 space-y-3`}>
+            <SectionTitle title="Shared Stakeholder Roles" subtitle="Which roles are shared across all schools in this organisation? Shared users see a 'Switch School' dropdown." theme={theme} />
+            <div className="grid grid-cols-3 gap-2">
+              {Object.entries(sharedRoles).map(([role, isShared]) => (
+                <button
+                  key={role}
+                  onClick={() => setSharedRoles(prev => ({ ...prev, [role]: !prev[role] }))}
+                  className={`flex items-center gap-2 p-3 rounded-xl border-2 text-left transition-all cursor-pointer ${
+                    isShared ? 'border-purple-400 bg-purple-50/10' : `${theme.border} ${theme.secondaryBg}`
+                  }`}
+                >
+                  <div className={`w-5 h-5 rounded flex items-center justify-center shrink-0 ${isShared ? 'bg-purple-500 text-white' : `${theme.border} border`}`}>
+                    {isShared && <Check size={12} />}
+                  </div>
+                  <div>
+                    <span className={`text-xs font-bold ${theme.highlight}`}>{role}</span>
+                    <p className={`text-[9px] ${theme.iconColor}`}>{isShared ? 'One login, all schools' : 'Separate per school'}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+            <div className={`p-3 rounded-xl ${theme.accentBg} flex items-start gap-2 mt-2`}>
+              <AlertTriangle size={14} className="text-amber-500 shrink-0 mt-0.5" />
+              <div>
+                <p className={`text-[10px] font-bold ${theme.highlight}`}>Shared roles can be changed later</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>
+                  A shared admin sees all schools and switches between them. Their actions are always scoped to the currently selected school. New schools added to the org later will automatically inherit shared role settings.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       )}
