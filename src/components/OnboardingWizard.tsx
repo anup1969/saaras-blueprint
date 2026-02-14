@@ -5,10 +5,10 @@ import { type Theme } from '@/lib/themes';
 import { StatCard, Toggle } from '@/components/shared';
 import {
   Building2, GraduationCap, Users, Shield, MessageSquare,
-  Banknote, Briefcase, Bus, Check, ChevronRight, ChevronLeft, Save, Rocket,
+  Banknote, Briefcase, Bus, Check, ChevronRight, ChevronLeft, ChevronDown, Save, Rocket,
   Upload, Plus, X, Eye, AlertTriangle, CheckCircle, Lock, Circle, AlertCircle,
   Layers, ArrowRight, Download, Megaphone, Clock, Package, Info,
-  Headphones, Bot, Phone, Mail, Video, Sparkles, Calendar
+  Headphones, Bot, Phone, Mail, Video, Sparkles, Calendar, Key
 } from 'lucide-react';
 
 // ─── WIZARD STEPS ─────────────────────────────────────
@@ -93,13 +93,21 @@ const INSTITUTION_TYPES = [
 
 // ─── STEP 1: SCHOOL IDENTITY ──────────────────────────
 function Step1Identity({ theme, onInstitutionTypeChange }: { theme: Theme; onInstitutionTypeChange?: (type: string) => void }) {
-  const [schoolCount, setSchoolCount] = useState<'single' | 'multiple'>('single');
+  const [schoolCount, setSchoolCount] = useState<'single' | 'multiple' | 'existing'>('single');
   const [institutionType, setInstitutionType] = useState('regular');
   const [boardSelection, setBoardSelection] = useState('CBSE');
   const [multiBoards, setMultiBoards] = useState<Record<string, boolean>>({
     'CBSE': true, 'ICSE / ISC': false, 'State Board (Gujarat)': false, 'State Board (Maharashtra)': false,
     'IB (International Baccalaureate)': false, 'Cambridge (IGCSE)': false,
   });
+  // Existing organisation state
+  const [existingOrg, setExistingOrg] = useState('');
+  const MOCK_ORGS = [
+    { id: 'org1', name: 'DPS Society', schools: ['DPS CBSE Campus', 'DPS International Wing', 'DPS Pre-Primary'] },
+    { id: 'org2', name: 'Ryan International Group', schools: ['Ryan Ahmedabad', 'Ryan Vadodara', 'Ryan Surat', 'Ryan Rajkot'] },
+    { id: 'org3', name: 'Udgam Trust', schools: ['Udgam CBSE', 'Udgam IB'] },
+  ];
+  const selectedOrg = MOCK_ORGS.find(o => o.id === existingOrg);
   // Multi-school (Connected) state
   const [numSchools, setNumSchools] = useState(2);
   const [schoolConfigs, setSchoolConfigs] = useState([
@@ -132,6 +140,7 @@ function Step1Identity({ theme, onInstitutionTypeChange }: { theme: Theme; onIns
   });
   const isPreschool = institutionType === 'preschool';
   const isMultiSchool = schoolCount === 'multiple';
+  const isExistingOrg = schoolCount === 'existing';
   const selectedBoards = Object.entries(multiBoards).filter(([, v]) => v).map(([k]) => k);
   const multipleSelected = boardSelection === 'Multiple Boards' && selectedBoards.length > 1;
 
@@ -146,40 +155,114 @@ function Step1Identity({ theme, onInstitutionTypeChange }: { theme: Theme; onIns
 
       {/* ── ORGANISATION SETUP — FIRST QUESTION ── */}
       <div className={`${theme.cardBg} rounded-2xl border-2 border-blue-300 p-4 space-y-3`}>
-        <SectionTitle title="Organisation Setup" subtitle="How many schools will you onboard? This determines the setup flow." theme={theme} />
-        <div className="grid grid-cols-2 gap-3">
+        <SectionTitle title="Organisation Setup" subtitle="Is this a new school, a new organisation, or adding to an existing one?" theme={theme} />
+        <div className="grid grid-cols-3 gap-3">
           <button onClick={() => setSchoolCount('single')}
-            className={`p-5 rounded-xl border-2 cursor-pointer text-left transition-all ${
+            className={`p-4 rounded-xl border-2 cursor-pointer text-left transition-all ${
               schoolCount === 'single' ? 'border-emerald-400 bg-emerald-50 ring-2 ring-emerald-200' : `${theme.border} ${theme.cardBg}`
             }`}>
-            <div className="flex items-center gap-3 mb-2">
-              <span className="text-2xl">🏫</span>
-              <span className={`text-sm font-bold ${theme.highlight}`}>Single School</span>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xl">🏫</span>
+              <span className={`text-sm font-bold ${theme.highlight}`}>New Single School</span>
             </div>
             {schoolCount === 'single' && <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold mb-2 inline-block">SELECTED</span>}
-            <p className={`text-[10px] ${theme.iconColor}`}>One school — standalone setup with its own principal, staff, and configuration.</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>Standalone school — own principal, staff, and configuration.</p>
           </button>
           <button onClick={() => setSchoolCount('multiple')}
-            className={`p-5 rounded-xl border-2 cursor-pointer text-left transition-all ${
+            className={`p-4 rounded-xl border-2 cursor-pointer text-left transition-all ${
               schoolCount === 'multiple' ? 'border-blue-400 bg-blue-50 ring-2 ring-blue-200' : `${theme.border} ${theme.cardBg}`
             }`}>
-            <div className="flex items-center gap-3 mb-2">
-              <span className="text-2xl">🔗</span>
-              <span className={`text-sm font-bold ${theme.highlight}`}>Multiple Schools</span>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xl">🔗</span>
+              <span className={`text-sm font-bold ${theme.highlight}`}>New Organisation</span>
             </div>
             {schoolCount === 'multiple' && <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold mb-2 inline-block">SELECTED</span>}
-            <p className={`text-[10px] ${theme.iconColor}`}>Sister concern, school chain, franchise, or trust with 2+ schools. Shared reporting & admin.</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>Trust / chain with 2+ schools. Shared reporting & admin.</p>
             <div className="flex flex-wrap gap-1 mt-2">
-              {['Shared Reporting', 'Group Admin', 'Cross-school Transfers', 'Consolidated Analytics'].map(f => (
+              {['Shared Reporting', 'Group Admin'].map(f => (
                 <span key={f} className={`text-[9px] px-1.5 py-0.5 rounded ${schoolCount === 'multiple' ? 'bg-blue-100 text-blue-700' : `${theme.secondaryBg} ${theme.iconColor}`}`}>{f}</span>
+              ))}
+            </div>
+          </button>
+          <button onClick={() => setSchoolCount('existing')}
+            className={`p-4 rounded-xl border-2 cursor-pointer text-left transition-all ${
+              isExistingOrg ? 'border-purple-400 bg-purple-50 ring-2 ring-purple-200' : `${theme.border} ${theme.cardBg}`
+            }`}>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xl">➕</span>
+              <span className={`text-sm font-bold ${theme.highlight}`}>Add to Existing Org</span>
+            </div>
+            {isExistingOrg && <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 font-bold mb-2 inline-block">SELECTED</span>}
+            <p className={`text-[10px] ${theme.iconColor}`}>Add a new school to an already onboarded organisation.</p>
+            <div className="flex flex-wrap gap-1 mt-2">
+              {['Inherit Config', 'Shared Roles'].map(f => (
+                <span key={f} className={`text-[9px] px-1.5 py-0.5 rounded ${isExistingOrg ? 'bg-purple-100 text-purple-700' : `${theme.secondaryBg} ${theme.iconColor}`}`}>{f}</span>
               ))}
             </div>
           </button>
         </div>
       </div>
 
+      {/* ── ADD TO EXISTING ORGANISATION — When "Add to Existing Org" selected ── */}
+      {isExistingOrg && (
+        <div className="space-y-4">
+          <div className={`${theme.cardBg} rounded-2xl border-2 border-purple-300 p-4 space-y-3`}>
+            <SectionTitle title="Select Existing Organisation" subtitle="Choose the organisation to add a new school to" theme={theme} />
+            <div>
+              <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>
+                Organisation <span className="text-red-500">*</span>
+              </label>
+              <select value={existingOrg} onChange={e => setExistingOrg(e.target.value)}
+                className={`w-full px-4 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none ${theme.highlight}`}>
+                <option value="">Select an organisation...</option>
+                {MOCK_ORGS.map(o => (
+                  <option key={o.id} value={o.id}>{o.name} ({o.schools.length} schools)</option>
+                ))}
+              </select>
+            </div>
+
+            {selectedOrg && (
+              <div className={`p-4 rounded-xl ${theme.secondaryBg} space-y-3`}>
+                <div className="flex items-center justify-between">
+                  <span className={`text-sm font-bold ${theme.highlight}`}>{selectedOrg.name}</span>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 font-bold`}>
+                    {selectedOrg.schools.length} schools active
+                  </span>
+                </div>
+                <div className="space-y-1">
+                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Existing Schools</label>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedOrg.schools.map(s => (
+                      <span key={s} className={`text-[10px] px-2 py-1 rounded-lg ${theme.accentBg} ${theme.highlight} font-medium`}>{s}</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {selectedOrg && (
+            <div className={`${theme.cardBg} rounded-2xl border-2 border-emerald-300 p-4 space-y-3`}>
+              <SectionTitle title="New School Details" subtitle={`This school will be added to ${selectedOrg.name}`} theme={theme} />
+              <div className="grid grid-cols-2 gap-3">
+                <FormField label="School Name" placeholder="e.g. DPS Science Academy" theme={theme} required />
+                <FormField label="Short Name" placeholder="e.g. DPS-SCI" theme={theme} />
+                <SelectField label="School Type" options={['Regular School', 'Preschool / Daycare', 'International School', 'Residential School']} theme={theme} required />
+                <SelectField label="Board" options={['CBSE', 'ICSE / ISC', 'State Board', 'IB (International Baccalaureate)', 'Cambridge (IGCSE)', 'No Board (Preschool)']} theme={theme} required />
+              </div>
+              <div className={`p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-start gap-2`}>
+                <Info size={12} className="text-emerald-500 mt-0.5 shrink-0" />
+                <p className="text-[10px] text-emerald-700">
+                  This school will inherit the organisation&apos;s shared roles, billing settings, and admin configuration. You can customize modules, fees, and academic structure in the following steps.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* ── INSTITUTION TYPE — Only for Single School ── */}
-      {!isMultiSchool && (
+      {!isMultiSchool && !isExistingOrg && (
         <div className={`${theme.cardBg} rounded-2xl border-2 border-amber-300 p-4 space-y-3`}>
           <SectionTitle title="Institution Type" subtitle="This determines which modules and features are available" theme={theme} />
           <div className="grid grid-cols-2 gap-3">
@@ -296,8 +379,8 @@ function Step1Identity({ theme, onInstitutionTypeChange }: { theme: Theme; onIns
         </div>
       )}
 
-      {/* School name & logo — only for single school (multi-school has per-school cards) */}
-      {!isMultiSchool && (
+      {/* School name & logo — only for single school (multi-school and existing org have their own config) */}
+      {!isMultiSchool && !isExistingOrg && (
         <div className="flex gap-4">
           <div className={`w-24 h-24 rounded-2xl border-2 border-dashed ${theme.border} flex flex-col items-center justify-center cursor-pointer ${theme.buttonHover}`}>
             <Upload size={20} className={theme.iconColor} />
@@ -1115,6 +1198,43 @@ function Step2Academic({ theme, institutionType }: { theme: Theme; institutionTy
   );
 }
 
+// ─── MODULE SUB-MODULES & RBAC DATA ─────────────────
+const MODULE_SUBMODULES: Record<string, string[]> = {
+  'Dashboard': ['Overview Cards', 'Quick Actions', 'News Board', 'Analytics Widgets'],
+  'Student Management': ['Admission', 'Profile & Documents', 'Promotion', 'TC / Transfer', 'Sibling Linking', 'Bulk Import'],
+  'Staff Management': ['Profile & Documents', 'Joining / Exit', 'ID Card Generation', 'Staff Directory', 'Attendance'],
+  'Fee Management': ['Fee Structure', 'Collection & Receipts', 'Concessions', 'Late Fee Rules', 'Reports & Ledger', 'Online Payment', 'Reminders'],
+  'Attendance': ['Student Attendance', 'Staff Attendance', 'Biometric Integration', 'Reports & Analytics', 'Absent Notifications'],
+  'Timetable': ['Class Timetable', 'Teacher Timetable', 'Substitution Management', 'Period Allocation', 'Conflict Detection'],
+  'Parent Portal': ['Child Dashboard', 'Fee Payments', 'Communication', 'Homework View', 'Attendance View', 'Report Cards'],
+  'Student Portal': ['Dashboard', 'Homework Submission', 'Timetable View', 'Results', 'Library'],
+  'Communication / Chat': ['Chat Messaging', 'Announcements', 'Broadcasts', 'Polls & Surveys', 'Notices'],
+  'Online Payment': ['Payment Gateway', 'Payment Tracking', 'Refunds', 'Payment Reports'],
+  'Enquiry / Admission': ['Lead Capture', 'Follow-up Pipeline', 'Online Form', 'Conversion Tracking', 'Reports'],
+  'Homework / Assignments': ['Create & Assign', 'Submission Tracking', 'Grading', 'Reports'],
+  'Transport Management': ['Routes & Stops', 'Vehicle Management', 'GPS Tracking', 'Student Mapping', 'Driver App'],
+  'Visitor Management': ['Check-in / Check-out', 'Pre-approval', 'Student Pickup', 'Visitor Logs', 'Reports'],
+  'Library': ['Book Catalog', 'Issue / Return', 'Fines', 'Reports', 'Barcode Scan'],
+  'Examination & Report Cards': ['Exam Schedule', 'Marks Entry', 'Report Card Generation', 'Analytics', 'Board Exam Support'],
+  'HR & Payroll': ['Payroll Processing', 'Salary Structure', 'Deductions & Tax', 'Pay Slips', 'Compliance Reports'],
+  'Leave Management': ['Apply Leave', 'Approval Workflow', 'Leave Balance', 'Holiday Calendar', 'Reports'],
+  'Certificates': ['TC Generation', 'Bonafide', 'Character Certificate', 'Custom Templates', 'Bulk Print'],
+  'Canteen Management': ['Menu Management', 'Pre-orders', 'Billing', 'Reports'],
+  'SQAAF / Quality Assessment': ['Self Assessment', 'Quality Metrics', 'Improvement Plans', 'Reports'],
+  'Inventory Management': ['Asset Tracking', 'Stock Management', 'Purchase Orders', 'Maintenance Logs'],
+  'Hostel Management': ['Room Allocation', 'Mess Menu', 'Attendance', 'Fee Integration'],
+  'Alumni Management': ['Alumni Directory', 'Events', 'Communication', 'Donations'],
+  'Advanced Analytics': ['Custom Dashboards', 'Trend Analysis', 'Predictive Insights', 'Export Tools'],
+  'Custom Reports Builder': ['Drag & Drop Builder', 'Scheduled Reports', 'Templates', 'Export Formats'],
+  'API Access': ['REST API Keys', 'Webhook Config', 'Rate Limits', 'Documentation'],
+  'White Label Branding': ['Logo & Colors', 'Custom Domain', 'Email Templates', 'App Branding'],
+};
+
+const STAKEHOLDER_ROLES = [
+  'School Admin', 'Principal', 'Vice Principal', 'Teacher', 'HR Manager',
+  'Accounts Head', 'Receptionist', 'Transport Head', 'Security', 'Trustee', 'Parent', 'Student',
+];
+
 // ─── STEP 3: PLAN & MODULES ──────────────────────────
 function Step3Modules({ theme, institutionType }: { theme: Theme; institutionType: string }) {
   const studentLabel = institutionType === 'preschool' ? 'Children' : 'Students';
@@ -1224,11 +1344,37 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
   const [demoPeriod, setDemoPeriod] = useState('30 Days');
   const [demoStartDate, setDemoStartDate] = useState('');
   const [billingStartDate, setBillingStartDate] = useState('');
+  const [billTo, setBillTo] = useState<'organisation' | 'school'>('organisation');
+  const [finalPrice, setFinalPrice] = useState('');
+  const [perSchoolConfig, setPerSchoolConfig] = useState([
+    { name: 'School 1', students: '500', storage: '15', modules: 'All' },
+    { name: 'School 2', students: '300', storage: '10', modules: 'Core + Pro' },
+  ]);
 
   // SMS Pack optional student add-on
   const [addStudentLicenses, setAddStudentLicenses] = useState(false);
   const [addonStudentCount, setAddonStudentCount] = useState(0);
   const [addonPeriod, setAddonPeriod] = useState(periodOptions[0]);
+
+  // ─── MODULE EXPANSION & RBAC ───
+  const [expandedModule, setExpandedModule] = useState<string | null>(null);
+  const [subModuleToggles, setSubModuleToggles] = useState<Record<string, Record<string, boolean>>>({});
+  const [moduleRBAC, setModuleRBAC] = useState<Record<string, Record<string, boolean>>>({});
+
+  const getSubModuleState = (mod: string, sub: string) => subModuleToggles[mod]?.[sub] ?? true;
+  const toggleSubModule = (mod: string, sub: string) => {
+    setSubModuleToggles(prev => ({
+      ...prev,
+      [mod]: { ...prev[mod], [sub]: !(prev[mod]?.[sub] ?? true) },
+    }));
+  };
+  const getRBACState = (mod: string, role: string) => moduleRBAC[mod]?.[role] ?? false;
+  const toggleRBAC = (mod: string, role: string) => {
+    setModuleRBAC(prev => ({
+      ...prev,
+      [mod]: { ...prev[mod], [role]: !(prev[mod]?.[role] ?? false) },
+    }));
+  };
 
   // ─── MODULE TOGGLES ───
   const allModuleNames = [
@@ -1378,6 +1524,15 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
   const toggleSupport = (id: string) => {
     if (includedSupport.includes(id)) return; // locked ON
     setSupportToggles(p => ({ ...p, [id]: !p[id] }));
+  };
+
+  // ─── AUTH METHOD CONFIG ───
+  const [authMethods, setAuthMethods] = useState<Record<string, boolean>>({
+    'email': true, 'phone': true, 'google': false, 'microsoft': false,
+  });
+  const toggleAuth = (id: string) => {
+    if (id === 'email') return; // Email is mandatory
+    setAuthMethods(p => ({ ...p, [id]: !p[id] }));
   };
 
   // Shared input style
@@ -1719,6 +1874,79 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
           </div>
         </div>
 
+        {/* ── BILLING CONFIGURATION ── */}
+        <div className={`mt-4 p-4 rounded-2xl border-2 border-blue-300 ${theme.cardBg} space-y-3`}>
+          <SectionTitle title="Billing Configuration" subtitle="Set billing entity, final negotiated price, and per-school allocations" theme={theme} />
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className={labelCls}>Bill To</label>
+              <div className="flex gap-2">
+                <button onClick={() => setBillTo('organisation')}
+                  className={`flex-1 p-2.5 rounded-xl border-2 text-center cursor-pointer text-xs font-medium transition-all ${
+                    billTo === 'organisation' ? 'border-blue-400 bg-blue-50 text-blue-700 ring-1 ring-blue-200' : `${theme.border} ${theme.cardBg} ${theme.highlight}`
+                  }`}>Organisation</button>
+                <button onClick={() => setBillTo('school')}
+                  className={`flex-1 p-2.5 rounded-xl border-2 text-center cursor-pointer text-xs font-medium transition-all ${
+                    billTo === 'school' ? 'border-blue-400 bg-blue-50 text-blue-700 ring-1 ring-blue-200' : `${theme.border} ${theme.cardBg} ${theme.highlight}`
+                  }`}>Individual School</button>
+              </div>
+              <p className={`text-[10px] ${theme.iconColor} mt-1`}>
+                {billTo === 'organisation' ? 'Single invoice to the trust/org for all schools' : 'Separate invoice per school'}
+              </p>
+            </div>
+            <div>
+              <label className={labelCls}>Final Negotiated Price (&#8377;/yr)</label>
+              <input type="text" value={finalPrice} placeholder={`e.g. ${tierPrices[currentTier.id]}`}
+                onChange={e => setFinalPrice(e.target.value.replace(/[^0-9,]/g, ''))}
+                className={inputCls} />
+              <p className={`text-[10px] ${theme.iconColor} mt-1`}>Super Admin sets final price per negotiation — overrides tier default</p>
+            </div>
+          </div>
+
+          {/* Per-School Configuration for multi-school */}
+          <div className={`p-3 rounded-xl ${theme.secondaryBg} space-y-2`}>
+            <p className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Per-School Allocation</p>
+            <p className={`text-[9px] ${theme.iconColor}`}>Each school in the same org can have different module access, student limits, and storage</p>
+            <div className="space-y-2">
+              {perSchoolConfig.map((sc, idx) => (
+                <div key={idx} className={`grid grid-cols-4 gap-2 p-2 rounded-lg ${theme.cardBg} border ${theme.border}`}>
+                  <div>
+                    <label className={`text-[9px] ${theme.iconColor} font-bold`}>School</label>
+                    <input type="text" value={sc.name}
+                      onChange={e => setPerSchoolConfig(prev => prev.map((s, i) => i === idx ? { ...s, name: e.target.value } : s))}
+                      className={`w-full px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight}`} />
+                  </div>
+                  <div>
+                    <label className={`text-[9px] ${theme.iconColor} font-bold`}>Students</label>
+                    <input type="text" value={sc.students}
+                      onChange={e => setPerSchoolConfig(prev => prev.map((s, i) => i === idx ? { ...s, students: e.target.value } : s))}
+                      className={`w-full px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight}`} />
+                  </div>
+                  <div>
+                    <label className={`text-[9px] ${theme.iconColor} font-bold`}>Storage (GB)</label>
+                    <input type="text" value={sc.storage}
+                      onChange={e => setPerSchoolConfig(prev => prev.map((s, i) => i === idx ? { ...s, storage: e.target.value } : s))}
+                      className={`w-full px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight}`} />
+                  </div>
+                  <div>
+                    <label className={`text-[9px] ${theme.iconColor} font-bold`}>Module Tier</label>
+                    <select value={sc.modules}
+                      onChange={e => setPerSchoolConfig(prev => prev.map((s, i) => i === idx ? { ...s, modules: e.target.value } : s))}
+                      className={`w-full px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight}`}>
+                      <option>All</option><option>Core + Pro</option><option>Core Only</option>
+                    </select>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <button onClick={() => setPerSchoolConfig(prev => [...prev, { name: `School ${prev.length + 1}`, students: '500', storage: '15', modules: 'All' }])}
+              className={`w-full mt-2 flex items-center justify-center gap-1 p-2 rounded-xl border-2 border-dashed ${theme.border} ${theme.iconColor} text-[10px] font-bold hover:bg-slate-50 transition-colors`}>
+              <Plus size={10} /> Add School
+            </button>
+          </div>
+        </div>
+
         <div className={`${theme.secondaryBg} rounded-xl p-3 flex items-start gap-2 mt-3`}>
           <Info size={12} className={`${theme.iconColor} mt-0.5 shrink-0`} />
           <p className={`text-[10px] ${theme.iconColor}`}>
@@ -1815,34 +2043,96 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
         </div>
       </div>
 
-      {/* ── SECTION 4: MODULE TOGGLES (adapt per tier) ── */}
+      {/* ── SECTION 4: MODULE TOGGLES with Sub-Modules & RBAC ── */}
       {[
         { cat: 'Core (All Plans)', list: coreModules, locked: true },
         { cat: skuType === 'sms-pack' ? 'Professional+' : '360+', list: proModules, locked: false },
         { cat: skuType === 'sms-pack' ? 'Enterprise Only' : 'Power Pack', list: entModules, locked: false },
       ].map(cat => (
         <div key={cat.cat} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-          <SectionTitle title={cat.cat} theme={theme} />
+          <SectionTitle title={cat.cat} subtitle="Click any module to configure sub-modules & role access" theme={theme} />
           <div className="space-y-2">
             {cat.list.map(name => {
               const excluded = isModuleExcluded(name);
+              const isExpanded = expandedModule === name && modules[name] && !excluded;
+              const subs = MODULE_SUBMODULES[name] || [];
               return (
-                <div key={name} className={`flex items-center justify-between p-3 rounded-xl ${
-                  excluded ? 'bg-slate-100 opacity-60' : theme.secondaryBg
-                }`}>
-                  <div className="flex items-center gap-2">
-                    {cat.locked && <Lock size={10} className={theme.iconColor} />}
-                    <span className={`text-xs font-medium ${excluded ? 'text-slate-400 line-through' : theme.highlight}`}>{name}</span>
-                    {excluded && (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-100 text-red-500 font-bold ml-1">
-                        Not in {currentTier.name} plan
-                      </span>
-                    )}
+                <div key={name} className="space-y-0">
+                  <div className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all ${
+                    excluded ? 'bg-slate-100 opacity-60' : isExpanded ? `${theme.accentBg} ring-1 ring-slate-300` : theme.secondaryBg
+                  }`}
+                    onClick={() => !excluded && modules[name] && setExpandedModule(isExpanded ? null : name)}>
+                    <div className="flex items-center gap-2">
+                      {cat.locked && <Lock size={10} className={theme.iconColor} />}
+                      {!excluded && modules[name] && subs.length > 0 && (
+                        <ChevronDown size={12} className={`${theme.iconColor} transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                      )}
+                      <span className={`text-xs font-medium ${excluded ? 'text-slate-400 line-through' : theme.highlight}`}>{name}</span>
+                      {excluded && (
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-100 text-red-500 font-bold ml-1">
+                          Not in {currentTier.name} plan
+                        </span>
+                      )}
+                      {!excluded && modules[name] && subs.length > 0 && (
+                        <span className={`text-[9px] px-1.5 py-0.5 rounded ${theme.accentBg} ${theme.iconColor} font-medium`}>
+                          {subs.filter(s => getSubModuleState(name, s)).length}/{subs.length} sub-modules
+                        </span>
+                      )}
+                    </div>
+                    <div onClick={e => e.stopPropagation()}>
+                      {excluded ? (
+                        <Lock size={10} className="text-slate-300" />
+                      ) : (
+                        <Toggle on={modules[name]} onChange={() => toggleModule(name)} theme={theme} />
+                      )}
+                    </div>
                   </div>
-                  {excluded ? (
-                    <Lock size={10} className="text-slate-300" />
-                  ) : (
-                    <Toggle on={modules[name]} onChange={() => toggleModule(name)} theme={theme} />
+
+                  {/* Expanded: Sub-modules + RBAC */}
+                  {isExpanded && subs.length > 0 && (
+                    <div className={`ml-6 mr-2 mt-1 mb-2 p-3 rounded-xl border ${theme.border} ${theme.cardBg} space-y-3`}>
+                      {/* Sub-module toggles */}
+                      <div>
+                        <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-2`}>Sub-Modules</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {subs.map(sub => (
+                            <button key={sub} onClick={() => toggleSubModule(name, sub)}
+                              className={`text-[10px] px-2.5 py-1 rounded-lg border cursor-pointer transition-all font-medium ${
+                                getSubModuleState(name, sub)
+                                  ? `border-emerald-300 bg-emerald-50 text-emerald-700`
+                                  : `${theme.border} ${theme.secondaryBg} text-slate-400 line-through`
+                              }`}>
+                              {getSubModuleState(name, sub) && <Check size={8} className="inline mr-1" />}
+                              {sub}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      {/* RBAC: Stakeholder access */}
+                      <div>
+                        <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-2`}>Role-Based Access Control</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {STAKEHOLDER_ROLES.map(role => (
+                            <button key={role} onClick={() => toggleRBAC(name, role)}
+                              className={`text-[10px] px-2 py-1 rounded-lg border cursor-pointer transition-all font-medium flex items-center gap-1 ${
+                                getRBACState(name, role)
+                                  ? `border-blue-300 bg-blue-50 text-blue-700`
+                                  : `${theme.border} ${theme.secondaryBg} ${theme.iconColor}`
+                              }`}>
+                              <div className={`w-3 h-3 rounded-sm flex items-center justify-center ${
+                                getRBACState(name, role) ? 'bg-blue-500 text-white' : `border ${theme.border}`
+                              }`}>
+                                {getRBACState(name, role) && <Check size={8} />}
+                              </div>
+                              {role}
+                            </button>
+                          ))}
+                        </div>
+                        <p className={`text-[9px] ${theme.iconColor} mt-1.5`}>
+                          {STAKEHOLDER_ROLES.filter(r => getRBACState(name, r)).length} of {STAKEHOLDER_ROLES.length} roles have access to {name}
+                        </p>
+                      </div>
+                    </div>
                   )}
                 </div>
               );
@@ -1874,6 +2164,57 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
           </div>
         </div>
       )}
+
+      {/* ── SECTION 5: AUTH METHOD CONFIGURATION ── */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5`}>
+        <div className="flex items-center gap-2 mb-1">
+          <Key size={16} className={theme.iconColor} />
+          <SectionTitle title="Authentication Methods" subtitle="Configure how users sign in to this school — detailed config available on the Auth page" theme={theme} />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { id: 'email', name: 'Email + Password', desc: 'Standard email/password login', icon: Mail, mandatory: true },
+            { id: 'phone', name: 'Phone + OTP', desc: 'Mobile number with OTP verification', icon: Phone, mandatory: false },
+            { id: 'google', name: 'Google OAuth', desc: 'Sign in with Google account', icon: Users, mandatory: false },
+            { id: 'microsoft', name: 'Microsoft OAuth', desc: 'Sign in with Microsoft/Office 365', icon: Users, mandatory: false },
+          ].map(method => {
+            const isOn = authMethods[method.id];
+            const IconComp = method.icon;
+            return (
+              <div key={method.id}
+                className={`flex items-center justify-between p-3 rounded-xl border ${
+                  isOn ? 'border-emerald-200 bg-emerald-50/50' : `${theme.border} ${theme.secondaryBg}`
+                }`}>
+                <div className="flex items-center gap-2">
+                  <IconComp size={14} className={isOn ? 'text-emerald-500' : theme.iconColor} />
+                  <div>
+                    <span className={`text-xs font-medium ${theme.highlight}`}>{method.name}</span>
+                    <p className={`text-[9px] ${theme.iconColor}`}>{method.desc}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {method.mandatory && (
+                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-bold">REQUIRED</span>
+                  )}
+                  {method.mandatory ? (
+                    <Lock size={10} className="text-emerald-400" />
+                  ) : (
+                    <Toggle on={isOn} onChange={() => toggleAuth(method.id)} theme={theme} />
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className={`${theme.secondaryBg} rounded-xl p-3 flex items-start gap-2 mt-3`}>
+          <Info size={12} className={`${theme.iconColor} mt-0.5 shrink-0`} />
+          <p className={`text-[10px] ${theme.iconColor}`}>
+            OAuth providers require configuration (Client ID, Secret) on the <strong>Auth Configuration</strong> page. Only enabled methods will appear on the school&apos;s login screen. Multiple methods can be active simultaneously.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
