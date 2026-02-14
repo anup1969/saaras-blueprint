@@ -456,7 +456,36 @@ function AuthConfigPanel({ theme }: { theme: Theme }) {
               <h4 className={`text-xs font-bold ${theme.highlight} mb-2 flex items-center gap-2`}>
                 <Briefcase size={14} /> Staff / Teacher Login (Separate)
               </h4>
-              <p className={`text-[10px] ${theme.iconColor} mb-3`}>Staff always uses Email/Phone + Password. Additionally, enable SSO for schools using Google Workspace or Microsoft 365.</p>
+              <p className={`text-[10px] ${theme.iconColor} mb-3`}>Staff always uses Email + Password. The email type depends on what the school provides.</p>
+
+              {/* Staff email type */}
+              <div className="mb-4">
+                <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-2`}>Does the school provide official email IDs to staff?</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {[
+                    { id: 'school_email', label: 'Yes — School Email', example: 'priya.sharma@dpsahmedabad.edu', desc: 'School provides official email. Becomes staff User ID. Enables Google Workspace / Microsoft 365 SSO.', tag: 'Google Workspace / Microsoft 365 ready', active: googleSso },
+                    { id: 'personal_email', label: 'No — Personal Email', example: 'priya.sharma@gmail.com', desc: 'Staff uses their own personal email. Becomes staff User ID. SSO limited to personal accounts.', tag: 'Most common in Indian schools', active: !googleSso },
+                  ].map(opt => (
+                    <button
+                      key={opt.id}
+                      className={`text-left p-3 rounded-xl border transition-all ${
+                        opt.active ? `border-blue-500 ${theme.cardBg}` : `${theme.border} hover:border-slate-400`
+                      }`}
+                      onClick={() => setGoogleSso(opt.id === 'school_email')}
+                    >
+                      <p className={`text-xs font-bold ${theme.highlight}`}>{opt.label}</p>
+                      <code className={`text-[10px] ${theme.iconColor} font-mono`}>{opt.example}</code>
+                      <p className={`text-[10px] ${theme.iconColor} mt-1`}>{opt.desc}</p>
+                      <span className={`text-[9px] px-2 py-0.5 rounded-full mt-2 inline-block ${
+                        opt.id === 'school_email' ? 'bg-blue-500/20 text-blue-400' : 'bg-amber-500/20 text-amber-400'
+                      }`}>{opt.tag}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* SSO toggles */}
+              <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-2`}>Single Sign-On (SSO)</p>
               <div className="flex gap-4">
                 <label className="flex items-center gap-2 text-xs cursor-pointer">
                   <input type="checkbox" checked={googleSso} onChange={() => setGoogleSso(!googleSso)} className="accent-blue-500 w-4 h-4 rounded" />
