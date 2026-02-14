@@ -89,18 +89,11 @@ const INSTITUTION_TYPES = [
     grades: 'Pre-primary + Class 1–12',
     features: ['Board Exams', 'LMS & Homework', 'Report Cards', 'Streams (11-12)', 'SQAAF Compliance'],
   },
-  {
-    id: 'connected',
-    label: 'Connected School',
-    desc: 'Part of a school network — mother school, sub-school, sister concern, or franchisee. Connected schools share reporting and may share configurations.',
-    icon: '🔗',
-    grades: 'Varies by connection type',
-    features: ['Shared Reporting', 'Group Admin', 'Cross-school Transfers', 'Consolidated Analytics', 'Network Policies'],
-  },
 ];
 
 // ─── STEP 1: SCHOOL IDENTITY ──────────────────────────
 function Step1Identity({ theme, onInstitutionTypeChange }: { theme: Theme; onInstitutionTypeChange?: (type: string) => void }) {
+  const [schoolCount, setSchoolCount] = useState<'single' | 'multiple'>('single');
   const [institutionType, setInstitutionType] = useState('regular');
   const [boardSelection, setBoardSelection] = useState('CBSE');
   const [multiBoards, setMultiBoards] = useState<Record<string, boolean>>({
@@ -138,7 +131,7 @@ function Step1Identity({ theme, onInstitutionTypeChange }: { theme: Theme; onIns
     'Playgroup': false, 'Nursery': true, 'LKG': true, 'UKG': true,
   });
   const isPreschool = institutionType === 'preschool';
-  const isConnected = institutionType === 'connected';
+  const isMultiSchool = schoolCount === 'multiple';
   const selectedBoards = Object.entries(multiBoards).filter(([, v]) => v).map(([k]) => k);
   const multipleSelected = boardSelection === 'Multiple Boards' && selectedBoards.length > 1;
 
@@ -151,38 +144,74 @@ function Step1Identity({ theme, onInstitutionTypeChange }: { theme: Theme; onIns
     <div className="space-y-6">
       <SectionTitle title="School Basic Information" subtitle="Collected from school management during onboarding call" theme={theme} />
 
-      {/* ── INSTITUTION TYPE — FIRST QUESTION ── */}
-      <div className={`${theme.cardBg} rounded-2xl border-2 border-amber-300 p-4 space-y-3`}>
-        <SectionTitle title="Institution Type" subtitle="This determines which modules and features are available — select first" theme={theme} />
-        <div className="grid grid-cols-3 gap-3">
-          {INSTITUTION_TYPES.map(t => (
-            <button key={t.id} onClick={() => handleTypeChange(t.id)}
-              className={`p-4 rounded-xl border-2 cursor-pointer text-left transition-all ${
-                institutionType === t.id ? 'border-amber-400 bg-amber-50 ring-2 ring-amber-200' : `${theme.border} ${theme.cardBg}`
-              }`}>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-xl">{t.icon}</span>
-                <span className={`text-sm font-bold ${theme.highlight}`}>{t.label}</span>
-              </div>
-              {institutionType === t.id && <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-bold mb-2 inline-block">SELECTED</span>}
-              <p className={`text-[10px] ${theme.iconColor} mb-2`}>{t.desc}</p>
-              <p className={`text-[10px] font-bold ${theme.iconColor}`}>Grades: {t.grades}</p>
-              <div className="flex flex-wrap gap-1 mt-2">
-                {t.features.map(f => (
-                  <span key={f} className={`text-[9px] px-1.5 py-0.5 rounded ${institutionType === t.id ? 'bg-amber-100 text-amber-700' : `${theme.secondaryBg} ${theme.iconColor}`}`}>{f}</span>
-                ))}
-              </div>
-            </button>
-          ))}
+      {/* ── ORGANISATION SETUP — FIRST QUESTION ── */}
+      <div className={`${theme.cardBg} rounded-2xl border-2 border-blue-300 p-4 space-y-3`}>
+        <SectionTitle title="Organisation Setup" subtitle="How many schools will you onboard? This determines the setup flow." theme={theme} />
+        <div className="grid grid-cols-2 gap-3">
+          <button onClick={() => setSchoolCount('single')}
+            className={`p-5 rounded-xl border-2 cursor-pointer text-left transition-all ${
+              schoolCount === 'single' ? 'border-emerald-400 bg-emerald-50 ring-2 ring-emerald-200' : `${theme.border} ${theme.cardBg}`
+            }`}>
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-2xl">🏫</span>
+              <span className={`text-sm font-bold ${theme.highlight}`}>Single School</span>
+            </div>
+            {schoolCount === 'single' && <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold mb-2 inline-block">SELECTED</span>}
+            <p className={`text-[10px] ${theme.iconColor}`}>One school — standalone setup with its own principal, staff, and configuration.</p>
+          </button>
+          <button onClick={() => setSchoolCount('multiple')}
+            className={`p-5 rounded-xl border-2 cursor-pointer text-left transition-all ${
+              schoolCount === 'multiple' ? 'border-blue-400 bg-blue-50 ring-2 ring-blue-200' : `${theme.border} ${theme.cardBg}`
+            }`}>
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-2xl">🔗</span>
+              <span className={`text-sm font-bold ${theme.highlight}`}>Multiple Schools</span>
+            </div>
+            {schoolCount === 'multiple' && <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold mb-2 inline-block">SELECTED</span>}
+            <p className={`text-[10px] ${theme.iconColor}`}>Sister concern, school chain, franchise, or trust with 2+ schools. Shared reporting & admin.</p>
+            <div className="flex flex-wrap gap-1 mt-2">
+              {['Shared Reporting', 'Group Admin', 'Cross-school Transfers', 'Consolidated Analytics'].map(f => (
+                <span key={f} className={`text-[9px] px-1.5 py-0.5 rounded ${schoolCount === 'multiple' ? 'bg-blue-100 text-blue-700' : `${theme.secondaryBg} ${theme.iconColor}`}`}>{f}</span>
+              ))}
+            </div>
+          </button>
         </div>
-        <p className={`text-[10px] ${theme.iconColor}`}>
-          <AlertTriangle size={10} className="inline mr-1 text-amber-500" />
-          <strong>Note:</strong> Institution type affects available modules, assessments, student profiles, and reports. Can be changed later by Super Admin.
-        </p>
       </div>
 
-      {/* ── ORGANISATION & MULTI-SCHOOL CONFIGURATION — Only for Connected School ── */}
-      {isConnected && (
+      {/* ── INSTITUTION TYPE — Only for Single School ── */}
+      {!isMultiSchool && (
+        <div className={`${theme.cardBg} rounded-2xl border-2 border-amber-300 p-4 space-y-3`}>
+          <SectionTitle title="Institution Type" subtitle="This determines which modules and features are available" theme={theme} />
+          <div className="grid grid-cols-2 gap-3">
+            {INSTITUTION_TYPES.map(t => (
+              <button key={t.id} onClick={() => handleTypeChange(t.id)}
+                className={`p-4 rounded-xl border-2 cursor-pointer text-left transition-all ${
+                  institutionType === t.id ? 'border-amber-400 bg-amber-50 ring-2 ring-amber-200' : `${theme.border} ${theme.cardBg}`
+                }`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xl">{t.icon}</span>
+                  <span className={`text-sm font-bold ${theme.highlight}`}>{t.label}</span>
+                </div>
+                {institutionType === t.id && <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-bold mb-2 inline-block">SELECTED</span>}
+                <p className={`text-[10px] ${theme.iconColor} mb-2`}>{t.desc}</p>
+                <p className={`text-[10px] font-bold ${theme.iconColor}`}>Grades: {t.grades}</p>
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {t.features.map(f => (
+                    <span key={f} className={`text-[9px] px-1.5 py-0.5 rounded ${institutionType === t.id ? 'bg-amber-100 text-amber-700' : `${theme.secondaryBg} ${theme.iconColor}`}`}>{f}</span>
+                  ))}
+                </div>
+              </button>
+            ))}
+          </div>
+          <p className={`text-[10px] ${theme.iconColor}`}>
+            <AlertTriangle size={10} className="inline mr-1 text-amber-500" />
+            <strong>Note:</strong> Institution type affects available modules, assessments, student profiles, and reports. Can be changed later by Super Admin.
+          </p>
+        </div>
+      )}
+
+      {/* ── MULTI-SCHOOL CONFIGURATION — Only when Multiple Schools selected ── */}
+      {isMultiSchool && (
         <div className="space-y-4">
           {/* Organisation Setup */}
           <div className={`${theme.cardBg} rounded-2xl border-2 border-blue-300 p-4 space-y-3`}>
@@ -267,16 +296,19 @@ function Step1Identity({ theme, onInstitutionTypeChange }: { theme: Theme; onIns
         </div>
       )}
 
-      <div className="flex gap-4">
-        <div className={`w-24 h-24 rounded-2xl border-2 border-dashed ${theme.border} flex flex-col items-center justify-center cursor-pointer ${theme.buttonHover}`}>
-          <Upload size={20} className={theme.iconColor} />
-          <span className={`text-[10px] ${theme.iconColor} mt-1`}>Logo</span>
+      {/* School name & logo — only for single school (multi-school has per-school cards) */}
+      {!isMultiSchool && (
+        <div className="flex gap-4">
+          <div className={`w-24 h-24 rounded-2xl border-2 border-dashed ${theme.border} flex flex-col items-center justify-center cursor-pointer ${theme.buttonHover}`}>
+            <Upload size={20} className={theme.iconColor} />
+            <span className={`text-[10px] ${theme.iconColor} mt-1`}>Logo</span>
+          </div>
+          <div className="flex-1 space-y-3">
+            <FormField label={isPreschool ? 'Preschool / Daycare Name' : 'School Name'} placeholder={isPreschool ? 'e.g. Little Stars Preschool, Ahmedabad' : 'e.g. Delhi Public School, Ahmedabad'} theme={theme} required />
+            <FormField label="Short Name / Abbreviation" placeholder={isPreschool ? 'e.g. Little Stars' : 'e.g. DPS Ahmedabad'} theme={theme} hint="Used in reports, receipts, SMS" />
+          </div>
         </div>
-        <div className="flex-1 space-y-3">
-          <FormField label={isPreschool ? 'Preschool / Daycare Name' : 'School Name'} placeholder={isPreschool ? 'e.g. Little Stars Preschool, Ahmedabad' : 'e.g. Delhi Public School, Ahmedabad'} theme={theme} required />
-          <FormField label="Short Name / Abbreviation" placeholder={isPreschool ? 'e.g. Little Stars' : 'e.g. DPS Ahmedabad'} theme={theme} hint="Used in reports, receipts, SMS" />
-        </div>
-      </div>
+      )}
 
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 space-y-3`}>
         <SectionTitle title="Address & Contact" theme={theme} />
@@ -1188,6 +1220,11 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
 
+  // ─── DEMO PERIOD & BILLING ───
+  const [demoPeriod, setDemoPeriod] = useState('30 Days');
+  const [demoStartDate, setDemoStartDate] = useState('');
+  const [billingStartDate, setBillingStartDate] = useState('');
+
   // SMS Pack optional student add-on
   const [addStudentLicenses, setAddStudentLicenses] = useState(false);
   const [addonStudentCount, setAddonStudentCount] = useState(0);
@@ -1635,6 +1672,51 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
               </div>
             </div>
           )}
+        </div>
+
+        {/* ── DEMO PERIOD & BILLING START DATE ── */}
+        <div className={`mt-4 p-4 rounded-2xl border-2 border-emerald-300 ${theme.cardBg} space-y-3`}>
+          <SectionTitle title="Demo Period & Billing" subtitle="Configure trial period and when billing begins — these can differ" theme={theme} />
+          <div>
+            <label className={labelCls}>Demo Duration</label>
+            <div className="grid grid-cols-5 gap-2">
+              {['15 Days', '30 Days', '60 Days', '6 Months', 'No Demo'].map(opt => (
+                <button key={opt} onClick={() => setDemoPeriod(opt)}
+                  className={`p-2.5 rounded-xl border-2 text-center cursor-pointer transition-all text-xs font-medium ${
+                    demoPeriod === opt ? 'border-emerald-400 bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200' : `${theme.border} ${theme.cardBg} ${theme.highlight}`
+                  }`}>
+                  {opt}
+                </button>
+              ))}
+            </div>
+          </div>
+          {demoPeriod !== 'No Demo' && (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className={labelCls}>Demo Start Date</label>
+                <input type="date" value={demoStartDate} onChange={e => setDemoStartDate(e.target.value)} className={inputCls} />
+                <p className={`text-[10px] ${theme.iconColor} mt-1`}>When the school starts using the system for trial</p>
+              </div>
+              <div>
+                <label className={labelCls}>Billing Start Date</label>
+                <input type="date" value={billingStartDate} onChange={e => setBillingStartDate(e.target.value)} className={inputCls} />
+                <p className={`text-[10px] ${theme.iconColor} mt-1`}>When paid subscription begins (can differ from demo start)</p>
+              </div>
+            </div>
+          )}
+          {demoPeriod === 'No Demo' && (
+            <div>
+              <label className={labelCls}>Billing Start Date</label>
+              <input type="date" value={billingStartDate} onChange={e => setBillingStartDate(e.target.value)} className={inputCls} />
+              <p className={`text-[10px] ${theme.iconColor} mt-1`}>Subscription billing begins immediately from this date</p>
+            </div>
+          )}
+          <div className={`p-3 rounded-xl ${theme.accentBg} flex items-start gap-2`}>
+            <AlertTriangle size={12} className="text-amber-500 shrink-0 mt-0.5" />
+            <p className={`text-[10px] ${theme.iconColor}`}>
+              <strong>Demo vs Billing:</strong> During demo, all selected plan features are available. Billing auto-starts after demo period ends unless manually extended by Super Admin. Schools can be converted to paid at any time during the demo.
+            </p>
+          </div>
         </div>
 
         <div className={`${theme.secondaryBg} rounded-xl p-3 flex items-start gap-2 mt-3`}>
