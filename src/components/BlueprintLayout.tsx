@@ -8,13 +8,14 @@ import {
   UserCheck, Briefcase, Calculator, Phone, Bus, ShieldCheck, Headphones,
   Home, ChevronLeft, Menu, LogOut, MessageSquare, Bell,
   FileText, CheckCircle, Calendar, AlertTriangle, ClipboardCheck,
-  Palette, Maximize2, Minimize2, MessageCircle, X, Send
+  Palette, Maximize2, Minimize2, MessageCircle, X, Send, Search
 } from 'lucide-react';
 import { themes, VIVID_VARIANTS, type Theme } from '@/lib/themes';
 import { getLoggedInUser, logoutUser, type TeamMember } from '@/lib/auth';
 import FeedbackSystem from './FeedbackSystem';
 import LoginPage from './LoginPage';
 import TaskTrackerPopup from './TaskTrackerPopup';
+import { conversations } from './ChatModule';
 
 const VIVID_THEME_IDX = 4; // Virtual index for Vivid (beyond the 4 base themes)
 
@@ -71,7 +72,6 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedVividColor, setSelectedVividColor] = useState('Indigo');
   const [chatOpen, setChatOpen] = useState(false);
-  const [chatMsg, setChatMsg] = useState('');
   // Task Tracker popup state
   const [taskPopupOpen, setTaskPopupOpen] = useState(false);
   const [taskPopupMode, setTaskPopupMode] = useState<'login' | 'idle'>('login');
@@ -410,56 +410,63 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
       {/* Floating Chat Widget */}
       <div ref={chatRef} className="fixed bottom-6 right-6 z-50">
         {chatOpen && (
-          <div className={`mb-3 w-[300px] h-[400px] ${theme.cardBg} border ${theme.border} rounded-2xl shadow-2xl flex flex-col overflow-hidden`}>
+          <div className={`mb-3 w-[320px] h-[440px] ${theme.cardBg} border ${theme.border} rounded-2xl shadow-2xl flex flex-col overflow-hidden`}>
             {/* Chat Header */}
             <div className="flex items-center justify-between px-3 py-2.5 bg-green-500 text-white rounded-t-2xl">
               <div className="flex items-center gap-2">
                 <MessageCircle size={14} />
-                <span className="text-xs font-bold">Quick Chat</span>
+                <span className="text-xs font-bold">Chats</span>
+                <span className="text-[9px] bg-white/20 px-1.5 py-0.5 rounded-full">{conversations.filter(c => c.unread > 0).length} unread</span>
               </div>
               <button onClick={() => setChatOpen(false)} className="p-1 rounded-lg hover:bg-green-600 transition-all">
                 <X size={12} />
               </button>
             </div>
 
-            {/* Conversations List */}
+            {/* Search */}
+            <div className={`px-3 py-2 border-b ${theme.border}`}>
+              <div className={`flex items-center gap-2 px-2.5 py-1.5 rounded-xl ${theme.secondaryBg} border ${theme.border}`}>
+                <Search size={12} className={theme.iconColor} />
+                <input type="text" placeholder="Search conversations..." className={`flex-1 text-[10px] bg-transparent ${theme.highlight} outline-none placeholder:${theme.iconColor}`} />
+              </div>
+            </div>
+
+            {/* Conversations List — Real data from ChatModule */}
             <div className="flex-1 overflow-y-auto">
-              {[
-                { name: 'Rajesh Mehta', role: 'Vice Principal', msg: 'PTM schedule confirmed for Saturday', time: '2m ago', unread: true, avatar: 'RM' },
-                { name: 'Priya Sharma', role: 'Class Teacher - VII A', msg: 'Student reports ready for review', time: '15m ago', unread: true, avatar: 'PS' },
-                { name: 'Amit Patel', role: 'Transport Head', msg: 'Bus route #4 updated as per request', time: '1h ago', unread: false, avatar: 'AP' },
-                { name: 'Sunita Iyer', role: 'Accounts Dept.', msg: 'Fee collection report attached', time: '2h ago', unread: false, avatar: 'SI' },
-              ].map((c, i) => (
-                <div key={i} className={`flex items-center gap-2.5 px-3 py-2.5 cursor-pointer transition-all ${theme.buttonHover} ${c.unread ? theme.secondaryBg : ''} border-b ${theme.border}`}>
-                  <div className={`w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center text-[10px] font-bold shrink-0`}>
-                    {c.avatar}
+              {conversations.map((c) => (
+                <div key={c.id} className={`flex items-center gap-2.5 px-3 py-2.5 cursor-pointer transition-all ${theme.buttonHover} ${c.unread > 0 ? theme.secondaryBg : ''} border-b ${theme.border}`}>
+                  <div className="relative">
+                    <div className={`w-8 h-8 rounded-full ${c.type === 'group' ? theme.primary : 'bg-slate-300'} text-white flex items-center justify-center text-[9px] font-bold shrink-0`}>
+                      {c.avatar}
+                    </div>
+                    {c.online && <div className="w-2 h-2 bg-emerald-500 rounded-full absolute -bottom-0.5 -right-0.5 border border-white" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <p className={`text-xs font-bold ${theme.highlight} truncate`}>{c.name}</p>
-                      <span className={`text-[9px] ${theme.iconColor} shrink-0 ml-1`}>{c.time}</span>
+                      <p className={`text-[11px] font-bold ${theme.highlight} truncate`}>
+                        {c.pinned && <span className="text-amber-500 mr-0.5">&#x1F4CC;</span>}
+                        {c.name}
+                      </p>
+                      <span className={`text-[9px] ${c.unread > 0 ? theme.primaryText + ' font-bold' : theme.iconColor} shrink-0 ml-1`}>{c.time}</span>
                     </div>
-                    <p className={`text-[10px] ${theme.iconColor} truncate`}>{c.role}</p>
-                    <p className={`text-[10px] ${c.unread ? theme.highlight + ' font-semibold' : theme.iconColor} truncate`}>{c.msg}</p>
+                    <p className={`text-[10px] ${c.unread > 0 ? `${theme.highlight} font-medium` : theme.iconColor} truncate`}>{c.lastMsg}</p>
                   </div>
-                  {c.unread && <div className="w-2 h-2 rounded-full bg-green-500 shrink-0" />}
+                  {c.unread > 0 && (
+                    <span className={`w-4 h-4 rounded-full ${theme.primary} text-white text-[8px] font-bold flex items-center justify-center shrink-0`}>{c.unread}</span>
+                  )}
                 </div>
               ))}
             </div>
 
-            {/* Message Input */}
-            <div className={`px-3 py-2 border-t ${theme.border} flex items-center gap-2`}>
-              <input
-                type="text"
-                value={chatMsg}
-                onChange={e => setChatMsg(e.target.value)}
-                placeholder="Type a message..."
-                className={`flex-1 px-2.5 py-1.5 rounded-xl text-[10px] ${theme.inputBg || theme.secondaryBg} border ${theme.border} ${theme.highlight} outline-none`}
-              />
-              <button className="p-1.5 rounded-xl bg-green-500 text-white hover:bg-green-600 transition-all">
-                <Send size={12} />
-              </button>
-            </div>
+            {/* Chat Dashboard Link */}
+            <Link
+              href="/chat"
+              onClick={() => setChatOpen(false)}
+              className={`flex items-center justify-center gap-2 px-3 py-2.5 border-t ${theme.border} bg-green-500 text-white hover:bg-green-600 transition-all text-xs font-bold`}
+            >
+              <MessageSquare size={14} />
+              Open Chat Dashboard
+            </Link>
           </div>
         )}
 
@@ -470,7 +477,11 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
           title="Quick Chat"
         >
           <MessageCircle size={22} />
-          <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-[10px] text-white font-bold flex items-center justify-center ring-2 ring-white">2</span>
+          {conversations.filter(c => c.unread > 0).length > 0 && (
+            <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-[10px] text-white font-bold flex items-center justify-center ring-2 ring-white">
+              {conversations.filter(c => c.unread > 0).length}
+            </span>
+          )}
         </button>
       </div>
 

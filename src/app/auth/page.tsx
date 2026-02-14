@@ -8,13 +8,14 @@ import {
   Shield, Key, Users, Settings, CheckCircle, AlertCircle, RefreshCw,
   Building2, User, Mail, Phone, Fingerprint, Hash, Calendar, FileText,
   Download, Printer, UserPlus, Copy, ChevronDown, Info, Zap, KeyRound,
-  Briefcase
+  Briefcase, MessageSquare
 } from 'lucide-react';
 
 /* ─── TYPES ─────────────────────────────────────────── */
 type AuthMode = 'otp' | 'userid';
 type LoginView = 'select-school' | 'login' | 'otp-sent' | 'otp-verify' | 'force-change' | 'success';
 type ConfigTab = 'auth-method' | 'userid-templates' | 'password-templates' | 'credential-mgmt' | 'security';
+type PageView = 'login-preview' | 'admin-config' | 'staff-reference';
 
 /* ─── LOGIN PREVIEW COMPONENT ────────────────────────── */
 function LoginPreview({ theme }: { theme: Theme }) {
@@ -826,10 +827,183 @@ function AuthConfigPanel({ theme }: { theme: Theme }) {
   );
 }
 
+/* ─── STAFF REFERENCE DOCUMENT (Auto-generated FAQ) ──── */
+function StaffReferenceDoc({ theme }: { theme: Theme }) {
+  const schoolName = 'DPS Ahmedabad';
+  const faqSections = [
+    {
+      title: 'Login & Account Access',
+      icon: Key,
+      color: 'text-blue-400 bg-blue-500/20',
+      faqs: [
+        { q: 'How does a parent log in for the first time?', a: 'Parents can log in using OTP (registered mobile number) or User ID & Password. The school has enabled both options. For User ID login, the default User ID is the student\'s Admission Number and the default password is the student\'s Date of Birth (DDMMYYYY). On first login, parents must change their password.' },
+        { q: 'A parent says they forgot their password. What do I do?', a: 'Parents cannot reset their own password. Ask the parent to visit school or call. Verify the parent\'s identity (Aadhaar, parent name on record). Then go to Admin Panel → Students → Find Student → Reset Parent Password. A new default password will be generated — give it to the parent. They will be forced to change it on next login.' },
+        { q: 'A parent says they are not receiving OTP.', a: '1) Verify the registered mobile number is correct in the system. 2) Ask parent to check spam/blocked messages. 3) Ensure network coverage. 4) OTP expires in 2 minutes — ask parent to request resend. 5) Max 3 resend attempts per hour. If issue persists, switch them to User ID login temporarily.' },
+        { q: 'A parent has a new phone number. How to update?', a: 'Go to Admin Panel → Students → Find Student → Edit Parent Details → Update primary mobile number. The parent can now use OTP login with the new number. Note: This changes the registered number for all communications too.' },
+        { q: 'Staff member locked out of their account.', a: 'Accounts lock after 5 failed login attempts for 15 minutes. Wait for the lockout to expire, or contact School Admin to unlock manually from Admin Panel → Staff → Unlock Account.' },
+        { q: 'Can a parent access multiple children\'s data?', a: 'Yes. One parent account is linked to all their children enrolled in the school. After login, the parent sees a child toggle/switcher to move between each child\'s dashboard.' },
+      ]
+    },
+    {
+      title: 'Fees & Payments',
+      icon: FileText,
+      color: 'text-emerald-400 bg-emerald-500/20',
+      faqs: [
+        { q: 'Where can a parent see their fee dues?', a: 'After login → Dashboard → Fee Summary card shows pending dues. Or go to Fees section for detailed breakdown by installment.' },
+        { q: 'What payment modes are available?', a: 'Online payment (UPI, Net Banking, Cards), Offline payment at school counter (Cash, Cheque, DD). Payment mode availability is configured by school admin.' },
+        { q: 'A parent paid but it still shows pending.', a: 'For online payments: Check payment status in Admin → Payments → search by receipt/transaction ID. If payment was captured, it will auto-reconcile within 24 hours. For offline payments: Ensure the accounts department has recorded the payment and issued a receipt.' },
+        { q: 'How does a parent download their fee receipt?', a: 'Login → Fees → Payment History → Click on any payment → Download Receipt (PDF). Receipts are also sent via email/SMS after successful payment.' },
+      ]
+    },
+    {
+      title: 'Communication & Chat',
+      icon: MessageSquare,
+      color: 'text-purple-400 bg-purple-500/20',
+      faqs: [
+        { q: 'How can a parent message a teacher?', a: 'Login → Chat → Select the class teacher from contacts. Parents can initiate conversations with class teachers. For subject teachers, parent must go through class teacher or use the broadcast channel.' },
+        { q: 'Can parents see announcements?', a: 'Yes. All school announcements appear in Notifications and in the Broadcasts section of Communication. Parents receive push notifications for important announcements.' },
+        { q: 'What is the "Do Not Disturb" time?', a: 'Messages sent between 9 PM and 7 AM are delivered silently (no push notification sound). Parents will see them when they open the app next.' },
+        { q: 'Can a parent reply to a broadcast?', a: 'No. Broadcasts are one-way announcements. If a parent has questions, they should message the class teacher directly via Chat.' },
+      ]
+    },
+    {
+      title: 'Attendance',
+      icon: CheckCircle,
+      color: 'text-amber-400 bg-amber-500/20',
+      faqs: [
+        { q: 'When does attendance get updated for parents?', a: 'Teachers mark attendance in the first period. Parents receive a notification by 10:30 AM if their child is marked absent. Real-time updates are available in the app under Attendance section.' },
+        { q: 'A parent disputes an attendance record.', a: 'Note the date and class. Ask the class teacher to verify from their records. If correction is needed, the teacher can edit attendance for that day (within the edit window set by admin — usually 48 hours).' },
+        { q: 'How does a parent apply for leave?', a: 'Login → Attendance → Apply for Leave → Select dates and reason → Submit. The class teacher will approve/reject. Parent gets a notification of the decision.' },
+      ]
+    },
+    {
+      title: 'General / Technical',
+      icon: Settings,
+      color: 'text-cyan-400 bg-cyan-500/20',
+      faqs: [
+        { q: 'Which devices does the app work on?', a: 'Android phones (Play Store), iPhones (App Store), and web browser (any device). The school\'s app name is "' + schoolName + '" — search for it in the app store.' },
+        { q: 'Is the data safe and private?', a: 'Yes. All data is encrypted. Each school\'s data is completely isolated. Only authorized school staff can access student records. Parents can only see their own children\'s data. The system follows data protection best practices.' },
+        { q: 'A parent says the app is running slow / not loading.', a: '1) Check internet connection. 2) Close and reopen the app. 3) Update to the latest version from app store. 4) Clear app cache (Settings → App → Clear Cache). 5) If issue persists, note the parent\'s device model and OS version, and report to IT.' },
+        { q: 'Can the school change these settings later?', a: 'Yes. The School Admin can modify most settings anytime from the Admin Panel. Auth method, password policy, communication settings, and more can be adjusted. Changes take effect immediately for new actions.' },
+      ]
+    },
+  ];
+
+  return (
+    <div className="space-y-5">
+      {/* Header */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5`}>
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h2 className={`text-lg font-bold ${theme.highlight}`}>Staff Reference Document</h2>
+            <p className={`text-xs ${theme.iconColor}`}>Auto-generated FAQ for school staff (front desk, admin, principal) based on your school&apos;s configuration</p>
+          </div>
+          <div className="flex gap-2">
+            <button className={`flex items-center gap-1.5 px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}>
+              <Printer size={14} /> Print
+            </button>
+            <button className={`flex items-center gap-1.5 px-3 py-2 rounded-xl ${theme.secondaryBg} ${theme.highlight} border ${theme.border} text-xs font-bold`}>
+              <Download size={14} /> Download PDF
+            </button>
+          </div>
+        </div>
+        <div className={`p-3 rounded-xl border-2 border-dashed ${theme.border} ${theme.accentBg}`}>
+          <p className={`text-[10px] ${theme.iconColor}`}>
+            <Info size={12} className="inline mr-1" />
+            <strong>How this works:</strong> After the Super Admin completes onboarding configuration for a school, the system auto-generates this reference document.
+            It reflects the school&apos;s actual settings — auth method, fee structure, communication rules, etc. Print copies for your front desk and admin staff so they can quickly answer parent queries without checking the system.
+          </p>
+        </div>
+      </div>
+
+      {/* Document preview — styled as a printable document */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} overflow-hidden`}>
+        {/* Document header */}
+        <div className={`px-6 py-4 border-b ${theme.border} ${theme.accentBg}`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className={`text-base font-black ${theme.highlight}`}>{schoolName} — ERP Quick Reference Guide</h3>
+              <p className={`text-[10px] ${theme.iconColor} mt-0.5`}>For school staff use only · Auto-generated on {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })} · Based on current configuration</p>
+            </div>
+            <div className={`text-[9px] px-3 py-1.5 rounded-lg ${theme.secondaryBg} ${theme.iconColor}`}>
+              v1.0 · {faqSections.reduce((a, s) => a + s.faqs.length, 0)} FAQs · {faqSections.length} categories
+            </div>
+          </div>
+        </div>
+
+        {/* Table of contents */}
+        <div className={`px-6 py-3 border-b ${theme.border}`}>
+          <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-2`}>Quick Navigation</p>
+          <div className="flex flex-wrap gap-2">
+            {faqSections.map((section, idx) => (
+              <span key={section.title} className={`text-[10px] px-2.5 py-1 rounded-lg ${theme.secondaryBg} ${theme.highlight} font-medium`}>
+                {idx + 1}. {section.title} ({section.faqs.length})
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* FAQ sections */}
+        <div className="px-6 py-4 space-y-6">
+          {faqSections.map((section, sIdx) => (
+            <div key={section.title}>
+              <div className="flex items-center gap-2 mb-3">
+                <div className={`w-7 h-7 rounded-lg ${section.color} flex items-center justify-center`}>
+                  <section.icon size={14} />
+                </div>
+                <h4 className={`text-sm font-bold ${theme.highlight}`}>{sIdx + 1}. {section.title}</h4>
+                <span className={`text-[9px] px-2 py-0.5 rounded-full ${theme.secondaryBg} ${theme.iconColor}`}>{section.faqs.length} FAQs</span>
+              </div>
+
+              <div className="space-y-2 ml-9">
+                {section.faqs.map((faq, fIdx) => (
+                  <div key={fIdx} className={`rounded-xl border ${theme.border} overflow-hidden`}>
+                    <div className={`px-4 py-2.5 ${theme.accentBg} flex items-start gap-2`}>
+                      <span className={`text-[10px] font-bold ${theme.primaryText} mt-0.5 shrink-0`}>Q{sIdx + 1}.{fIdx + 1}</span>
+                      <p className={`text-xs font-bold ${theme.highlight}`}>{faq.q}</p>
+                    </div>
+                    <div className="px-4 py-2.5">
+                      <p className={`text-xs ${theme.iconColor} leading-relaxed`}>{faq.a}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Footer */}
+        <div className={`px-6 py-3 border-t ${theme.border} ${theme.accentBg} flex items-center justify-between`}>
+          <p className={`text-[9px] ${theme.iconColor}`}>This document is auto-generated. Settings changes in Admin Panel will regenerate this document automatically.</p>
+          <p className={`text-[9px] ${theme.iconColor}`}>Powered by Saaras.ai</p>
+        </div>
+      </div>
+
+      {/* Customization note */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h4 className={`text-xs font-bold ${theme.highlight} mb-2`}>Customization Options</h4>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {[
+            { label: 'Add Custom FAQs', desc: 'School admin can add school-specific FAQs (e.g., uniform policy, timings)', icon: FileText },
+            { label: 'Auto-update on Config Change', desc: 'When admin changes any setting, the reference doc regenerates automatically', icon: RefreshCw },
+            { label: 'Multi-language Support', desc: 'Generate the reference document in the school\'s preferred language (Hindi, Gujarati, etc.)', icon: Building2 },
+          ].map(opt => (
+            <div key={opt.label} className={`p-3 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+              <opt.icon size={14} className={`${theme.primaryText} mb-2`} />
+              <p className={`text-xs font-bold ${theme.highlight}`}>{opt.label}</p>
+              <p className={`text-[10px] ${theme.iconColor} mt-0.5`}>{opt.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ─── MAIN AUTH PAGE ──────────────────────────────────── */
 function AuthPage({ theme }: { theme?: Theme }) {
   if (!theme) return null;
-  const [activeView, setActiveView] = useState<'login-preview' | 'admin-config'>('login-preview');
+  const [activeView, setActiveView] = useState<PageView>('login-preview');
 
   return (
     <div className="space-y-6">
@@ -847,7 +1021,7 @@ function AuthPage({ theme }: { theme?: Theme }) {
       </div>
 
       {/* View toggle */}
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap">
         <button
           onClick={() => setActiveView('login-preview')}
           className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all ${
@@ -868,6 +1042,16 @@ function AuthPage({ theme }: { theme?: Theme }) {
         >
           <Settings size={14} /> Admin Configuration (Onboarding)
         </button>
+        <button
+          onClick={() => setActiveView('staff-reference')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all ${
+            activeView === 'staff-reference'
+              ? `${theme.primary} text-white`
+              : `${theme.cardBg} ${theme.highlight} border ${theme.border}`
+          }`}
+        >
+          <FileText size={14} /> Staff Reference Document
+        </button>
       </div>
 
       {/* Content */}
@@ -878,12 +1062,19 @@ function AuthPage({ theme }: { theme?: Theme }) {
           </p>
           <LoginPreview theme={theme} />
         </div>
-      ) : (
+      ) : activeView === 'admin-config' ? (
         <div>
           <p className={`text-xs ${theme.iconColor} mb-3`}>
             This is what the Super Admin / School Admin configures during onboarding. Each school chooses their auth method, user ID format, password template, and security policies.
           </p>
           <AuthConfigPanel theme={theme} />
+        </div>
+      ) : (
+        <div>
+          <p className={`text-xs ${theme.iconColor} mb-3`}>
+            Auto-generated after onboarding. School staff (front desk, admin, principal) use this to answer common parent queries about the ERP without checking the system.
+          </p>
+          <StaffReferenceDoc theme={theme} />
         </div>
       )}
     </div>

@@ -23,7 +23,7 @@ const contacts = [
   { id: 'u8', name: 'Deepak Verma', role: 'Security Head', dept: 'Security', avatar: 'DV', online: true, lastSeen: 'Online' },
 ];
 
-const conversations = [
+export const conversations = [
   { id: 'c1', type: 'dm', name: 'Priya Sharma', avatar: 'PS', lastMsg: 'Class 10-A test papers are ready for review', time: '2 min', unread: 2, online: true, pinned: true },
   { id: 'c2', type: 'group', name: 'All Teaching Staff', avatar: '48', lastMsg: 'Principal: Staff meeting tomorrow at 3 PM in conference room', time: '15 min', unread: 5, members: 48, icon: Users },
   { id: 'c3', type: 'dm', name: 'Dr. Meena Iyer', avatar: 'MI', lastMsg: 'Substitution schedule updated for tomorrow', time: '30 min', unread: 0, online: false },
