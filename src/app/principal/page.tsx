@@ -223,7 +223,7 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
       {/* Stat Cards + Quick Actions — same row */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <StatCard icon={ClipboardCheck} label="Avg Attendance" value="94.2%" color="bg-emerald-500" theme={theme} />
-        <StatCard icon={Award} label="Academic Performance" value="87.5%" color="bg-purple-500" theme={theme} />
+        <StatCard icon={Users} label="Staff Present" value="92/98" color="bg-purple-500" sub="6 on leave" theme={theme} />
         <StatCard icon={Clock} label="Pending Approvals" value="8" color="bg-amber-500" theme={theme} />
         <StatCard icon={Banknote} label="Today's Collection" value={`\u20B92,45,000`} color="bg-green-500" sub="Outstanding: \u20B918.5L" theme={theme} />
         {/* Quick Actions — compact icon row */}
