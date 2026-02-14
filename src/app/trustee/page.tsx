@@ -14,7 +14,7 @@ import {
   Award, Star, Building2, Banknote, ArrowRight, Download, PieChart,
   Briefcase, Clock, Target, ChevronRight, User,
   PanelLeftClose, PanelLeftOpen, Headphones,
-  MessageSquare, Megaphone, Plus, X, Send, Bell, Edit, Paperclip
+  MessageSquare, Megaphone, Plus, X, Send, Bell, Edit, Paperclip, Radio, Sparkles, ShieldCheck
 } from 'lucide-react';
 
 // ─── MOCK DATA ────────────────────────────────────────
@@ -230,8 +230,79 @@ function DashboardView({ theme, setActiveModule }: { theme: Theme; setActiveModu
         </div>
       </div>
 
-      {/* Task Tracker */}
-      <TaskTrackerPanel theme={theme} role="trustee" />
+      {/* News Board + Task Tracker — Side by Side */}
+      <div className="grid grid-cols-2 gap-4">
+        {/* News Board — Live School Overview */}
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>News Board</h3>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className={`text-[10px] px-2 py-0.5 rounded-lg ${theme.secondaryBg} ${theme.highlight} font-mono font-bold`}>
+                {new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
+              </span>
+              <span className={`text-[10px] px-2 py-0.5 rounded-lg bg-blue-500/20 text-blue-400 font-bold`}>Period 5 of 8</span>
+            </div>
+          </div>
+
+          {/* Going On Now */}
+          <div className="mb-3">
+            <p className={`text-[10px] font-bold uppercase ${theme.iconColor} mb-1.5 flex items-center gap-1`}>
+              <Radio size={10} className="text-red-500" /> Going On Now
+            </p>
+            <div className="space-y-1.5">
+              {[
+                { activity: 'Science Fair — Hall A', detail: 'Classes 6-8 · Judges evaluating projects', icon: Sparkles, color: 'bg-purple-500', pulse: true },
+                { activity: 'Unit Test 3 — Mathematics', detail: 'Class 10-A, 10-B · Period 5 (11:30-12:15)', icon: FileText, color: 'bg-blue-500', pulse: true },
+                { activity: 'CBSE Inspector Visit', detail: 'Principal Office · Lab inspection at 12:30', icon: ShieldCheck, color: 'bg-red-500', pulse: true },
+                { activity: 'Trust Board Member Visit', detail: 'Mr. Shah touring new science wing', icon: Building2, color: 'bg-indigo-500', pulse: false },
+              ].map((item, i) => (
+                <div key={i} className={`flex items-center gap-2.5 p-2 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+                  <div className={`w-7 h-7 rounded-lg ${item.color}/20 flex items-center justify-center shrink-0 relative`}>
+                    <item.icon size={13} className={item.color.replace('bg-', 'text-')} />
+                    {item.pulse && <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-red-500 animate-pulse" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-[11px] font-bold ${theme.highlight} truncate`}>{item.activity}</p>
+                    <p className={`text-[10px] ${theme.iconColor} truncate`}>{item.detail}</p>
+                  </div>
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 font-bold shrink-0`}>LIVE</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Upcoming */}
+          <div>
+            <p className={`text-[10px] font-bold uppercase ${theme.iconColor} mb-1.5 flex items-center gap-1`}>
+              <Clock size={10} /> Upcoming Today
+            </p>
+            <div className="space-y-1.5">
+              {[
+                { activity: 'Trust Finance Review', detail: '3:00 PM · Boardroom · Q3 budget review', time: '3:00 PM', icon: DollarSign },
+                { activity: 'PTM — Class 9', detail: '4:00 PM · Classrooms · 42 parents expected', time: '4:00 PM', icon: Users },
+                { activity: 'Annual Day Rehearsal', detail: '4:30 PM · Auditorium · Dance + Drama groups', time: '4:30 PM', icon: Star },
+              ].map((item, i) => (
+                <div key={i} className={`flex items-center gap-2.5 p-2 rounded-xl ${theme.secondaryBg}`}>
+                  <div className={`w-7 h-7 rounded-lg ${theme.accentBg} flex items-center justify-center shrink-0`}>
+                    <item.icon size={13} className={theme.iconColor} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-[11px] font-bold ${theme.highlight} truncate`}>{item.activity}</p>
+                    <p className={`text-[10px] ${theme.iconColor} truncate`}>{item.detail}</p>
+                  </div>
+                  <span className={`text-[10px] ${theme.iconColor} font-medium shrink-0`}>{item.time}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Task Tracker */}
+        <TaskTrackerPanel theme={theme} role="trustee" />
+      </div>
     </div>
   );
 }

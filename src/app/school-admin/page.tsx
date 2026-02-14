@@ -12,7 +12,7 @@ import {
   Banknote, DollarSign, TrendingUp, AlertTriangle, FileText, Send, Megaphone, MapPin, Phone,
   Mail, Star, Award, BookOpen, ArrowRight, CreditCard, ArrowLeft, Save,
   Upload, ClipboardCheck, Receipt, Printer, Hash, Heart, Building, Landmark, User,
-  PanelLeftClose, PanelLeftOpen, Headphones
+  PanelLeftClose, PanelLeftOpen, Headphones, Radio, Sparkles, ShieldCheck
 } from 'lucide-react';
 import { ChatsView } from '@/components/ChatModule';
 import StakeholderProfile from '@/components/StakeholderProfile';
@@ -154,25 +154,73 @@ function DashboardHome({ theme, stats, onProfileClick }: { theme: Theme; stats: 
         </div>
       </div>
 
-      {/* Recent Activity + Task Tracker — Side by Side */}
+      {/* News Board + Task Tracker — Side by Side */}
       <div className="grid grid-cols-2 gap-4">
-        {/* Recent Activity */}
+        {/* News Board — Live School Overview */}
         <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-          <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Recent Activity</h3>
-          <div className="space-y-2">
-            {[
-              { text: 'Fee payment ₹5,800 received from Rajesh Patel (STU001)', time: '10 min ago', type: 'fee' },
-              { text: 'New enquiry from Sunil Rao for Nursery admission', time: '25 min ago', type: 'enquiry' },
-              { text: 'Leave request from Ms. Priya Sharma — 3 days CL', time: '1 hour ago', type: 'leave' },
-              { text: 'Visitor check-in: Amit Gupta — Parent Meeting', time: '2 hours ago', type: 'visitor' },
-              { text: 'Attendance marked for Class 10-A (32/35 present)', time: '3 hours ago', type: 'attendance' },
-            ].map((a, i) => (
-              <div key={i} className={`flex items-center gap-3 p-2 rounded-xl ${theme.accentBg}`}>
-                <div className={`w-2 h-2 rounded-full ${a.type === 'fee' ? 'bg-emerald-500' : a.type === 'enquiry' ? 'bg-blue-500' : a.type === 'leave' ? 'bg-amber-500' : a.type === 'visitor' ? 'bg-purple-500' : 'bg-teal-500'}`} />
-                <p className={`text-xs ${theme.highlight} flex-1`}>{a.text}</p>
-                <span className={`text-[10px] ${theme.iconColor}`}>{a.time}</span>
-              </div>
-            ))}
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>News Board</h3>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className={`text-[10px] px-2 py-0.5 rounded-lg ${theme.secondaryBg} ${theme.highlight} font-mono font-bold`}>
+                {new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
+              </span>
+              <span className={`text-[10px] px-2 py-0.5 rounded-lg bg-blue-500/20 text-blue-400 font-bold`}>Period 5 of 8</span>
+            </div>
+          </div>
+
+          {/* Going On Now */}
+          <div className="mb-3">
+            <p className={`text-[10px] font-bold uppercase ${theme.iconColor} mb-1.5 flex items-center gap-1`}>
+              <Radio size={10} className="text-red-500" /> Going On Now
+            </p>
+            <div className="space-y-1.5">
+              {[
+                { activity: 'Fee Collection Drive — Counter 1 & 2', detail: '47 payments processed · ₹2.1L collected today', icon: Banknote, color: 'bg-emerald-500', pulse: true },
+                { activity: 'Unit Test 3 — Mathematics', detail: 'Class 10-A, 10-B · Period 5 (11:30-12:15)', icon: FileText, color: 'bg-blue-500', pulse: true },
+                { activity: 'Visitor — Mr. Amit Gupta', detail: 'Reception · Parent meeting with Class Teacher', icon: Users, color: 'bg-purple-500', pulse: false },
+                { activity: 'CBSE Inspector Visit', detail: 'Principal Office · Lab inspection at 12:30', icon: ShieldCheck, color: 'bg-red-500', pulse: true },
+              ].map((item, i) => (
+                <div key={i} className={`flex items-center gap-2.5 p-2 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+                  <div className={`w-7 h-7 rounded-lg ${item.color}/20 flex items-center justify-center shrink-0 relative`}>
+                    <item.icon size={13} className={item.color.replace('bg-', 'text-')} />
+                    {item.pulse && <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-red-500 animate-pulse" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-[11px] font-bold ${theme.highlight} truncate`}>{item.activity}</p>
+                    <p className={`text-[10px] ${theme.iconColor} truncate`}>{item.detail}</p>
+                  </div>
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 font-bold shrink-0`}>LIVE</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Upcoming */}
+          <div>
+            <p className={`text-[10px] font-bold uppercase ${theme.iconColor} mb-1.5 flex items-center gap-1`}>
+              <Clock size={10} /> Upcoming Today
+            </p>
+            <div className="space-y-1.5">
+              {[
+                { activity: 'Staff Meeting', detail: '3:00 PM · Conference Room · All HODs', time: '3:00 PM', icon: Users },
+                { activity: 'Fee Deadline — Class 8', detail: '5:00 PM · 12 students with pending dues', time: '5:00 PM', icon: Banknote },
+                { activity: 'Transport Schedule Change', detail: 'Route 5 & 7 — modified pickup from tomorrow', time: '4:30 PM', icon: Bus },
+              ].map((item, i) => (
+                <div key={i} className={`flex items-center gap-2.5 p-2 rounded-xl ${theme.secondaryBg}`}>
+                  <div className={`w-7 h-7 rounded-lg ${theme.accentBg} flex items-center justify-center shrink-0`}>
+                    <item.icon size={13} className={theme.iconColor} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-[11px] font-bold ${theme.highlight} truncate`}>{item.activity}</p>
+                    <p className={`text-[10px] ${theme.iconColor} truncate`}>{item.detail}</p>
+                  </div>
+                  <span className={`text-[10px] ${theme.iconColor} font-medium shrink-0`}>{item.time}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
