@@ -6,13 +6,14 @@ import { StatCard, TabBar, StatusBadge, SearchBar, DataTable } from '@/component
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import { ChatsView } from '@/components/ChatModule';
+import SupportModule from '@/components/SupportModule';
 import { type Theme } from '@/lib/themes';
 import {
   Home, Users, UserCheck, Calendar, Clock, Shield, Search, Plus, Filter, Download,
   Eye, Edit, AlertTriangle, FileText, Send, BookOpen, ArrowRight,
   ClipboardCheck, Bell, CheckCircle, XCircle, Repeat, Gavel,
   LayoutGrid, Megaphone, UserMinus, MapPin, Coffee, Award, User, MessageSquare, Mail,
-  PanelLeftClose, PanelLeftOpen
+  PanelLeftClose, PanelLeftOpen, Headphones
 } from 'lucide-react';
 
 // ─── MODULE SIDEBAR ────────────────────────────────
@@ -25,6 +26,7 @@ const modules = [
   { id: 'staff-duties', label: 'Staff Duties', icon: ClipboardCheck },
   { id: 'circulars', label: 'Circulars', icon: Megaphone },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
+  { id: 'support', label: 'Support', icon: Headphones },
 ];
 
 // ─── MOCK DATA ──────────────────────────────────────
@@ -142,6 +144,7 @@ function VicePrincipalDashboard({ theme, themeIdx, onThemeChange }: { theme?: Th
         {activeModule === 'staff-duties' && <StaffDutiesModule theme={theme} />}
         {activeModule === 'circulars' && <CircularsModule theme={theme} />}
         {activeModule === 'communication' && <CommunicationModule theme={theme} />}
+        {activeModule === 'support' && <SupportModule theme={theme} role="vice-principal" />}
         {activeModule === 'profile' && <StakeholderProfile role="vice-principal" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>
     </div>

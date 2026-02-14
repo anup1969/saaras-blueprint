@@ -7,6 +7,7 @@ import { type Theme } from '@/lib/themes';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import { ChatsView } from '@/components/ChatModule';
+import SupportModule from '@/components/SupportModule';
 import {
   Home, Shield, UserCheck, ClipboardList, AlertTriangle, Footprints,
   Search, Plus, Eye, Edit, Filter, Download, ChevronDown,
@@ -14,7 +15,7 @@ import {
   CheckCircle, XCircle, LogIn, LogOut, Car, Truck,
   ShieldAlert, Siren, Heart, Flame, Building2, Radio, MessageSquare,
   BadgeCheck, Printer, Hash, User, Baby, ArrowRight, FileText,
-  PanelLeftClose, PanelLeftOpen
+  PanelLeftClose, PanelLeftOpen, Headphones
 } from 'lucide-react';
 
 // ─── MOCK DATA ──────────────────────────────────────
@@ -89,6 +90,7 @@ const modules = [
   { id: 'emergency', label: 'Emergency', icon: AlertTriangle },
   { id: 'patrol-log', label: 'Patrol Log', icon: Footprints },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
+  { id: 'support', label: 'Support', icon: Headphones },
 ];
 
 function SecurityDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
@@ -129,6 +131,7 @@ function SecurityDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; 
         {activeModule === 'emergency' && <EmergencyModule theme={theme} />}
         {activeModule === 'patrol-log' && <PatrolLogModule theme={theme} />}
         {activeModule === 'communication' && <CommunicationModule theme={theme} />}
+        {activeModule === 'support' && <SupportModule theme={theme} role="security" />}
         {activeModule === 'profile' && <StakeholderProfile role="security" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>
     </div>

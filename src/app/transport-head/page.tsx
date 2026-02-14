@@ -7,12 +7,13 @@ import { type Theme } from '@/lib/themes';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import { ChatsView } from '@/components/ChatModule';
+import SupportModule from '@/components/SupportModule';
 import {
   Home, Bus, Route, Car, Users, MapPin, Wrench, Search, Plus, Filter, Download,
   Eye, Edit, Trash2, Phone, Clock, Shield, AlertTriangle, CheckCircle, Navigation,
   Fuel, Calendar, FileText, IndianRupee, User, MapPinned, CircleDot, Timer,
   Gauge, Bell, TrendingUp, ChevronDown, BarChart3, MessageSquare,
-  PanelLeftClose, PanelLeftOpen
+  PanelLeftClose, PanelLeftOpen, Headphones
 } from 'lucide-react';
 
 // ─── MODULE SIDEBAR ────────────────────────────────
@@ -25,6 +26,7 @@ const modules = [
   { id: 'students-by-route', label: 'Students by Route', icon: MapPin },
   { id: 'maintenance', label: 'Maintenance', icon: Wrench },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
+  { id: 'support', label: 'Support', icon: Headphones },
 ];
 
 // ─── MOCK DATA ──────────────────────────────────────
@@ -169,6 +171,7 @@ function TransportHeadDashboard({ theme, themeIdx, onThemeChange }: { theme?: Th
         {activeModule === 'students-by-route' && <StudentsByRouteModule theme={theme} />}
         {activeModule === 'maintenance' && <MaintenanceModule theme={theme} />}
         {activeModule === 'communication' && <CommunicationModule theme={theme} />}
+        {activeModule === 'support' && <SupportModule theme={theme} role="transport-head" />}
         {activeModule === 'profile' && <StakeholderProfile role="transport-head" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>
     </div>

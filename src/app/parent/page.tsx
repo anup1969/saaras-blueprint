@@ -13,9 +13,10 @@ import {
   Receipt, UserCheck, User, GraduationCap, ClipboardCheck, BookMarked,
   AlertCircle, IndianRupee, Percent, TrendingDown, Notebook, PenTool,
   CircleDot, Camera, UserPlus, Navigation, Map, Info,
-  PanelLeftClose, PanelLeftOpen
+  PanelLeftClose, PanelLeftOpen, Headphones
 } from 'lucide-react';
 import { ChatsView } from '@/components/ChatModule';
+import SupportModule from '@/components/SupportModule';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 
@@ -348,6 +349,7 @@ const modules = [
   { id: 'communication', label: 'Communication', icon: MessageSquare },
   { id: 'transport', label: 'Transport', icon: Bus },
   { id: 'pickup', label: 'Pickup Auth', icon: Shield },
+  { id: 'support', label: 'Support', icon: Headphones },
 ];
 
 // ─── CHILD SELECTOR ─────────────────────────────────
@@ -1586,6 +1588,7 @@ function ParentDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; th
         {activeModule === 'communication' && <CommunicationModule theme={theme} child={child} />}
         {activeModule === 'transport' && <TransportModule theme={theme} child={child} />}
         {activeModule === 'pickup' && <PickupAuthModule theme={theme} child={child} />}
+        {activeModule === 'support' && <SupportModule theme={theme} role="parent" />}
         {activeModule === 'profile' && <StakeholderProfile role="parent" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>
     </div>

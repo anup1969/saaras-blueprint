@@ -7,12 +7,13 @@ import { type Theme } from '@/lib/themes';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import { ChatsView } from '@/components/ChatModule';
+import SupportModule from '@/components/SupportModule';
 import {
   Home, Users, UserPlus, Phone, Mail, Calendar, Clock, Search, Plus, Eye, Edit,
   Filter, Download, CheckCircle, AlertTriangle, ArrowRight, PhoneCall, PhoneIncoming,
   PhoneOutgoing, Package, BookOpen, Shield, UserCheck, Briefcase, Building2,
   MapPin, Bell, MessageSquare, LogIn, LogOut, BadgeCheck, Hash, FileText, Send, User,
-  PanelLeftClose, PanelLeftOpen
+  PanelLeftClose, PanelLeftOpen, Headphones
 } from 'lucide-react';
 
 // ─── MODULE SIDEBAR ────────────────────────────────
@@ -25,6 +26,7 @@ const modules = [
   { id: 'appointments', label: 'Appointments', icon: Calendar },
   { id: 'directory', label: 'Directory', icon: BookOpen },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
+  { id: 'support', label: 'Support', icon: Headphones },
 ];
 
 // ─── MOCK DATA ──────────────────────────────────────
@@ -130,6 +132,7 @@ function ReceptionistDashboard({ theme, themeIdx, onThemeChange }: { theme?: The
         {activeModule === 'appointments' && <AppointmentsModule theme={theme} />}
         {activeModule === 'directory' && <DirectoryModule theme={theme} />}
         {activeModule === 'communication' && <CommunicationModule theme={theme} />}
+        {activeModule === 'support' && <SupportModule theme={theme} role="receptionist" />}
         {activeModule === 'profile' && <StakeholderProfile role="receptionist" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>
     </div>

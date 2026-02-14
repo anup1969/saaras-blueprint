@@ -18,6 +18,7 @@ import {
 import { ChatsView } from '@/components/ChatModule';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
+import SupportModule from '@/components/SupportModule';
 
 // ─── MODULE SIDEBAR ────────────────────────────────
 const modules = [
@@ -104,7 +105,7 @@ function PrincipalDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme;
         {activeModule === 'yearly-planner' && <YearlyPlannerModule theme={theme} />}
         {activeModule === 'approvals' && <ApprovalsModule theme={theme} />}
         {activeModule === 'reports' && <ReportsModule theme={theme} />}
-        {activeModule === 'support' && <SupportModule theme={theme} />}
+        {activeModule === 'support' && <SupportModule theme={theme} role="principal" />}
         {activeModule === 'profile' && <StakeholderProfile role="principal" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>
     </div>
@@ -551,197 +552,6 @@ function DrillDownPanel({ type, theme, onClose }: { type: 'students' | 'academic
   );
 }
 
-// ─── SUPPORT MODULE (AI Chat Support) ───────────────
-function SupportModule({ theme }: { theme: Theme }) {
-  const [chatMessages, setChatMessages] = useState([
-    { from: 'bot', text: 'Hello! I\'m your Saaras.ai Support Assistant. How can I help you today?', time: 'Now' },
-  ]);
-  const [userInput, setUserInput] = useState('');
-  const [showFaq, setShowFaq] = useState(true);
-  const [activeCategory, setActiveCategory] = useState('Getting Started');
-
-  const faqCategories = [
-    { label: 'Getting Started', icon: Zap, count: 5 },
-    { label: 'Attendance', icon: ClipboardCheck, count: 4 },
-    { label: 'Academics', icon: BookOpen, count: 4 },
-    { label: 'Communication', icon: MessageSquare, count: 3 },
-    { label: 'Reports', icon: BarChart3, count: 4 },
-    { label: 'Fees & Finance', icon: DollarSign, count: 3 },
-  ];
-
-  const faqItems: Record<string, { q: string; options: string[] }[]> = {
-    'Getting Started': [
-      { q: 'How do I check today\'s school overview?', options: ['Go to Dashboard → News Board shows live activities', 'Click any stat card for drill-down analytics', 'Use Quick Actions for common tasks'] },
-      { q: 'How do I approve a leave request?', options: ['Go to Approvals module in sidebar', 'Click on Pending tab → Select request → Approve/Reject', 'You can also approve from the notification bell'] },
-      { q: 'How do I send a circular to all parents?', options: ['Go to Communication → Broadcasts → New Broadcast', 'Select audience "All Parents"', 'Choose priority and send'] },
-      { q: 'How do I view student performance?', options: ['Go to Academics module', 'Select Class Performance tab for class-wise view', 'Click on any class to see individual student scores'] },
-      { q: 'How to check staff attendance?', options: ['Dashboard → Academic/Non-Academic staff cards (click for details)', 'Or go to Staff Overview module', 'Absent staff list shows who is missing today'] },
-    ],
-    'Attendance': [
-      { q: 'How do I see which students are absent today?', options: ['Click the Students card on Dashboard', 'Select "Absent Today" tab', 'Students without intimation are flagged red'] },
-      { q: 'Can I see attendance trends over time?', options: ['Go to Reports → Attendance Reports', 'Select date range and class/section', 'Download or view graphical trends'] },
-      { q: 'How do I handle late arrivals?', options: ['Teachers mark late entry during attendance', 'Shows as "Late" in attendance register', 'Auto-notification to parent after 3 late marks in a week'] },
-      { q: 'A parent disputes an attendance record.', options: ['Go to Attendance → Search student → Select date', 'Class teacher can edit within 48-hour window', 'Beyond that, admin override required'] },
-    ],
-    'Academics': [
-      { q: 'How do I check exam results?', options: ['Go to Academics → Exam Results tab', 'View by exam name, class, or date', 'Compare across terms using trend view'] },
-      { q: 'How do I see subject-wise performance?', options: ['Academics → Overview shows all subjects', 'Bar graph shows avg score per subject', 'Click any subject to drill down by class'] },
-      { q: 'How to identify struggling students?', options: ['Academics → Class Performance → Sort by score', 'Students below 40% are auto-flagged', 'Teacher can add remarks for follow-up'] },
-      { q: 'How to generate report cards?', options: ['Reports → Report Card Generation', 'Select class, template, and exam', 'Preview → Bulk generate → Print/PDF'] },
-    ],
-    'Communication': [
-      { q: 'How do parents receive notifications?', options: ['Push notification on mobile app', 'SMS for critical alerts (configurable)', 'Email for circulars and reports'] },
-      { q: 'Can I message a specific parent?', options: ['Go to Communication → Chat', 'Search for parent by student name', 'Start direct message conversation'] },
-      { q: 'How do polls work?', options: ['Communication → Polls → Create Poll', 'Set audience, options, and deadline', 'Results visible in real-time with analytics'] },
-    ],
-    'Reports': [
-      { q: 'What reports can I generate?', options: ['Attendance (daily/monthly/yearly)', 'Academic (exam-wise, subject-wise, class-wise)', 'Fee collection, defaulters, receipts', 'Staff leave utilization, HR reports'] },
-      { q: 'How to download reports?', options: ['Go to Reports module', 'Select report type → Configure filters', 'Click Download (PDF/Excel/CSV)'] },
-      { q: 'Can I schedule automatic reports?', options: ['Yes — Reports → Scheduled Reports', 'Set frequency (daily/weekly/monthly)', 'Auto-email to selected recipients'] },
-      { q: 'How to share reports with Trustee?', options: ['Reports → Share → Select Trustee', 'Or add Trustee email for auto-reports', 'Trustee can also view from their dashboard'] },
-    ],
-    'Fees & Finance': [
-      { q: 'How to check fee collection status?', options: ['Dashboard → Today\'s Collection card', 'Or Fees module → Collection Summary', 'Filter by class, date, payment mode'] },
-      { q: 'How to see fee defaulters?', options: ['Fees → Defaulters tab', 'Sorted by outstanding amount', 'Send bulk reminder with one click'] },
-      { q: 'How to generate fee receipts?', options: ['Fees → Payments → Select payment', 'Click "Generate Receipt"', 'Printable or email to parent'] },
-    ],
-  };
-
-  const handleSendMessage = () => {
-    if (!userInput.trim()) return;
-    setChatMessages(prev => [...prev, { from: 'user', text: userInput, time: 'Now' }]);
-    // Simulate bot response
-    setTimeout(() => {
-      setChatMessages(prev => [...prev, {
-        from: 'bot',
-        text: 'Let me help you with that. Here are some options:\n\na) Check the relevant module in your sidebar\nb) Use Quick Actions on the Dashboard\nc) View the FAQ section below for step-by-step guides\n\nWould you like me to walk you through any specific feature?',
-        time: 'Now'
-      }]);
-    }, 800);
-    setUserInput('');
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className={`text-2xl font-bold ${theme.highlight} flex items-center gap-2`}>
-            <Headphones size={24} className="text-blue-400" /> Support
-          </h1>
-          <p className={`text-xs ${theme.iconColor}`}>AI-powered help desk — answers from your school&apos;s internal documentation</p>
-        </div>
-        <div className="flex gap-2">
-          <button onClick={() => setShowFaq(true)} className={`px-3 py-1.5 rounded-lg text-xs font-bold ${showFaq ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.highlight}`}`}>FAQ Guide</button>
-          <button onClick={() => setShowFaq(false)} className={`px-3 py-1.5 rounded-lg text-xs font-bold ${!showFaq ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.highlight}`}`}>Chat Support</button>
-        </div>
-      </div>
-
-      {/* Plan badge */}
-      <div className={`p-3 rounded-xl border-2 border-dashed ${theme.border} ${theme.accentBg} flex items-center gap-3`}>
-        <Shield size={16} className="text-blue-400" />
-        <div className="flex-1">
-          <p className={`text-xs ${theme.highlight}`}><strong>Your plan:</strong> Enterprise — Chat Support included</p>
-          <p className={`text-[10px] ${theme.iconColor}`}>Phase 2: Short videos &amp; audio guides · Phase 3: Natural language processing</p>
-        </div>
-        <span className="text-[10px] px-2 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 font-bold">Active</span>
-      </div>
-
-      {showFaq ? (
-        /* FAQ Section */
-        <div className="grid grid-cols-4 gap-4">
-          {/* Category sidebar */}
-          <div className="space-y-1">
-            {faqCategories.map(cat => (
-              <button
-                key={cat.label}
-                onClick={() => setActiveCategory(cat.label)}
-                className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-medium transition-all ${
-                  activeCategory === cat.label ? `${theme.primary} text-white` : `${theme.iconColor} ${theme.buttonHover}`
-                }`}
-              >
-                <cat.icon size={14} />
-                <span className="flex-1 text-left">{cat.label}</span>
-                <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${activeCategory === cat.label ? 'bg-white/20' : theme.secondaryBg}`}>{cat.count}</span>
-              </button>
-            ))}
-          </div>
-
-          {/* FAQ content */}
-          <div className="col-span-3 space-y-3">
-            <h3 className={`text-sm font-bold ${theme.highlight}`}>{activeCategory}</h3>
-            {(faqItems[activeCategory] || []).map((faq, i) => (
-              <div key={i} className={`${theme.cardBg} rounded-xl border ${theme.border} overflow-hidden`}>
-                <div className={`px-4 py-3 ${theme.accentBg}`}>
-                  <p className={`text-xs font-bold ${theme.highlight} flex items-center gap-2`}>
-                    <MessageSquare size={12} className="text-blue-400" />
-                    {faq.q}
-                  </p>
-                </div>
-                <div className="px-4 py-3 space-y-1.5">
-                  {faq.options.map((opt, j) => (
-                    <div key={j} className={`flex items-start gap-2 text-xs ${theme.iconColor}`}>
-                      <span className={`w-5 h-5 rounded-lg ${theme.secondaryBg} flex items-center justify-center shrink-0 text-[10px] font-bold ${theme.highlight}`}>{String.fromCharCode(65 + j)}</span>
-                      <span>{opt}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : (
-        /* Chat Support Section */
-        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} overflow-hidden`}>
-          <div className="flex items-center gap-3 px-4 py-3 bg-blue-500 text-white">
-            <Bot size={18} />
-            <div>
-              <p className="text-xs font-bold">Saaras Support Bot</p>
-              <p className="text-[10px] opacity-80">Powered by your school&apos;s internal documentation</p>
-            </div>
-            <span className="ml-auto text-[9px] bg-white/20 px-2 py-0.5 rounded-full">Online</span>
-          </div>
-
-          <div className="h-[350px] overflow-y-auto p-4 space-y-3">
-            {chatMessages.map((msg, i) => (
-              <div key={i} className={`flex ${msg.from === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[75%] ${msg.from === 'user' ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.highlight}`} rounded-2xl ${msg.from === 'user' ? 'rounded-br-sm' : 'rounded-bl-sm'} px-4 py-2.5`}>
-                  <p className="text-xs whitespace-pre-wrap">{msg.text}</p>
-                  <p className={`text-[9px] mt-1 ${msg.from === 'user' ? 'text-white/50' : theme.iconColor}`}>{msg.time}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className={`px-4 py-3 border-t ${theme.border} flex items-center gap-2`}>
-            <input
-              value={userInput}
-              onChange={e => setUserInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
-              placeholder="Ask anything about the ERP..."
-              className={`flex-1 px-4 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none focus:ring-2 focus:ring-blue-300 ${theme.highlight}`}
-            />
-            <button onClick={handleSendMessage} className={`p-2.5 rounded-xl ${theme.primary} text-white`}>
-              <Send size={16} />
-            </button>
-          </div>
-
-          {/* Quick prompts */}
-          <div className={`px-4 py-2 border-t ${theme.border} flex gap-2 overflow-x-auto`}>
-            {['How to approve leave?', 'Send circular to parents', 'Check fee defaulters', 'Generate report card'].map(p => (
-              <button
-                key={p}
-                onClick={() => { setUserInput(p); }}
-                className={`text-[10px] px-3 py-1.5 rounded-full border ${theme.border} ${theme.highlight} whitespace-nowrap hover:border-blue-400 transition-all`}
-              >
-                {p}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
 
 // ─── ACADEMICS MODULE ────────────────────────────────
 function AcademicsModule({ theme }: { theme: Theme }) {

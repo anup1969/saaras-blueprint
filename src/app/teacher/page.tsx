@@ -10,11 +10,12 @@ import {
   Users, CheckCircle, XCircle, AlertTriangle, Send, Star, ArrowRight,
   PenTool, BookMarked, GraduationCap, Notebook, CalendarDays, Timer, TrendingUp,
   Pencil, Upload, ChevronLeft, ChevronRight, Minus, User, MessageSquare,
-  PanelLeftClose, PanelLeftOpen, Mail, Megaphone, ListTodo, CircleDot
+  PanelLeftClose, PanelLeftOpen, Mail, Megaphone, ListTodo, CircleDot, Headphones
 } from 'lucide-react';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import { ChatsView } from '@/components/ChatModule';
+import SupportModule from '@/components/SupportModule';
 
 // ─── MOCK DATA ──────────────────────────────────────
 
@@ -139,6 +140,7 @@ const modules = [
   { id: 'diary', label: 'Diary', icon: Notebook },
   { id: 'reports', label: 'Reports', icon: BarChart3 },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
+  { id: 'support', label: 'Support', icon: Headphones },
 ];
 
 // ─── MAIN COMPONENT ─────────────────────────────────
@@ -196,6 +198,7 @@ function TeacherDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; t
           {activeModule === 'diary' && <DiaryModule theme={theme} />}
           {activeModule === 'reports' && <ReportsModule theme={theme} />}
           {activeModule === 'communication' && <CommunicationModule theme={theme} />}
+          {activeModule === 'support' && <SupportModule theme={theme} role="teacher" />}
           {activeModule === 'profile' && <StakeholderProfile role="teacher" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
         </div>
       </div>

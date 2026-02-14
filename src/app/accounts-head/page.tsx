@@ -6,13 +6,14 @@ import { StatCard, TabBar, StatusBadge, SearchBar, DataTable, Toggle } from '@/c
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import { ChatsView } from '@/components/ChatModule';
+import SupportModule from '@/components/SupportModule';
 import { type Theme } from '@/lib/themes';
 import {
   Home, Banknote, CreditCard, Receipt, Users, FileText, BarChart3, Settings,
   Search, Plus, Eye, Download, Filter, Check, X, Calendar,
   DollarSign, TrendingUp, TrendingDown, AlertTriangle, ArrowRight,
   Wallet, Building2, ChevronDown, Percent, Clock, Hash, Printer, User, MessageSquare, Mail, Megaphone,
-  PanelLeftClose, PanelLeftOpen
+  PanelLeftClose, PanelLeftOpen, Headphones
 } from 'lucide-react';
 
 // ─── MOCK DATA ────────────────────────────────────────
@@ -72,6 +73,7 @@ const modules = [
   { id: 'reports', label: 'Financial Reports', icon: BarChart3 },
   { id: 'receipts', label: 'Receipts', icon: Receipt },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
+  { id: 'support', label: 'Support', icon: Headphones },
 ];
 
 // ─── DASHBOARD VIEW ────────────────────────────────────
@@ -548,6 +550,7 @@ function AccountsHeadDashboard({ theme, themeIdx, onThemeChange }: { theme?: The
       case 'reports': return <ReportsView theme={theme} />;
       case 'receipts': return <ReceiptsView theme={theme} />;
       case 'communication': return <CommunicationModule theme={theme} />;
+      case 'support': return <SupportModule theme={theme} role="accounts-head" />;
       case 'profile': return <StakeholderProfile role="accounts-head" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />;
       default: return <DashboardView theme={theme} setActiveModule={setActiveModule} />;
     }

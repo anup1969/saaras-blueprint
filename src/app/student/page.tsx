@@ -10,11 +10,12 @@ import {
   Download, ChevronDown, ChevronUp, Eye, Upload, Star, TrendingUp,
   BarChart3, Timer, Library, BookOpenCheck, IndianRupee, Receipt, CreditCard,
   GraduationCap, User, ArrowRight, MessageSquare,
-  PanelLeftClose, PanelLeftOpen
+  PanelLeftClose, PanelLeftOpen, Headphones
 } from 'lucide-react';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import { ChatsView } from '@/components/ChatModule';
+import SupportModule from '@/components/SupportModule';
 
 // ─── STUDENT PROFILE ────────────────────────────────
 const studentProfile = {
@@ -229,6 +230,7 @@ const modules = [
   { id: 'library', label: 'Library', icon: BookMarked },
   { id: 'notices', label: 'Notices', icon: Megaphone },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
+  { id: 'support', label: 'Support', icon: Headphones },
 ];
 
 // ─── MAIN COMPONENT ────────────────────────────────
@@ -272,6 +274,7 @@ function StudentDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; t
         {activeModule === 'library' && <LibraryModule theme={theme} />}
         {activeModule === 'notices' && <NoticesModule theme={theme} />}
         {activeModule === 'communication' && <CommunicationModule theme={theme} />}
+        {activeModule === 'support' && <SupportModule theme={theme} role="student" />}
         {activeModule === 'profile' && <StakeholderProfile role="student" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>
     </div>

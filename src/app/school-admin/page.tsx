@@ -12,11 +12,12 @@ import {
   Banknote, DollarSign, TrendingUp, AlertTriangle, FileText, Send, Megaphone, MapPin, Phone,
   Mail, Star, Award, BookOpen, ArrowRight, CreditCard, ArrowLeft, Save,
   Upload, ClipboardCheck, Receipt, Printer, Hash, Heart, Building, Landmark, User,
-  PanelLeftClose, PanelLeftOpen
+  PanelLeftClose, PanelLeftOpen, Headphones
 } from 'lucide-react';
 import { ChatsView } from '@/components/ChatModule';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
+import SupportModule from '@/components/SupportModule';
 
 // ─── MODULE SIDEBAR ────────────────────────────────
 const modules = [
@@ -35,6 +36,7 @@ const modules = [
   { id: 'reports', label: 'Reports', icon: BarChart3 },
   { id: 'hr', label: 'HR Management', icon: Briefcase },
   { id: 'config', label: 'Configuration', icon: Settings },
+  { id: 'support', label: 'Support', icon: Headphones },
 ];
 
 function SchoolAdminDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
@@ -84,6 +86,7 @@ function SchoolAdminDashboard({ theme, themeIdx, onThemeChange }: { theme?: Them
         {activeModule === 'reports' && <ReportsModule theme={theme} />}
         {activeModule === 'hr' && <HRManagementModule theme={theme} />}
         {activeModule === 'config' && <ConfigModule theme={theme} />}
+        {activeModule === 'support' && <SupportModule theme={theme} role="school-admin" />}
         {activeModule === 'profile' && <StakeholderProfile role="school-admin" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>
     </div>

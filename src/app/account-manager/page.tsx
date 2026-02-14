@@ -7,6 +7,7 @@ import { type Theme } from '@/lib/themes';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import { ChatsView } from '@/components/ChatModule';
+import SupportModule from '@/components/SupportModule';
 import {
   Home, Building2, Headphones, BarChart3, RefreshCcw, Rocket,
   Search, Filter, Download, Eye, Edit, Phone, Mail, MessageSquare,
@@ -25,6 +26,7 @@ const modules = [
   { id: 'renewals', label: 'Renewals', icon: RefreshCcw },
   { id: 'onboarding', label: 'Onboarding', icon: Rocket },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
+  { id: 'support', label: 'Support', icon: Headphones },
 ];
 
 // ─── MOCK DATA ─────────────────────────────────────
@@ -151,6 +153,7 @@ function AccountManagerDashboard({ theme, themeIdx, onThemeChange }: { theme?: T
         {activeModule === 'renewals' && <RenewalsModule theme={theme} />}
         {activeModule === 'onboarding' && <OnboardingModule theme={theme} />}
         {activeModule === 'communication' && <CommunicationModule theme={theme} />}
+        {activeModule === 'support' && <SupportModule theme={theme} role="account-manager" />}
         {activeModule === 'profile' && <StakeholderProfile role="account-manager" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>
     </div>

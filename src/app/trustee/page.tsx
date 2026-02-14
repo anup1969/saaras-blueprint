@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import BlueprintLayout from '@/components/BlueprintLayout';
 import { StatCard, TabBar, StatusBadge, DataTable } from '@/components/shared';
 import { ChatsView } from '@/components/ChatModule';
+import SupportModule from '@/components/SupportModule';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import { type Theme } from '@/lib/themes';
@@ -12,7 +13,7 @@ import {
   TrendingUp, TrendingDown, BarChart3, Calendar, FileText, AlertTriangle,
   Award, Star, Building2, Banknote, ArrowRight, Download, PieChart,
   Briefcase, Clock, Target, ChevronRight, User,
-  PanelLeftClose, PanelLeftOpen,
+  PanelLeftClose, PanelLeftOpen, Headphones,
   MessageSquare, Megaphone, Plus, X, Send, Bell, Edit, Paperclip
 } from 'lucide-react';
 
@@ -94,6 +95,7 @@ const modules = [
   { id: 'compliance', label: 'Compliance & Audit', icon: Shield },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
   { id: 'approvals', label: 'Approvals', icon: CheckCircle },
+  { id: 'support', label: 'Support', icon: Headphones },
 ];
 
 // ─── DASHBOARD VIEW ────────────────────────────────────
@@ -926,6 +928,7 @@ function TrusteeDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; t
       case 'compliance': return <ComplianceView theme={theme} />;
       case 'communication': return <CommunicationView theme={theme} />;
       case 'approvals': return <ApprovalsView theme={theme} />;
+      case 'support': return <SupportModule theme={theme} role="trustee" />;
       case 'profile': return <StakeholderProfile role="trustee" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />;
       default: return <DashboardView theme={theme} setActiveModule={setActiveModule} />;
     }
