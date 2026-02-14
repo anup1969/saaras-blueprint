@@ -13,7 +13,7 @@ import {
   PanelLeftClose, PanelLeftOpen, Banknote, IndianRupee, Mail, Inbox,
   ChevronRight, ChevronLeft, CalendarDays, GripVertical, Flag, Edit2, Save, Trash2,
   CalendarClock, Sparkles, Bot, ChevronDown, Loader2, Bus, MapPin, Paperclip,
-  ToggleLeft, ToggleRight, Percent
+  ToggleLeft, ToggleRight, Percent, Headphones, Radio, Zap, Activity
 } from 'lucide-react';
 import { ChatsView } from '@/components/ChatModule';
 import StakeholderProfile from '@/components/StakeholderProfile';
@@ -32,6 +32,7 @@ const modules = [
   ]},
   { id: 'approvals', label: 'Approvals', icon: CheckCircle },
   { id: 'reports', label: 'Reports', icon: BarChart3 },
+  { id: 'support', label: 'Support', icon: Headphones },
 ];
 
 function PrincipalDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
@@ -103,6 +104,7 @@ function PrincipalDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme;
         {activeModule === 'yearly-planner' && <YearlyPlannerModule theme={theme} />}
         {activeModule === 'approvals' && <ApprovalsModule theme={theme} />}
         {activeModule === 'reports' && <ReportsModule theme={theme} />}
+        {activeModule === 'support' && <SupportModule theme={theme} />}
         {activeModule === 'profile' && <StakeholderProfile role="principal" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>
     </div>
@@ -111,6 +113,8 @@ function PrincipalDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme;
 
 // ─── DASHBOARD HOME ──────────────────────────────────
 function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick: () => void }) {
+  const [drillDown, setDrillDown] = useState<'students' | 'academic' | 'non-academic' | null>(null);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -127,30 +131,25 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
           </button>
         </div>
       </div>
-      {/* Attendance Row — Student + Academic Staff + Non-Academic Staff */}
+      {/* Attendance Row — Student + Academic Staff + Non-Academic Staff (Clickable) */}
       <div className="grid grid-cols-3 gap-3">
         {/* Student Attendance */}
-        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <button onClick={() => setDrillDown(drillDown === 'students' ? null : 'students')} className={`text-left ${theme.cardBg} rounded-2xl border-2 ${drillDown === 'students' ? 'border-blue-500 ring-1 ring-blue-500/30' : theme.border} p-4 hover:border-blue-400 transition-all cursor-pointer`}>
           <div className="flex items-center justify-between">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5 mb-1.5">
                 <Users size={14} className={theme.iconColor} />
                 <h3 className={`text-xs font-bold ${theme.highlight}`}>Students</h3>
+                <ChevronRight size={10} className={`${theme.iconColor} ${drillDown === 'students' ? 'rotate-90' : ''} transition-transform`} />
               </div>
               <p className={`text-2xl font-bold ${theme.highlight}`}>2,598 / 2,847</p>
               <p className={`text-xs ${theme.iconColor} mt-0.5`}>Enrolled: 3,000</p>
             </div>
             <div className="w-20 h-20 ml-2 shrink-0">
               <svg viewBox="0 0 36 36" className="w-full h-full">
-                <circle r="16" cx="18" cy="18" fill="none" stroke="#9ca3af" strokeWidth="4"
-                  strokeDasharray={`${(153 / 3000) * 100.53} ${100.53 - (153 / 3000) * 100.53}`}
-                  strokeDashoffset="25.13" transform="rotate(-90 18 18)" />
-                <circle r="16" cx="18" cy="18" fill="none" stroke="#ef4444" strokeWidth="4"
-                  strokeDasharray={`${(249 / 3000) * 100.53} ${100.53 - (249 / 3000) * 100.53}`}
-                  strokeDashoffset={`${25.13 - (153 / 3000) * 100.53}`} transform="rotate(-90 18 18)" />
-                <circle r="16" cx="18" cy="18" fill="none" stroke="#10b981" strokeWidth="4"
-                  strokeDasharray={`${(2598 / 3000) * 100.53} ${100.53 - (2598 / 3000) * 100.53}`}
-                  strokeDashoffset={`${25.13 - (153 / 3000) * 100.53 - (249 / 3000) * 100.53}`} transform="rotate(-90 18 18)" />
+                <circle r="16" cx="18" cy="18" fill="none" stroke="#9ca3af" strokeWidth="4" strokeDasharray={`${(153/3000)*100.53} ${100.53-(153/3000)*100.53}`} strokeDashoffset="25.13" transform="rotate(-90 18 18)" />
+                <circle r="16" cx="18" cy="18" fill="none" stroke="#ef4444" strokeWidth="4" strokeDasharray={`${(249/3000)*100.53} ${100.53-(249/3000)*100.53}`} strokeDashoffset={`${25.13-(153/3000)*100.53}`} transform="rotate(-90 18 18)" />
+                <circle r="16" cx="18" cy="18" fill="none" stroke="#10b981" strokeWidth="4" strokeDasharray={`${(2598/3000)*100.53} ${100.53-(2598/3000)*100.53}`} strokeDashoffset={`${25.13-(153/3000)*100.53-(249/3000)*100.53}`} transform="rotate(-90 18 18)" />
                 <text x="18" y="19" textAnchor="middle" dominantBaseline="middle" className="fill-emerald-600" style={{ fontSize: '10px', fontWeight: 700 }}>87%</text>
               </svg>
             </div>
@@ -160,27 +159,24 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500 inline-block" /><span className={`text-xs ${theme.iconColor}`}>249</span></span>
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-gray-400 inline-block" /><span className={`text-xs ${theme.iconColor}`}>153</span></span>
           </div>
-        </div>
+        </button>
 
         {/* Academic Staff */}
-        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <button onClick={() => setDrillDown(drillDown === 'academic' ? null : 'academic')} className={`text-left ${theme.cardBg} rounded-2xl border-2 ${drillDown === 'academic' ? 'border-blue-500 ring-1 ring-blue-500/30' : theme.border} p-4 hover:border-blue-400 transition-all cursor-pointer`}>
           <div className="flex items-center justify-between">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5 mb-1.5">
                 <GraduationCap size={14} className={theme.iconColor} />
                 <h3 className={`text-xs font-bold ${theme.highlight}`}>Academic Staff</h3>
+                <ChevronRight size={10} className={`${theme.iconColor} ${drillDown === 'academic' ? 'rotate-90' : ''} transition-transform`} />
               </div>
               <p className={`text-2xl font-bold ${theme.highlight}`}>72 / 78</p>
               <p className={`text-xs text-emerald-600 mt-0.5`}>92% Present</p>
             </div>
             <div className="w-20 h-20 ml-2 shrink-0">
               <svg viewBox="0 0 36 36" className="w-full h-full">
-                <circle r="16" cx="18" cy="18" fill="none" stroke="#ef4444" strokeWidth="4"
-                  strokeDasharray={`${(6 / 78) * 100.53} ${100.53 - (6 / 78) * 100.53}`}
-                  strokeDashoffset="25.13" transform="rotate(-90 18 18)" />
-                <circle r="16" cx="18" cy="18" fill="none" stroke="#10b981" strokeWidth="4"
-                  strokeDasharray={`${(72 / 78) * 100.53} ${100.53 - (72 / 78) * 100.53}`}
-                  strokeDashoffset={`${25.13 - (6 / 78) * 100.53}`} transform="rotate(-90 18 18)" />
+                <circle r="16" cx="18" cy="18" fill="none" stroke="#ef4444" strokeWidth="4" strokeDasharray={`${(6/78)*100.53} ${100.53-(6/78)*100.53}`} strokeDashoffset="25.13" transform="rotate(-90 18 18)" />
+                <circle r="16" cx="18" cy="18" fill="none" stroke="#10b981" strokeWidth="4" strokeDasharray={`${(72/78)*100.53} ${100.53-(72/78)*100.53}`} strokeDashoffset={`${25.13-(6/78)*100.53}`} transform="rotate(-90 18 18)" />
                 <text x="18" y="19" textAnchor="middle" dominantBaseline="middle" className="fill-emerald-600" style={{ fontSize: '10px', fontWeight: 700 }}>92%</text>
               </svg>
             </div>
@@ -189,27 +185,24 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /><span className={`text-xs ${theme.iconColor}`}>72</span></span>
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500 inline-block" /><span className={`text-xs ${theme.iconColor}`}>6</span></span>
           </div>
-        </div>
+        </button>
 
         {/* Non-Academic Staff */}
-        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <button onClick={() => setDrillDown(drillDown === 'non-academic' ? null : 'non-academic')} className={`text-left ${theme.cardBg} rounded-2xl border-2 ${drillDown === 'non-academic' ? 'border-blue-500 ring-1 ring-blue-500/30' : theme.border} p-4 hover:border-blue-400 transition-all cursor-pointer`}>
           <div className="flex items-center justify-between">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5 mb-1.5">
                 <Briefcase size={14} className={theme.iconColor} />
                 <h3 className={`text-xs font-bold ${theme.highlight}`}>Non-Academic</h3>
+                <ChevronRight size={10} className={`${theme.iconColor} ${drillDown === 'non-academic' ? 'rotate-90' : ''} transition-transform`} />
               </div>
               <p className={`text-2xl font-bold ${theme.highlight}`}>56 / 64</p>
               <p className={`text-xs text-emerald-600 mt-0.5`}>88% Present</p>
             </div>
             <div className="w-20 h-20 ml-2 shrink-0">
               <svg viewBox="0 0 36 36" className="w-full h-full">
-                <circle r="16" cx="18" cy="18" fill="none" stroke="#ef4444" strokeWidth="4"
-                  strokeDasharray={`${(8 / 64) * 100.53} ${100.53 - (8 / 64) * 100.53}`}
-                  strokeDashoffset="25.13" transform="rotate(-90 18 18)" />
-                <circle r="16" cx="18" cy="18" fill="none" stroke="#10b981" strokeWidth="4"
-                  strokeDasharray={`${(56 / 64) * 100.53} ${100.53 - (56 / 64) * 100.53}`}
-                  strokeDashoffset={`${25.13 - (8 / 64) * 100.53}`} transform="rotate(-90 18 18)" />
+                <circle r="16" cx="18" cy="18" fill="none" stroke="#ef4444" strokeWidth="4" strokeDasharray={`${(8/64)*100.53} ${100.53-(8/64)*100.53}`} strokeDashoffset="25.13" transform="rotate(-90 18 18)" />
+                <circle r="16" cx="18" cy="18" fill="none" stroke="#10b981" strokeWidth="4" strokeDasharray={`${(56/64)*100.53} ${100.53-(56/64)*100.53}`} strokeDashoffset={`${25.13-(8/64)*100.53}`} transform="rotate(-90 18 18)" />
                 <text x="18" y="19" textAnchor="middle" dominantBaseline="middle" className="fill-emerald-600" style={{ fontSize: '10px', fontWeight: 700 }}>88%</text>
               </svg>
             </div>
@@ -218,8 +211,13 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /><span className={`text-xs ${theme.iconColor}`}>56</span></span>
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500 inline-block" /><span className={`text-xs ${theme.iconColor}`}>8</span></span>
           </div>
-        </div>
+        </button>
       </div>
+
+      {/* Drill-Down Analytics Panel */}
+      {drillDown && (
+        <DrillDownPanel type={drillDown} theme={theme} onClose={() => setDrillDown(null)} />
+      )}
 
       {/* Stat Cards + Quick Actions — same row */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
@@ -245,36 +243,502 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
         </div>
       </div>
 
-      {/* Recent Activity + Task Tracker — Side by Side */}
+      {/* News Board + Task Tracker — Side by Side */}
       <div className="grid grid-cols-2 gap-4">
-        {/* Recent Activity */}
+        {/* News Board — Live School Overview */}
         <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-          <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Recent Activity</h3>
-          <div className="space-y-2">
-            {[
-              { text: 'Fee defaulter report generated — 23 students with overdue balance', time: '15 min ago', type: 'report' },
-              { text: 'Staff leave approved — Ms. Priya Sharma (3 days CL)', time: '45 min ago', type: 'approval' },
-              { text: 'New admission batch processed — 12 students for Class I', time: '2 hours ago', type: 'admission' },
-              { text: 'Disciplinary case resolved — Arjun Singh (Class 8-B)', time: '3 hours ago', type: 'welfare' },
-              { text: 'Monthly attendance report submitted to board', time: '5 hours ago', type: 'report' },
-            ].map((a, i) => (
-              <div key={i} className={`flex items-center gap-3 p-2 rounded-xl ${theme.accentBg}`}>
-                <div className={`w-2 h-2 rounded-full ${
-                  a.type === 'report' ? 'bg-blue-500' :
-                  a.type === 'approval' ? 'bg-emerald-500' :
-                  a.type === 'admission' ? 'bg-purple-500' :
-                  'bg-amber-500'
-                }`} />
-                <p className={`text-xs ${theme.highlight} flex-1`}>{a.text}</p>
-                <span className={`text-[10px] ${theme.iconColor}`}>{a.time}</span>
-              </div>
-            ))}
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>News Board</h3>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className={`text-[10px] px-2 py-0.5 rounded-lg ${theme.secondaryBg} ${theme.highlight} font-mono font-bold`}>
+                {new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
+              </span>
+              <span className={`text-[10px] px-2 py-0.5 rounded-lg bg-blue-500/20 text-blue-400 font-bold`}>Period 5 of 8</span>
+            </div>
+          </div>
+
+          {/* Going On Now */}
+          <div className="mb-3">
+            <p className={`text-[10px] font-bold uppercase ${theme.iconColor} mb-1.5 flex items-center gap-1`}>
+              <Radio size={10} className="text-red-500" /> Going On Now
+            </p>
+            <div className="space-y-1.5">
+              {[
+                { activity: 'Science Fair — Hall A', detail: 'Classes 6-8 · Judges evaluating projects', icon: Sparkles, color: 'bg-purple-500', pulse: true },
+                { activity: 'Unit Test 3 — Mathematics', detail: 'Class 10-A, 10-B · Period 5 (11:30-12:15)', icon: FileText, color: 'bg-blue-500', pulse: true },
+                { activity: 'Sports Practice — Cricket', detail: 'Ground · Inter-school team · Coach Verma', icon: Award, color: 'bg-emerald-500', pulse: false },
+                { activity: 'CBSE Inspector Visit', detail: 'Principal Office · Lab inspection at 12:30', icon: ShieldCheck, color: 'bg-red-500', pulse: true },
+              ].map((item, i) => (
+                <div key={i} className={`flex items-center gap-2.5 p-2 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+                  <div className={`w-7 h-7 rounded-lg ${item.color}/20 flex items-center justify-center shrink-0 relative`}>
+                    <item.icon size={13} className={item.color.replace('bg-', 'text-')} />
+                    {item.pulse && <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-red-500 animate-pulse" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-[11px] font-bold ${theme.highlight} truncate`}>{item.activity}</p>
+                    <p className={`text-[10px] ${theme.iconColor} truncate`}>{item.detail}</p>
+                  </div>
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 font-bold shrink-0`}>LIVE</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Upcoming */}
+          <div>
+            <p className={`text-[10px] font-bold uppercase ${theme.iconColor} mb-1.5 flex items-center gap-1`}>
+              <Clock size={10} /> Upcoming Today
+            </p>
+            <div className="space-y-1.5">
+              {[
+                { activity: 'Staff Meeting', detail: '3:00 PM · Conference Room · All HODs', time: '3:00 PM', icon: Users },
+                { activity: 'PTM — Class 9', detail: '4:00 PM · Classrooms · 42 parents expected', time: '4:00 PM', icon: UserCheck },
+                { activity: 'Annual Day Rehearsal', detail: '4:30 PM · Auditorium · Dance + Drama groups', time: '4:30 PM', icon: Star },
+              ].map((item, i) => (
+                <div key={i} className={`flex items-center gap-2.5 p-2 rounded-xl ${theme.secondaryBg}`}>
+                  <div className={`w-7 h-7 rounded-lg ${theme.accentBg} flex items-center justify-center shrink-0`}>
+                    <item.icon size={13} className={theme.iconColor} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-[11px] font-bold ${theme.highlight} truncate`}>{item.activity}</p>
+                    <p className={`text-[10px] ${theme.iconColor} truncate`}>{item.detail}</p>
+                  </div>
+                  <span className={`text-[10px] ${theme.iconColor} font-medium shrink-0`}>{item.time}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
         {/* Task Tracker — Full Task Management Dashboard */}
         <TaskTrackerPanel theme={theme} role="principal" />
       </div>
+    </div>
+  );
+}
+
+// ─── DRILL-DOWN ANALYTICS PANEL ─────────────────────
+function DrillDownPanel({ type, theme, onClose }: { type: 'students' | 'academic' | 'non-academic'; theme: Theme; onClose: () => void }) {
+  const [tab, setTab] = useState(type === 'students' ? 'Class-wise' : 'Department-wise');
+
+  const titles: Record<string, string> = { students: 'Student Attendance Analytics', academic: 'Academic Staff Analytics', 'non-academic': 'Non-Academic Staff Analytics' };
+
+  // Student drill-down data
+  const classWiseData = [
+    { cls: 'Class I-A', strength: 42, present: 40, absent: 2, pct: 95.2 },
+    { cls: 'Class I-B', strength: 40, present: 38, absent: 2, pct: 95.0 },
+    { cls: 'Class II-A', strength: 45, present: 41, absent: 4, pct: 91.1 },
+    { cls: 'Class III-A', strength: 48, present: 44, absent: 4, pct: 91.7 },
+    { cls: 'Class IV-A', strength: 50, present: 42, absent: 8, pct: 84.0 },
+    { cls: 'Class V-A', strength: 47, present: 43, absent: 4, pct: 91.5 },
+    { cls: 'Class VI-A', strength: 52, present: 46, absent: 6, pct: 88.5 },
+    { cls: 'Class VII-A', strength: 55, present: 48, absent: 7, pct: 87.3 },
+    { cls: 'Class VIII-A', strength: 53, present: 45, absent: 8, pct: 84.9 },
+    { cls: 'Class IX-A', strength: 50, present: 44, absent: 6, pct: 88.0 },
+    { cls: 'Class X-A', strength: 48, present: 42, absent: 6, pct: 87.5 },
+  ];
+  const houseWiseData = [
+    { house: 'Red House', strength: 312, present: 278, absent: 34, pct: 89.1, color: 'bg-red-500' },
+    { house: 'Blue House', strength: 305, present: 271, absent: 34, pct: 88.9, color: 'bg-blue-500' },
+    { house: 'Green House', strength: 318, present: 290, absent: 28, pct: 91.2, color: 'bg-emerald-500' },
+    { house: 'Yellow House', strength: 312, present: 259, absent: 53, pct: 83.0, color: 'bg-amber-500' },
+  ];
+  const absentStudents = [
+    { name: 'Aarav Patel', cls: 'V-A', reason: 'Sick Leave', days: 3, parent: '9876543210' },
+    { name: 'Diya Shah', cls: 'VII-A', reason: 'Family Function', days: 1, parent: '9876543211' },
+    { name: 'Vivaan Mehta', cls: 'IX-A', reason: 'No Intimation', days: 1, parent: '9876543212' },
+    { name: 'Saanvi Gupta', cls: 'IV-A', reason: 'Medical', days: 5, parent: '9876543213' },
+    { name: 'Reyansh Iyer', cls: 'X-A', reason: 'No Intimation', days: 2, parent: '9876543214' },
+  ];
+
+  // Staff drill-down data
+  const deptWiseData = type === 'academic' ? [
+    { dept: 'Mathematics', total: 12, present: 11, absent: 1, onLeave: 0, pct: 91.7 },
+    { dept: 'Science', total: 10, present: 10, absent: 0, onLeave: 0, pct: 100 },
+    { dept: 'English', total: 10, present: 9, absent: 1, onLeave: 1, pct: 90.0 },
+    { dept: 'Social Studies', total: 8, present: 7, absent: 1, onLeave: 0, pct: 87.5 },
+    { dept: 'Hindi', total: 8, present: 8, absent: 0, onLeave: 0, pct: 100 },
+    { dept: 'Computer', total: 5, present: 4, absent: 1, onLeave: 1, pct: 80.0 },
+    { dept: 'Physical Ed.', total: 4, present: 4, absent: 0, onLeave: 0, pct: 100 },
+    { dept: 'Art & Music', total: 6, present: 5, absent: 1, onLeave: 0, pct: 83.3 },
+    { dept: 'Library', total: 3, present: 3, absent: 0, onLeave: 0, pct: 100 },
+  ] : [
+    { dept: 'Administration', total: 12, present: 10, absent: 2, onLeave: 1, pct: 83.3 },
+    { dept: 'Accounts', total: 6, present: 6, absent: 0, onLeave: 0, pct: 100 },
+    { dept: 'IT Support', total: 4, present: 4, absent: 0, onLeave: 0, pct: 100 },
+    { dept: 'Transport', total: 15, present: 13, absent: 2, onLeave: 0, pct: 86.7 },
+    { dept: 'Housekeeping', total: 10, present: 8, absent: 2, onLeave: 1, pct: 80.0 },
+    { dept: 'Security', total: 8, present: 7, absent: 1, onLeave: 0, pct: 87.5 },
+    { dept: 'Lab Assistants', total: 5, present: 5, absent: 0, onLeave: 0, pct: 100 },
+    { dept: 'Canteen', total: 4, present: 3, absent: 1, onLeave: 0, pct: 75.0 },
+  ];
+  const absentStaff = type === 'academic' ? [
+    { name: 'Ms. Priya Sharma', dept: 'Mathematics', reason: 'Casual Leave', since: 'Today' },
+    { name: 'Mr. Arun Verma', dept: 'English', reason: 'Medical Leave', since: '3 days' },
+    { name: 'Ms. Kavitha Nair', dept: 'Computer', reason: 'No Intimation', since: 'Today' },
+    { name: 'Mr. Deepak Singh', dept: 'Social Studies', reason: 'Half Day', since: 'Today' },
+    { name: 'Ms. Neha Joshi', dept: 'Art & Music', reason: 'Personal Leave', since: 'Today' },
+  ] : [
+    { name: 'Ramesh Kumar', dept: 'Administration', reason: 'Sick Leave', since: '2 days' },
+    { name: 'Suresh Yadav', dept: 'Transport', reason: 'No Intimation', since: 'Today' },
+    { name: 'Pradeep Singh', dept: 'Housekeeping', reason: 'Casual Leave', since: 'Today' },
+    { name: 'Gopal Das', dept: 'Security', reason: 'Medical', since: 'Today' },
+  ];
+
+  const studentTabs = ['Class-wise', 'House-wise', 'Absent Today'];
+  const staffTabs = ['Department-wise', 'Absent Today', 'Leave Summary'];
+
+  return (
+    <div className={`${theme.cardBg} rounded-2xl border-2 border-blue-500/30 p-4 animate-in`}>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className={`text-sm font-bold ${theme.highlight} flex items-center gap-2`}>
+          <BarChart3 size={16} className="text-blue-400" />
+          {titles[type]}
+        </h3>
+        <button onClick={onClose} className={`p-1.5 rounded-lg ${theme.secondaryBg} ${theme.iconColor} hover:opacity-80`}>
+          <X size={14} />
+        </button>
+      </div>
+
+      <TabBar
+        tabs={type === 'students' ? studentTabs : staffTabs}
+        active={tab}
+        onChange={setTab}
+        theme={theme}
+      />
+
+      <div className="mt-3">
+        {/* Student: Class-wise */}
+        {type === 'students' && tab === 'Class-wise' && (
+          <div className={`border ${theme.border} rounded-xl overflow-hidden`}>
+            <table className="w-full text-xs">
+              <thead><tr className={theme.secondaryBg}>
+                <th className={`text-left p-2.5 ${theme.iconColor} font-bold`}>Class</th>
+                <th className={`text-center p-2.5 ${theme.iconColor} font-bold`}>Strength</th>
+                <th className={`text-center p-2.5 ${theme.iconColor} font-bold`}>Present</th>
+                <th className={`text-center p-2.5 ${theme.iconColor} font-bold`}>Absent</th>
+                <th className={`text-center p-2.5 ${theme.iconColor} font-bold`}>%</th>
+              </tr></thead>
+              <tbody>{classWiseData.map((r, i) => (
+                <tr key={i} className={`border-t ${theme.border}`}>
+                  <td className={`p-2.5 font-bold ${theme.highlight}`}>{r.cls}</td>
+                  <td className={`p-2.5 text-center ${theme.iconColor}`}>{r.strength}</td>
+                  <td className="p-2.5 text-center text-emerald-500 font-bold">{r.present}</td>
+                  <td className="p-2.5 text-center text-red-500 font-bold">{r.absent}</td>
+                  <td className="p-2.5 text-center">
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${r.pct >= 90 ? 'bg-emerald-500/20 text-emerald-400' : r.pct >= 85 ? 'bg-amber-500/20 text-amber-400' : 'bg-red-500/20 text-red-400'}`}>{r.pct}%</span>
+                  </td>
+                </tr>
+              ))}</tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Student: House-wise */}
+        {type === 'students' && tab === 'House-wise' && (
+          <div className="grid grid-cols-2 gap-3">
+            {houseWiseData.map((h, i) => (
+              <div key={i} className={`p-3 rounded-xl border ${theme.border} flex items-center gap-3`}>
+                <div className={`w-10 h-10 rounded-full ${h.color} flex items-center justify-center text-white text-xs font-bold`}>
+                  {h.pct}%
+                </div>
+                <div className="flex-1">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{h.house}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{h.present}/{h.strength} present · {h.absent} absent</p>
+                  <div className="h-1.5 rounded-full bg-slate-200 mt-1 overflow-hidden">
+                    <div className={`h-full rounded-full ${h.color}`} style={{ width: `${h.pct}%` }} />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Student: Absent Today */}
+        {type === 'students' && tab === 'Absent Today' && (
+          <div className="space-y-2">
+            <p className={`text-[10px] ${theme.iconColor} mb-2`}>249 students absent today. Showing flagged cases:</p>
+            {absentStudents.map((s, i) => (
+              <div key={i} className={`flex items-center gap-3 p-2.5 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+                <div className={`w-8 h-8 rounded-full ${s.reason === 'No Intimation' ? 'bg-red-500' : 'bg-amber-500'} text-white flex items-center justify-center text-[10px] font-bold`}>
+                  {s.name.split(' ').map(n => n[0]).join('')}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{s.name} <span className={`font-normal ${theme.iconColor}`}>({s.cls})</span></p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{s.reason} · {s.days} day(s)</p>
+                </div>
+                {s.reason === 'No Intimation' && <span className="text-[9px] px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 font-bold">Alert</span>}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Staff: Department-wise */}
+        {(type === 'academic' || type === 'non-academic') && tab === 'Department-wise' && (
+          <div className={`border ${theme.border} rounded-xl overflow-hidden`}>
+            <table className="w-full text-xs">
+              <thead><tr className={theme.secondaryBg}>
+                <th className={`text-left p-2.5 ${theme.iconColor} font-bold`}>Department</th>
+                <th className={`text-center p-2.5 ${theme.iconColor} font-bold`}>Total</th>
+                <th className={`text-center p-2.5 ${theme.iconColor} font-bold`}>Present</th>
+                <th className={`text-center p-2.5 ${theme.iconColor} font-bold`}>Absent</th>
+                <th className={`text-center p-2.5 ${theme.iconColor} font-bold`}>On Leave</th>
+                <th className={`text-center p-2.5 ${theme.iconColor} font-bold`}>%</th>
+              </tr></thead>
+              <tbody>{deptWiseData.map((r, i) => (
+                <tr key={i} className={`border-t ${theme.border}`}>
+                  <td className={`p-2.5 font-bold ${theme.highlight}`}>{r.dept}</td>
+                  <td className={`p-2.5 text-center ${theme.iconColor}`}>{r.total}</td>
+                  <td className="p-2.5 text-center text-emerald-500 font-bold">{r.present}</td>
+                  <td className="p-2.5 text-center text-red-500 font-bold">{r.absent}</td>
+                  <td className={`p-2.5 text-center ${theme.iconColor}`}>{r.onLeave}</td>
+                  <td className="p-2.5 text-center">
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${r.pct >= 90 ? 'bg-emerald-500/20 text-emerald-400' : r.pct >= 80 ? 'bg-amber-500/20 text-amber-400' : 'bg-red-500/20 text-red-400'}`}>{r.pct}%</span>
+                  </td>
+                </tr>
+              ))}</tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Staff: Absent Today */}
+        {(type === 'academic' || type === 'non-academic') && tab === 'Absent Today' && (
+          <div className="space-y-2">
+            <p className={`text-[10px] ${theme.iconColor} mb-2`}>{absentStaff.length} staff members absent today:</p>
+            {absentStaff.map((s, i) => (
+              <div key={i} className={`flex items-center gap-3 p-2.5 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+                <div className={`w-8 h-8 rounded-full ${s.reason === 'No Intimation' ? 'bg-red-500' : 'bg-amber-500'} text-white flex items-center justify-center text-[10px] font-bold`}>
+                  {s.name.split(' ').filter(n => n[0] === n[0].toUpperCase()).map(n => n[0]).join('').slice(0, 2)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{s.name}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{s.dept} · {s.reason} · Since: {s.since}</p>
+                </div>
+                {s.reason === 'No Intimation' && <span className="text-[9px] px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 font-bold">No Intimation</span>}
+                {s.reason.includes('Leave') && <span className={`text-[9px] px-2 py-0.5 rounded-full ${theme.secondaryBg} ${theme.iconColor}`}>Approved</span>}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Staff: Leave Summary */}
+        {(type === 'academic' || type === 'non-academic') && tab === 'Leave Summary' && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-4 gap-3">
+              {[
+                { label: 'Casual Leave', used: 12, total: 78, color: 'bg-blue-500' },
+                { label: 'Sick Leave', used: 8, total: 78, color: 'bg-amber-500' },
+                { label: 'Medical', used: 3, total: 78, color: 'bg-red-500' },
+                { label: 'Half Day', used: 5, total: 78, color: 'bg-purple-500' },
+              ].map((l, i) => (
+                <div key={i} className={`p-3 rounded-xl border ${theme.border} text-center`}>
+                  <p className={`text-lg font-bold ${theme.highlight}`}>{l.used}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{l.label}</p>
+                  <div className="h-1 rounded-full bg-slate-200 mt-2 overflow-hidden">
+                    <div className={`h-full rounded-full ${l.color}`} style={{ width: `${(l.used/l.total)*100}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className={`text-[10px] ${theme.iconColor}`}>This month&apos;s leave utilization across {type === 'academic' ? 'teaching' : 'non-teaching'} staff</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── SUPPORT MODULE (AI Chat Support) ───────────────
+function SupportModule({ theme }: { theme: Theme }) {
+  const [chatMessages, setChatMessages] = useState([
+    { from: 'bot', text: 'Hello! I\'m your Saaras.ai Support Assistant. How can I help you today?', time: 'Now' },
+  ]);
+  const [userInput, setUserInput] = useState('');
+  const [showFaq, setShowFaq] = useState(true);
+  const [activeCategory, setActiveCategory] = useState('Getting Started');
+
+  const faqCategories = [
+    { label: 'Getting Started', icon: Zap, count: 5 },
+    { label: 'Attendance', icon: ClipboardCheck, count: 4 },
+    { label: 'Academics', icon: BookOpen, count: 4 },
+    { label: 'Communication', icon: MessageSquare, count: 3 },
+    { label: 'Reports', icon: BarChart3, count: 4 },
+    { label: 'Fees & Finance', icon: DollarSign, count: 3 },
+  ];
+
+  const faqItems: Record<string, { q: string; options: string[] }[]> = {
+    'Getting Started': [
+      { q: 'How do I check today\'s school overview?', options: ['Go to Dashboard → News Board shows live activities', 'Click any stat card for drill-down analytics', 'Use Quick Actions for common tasks'] },
+      { q: 'How do I approve a leave request?', options: ['Go to Approvals module in sidebar', 'Click on Pending tab → Select request → Approve/Reject', 'You can also approve from the notification bell'] },
+      { q: 'How do I send a circular to all parents?', options: ['Go to Communication → Broadcasts → New Broadcast', 'Select audience "All Parents"', 'Choose priority and send'] },
+      { q: 'How do I view student performance?', options: ['Go to Academics module', 'Select Class Performance tab for class-wise view', 'Click on any class to see individual student scores'] },
+      { q: 'How to check staff attendance?', options: ['Dashboard → Academic/Non-Academic staff cards (click for details)', 'Or go to Staff Overview module', 'Absent staff list shows who is missing today'] },
+    ],
+    'Attendance': [
+      { q: 'How do I see which students are absent today?', options: ['Click the Students card on Dashboard', 'Select "Absent Today" tab', 'Students without intimation are flagged red'] },
+      { q: 'Can I see attendance trends over time?', options: ['Go to Reports → Attendance Reports', 'Select date range and class/section', 'Download or view graphical trends'] },
+      { q: 'How do I handle late arrivals?', options: ['Teachers mark late entry during attendance', 'Shows as "Late" in attendance register', 'Auto-notification to parent after 3 late marks in a week'] },
+      { q: 'A parent disputes an attendance record.', options: ['Go to Attendance → Search student → Select date', 'Class teacher can edit within 48-hour window', 'Beyond that, admin override required'] },
+    ],
+    'Academics': [
+      { q: 'How do I check exam results?', options: ['Go to Academics → Exam Results tab', 'View by exam name, class, or date', 'Compare across terms using trend view'] },
+      { q: 'How do I see subject-wise performance?', options: ['Academics → Overview shows all subjects', 'Bar graph shows avg score per subject', 'Click any subject to drill down by class'] },
+      { q: 'How to identify struggling students?', options: ['Academics → Class Performance → Sort by score', 'Students below 40% are auto-flagged', 'Teacher can add remarks for follow-up'] },
+      { q: 'How to generate report cards?', options: ['Reports → Report Card Generation', 'Select class, template, and exam', 'Preview → Bulk generate → Print/PDF'] },
+    ],
+    'Communication': [
+      { q: 'How do parents receive notifications?', options: ['Push notification on mobile app', 'SMS for critical alerts (configurable)', 'Email for circulars and reports'] },
+      { q: 'Can I message a specific parent?', options: ['Go to Communication → Chat', 'Search for parent by student name', 'Start direct message conversation'] },
+      { q: 'How do polls work?', options: ['Communication → Polls → Create Poll', 'Set audience, options, and deadline', 'Results visible in real-time with analytics'] },
+    ],
+    'Reports': [
+      { q: 'What reports can I generate?', options: ['Attendance (daily/monthly/yearly)', 'Academic (exam-wise, subject-wise, class-wise)', 'Fee collection, defaulters, receipts', 'Staff leave utilization, HR reports'] },
+      { q: 'How to download reports?', options: ['Go to Reports module', 'Select report type → Configure filters', 'Click Download (PDF/Excel/CSV)'] },
+      { q: 'Can I schedule automatic reports?', options: ['Yes — Reports → Scheduled Reports', 'Set frequency (daily/weekly/monthly)', 'Auto-email to selected recipients'] },
+      { q: 'How to share reports with Trustee?', options: ['Reports → Share → Select Trustee', 'Or add Trustee email for auto-reports', 'Trustee can also view from their dashboard'] },
+    ],
+    'Fees & Finance': [
+      { q: 'How to check fee collection status?', options: ['Dashboard → Today\'s Collection card', 'Or Fees module → Collection Summary', 'Filter by class, date, payment mode'] },
+      { q: 'How to see fee defaulters?', options: ['Fees → Defaulters tab', 'Sorted by outstanding amount', 'Send bulk reminder with one click'] },
+      { q: 'How to generate fee receipts?', options: ['Fees → Payments → Select payment', 'Click "Generate Receipt"', 'Printable or email to parent'] },
+    ],
+  };
+
+  const handleSendMessage = () => {
+    if (!userInput.trim()) return;
+    setChatMessages(prev => [...prev, { from: 'user', text: userInput, time: 'Now' }]);
+    // Simulate bot response
+    setTimeout(() => {
+      setChatMessages(prev => [...prev, {
+        from: 'bot',
+        text: 'Let me help you with that. Here are some options:\n\na) Check the relevant module in your sidebar\nb) Use Quick Actions on the Dashboard\nc) View the FAQ section below for step-by-step guides\n\nWould you like me to walk you through any specific feature?',
+        time: 'Now'
+      }]);
+    }, 800);
+    setUserInput('');
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className={`text-2xl font-bold ${theme.highlight} flex items-center gap-2`}>
+            <Headphones size={24} className="text-blue-400" /> Support
+          </h1>
+          <p className={`text-xs ${theme.iconColor}`}>AI-powered help desk — answers from your school&apos;s internal documentation</p>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={() => setShowFaq(true)} className={`px-3 py-1.5 rounded-lg text-xs font-bold ${showFaq ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.highlight}`}`}>FAQ Guide</button>
+          <button onClick={() => setShowFaq(false)} className={`px-3 py-1.5 rounded-lg text-xs font-bold ${!showFaq ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.highlight}`}`}>Chat Support</button>
+        </div>
+      </div>
+
+      {/* Plan badge */}
+      <div className={`p-3 rounded-xl border-2 border-dashed ${theme.border} ${theme.accentBg} flex items-center gap-3`}>
+        <Shield size={16} className="text-blue-400" />
+        <div className="flex-1">
+          <p className={`text-xs ${theme.highlight}`}><strong>Your plan:</strong> Enterprise — Chat Support included</p>
+          <p className={`text-[10px] ${theme.iconColor}`}>Phase 2: Short videos &amp; audio guides · Phase 3: Natural language processing</p>
+        </div>
+        <span className="text-[10px] px-2 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 font-bold">Active</span>
+      </div>
+
+      {showFaq ? (
+        /* FAQ Section */
+        <div className="grid grid-cols-4 gap-4">
+          {/* Category sidebar */}
+          <div className="space-y-1">
+            {faqCategories.map(cat => (
+              <button
+                key={cat.label}
+                onClick={() => setActiveCategory(cat.label)}
+                className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-medium transition-all ${
+                  activeCategory === cat.label ? `${theme.primary} text-white` : `${theme.iconColor} ${theme.buttonHover}`
+                }`}
+              >
+                <cat.icon size={14} />
+                <span className="flex-1 text-left">{cat.label}</span>
+                <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${activeCategory === cat.label ? 'bg-white/20' : theme.secondaryBg}`}>{cat.count}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* FAQ content */}
+          <div className="col-span-3 space-y-3">
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>{activeCategory}</h3>
+            {(faqItems[activeCategory] || []).map((faq, i) => (
+              <div key={i} className={`${theme.cardBg} rounded-xl border ${theme.border} overflow-hidden`}>
+                <div className={`px-4 py-3 ${theme.accentBg}`}>
+                  <p className={`text-xs font-bold ${theme.highlight} flex items-center gap-2`}>
+                    <MessageSquare size={12} className="text-blue-400" />
+                    {faq.q}
+                  </p>
+                </div>
+                <div className="px-4 py-3 space-y-1.5">
+                  {faq.options.map((opt, j) => (
+                    <div key={j} className={`flex items-start gap-2 text-xs ${theme.iconColor}`}>
+                      <span className={`w-5 h-5 rounded-lg ${theme.secondaryBg} flex items-center justify-center shrink-0 text-[10px] font-bold ${theme.highlight}`}>{String.fromCharCode(65 + j)}</span>
+                      <span>{opt}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        /* Chat Support Section */
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} overflow-hidden`}>
+          <div className="flex items-center gap-3 px-4 py-3 bg-blue-500 text-white">
+            <Bot size={18} />
+            <div>
+              <p className="text-xs font-bold">Saaras Support Bot</p>
+              <p className="text-[10px] opacity-80">Powered by your school&apos;s internal documentation</p>
+            </div>
+            <span className="ml-auto text-[9px] bg-white/20 px-2 py-0.5 rounded-full">Online</span>
+          </div>
+
+          <div className="h-[350px] overflow-y-auto p-4 space-y-3">
+            {chatMessages.map((msg, i) => (
+              <div key={i} className={`flex ${msg.from === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[75%] ${msg.from === 'user' ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.highlight}`} rounded-2xl ${msg.from === 'user' ? 'rounded-br-sm' : 'rounded-bl-sm'} px-4 py-2.5`}>
+                  <p className="text-xs whitespace-pre-wrap">{msg.text}</p>
+                  <p className={`text-[9px] mt-1 ${msg.from === 'user' ? 'text-white/50' : theme.iconColor}`}>{msg.time}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className={`px-4 py-3 border-t ${theme.border} flex items-center gap-2`}>
+            <input
+              value={userInput}
+              onChange={e => setUserInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
+              placeholder="Ask anything about the ERP..."
+              className={`flex-1 px-4 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none focus:ring-2 focus:ring-blue-300 ${theme.highlight}`}
+            />
+            <button onClick={handleSendMessage} className={`p-2.5 rounded-xl ${theme.primary} text-white`}>
+              <Send size={16} />
+            </button>
+          </div>
+
+          {/* Quick prompts */}
+          <div className={`px-4 py-2 border-t ${theme.border} flex gap-2 overflow-x-auto`}>
+            {['How to approve leave?', 'Send circular to parents', 'Check fee defaulters', 'Generate report card'].map(p => (
+              <button
+                key={p}
+                onClick={() => { setUserInput(p); }}
+                className={`text-[10px] px-3 py-1.5 rounded-full border ${theme.border} ${theme.highlight} whitespace-nowrap hover:border-blue-400 transition-all`}
+              >
+                {p}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
