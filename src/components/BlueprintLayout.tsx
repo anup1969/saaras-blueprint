@@ -8,7 +8,7 @@ import {
   UserCheck, Briefcase, Calculator, Phone, Bus, ShieldCheck, Headphones,
   Home, ChevronLeft, Menu, LogOut, MessageSquare, Bell,
   FileText, CheckCircle, Calendar, AlertTriangle, ClipboardCheck,
-  Palette, Maximize2, Minimize2, MessageCircle, X, Send, Search
+  Palette, Maximize2, Minimize2, MessageCircle, X, Send, Search, Heart, ToggleLeft, ToggleRight
 } from 'lucide-react';
 import { themes, VIVID_VARIANTS, type Theme } from '@/lib/themes';
 import { getLoggedInUser, logoutUser, type TeamMember } from '@/lib/auth';
@@ -19,7 +19,8 @@ import { conversations } from './ChatModule';
 
 const VIVID_THEME_IDX = 4; // Virtual index for Vivid (beyond the 4 base themes)
 
-const navItems = [
+// Regular school nav items
+const regularNavItems = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/school-admin', label: 'School Admin', icon: Building2 },
   { href: '/principal', label: 'Principal', icon: GraduationCap },
@@ -34,6 +35,29 @@ const navItems = [
   { href: '/receptionist', label: 'Receptionist', icon: Phone },
   { href: '/transport-head', label: 'Transport Head', icon: Bus },
   { href: '/security', label: 'Security', icon: ShieldCheck },
+  { href: '/account-manager', label: 'Account Manager', icon: Headphones },
+  { href: '/chat', label: 'Chat', icon: MessageSquare },
+  { href: '/auth', label: 'Auth / Login', icon: Shield },
+];
+
+// Preschool nav items — dual labels, no Student, add 3 new roles
+const preschoolNavItems = [
+  { href: '/', label: 'Home', icon: Home },
+  { href: '/school-admin', label: 'School Admin', icon: Building2 },
+  { href: '/principal', label: 'Principal / Centre Head', icon: GraduationCap },
+  { href: '/teacher', label: 'Teacher', icon: BookOpen },
+  { href: '/parent', label: 'Parent', icon: Users },
+  { href: '/super-admin', label: 'Super Admin', icon: Shield },
+  { href: '/trustee', label: 'Trustee', icon: Eye },
+  { href: '/vice-principal', label: 'VP / Coordinator', icon: UserCheck },
+  { href: '/hr-manager', label: 'HR Manager', icon: Briefcase },
+  { href: '/accounts-head', label: 'Accounts Head', icon: Calculator },
+  { href: '/receptionist', label: 'Receptionist', icon: Phone },
+  { href: '/transport-head', label: 'Transport Head', icon: Bus },
+  { href: '/security', label: 'Security', icon: ShieldCheck },
+  { href: '/bus-nanny', label: 'Bus Nanny', icon: Bus },
+  { href: '/nutritionist', label: 'Nutritionist', icon: Heart },
+  { href: '/activity-coordinator', label: 'Activity Coordinator', icon: Calendar },
   { href: '/account-manager', label: 'Account Manager', icon: Headphones },
   { href: '/chat', label: 'Chat', icon: MessageSquare },
   { href: '/auth', label: 'Auth / Login', icon: Shield },
@@ -72,6 +96,8 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedVividColor, setSelectedVividColor] = useState('Indigo');
   const [chatOpen, setChatOpen] = useState(false);
+  // Preschool toggle — persisted in localStorage
+  const [isPreschool, setIsPreschool] = useState(false);
   // Task Tracker popup state
   const [taskPopupOpen, setTaskPopupOpen] = useState(false);
   const [taskPopupMode, setTaskPopupMode] = useState<'login' | 'idle'>('login');
@@ -124,7 +150,20 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
     const user = getLoggedInUser();
     setCurrentUser(user);
     setLoading(false);
+    // Restore preschool toggle from localStorage
+    const saved = localStorage.getItem('saaras-preschool-mode');
+    if (saved === 'true') setIsPreschool(true);
   }, []);
+
+  const togglePreschool = () => {
+    setIsPreschool(prev => {
+      const next = !prev;
+      localStorage.setItem('saaras-preschool-mode', String(next));
+      return next;
+    });
+  };
+
+  const navItems = isPreschool ? preschoolNavItems : regularNavItems;
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -275,8 +314,21 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
           </div>
           <div className="flex items-center gap-2">
             <span className={`text-[10px] px-2 py-1 rounded-lg ${theme.secondaryBg} ${theme.iconColor}`}>
-              BLUEPRINT MODE — Not a live system
+              BLUEPRINT MODE
             </span>
+            {/* Preschool Toggle */}
+            <button
+              onClick={togglePreschool}
+              className={`flex items-center gap-1.5 text-[10px] px-2.5 py-1.5 rounded-lg font-bold transition-all ${
+                isPreschool
+                  ? 'bg-amber-100 text-amber-700 border border-amber-300'
+                  : `${theme.secondaryBg} ${theme.iconColor} border ${theme.border}`
+              }`}
+              title="Toggle between Regular School and Preschool preview"
+            >
+              {isPreschool ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
+              {isPreschool ? 'Preschool' : 'Regular School'}
+            </button>
             {/* Theme picker */}
             <div ref={themePickerRef} className="relative">
               <button
@@ -400,7 +452,7 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
         <div className="p-6">
           {React.Children.map(children, child => {
             if (React.isValidElement(child)) {
-              return React.cloneElement(child as React.ReactElement<{ theme: Theme; themeIdx: number; onThemeChange: (idx: number) => void }>, { theme, themeIdx, onThemeChange: setThemeIdx });
+              return React.cloneElement(child as React.ReactElement<{ theme: Theme; themeIdx: number; onThemeChange: (idx: number) => void; isPreschool: boolean }>, { theme, themeIdx, onThemeChange: setThemeIdx, isPreschool });
             }
             return child;
           })}

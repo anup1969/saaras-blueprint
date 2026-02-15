@@ -6,17 +6,43 @@ import Link from 'next/link';
 import {
   Building2, GraduationCap, BookOpen, User, Users, Shield, Eye,
   UserCheck, Briefcase, Calculator, Phone, Bus, ShieldCheck, Headphones,
-  ArrowRight, CheckCircle, Clock, Hammer
+  ArrowRight, CheckCircle, Clock, Hammer, Heart, Calendar
 } from 'lucide-react';
 import { type Theme } from '@/lib/themes';
 
 const iconMap: Record<string, any> = {
   Building2, GraduationCap, BookOpen, User, Users, Shield, Eye,
   UserCheck, Briefcase, Calculator, Phone, Bus, ShieldCheck, Headphones,
+  Heart, Calendar,
 };
 
-function HomePage({ theme }: { theme?: Theme }) {
+// Extra stakeholder cards for preschool mode
+const preschoolExtraStakeholders = [
+  { id: 'bus-nanny', name: 'Bus Nanny / Attendant', icon: 'Bus', desc: 'Child boarding/drop-off log, safety checklist per trip', phase: 1, status: 'built' as const },
+  { id: 'nutritionist', name: 'Nutritionist / Diet Planner', icon: 'Heart', desc: 'Meal planning, allergy management, weekly menus', phase: 1, status: 'built' as const },
+  { id: 'activity-coordinator', name: 'Activity Coordinator', icon: 'Calendar', desc: 'Activity curriculum, milestone planning, event coordination', phase: 1, status: 'built' as const },
+];
+
+// IDs to hide in preschool mode
+const preschoolHiddenIds = ['student'];
+
+function HomePage({ theme, isPreschool }: { theme?: Theme; isPreschool?: boolean }) {
   if (!theme) return null;
+
+  // Preschool mode: rename some, hide Student, add 3 new roles
+  const preschoolNameMap: Record<string, string> = {
+    'principal': 'Principal / Centre Head',
+    'vice-principal': 'Vice Principal / Coordinator',
+  };
+
+  const displayStakeholders = isPreschool
+    ? [
+        ...stakeholders
+          .filter(s => !preschoolHiddenIds.includes(s.id))
+          .map(s => preschoolNameMap[s.id] ? { ...s, name: preschoolNameMap[s.id] } : s),
+        ...preschoolExtraStakeholders,
+      ]
+    : stakeholders;
 
   return (
     <div className="space-y-8">
@@ -24,7 +50,7 @@ function HomePage({ theme }: { theme?: Theme }) {
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-8`}>
         <h1 className={`text-3xl font-bold ${theme.highlight} mb-2`}>Saaras.ai — ERP Blueprint</h1>
         <p className={`${theme.iconColor} text-sm max-w-2xl`}>
-          This is a navigable visual prototype of the School ERP platform. Click any dashboard below to explore.
+          This is a navigable visual prototype of the {isPreschool ? 'Preschool / Daycare' : 'School'} ERP platform. Click any dashboard below to explore.
           Use <kbd className="px-1.5 py-0.5 bg-purple-600 text-white rounded text-[10px] font-bold mx-0.5">Shift+Click</kbd> on any element to leave feedback.
         </p>
         <div className="flex gap-6 mt-6">
@@ -43,11 +69,25 @@ function HomePage({ theme }: { theme?: Theme }) {
         </div>
       </div>
 
+      {/* Preschool banner */}
+      {isPreschool && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
+          <span className="text-xl">🏫</span>
+          <div>
+            <p className="text-sm font-bold text-amber-800">Preschool / Daycare Mode</p>
+            <p className="text-xs text-amber-700 mt-1">
+              Student portal is hidden (children are 1.5–5 years old). Principal shows as <strong>Principal / Centre Head</strong>,
+              Vice Principal as <strong>VP / Coordinator</strong>. 3 new roles added: Bus Nanny, Nutritionist, Activity Coordinator.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Dashboard Grid */}
       <div>
         <h2 className={`text-lg font-bold ${theme.highlight} mb-4`}>Stakeholder Dashboards</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {stakeholders.map(s => {
+          {displayStakeholders.map(s => {
             const Icon = iconMap[s.icon] || Building2;
             const StatusIcon = s.status === 'built' ? CheckCircle : s.status === 'in-progress' ? Hammer : Clock;
             const statusColor = s.status === 'built' ? 'text-emerald-500' : s.status === 'in-progress' ? 'text-amber-500' : 'text-slate-400';

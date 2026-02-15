@@ -36,7 +36,7 @@ const modules = [
   { id: 'support', label: 'Support', icon: Headphones },
 ];
 
-function PrincipalDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
+function PrincipalDashboard({ theme, themeIdx, onThemeChange, isPreschool }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void; isPreschool?: boolean }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [expandedParent, setExpandedParent] = useState<string | null>(null);
@@ -95,7 +95,7 @@ function PrincipalDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme;
 
       {/* Module content */}
       <div className="flex-1 p-6 space-y-4 overflow-x-hidden">
-        {activeModule === 'dashboard' && <DashboardHome theme={theme} onProfileClick={() => setActiveModule('profile')} />}
+        {activeModule === 'dashboard' && <DashboardHome theme={theme} onProfileClick={() => setActiveModule('profile')} isPreschool={isPreschool} />}
         {activeModule === 'academics' && <AcademicsModule theme={theme} />}
         {activeModule === 'staff' && <StaffOverviewModule theme={theme} />}
         {activeModule === 'hr' && <HRManagementModule theme={theme} />}
@@ -113,13 +113,13 @@ function PrincipalDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme;
 }
 
 // ─── DASHBOARD HOME ──────────────────────────────────
-function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick: () => void }) {
+function DashboardHome({ theme, onProfileClick, isPreschool }: { theme: Theme; onProfileClick: () => void; isPreschool?: boolean }) {
   const [drillDown, setDrillDown] = useState<'students' | 'academic' | 'non-academic' | null>(null);
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className={`text-2xl font-bold ${theme.highlight}`}>Principal Dashboard</h1>
+        <h1 className={`text-2xl font-bold ${theme.highlight}`}>{isPreschool ? 'Principal / Centre Head Dashboard' : 'Principal Dashboard'}</h1>
         <div className="flex items-center gap-2">
           {/* Notification Bell */}
           <button title="Notifications" className={`relative w-9 h-9 rounded-full ${theme.secondaryBg} flex items-center justify-center ${theme.buttonHover} transition-all`}>
@@ -132,6 +132,13 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
           </button>
         </div>
       </div>
+      {/* Preschool Mode Banner */}
+      {isPreschool && (
+        <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800">
+          <AlertTriangle size={14} className="text-amber-600 shrink-0" />
+          <p className="text-xs font-medium">Preschool Mode — Showing Centre Head view with child safety, staff-child ratios, and milestone tracking</p>
+        </div>
+      )}
       {/* Attendance Row — Student + Academic Staff + Non-Academic Staff (Clickable) */}
       <div className="grid grid-cols-3 gap-3">
         {/* Student Attendance */}
@@ -243,6 +250,19 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
           </div>
         </div>
       </div>
+
+      {/* Preschool-Specific Cards */}
+      {isPreschool && (
+        <div className="mt-4 space-y-4">
+          <p className="text-xs font-bold text-amber-600">Preschool-Specific</p>
+          <div className="grid grid-cols-4 gap-3">
+            <StatCard icon={Shield} label="Staff-Child Ratio" value="1:8" color="bg-blue-500" sub="Nursery OK" theme={theme} />
+            <StatCard icon={Heart} label="Daily Health Reports" value="2" color="bg-red-500" sub="pending review" theme={theme} />
+            <StatCard icon={TrendingUp} label="Developmental Milestones" value="85%" color="bg-emerald-500" sub="on track" theme={theme} />
+            <StatCard icon={Star} label="Parent Satisfaction" value="4.6/5.0" color="bg-amber-500" theme={theme} />
+          </div>
+        </div>
+      )}
 
       {/* News Board + Task Tracker — Side by Side */}
       <div className="grid grid-cols-2 gap-4">

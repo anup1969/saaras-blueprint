@@ -2385,19 +2385,19 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
 function Step4Roles({ theme, institutionType }: { theme: Theme; institutionType: string }) {
   const isPreschool = institutionType === 'preschool';
 
-  // Preschool role definitions
+  // Preschool role definitions — Principal/VP get dual labels, Teacher stays
   const preschoolRoles: Record<string, boolean> = {
-    'School Admin': true, 'Director / Centre Head': true, 'Coordinator': false, 'Caregiver / Facilitator': true,
+    'School Admin': true, 'Principal / Centre Head': true, 'Vice Principal / Coordinator': false, 'Teacher': true,
     'HR Manager': true, 'Accounts Head': true, 'Receptionist': true, 'Transport Head': false,
     'Security / Gatekeeper': true, 'Trustee': false,
     'Bus Nanny / Attendant': false, 'Nutritionist / Diet Planner': false, 'Activity Coordinator': false,
   };
-  const preschoolMandatory = ['School Admin', 'Director / Centre Head', 'Caregiver / Facilitator'];
+  const preschoolMandatory = ['School Admin', 'Principal / Centre Head', 'Teacher'];
   const preschoolDescs: Record<string, string> = {
     'School Admin': 'Central operations & configuration',
-    'Director / Centre Head': 'Child safety, staff-child ratios, parent satisfaction, milestones',
-    'Coordinator': 'Scheduling, parent coordination, events (larger preschools only)',
-    'Caregiver / Facilitator': 'Daily activity log, meals, naps, milestones, parent reports',
+    'Principal / Centre Head': 'Child safety, staff-child ratios, parent satisfaction, milestones',
+    'Vice Principal / Coordinator': 'Scheduling, parent coordination, events (larger preschools only)',
+    'Teacher': 'Daily activity log, meals, naps, milestones, parent reports',
     'HR Manager': 'Employee lifecycle, payroll', 'Accounts Head': 'Monthly fee collection, expenses',
     'Receptionist': 'Front desk, parent drop-off/pickup log', 'Transport Head': 'Routes, vehicles (if bus service)',
     'Security / Gatekeeper': 'Gate, pickup authorization, photo verification', 'Trustee': 'Governance, financials',
@@ -2429,7 +2429,7 @@ function Step4Roles({ theme, institutionType }: { theme: Theme; institutionType:
   const [roles, setRoles] = useState<Record<string, boolean>>(initialRoles);
   const [hrAccess, setHrAccess] = useState<Record<string, boolean>>(
     isPreschool
-      ? { 'Director / Centre Head': true, 'School Admin': true, 'Trustee': true }
+      ? { 'Principal / Centre Head': true, 'School Admin': true, 'Trustee': true }
       : { 'Principal': true, 'School Admin': true, 'Vice Principal': false, 'Trustee': true, 'Accounts Head': false }
   );
 
@@ -2449,9 +2449,9 @@ function Step4Roles({ theme, institutionType }: { theme: Theme; institutionType:
             <div>
               <p className="text-xs text-amber-800 font-bold">Preschool Mode — Roles Adapted</p>
               <p className="text-[10px] text-amber-700 mt-1">
-                Principal → <strong>Director / Centre Head</strong> &middot;
-                Teacher → <strong>Caregiver / Facilitator</strong> &middot;
-                Vice Principal → <strong>Coordinator</strong> (optional)
+                Principal → <strong>Principal / Centre Head</strong> &middot;
+                Vice Principal → <strong>Vice Principal / Coordinator</strong> &middot;
+                Teacher stays as <strong>Teacher</strong>
               </p>
             </div>
           </div>

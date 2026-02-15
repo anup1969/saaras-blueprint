@@ -144,7 +144,7 @@ const modules = [
 ];
 
 // ─── MAIN COMPONENT ─────────────────────────────────
-function TeacherDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
+function TeacherDashboard({ theme, themeIdx, onThemeChange, isPreschool }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void; isPreschool?: boolean }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   if (!theme) return null;
@@ -188,7 +188,7 @@ function TeacherDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; t
         </div>
 
         <div className="px-6 pb-6 space-y-4">
-          {activeModule === 'dashboard' && <DashboardHome theme={theme} />}
+          {activeModule === 'dashboard' && <DashboardHome theme={theme} isPreschool={isPreschool} />}
           {activeModule === 'classes' && <MyClassesModule theme={theme} />}
           {activeModule === 'attendance' && <AttendanceModule theme={theme} />}
           {activeModule === 'homework' && <HomeworkModule theme={theme} />}
@@ -207,7 +207,7 @@ function TeacherDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; t
 }
 
 // ─── DASHBOARD HOME ─────────────────────────────────
-function DashboardHome({ theme }: { theme: Theme }) {
+function DashboardHome({ theme, isPreschool }: { theme: Theme; isPreschool?: boolean }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
 
@@ -234,6 +234,12 @@ function DashboardHome({ theme }: { theme: Theme }) {
 
   return (
     <div className="space-y-4">
+      {isPreschool && (
+        <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800">
+          <AlertTriangle size={14} className="text-amber-500 shrink-0" />
+          <p className="text-xs font-medium">Preschool Mode — Activity-based approach: daily logs, meals, naps, milestones</p>
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <div>
           <h1 className={`text-2xl font-bold ${theme.highlight}`}>Good Morning, Ms. Priya</h1>
@@ -288,6 +294,18 @@ function DashboardHome({ theme }: { theme: Theme }) {
         <StatCard icon={FileText} label="Homework Due" value="3" color="bg-purple-500" sub="submissions today" theme={theme} />
         <StatCard icon={Users} label="Total Students" value="225" color="bg-emerald-500" sub="6 sections" theme={theme} />
       </div>
+
+      {isPreschool && (
+        <div className="mt-4 space-y-4">
+          <p className="text-xs font-bold text-amber-600">Preschool Activities</p>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <StatCard icon={Notebook} label="Daily Activity Logs" value="12/15" color="bg-amber-500" sub="completed" theme={theme} />
+            <StatCard icon={ClipboardCheck} label="Meal Tracking" value="28/30" color="bg-emerald-500" sub="Lunch served" theme={theme} />
+            <StatCard icon={Clock} label="Nap Status" value="18 / 7" color="bg-blue-500" sub="sleeping / awake" theme={theme} />
+            <StatCard icon={Award} label="Milestones Due" value="5" color="bg-purple-500" sub="assessments this week" theme={theme} />
+          </div>
+        </div>
+      )}
 
       {/* Two-column layout: Messages + Circulars | To-Dos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
