@@ -2383,17 +2383,37 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
 
 // ─── STEP 4: ROLES & PERMISSIONS ─────────────────────
 function Step4Roles({ theme, institutionType }: { theme: Theme; institutionType: string }) {
-  const [roles, setRoles] = useState<Record<string, boolean>>({
+  const isPreschool = institutionType === 'preschool';
+
+  // Preschool role definitions
+  const preschoolRoles: Record<string, boolean> = {
+    'School Admin': true, 'Director / Centre Head': true, 'Coordinator': false, 'Caregiver / Facilitator': true,
+    'HR Manager': true, 'Accounts Head': true, 'Receptionist': true, 'Transport Head': false,
+    'Security / Gatekeeper': true, 'Trustee': false,
+    'Bus Nanny / Attendant': false, 'Nutritionist / Diet Planner': false, 'Activity Coordinator': false,
+  };
+  const preschoolMandatory = ['School Admin', 'Director / Centre Head', 'Caregiver / Facilitator'];
+  const preschoolDescs: Record<string, string> = {
+    'School Admin': 'Central operations & configuration',
+    'Director / Centre Head': 'Child safety, staff-child ratios, parent satisfaction, milestones',
+    'Coordinator': 'Scheduling, parent coordination, events (larger preschools only)',
+    'Caregiver / Facilitator': 'Daily activity log, meals, naps, milestones, parent reports',
+    'HR Manager': 'Employee lifecycle, payroll', 'Accounts Head': 'Monthly fee collection, expenses',
+    'Receptionist': 'Front desk, parent drop-off/pickup log', 'Transport Head': 'Routes, vehicles (if bus service)',
+    'Security / Gatekeeper': 'Gate, pickup authorization, photo verification', 'Trustee': 'Governance, financials',
+    'Bus Nanny / Attendant': 'Child boarding/drop-off log, safety checklist per trip',
+    'Nutritionist / Diet Planner': 'Meal planning, allergy management, weekly menus',
+    'Activity Coordinator': 'Activity curriculum, milestone planning, event coordination',
+  };
+
+  // Regular school role definitions
+  const regularRoles: Record<string, boolean> = {
     'School Admin': true, 'Principal': true, 'Vice Principal': true, 'Teacher': true,
     'HR Manager': true, 'Accounts Head': true, 'Receptionist': true, 'Transport Head': true,
     'Security / Gatekeeper': true, 'Trustee': false, 'Librarian': false, 'Lab Coordinator': false,
-  });
-  const [hrAccess, setHrAccess] = useState<Record<string, boolean>>({
-    'Principal': true, 'School Admin': true, 'Vice Principal': false, 'Trustee': true, 'Accounts Head': false,
-  });
-
-  const mandatoryRoles = ['School Admin', 'Principal', 'Teacher'];
-  const roleDescs: Record<string, string> = {
+  };
+  const regularMandatory = ['School Admin', 'Principal', 'Teacher'];
+  const regularDescs: Record<string, string> = {
     'School Admin': 'Central operations & configuration', 'Principal': 'Academic oversight & approvals',
     'Vice Principal': 'Substitutions, discipline, exams', 'Teacher': 'Attendance, homework, gradebook',
     'HR Manager': 'Employee lifecycle, payroll', 'Accounts Head': 'Fee collection, expenses',
@@ -2401,6 +2421,17 @@ function Step4Roles({ theme, institutionType }: { theme: Theme; institutionType:
     'Security / Gatekeeper': 'Gate, visitor check-in, pickup', 'Trustee': 'Governance, financials, compliance',
     'Librarian': 'Books, issuing, catalog', 'Lab Coordinator': 'Lab inventory, scheduling',
   };
+
+  const initialRoles = isPreschool ? preschoolRoles : regularRoles;
+  const mandatoryRoles = isPreschool ? preschoolMandatory : regularMandatory;
+  const roleDescs = isPreschool ? preschoolDescs : regularDescs;
+
+  const [roles, setRoles] = useState<Record<string, boolean>>(initialRoles);
+  const [hrAccess, setHrAccess] = useState<Record<string, boolean>>(
+    isPreschool
+      ? { 'Director / Centre Head': true, 'School Admin': true, 'Trustee': true }
+      : { 'Principal': true, 'School Admin': true, 'Vice Principal': false, 'Trustee': true, 'Accounts Head': false }
+  );
 
   const toggleRole = (role: string) => {
     if (mandatoryRoles.includes(role)) return;
@@ -2411,12 +2442,27 @@ function Step4Roles({ theme, institutionType }: { theme: Theme; institutionType:
     <div className="space-y-6">
       <SectionTitle title="Stakeholder Roles & Permissions" subtitle="Activate dashboards and define approval workflows" theme={theme} />
 
-      {institutionType === 'preschool' && (
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3 flex items-start gap-2">
-          <AlertTriangle size={14} className="text-amber-500 mt-0.5 shrink-0" />
-          <p className={`text-xs text-amber-800`}>
-            <strong>Preschool Mode:</strong> Preschool roles: Director (instead of Principal), Caregiver (instead of Teacher), Coordinator. Role names will be adapted in the live system.
-          </p>
+      {isPreschool && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3 space-y-2">
+          <div className="flex items-start gap-2">
+            <AlertTriangle size={14} className="text-amber-500 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-xs text-amber-800 font-bold">Preschool Mode — Roles Adapted</p>
+              <p className="text-[10px] text-amber-700 mt-1">
+                Principal → <strong>Director / Centre Head</strong> &middot;
+                Teacher → <strong>Caregiver / Facilitator</strong> &middot;
+                Vice Principal → <strong>Coordinator</strong> (optional)
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-1.5 ml-5">
+            <span className="text-[9px] px-2 py-0.5 rounded bg-red-100 text-red-600 font-bold">Librarian — Removed</span>
+            <span className="text-[9px] px-2 py-0.5 rounded bg-red-100 text-red-600 font-bold">Lab Coordinator — Removed</span>
+            <span className="text-[9px] px-2 py-0.5 rounded bg-red-100 text-red-600 font-bold">Student Portal — Removed</span>
+            <span className="text-[9px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 font-bold">+ Bus Nanny / Attendant</span>
+            <span className="text-[9px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 font-bold">+ Nutritionist / Diet Planner</span>
+            <span className="text-[9px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 font-bold">+ Activity Coordinator</span>
+          </div>
         </div>
       )}
 
