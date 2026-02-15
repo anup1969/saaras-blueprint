@@ -93,6 +93,8 @@ const INSTITUTION_TYPES = [
 
 // ─── STEP 1: SCHOOL IDENTITY ──────────────────────────
 function Step1Identity({ theme, onInstitutionTypeChange }: { theme: Theme; onInstitutionTypeChange?: (type: string) => void }) {
+  const [orgName, setOrgName] = useState('');
+  const [orgSchoolSame, setOrgSchoolSame] = useState(true);
   const [schoolCount, setSchoolCount] = useState<'single' | 'multiple' | 'existing'>('single');
   const [institutionType, setInstitutionType] = useState('regular');
   const [boardSelection, setBoardSelection] = useState('CBSE');
@@ -153,54 +155,73 @@ function Step1Identity({ theme, onInstitutionTypeChange }: { theme: Theme; onIns
     <div className="space-y-6">
       <SectionTitle title="School Basic Information" subtitle="Collected from school management during onboarding call" theme={theme} />
 
-      {/* ── ORGANISATION SETUP — FIRST QUESTION ── */}
-      <div className={`${theme.cardBg} rounded-2xl border-2 border-blue-300 p-4 space-y-3`}>
-        <SectionTitle title="Organisation Setup" subtitle="Is this a new school, a new organisation, or adding to an existing one?" theme={theme} />
-        <div className="grid grid-cols-3 gap-3">
-          <button onClick={() => setSchoolCount('single')}
-            className={`p-4 rounded-xl border-2 cursor-pointer text-left transition-all ${
-              schoolCount === 'single' ? 'border-emerald-400 bg-emerald-50 ring-2 ring-emerald-200' : `${theme.border} ${theme.cardBg}`
-            }`}>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-xl">🏫</span>
-              <span className={`text-sm font-bold ${theme.highlight}`}>New Single School</span>
+      {/* ── ORGANISATION NAME — FIRST QUESTION ── */}
+      <div className={`${theme.cardBg} rounded-2xl border-2 border-blue-300 p-4 space-y-4`}>
+        <SectionTitle title="Organisation / Entity Name" subtitle="Every school belongs to an organisation — enter the name first" theme={theme} />
+
+        <FormField label="Organisation / Trust Name" placeholder="e.g. DPS Society, Ryan International Group, Udgam Trust" value={orgName} onChange={setOrgName} theme={theme} required />
+
+        {/* Checkbox: Org and School are the same entity */}
+        <button onClick={() => { setOrgSchoolSame(!orgSchoolSame); if (!orgSchoolSame) setSchoolCount('single'); }}
+          className={`flex items-center gap-3 p-4 rounded-xl border-2 w-full text-left cursor-pointer transition-all ${
+            orgSchoolSame ? 'border-emerald-400 bg-emerald-50 ring-1 ring-emerald-200' : `${theme.border} ${theme.cardBg}`
+          }`}>
+          <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center shrink-0 ${
+            orgSchoolSame ? 'bg-emerald-500 border-emerald-500' : theme.border
+          }`}>
+            {orgSchoolSame && <Check size={14} className="text-white" />}
+          </div>
+          <div>
+            <span className={`text-sm font-bold ${theme.highlight}`}>Organisation and School are the same entity</span>
+            <p className={`text-[10px] ${theme.iconColor} mt-0.5`}>
+              {orgSchoolSame
+                ? 'Single standalone school — the organisation name will be used as the school name.'
+                : 'Uncheck this if the org/trust manages multiple schools, or you want to add a school to an existing org.'}
+            </p>
+          </div>
+          {orgSchoolSame && <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold shrink-0">SINGLE SCHOOL</span>}
+        </button>
+
+        {/* If NOT same → show multi-school options */}
+        {!orgSchoolSame && (
+          <div className="space-y-3">
+            <p className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>What would you like to do?</p>
+            <div className="grid grid-cols-2 gap-3">
+              <button onClick={() => setSchoolCount('multiple')}
+                className={`p-4 rounded-xl border-2 cursor-pointer text-left transition-all ${
+                  schoolCount === 'multiple' ? 'border-blue-400 bg-blue-50 ring-2 ring-blue-200' : `${theme.border} ${theme.cardBg}`
+                }`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xl">🔗</span>
+                  <span className={`text-sm font-bold ${theme.highlight}`}>New Organisation</span>
+                </div>
+                {schoolCount === 'multiple' && <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold mb-2 inline-block">SELECTED</span>}
+                <p className={`text-[10px] ${theme.iconColor}`}>Set up a new trust/chain with 2+ schools. Shared reporting & admin.</p>
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {['Shared Reporting', 'Group Admin'].map(f => (
+                    <span key={f} className={`text-[9px] px-1.5 py-0.5 rounded ${schoolCount === 'multiple' ? 'bg-blue-100 text-blue-700' : `${theme.secondaryBg} ${theme.iconColor}`}`}>{f}</span>
+                  ))}
+                </div>
+              </button>
+              <button onClick={() => setSchoolCount('existing')}
+                className={`p-4 rounded-xl border-2 cursor-pointer text-left transition-all ${
+                  isExistingOrg ? 'border-purple-400 bg-purple-50 ring-2 ring-purple-200' : `${theme.border} ${theme.cardBg}`
+                }`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xl">➕</span>
+                  <span className={`text-sm font-bold ${theme.highlight}`}>Add to Existing Org</span>
+                </div>
+                {isExistingOrg && <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 font-bold mb-2 inline-block">SELECTED</span>}
+                <p className={`text-[10px] ${theme.iconColor}`}>Add a new school to an already onboarded organisation.</p>
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {['Inherit Config', 'Shared Roles'].map(f => (
+                    <span key={f} className={`text-[9px] px-1.5 py-0.5 rounded ${isExistingOrg ? 'bg-purple-100 text-purple-700' : `${theme.secondaryBg} ${theme.iconColor}`}`}>{f}</span>
+                  ))}
+                </div>
+              </button>
             </div>
-            {schoolCount === 'single' && <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold mb-2 inline-block">SELECTED</span>}
-            <p className={`text-[10px] ${theme.iconColor}`}>Standalone school — own principal, staff, and configuration.</p>
-          </button>
-          <button onClick={() => setSchoolCount('multiple')}
-            className={`p-4 rounded-xl border-2 cursor-pointer text-left transition-all ${
-              schoolCount === 'multiple' ? 'border-blue-400 bg-blue-50 ring-2 ring-blue-200' : `${theme.border} ${theme.cardBg}`
-            }`}>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-xl">🔗</span>
-              <span className={`text-sm font-bold ${theme.highlight}`}>New Organisation</span>
-            </div>
-            {schoolCount === 'multiple' && <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold mb-2 inline-block">SELECTED</span>}
-            <p className={`text-[10px] ${theme.iconColor}`}>Trust / chain with 2+ schools. Shared reporting & admin.</p>
-            <div className="flex flex-wrap gap-1 mt-2">
-              {['Shared Reporting', 'Group Admin'].map(f => (
-                <span key={f} className={`text-[9px] px-1.5 py-0.5 rounded ${schoolCount === 'multiple' ? 'bg-blue-100 text-blue-700' : `${theme.secondaryBg} ${theme.iconColor}`}`}>{f}</span>
-              ))}
-            </div>
-          </button>
-          <button onClick={() => setSchoolCount('existing')}
-            className={`p-4 rounded-xl border-2 cursor-pointer text-left transition-all ${
-              isExistingOrg ? 'border-purple-400 bg-purple-50 ring-2 ring-purple-200' : `${theme.border} ${theme.cardBg}`
-            }`}>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-xl">➕</span>
-              <span className={`text-sm font-bold ${theme.highlight}`}>Add to Existing Org</span>
-            </div>
-            {isExistingOrg && <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 font-bold mb-2 inline-block">SELECTED</span>}
-            <p className={`text-[10px] ${theme.iconColor}`}>Add a new school to an already onboarded organisation.</p>
-            <div className="flex flex-wrap gap-1 mt-2">
-              {['Inherit Config', 'Shared Roles'].map(f => (
-                <span key={f} className={`text-[9px] px-1.5 py-0.5 rounded ${isExistingOrg ? 'bg-purple-100 text-purple-700' : `${theme.secondaryBg} ${theme.iconColor}`}`}>{f}</span>
-              ))}
-            </div>
-          </button>
-        </div>
+          </div>
+        )}
       </div>
 
       {/* ── ADD TO EXISTING ORGANISATION — When "Add to Existing Org" selected ── */}
