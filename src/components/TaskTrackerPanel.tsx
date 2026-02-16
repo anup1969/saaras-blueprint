@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { type Theme } from '@/lib/themes';
 import {
   ListTodo, Plus, CheckCircle, Clock, Flag, Check, Search,
-  ChevronRight, GripVertical, ArrowRight, X
+  ChevronRight, GripVertical, ArrowRight, X, Mic
 } from 'lucide-react';
 
 interface TaskTrackerPanelProps {
@@ -174,9 +174,52 @@ export default function TaskTrackerPanel({ theme, role }: TaskTrackerPanelProps)
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [customTasks, setCustomTasks] = useState<Array<{ id: number; title: string; priority: 'high' | 'medium' | 'low'; assignee: string; days: string; status: 'open' | 'in progress' | 'done' }>>([]);
   const [newTitle, setNewTitle] = useState('');
+  const [newDescription, setNewDescription] = useState('');
   const [newPriority, setNewPriority] = useState<'high' | 'medium' | 'low'>('medium');
-  const [newAssignee, setNewAssignee] = useState('');
+  const [newAssignees, setNewAssignees] = useState<string[]>([]);
   const [newDueDate, setNewDueDate] = useState('');
+
+  const assigneeOptions = ['Self', 'Vice Principal', 'Teacher', 'HR Manager', 'Accounts Head', 'Receptionist', 'Transport Head'];
+
+  const toggleAssignee = (name: string) => {
+    setNewAssignees(prev =>
+      prev.includes(name) ? prev.filter(a => a !== name) : [...prev, name]
+    );
+  };
+
+  const resetForm = () => {
+    setNewTitle('');
+    setNewDescription('');
+    setNewPriority('medium');
+    setNewAssignees([]);
+    setNewDueDate('');
+  };
+
+  const handleCreateTask = () => {
+    if (!newTitle.trim()) return;
+    const dueLabel = newDueDate
+      ? (() => {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const due = new Date(newDueDate);
+          const diffDays = Math.round((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+          if (diffDays <= 0) return 'Today';
+          if (diffDays === 1) return '1d';
+          return `${diffDays}d`;
+        })()
+      : '\u2014';
+    const newTask = {
+      id: Date.now(),
+      title: newTitle.trim(),
+      priority: newPriority,
+      assignee: newAssignees.length > 0 ? newAssignees.join(', ') : 'Self',
+      days: dueLabel,
+      status: 'open' as const,
+    };
+    setCustomTasks(prev => [newTask, ...prev]);
+    resetForm();
+    setShowCreateForm(false);
+  };
 
   const roleTaskList = roleTasks[role] || defaultTasks;
   const tasks = [...customTasks, ...roleTaskList];
@@ -217,85 +260,149 @@ export default function TaskTrackerPanel({ theme, role }: TaskTrackerPanelProps)
           <h3 className={`text-sm font-bold ${theme.highlight}`}>Task Tracker</h3>
         </div>
         <button
-          onClick={() => setShowCreateForm(prev => !prev)}
+          onClick={() => setShowCreateForm(true)}
           className={`px-2.5 py-1.5 ${theme.primary} text-white rounded-lg text-[10px] font-bold flex items-center gap-1`}
         >
-          {showCreateForm ? <X size={10} /> : <Plus size={10} />} {showCreateForm ? 'Close' : 'Create Task'}
+          <Plus size={10} /> Create Task
         </button>
       </div>
 
-      {/* Create Task Form */}
+      {/* Create Task Modal */}
       {showCreateForm && (
-        <div className={`${theme.secondaryBg} border ${theme.border} rounded-xl p-3 mb-3`}>
-          <div className="grid grid-cols-2 gap-2 mb-2">
-            <input
-              type="text"
-              placeholder="Enter task title..."
-              value={newTitle}
-              onChange={e => setNewTitle(e.target.value)}
-              className={`px-2 py-1.5 rounded-lg text-[10px] ${theme.cardBg} border ${theme.border} ${theme.highlight} outline-none placeholder:${theme.iconColor}`}
-            />
-            <select
-              value={newPriority}
-              onChange={e => setNewPriority(e.target.value as 'high' | 'medium' | 'low')}
-              className={`px-2 py-1.5 rounded-lg text-[10px] font-medium ${theme.cardBg} border ${theme.border} ${theme.highlight} outline-none cursor-pointer`}
-            >
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
-            </select>
-          </div>
-          <div className="grid grid-cols-2 gap-2 mb-2">
-            <input
-              type="text"
-              placeholder="Assignee name"
-              value={newAssignee}
-              onChange={e => setNewAssignee(e.target.value)}
-              className={`px-2 py-1.5 rounded-lg text-[10px] ${theme.cardBg} border ${theme.border} ${theme.highlight} outline-none placeholder:${theme.iconColor}`}
-            />
-            <input
-              type="text"
-              placeholder="e.g. Today, 3d, 1w"
-              value={newDueDate}
-              onChange={e => setNewDueDate(e.target.value)}
-              className={`px-2 py-1.5 rounded-lg text-[10px] ${theme.cardBg} border ${theme.border} ${theme.highlight} outline-none placeholder:${theme.iconColor}`}
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => {
-                if (!newTitle.trim()) return;
-                const newTask = {
-                  id: Date.now(),
-                  title: newTitle.trim(),
-                  priority: newPriority,
-                  assignee: newAssignee.trim() || 'Self',
-                  days: newDueDate.trim() || '—',
-                  status: 'open' as const,
-                };
-                setCustomTasks(prev => [newTask, ...prev]);
-                setNewTitle('');
-                setNewPriority('medium');
-                setNewAssignee('');
-                setNewDueDate('');
-                setShowCreateForm(false);
-              }}
-              className={`px-3 py-1.5 ${theme.primary} text-white rounded-lg text-[10px] font-bold`}
-            >
-              Add Task
-            </button>
-            <button
-              onClick={() => {
-                setNewTitle('');
-                setNewPriority('medium');
-                setNewAssignee('');
-                setNewDueDate('');
-                setShowCreateForm(false);
-              }}
-              className={`px-3 py-1.5 ${theme.secondaryBg} border ${theme.border} ${theme.highlight} rounded-lg text-[10px] font-bold`}
-            >
-              Cancel
-            </button>
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center" onClick={() => { resetForm(); setShowCreateForm(false); }}>
+          <div
+            className={`${theme.cardBg} rounded-2xl max-w-lg w-full mx-4 p-6 shadow-2xl`}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <h2 className={`text-lg font-bold ${theme.highlight}`}>Create New Task</h2>
+                <p className={`text-xs ${theme.iconColor} mt-1 leading-relaxed`}>
+                  Create a new task and assign it to a team member. As an admin, you can assign to multiple people.
+                </p>
+              </div>
+              <button
+                onClick={() => { resetForm(); setShowCreateForm(false); }}
+                className={`p-1 rounded-lg hover:${theme.buttonHover} transition-all shrink-0 ml-4`}
+              >
+                <X size={18} className={theme.iconColor} />
+              </button>
+            </div>
+
+            {/* Title Field */}
+            <div className="mb-4">
+              <label className={`block text-xs font-semibold ${theme.highlight} mb-1.5`}>
+                Title<span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                placeholder="Enter task title"
+                value={newTitle}
+                onChange={e => setNewTitle(e.target.value)}
+                className={`w-full px-3 py-2 rounded-lg text-sm ${theme.secondaryBg} border ${theme.border} ${theme.highlight} outline-none focus:ring-2 focus:ring-blue-500/30 placeholder:text-gray-400`}
+              />
+            </div>
+
+            {/* Description Field */}
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-1.5">
+                <label className={`text-xs font-semibold ${theme.highlight}`}>Description</label>
+                <button className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-medium ${theme.secondaryBg} border ${theme.border} ${theme.iconColor} hover:${theme.buttonHover} transition-all`}>
+                  <Mic size={10} /> Record Voice Note
+                </button>
+              </div>
+              <textarea
+                rows={3}
+                placeholder="Enter task description or use voice dictation"
+                value={newDescription}
+                onChange={e => setNewDescription(e.target.value)}
+                className={`w-full px-3 py-2 rounded-lg text-sm ${theme.secondaryBg} border ${theme.border} ${theme.highlight} outline-none focus:ring-2 focus:ring-blue-500/30 resize-none placeholder:text-gray-400`}
+              />
+            </div>
+
+            {/* Priority + Due Date Row */}
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div>
+                <label className={`block text-xs font-semibold ${theme.highlight} mb-1.5`}>
+                  Priority<span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={newPriority}
+                  onChange={e => setNewPriority(e.target.value as 'high' | 'medium' | 'low')}
+                  className={`w-full px-3 py-2 rounded-lg text-sm font-medium ${theme.secondaryBg} border ${theme.border} ${theme.highlight} outline-none focus:ring-2 focus:ring-blue-500/30 cursor-pointer`}
+                >
+                  <option value="medium">Select priority</option>
+                  <option value="high">High</option>
+                  <option value="medium">Medium</option>
+                  <option value="low">Low</option>
+                </select>
+              </div>
+              <div>
+                <label className={`block text-xs font-semibold ${theme.highlight} mb-1.5`}>Due Date</label>
+                <div className="relative">
+                  <input
+                    type="date"
+                    value={newDueDate}
+                    onChange={e => setNewDueDate(e.target.value)}
+                    className={`w-full px-3 py-2 rounded-lg text-sm ${theme.secondaryBg} border ${theme.border} ${theme.highlight} outline-none focus:ring-2 focus:ring-blue-500/30`}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Assign To Multi-select */}
+            <div className="mb-6">
+              <label className={`block text-xs font-semibold ${theme.highlight} mb-1.5`}>
+                Assign To<span className="text-red-500">*</span> <span className={`font-normal ${theme.iconColor}`}>(Multi-select enabled)</span>
+              </label>
+              <div className={`w-full px-3 py-2 rounded-lg ${theme.secondaryBg} border ${theme.border} min-h-[40px]`}>
+                {/* Selected chips */}
+                {newAssignees.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {newAssignees.map(a => (
+                      <span
+                        key={a}
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${theme.primary} text-white`}
+                      >
+                        {a}
+                        <button onClick={() => toggleAssignee(a)} className="hover:opacity-70">
+                          <X size={10} />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {/* Options */}
+                <div className="flex flex-wrap gap-1.5">
+                  {assigneeOptions.filter(a => !newAssignees.includes(a)).map(option => (
+                    <button
+                      key={option}
+                      onClick={() => toggleAssignee(option)}
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${theme.border} ${theme.iconColor} hover:${theme.buttonHover} transition-all`}
+                    >
+                      + {option}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center justify-end gap-2">
+              <button
+                onClick={() => { resetForm(); setShowCreateForm(false); }}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold border ${theme.border} ${theme.highlight} hover:${theme.buttonHover} transition-all`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateTask}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold ${theme.primary} text-white hover:opacity-90 transition-all`}
+              >
+                Create Task
+              </button>
+            </div>
           </div>
         </div>
       )}

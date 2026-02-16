@@ -99,7 +99,7 @@ function PrincipalDashboard({ theme, themeIdx, onThemeChange, isPreschool }: { t
         {activeModule === 'academics' && <AcademicsModule theme={theme} />}
         {activeModule === 'staff' && <StaffOverviewModule theme={theme} />}
         {activeModule === 'hr' && <HRManagementModule theme={theme} />}
-        {activeModule === 'compliance' && <ComplianceModule theme={theme} />}
+        {activeModule === 'compliance' && <ComplianceModule theme={theme} isPreschool={isPreschool} />}
         {activeModule === 'communication' && <CommunicationModule theme={theme} />}
         {activeModule === 'calendar' && <CalendarModule theme={theme} />}
         {activeModule === 'yearly-planner' && <YearlyPlannerModule theme={theme} />}
@@ -115,6 +115,7 @@ function PrincipalDashboard({ theme, themeIdx, onThemeChange, isPreschool }: { t
 // ─── DASHBOARD HOME ──────────────────────────────────
 function DashboardHome({ theme, onProfileClick, isPreschool }: { theme: Theme; onProfileClick: () => void; isPreschool?: boolean }) {
   const [drillDown, setDrillDown] = useState<'students' | 'academic' | 'non-academic' | null>(null);
+  const [showEnquiryPipeline, setShowEnquiryPipeline] = useState(false);
 
   return (
     <div className="space-y-4">
@@ -230,7 +231,9 @@ function DashboardHome({ theme, onProfileClick, isPreschool }: { theme: Theme; o
       {/* Stat Cards + Quick Actions — same row */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <StatCard icon={ClipboardCheck} label="Avg Attendance" value="94.2%" color="bg-emerald-500" theme={theme} />
-        <StatCard icon={Users} label="New Enquiries" value="12" color="bg-purple-500" sub="5 walk-in, 7 online" theme={theme} />
+        <button onClick={() => setShowEnquiryPipeline(!showEnquiryPipeline)} className="text-left">
+          <StatCard icon={Users} label="New Enquiries" value="12" color="bg-purple-500" sub="Click to view pipeline" theme={theme} />
+        </button>
         <StatCard icon={Clock} label="Pending Approvals" value="8" color="bg-amber-500" theme={theme} />
         <StatCard icon={Banknote} label="Today's Collection" value={`\u20B92,45,000`} color="bg-green-500" sub="Outstanding: \u20B918.5L" theme={theme} />
         {/* Quick Actions — compact icon row */}
@@ -251,14 +254,74 @@ function DashboardHome({ theme, onProfileClick, isPreschool }: { theme: Theme; o
         </div>
       </div>
 
-      {/* Preschool-Specific Cards — actionable daily info only (ratios moved to Reports) */}
-      {isPreschool && (
-        <div className="grid grid-cols-3 gap-3">
-          <StatCard icon={Heart} label="Daily Health Reports" value="2" color="bg-red-500" sub="pending review" theme={theme} />
-          <StatCard icon={TrendingUp} label="Developmental Milestones" value="85%" color="bg-emerald-500" sub="on track" theme={theme} />
-          <StatCard icon={Star} label="Parent Satisfaction" value="4.6/5.0" color="bg-amber-500" sub="this month" theme={theme} />
+      {/* Enquiry Pipeline Drill-Down */}
+      {showEnquiryPipeline && (
+        <div className={`${theme.cardBg} rounded-2xl border-2 border-purple-400 ring-1 ring-purple-400/30 p-4`}>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>Enquiry Pipeline — Today</h3>
+            <button onClick={() => setShowEnquiryPipeline(false)} className={`text-xs ${theme.iconColor} hover:text-red-500`}>Close</button>
+          </div>
+          <div className="grid grid-cols-5 gap-2 mb-3">
+            {[
+              { stage: 'New', count: 5, color: 'bg-blue-500', sub: '3 walk-in, 2 online' },
+              { stage: 'Follow-up', count: 3, color: 'bg-amber-500', sub: 'Call scheduled today' },
+              { stage: 'Test Scheduled', count: 2, color: 'bg-purple-500', sub: 'Feb 18 & Feb 20' },
+              { stage: 'Converted', count: 1, color: 'bg-emerald-500', sub: 'Admission confirmed' },
+              { stage: 'Lost', count: 1, color: 'bg-red-500', sub: 'Fee too high' },
+            ].map(s => (
+              <div key={s.stage} className={`${theme.secondaryBg} rounded-xl p-3 border ${theme.border} text-center`}>
+                <div className={`w-8 h-8 rounded-full ${s.color}/20 mx-auto flex items-center justify-center mb-1.5`}>
+                  <span className={`text-sm font-bold ${s.color.replace('bg-', 'text-')}`}>{s.count}</span>
+                </div>
+                <p className={`text-[10px] font-bold ${theme.highlight}`}>{s.stage}</p>
+                <p className={`text-[9px] ${theme.iconColor} mt-0.5`}>{s.sub}</p>
+              </div>
+            ))}
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className={`border-b ${theme.border}`}>
+                  <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Child</th>
+                  <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Class</th>
+                  <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Parent</th>
+                  <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Source</th>
+                  <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Stage</th>
+                  <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { child: 'Vikram Rao', cls: 'Nursery', parent: 'Sunil Rao', source: 'Walk-in', stage: 'New', date: 'Today' },
+                  { child: 'Anita Desai', cls: 'KG-1', parent: 'Meena Desai', source: 'Online', stage: 'Follow-up', date: 'Yesterday' },
+                  { child: 'Kabir Joshi', cls: '3rd', parent: 'Suresh Joshi', source: 'Referral', stage: 'Converted', date: 'Feb 14' },
+                  { child: 'Sanya Iyer', cls: '1st', parent: 'Ramesh Iyer', source: 'Online', stage: 'Test Scheduled', date: 'Feb 18' },
+                  { child: 'Prachi Mehta', cls: '6th', parent: 'Deepak Mehta', source: 'Walk-in', stage: 'Lost', date: 'Feb 12' },
+                ].map((e, i) => (
+                  <tr key={i} className={`border-b ${theme.border} ${theme.buttonHover}`}>
+                    <td className={`py-2 px-2 ${theme.highlight} font-bold`}>{e.child}</td>
+                    <td className={`py-2 px-2 ${theme.iconColor}`}>{e.cls}</td>
+                    <td className={`py-2 px-2 ${theme.iconColor}`}>{e.parent}</td>
+                    <td className={`py-2 px-2 ${theme.iconColor}`}>{e.source}</td>
+                    <td className="py-2 px-2">
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                        e.stage === 'New' ? 'bg-blue-100 text-blue-700' :
+                        e.stage === 'Follow-up' ? 'bg-amber-100 text-amber-700' :
+                        e.stage === 'Test Scheduled' ? 'bg-purple-100 text-purple-700' :
+                        e.stage === 'Converted' ? 'bg-emerald-100 text-emerald-700' :
+                        'bg-red-100 text-red-700'
+                      }`}>{e.stage}</span>
+                    </td>
+                    <td className={`py-2 px-2 ${theme.iconColor}`}>{e.date}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
+
+      {/* Preschool-specific cards removed per PM feedback — will revisit if meaningful KPIs identified */}
 
       {/* News Board + Task Tracker — Side by Side */}
       <div className="grid grid-cols-2 gap-4">
@@ -790,25 +853,51 @@ function HRManagementModule({ theme }: { theme: Theme }) {
 }
 
 // ─── COMPLIANCE MODULE ──────────────────────────────
-function ComplianceModule({ theme }: { theme: Theme }) {
-  const overdueItems = [
+function ComplianceModule({ theme, isPreschool }: { theme: Theme; isPreschool?: boolean }) {
+  // Preschool compliance data — ECCE, health/hygiene, food safety, staff verification
+  const overdueItems = isPreschool ? [
+    { title: 'Fire Safety Certificate renewal', dueDate: '31-Jan-2026', assignedTo: 'Centre Head', status: 'Overdue' },
+    { title: 'FSSAI food license renewal (kitchen)', dueDate: '15-Jan-2026', assignedTo: 'Nutritionist', status: 'Overdue' },
+  ] : [
     { title: 'Fire Safety Certificate renewal', dueDate: '31-Jan-2026', assignedTo: 'Rajesh Kumar', status: 'Overdue' },
     { title: 'CBSE affiliation renewal', dueDate: '15-Jan-2026', assignedTo: 'Dr. Priya Sharma', status: 'Overdue' },
   ];
 
-  const dueThisMonth = [
+  const dueThisMonth = isPreschool ? [
+    { title: 'Staff-child ratio compliance check', dueDate: '28-Feb-2026', assignedTo: 'Centre Head', status: 'In Progress' },
+    { title: 'Staff background verification (2 new)', dueDate: '25-Feb-2026', assignedTo: 'HR Manager', status: 'Pending' },
+    { title: 'POCSO training completion — all staff', dueDate: '20-Feb-2026', assignedTo: 'Coordinator', status: 'In Progress' },
+    { title: 'Health & hygiene inspection — classrooms', dueDate: '22-Feb-2026', assignedTo: 'Admin', status: 'Pending' },
+    { title: 'First aid kit restocking & expiry check', dueDate: '18-Feb-2026', assignedTo: 'Receptionist', status: 'Pending' },
+  ] : [
     { title: 'Annual audit report submission', dueDate: '28-Feb-2026', assignedTo: 'Accounts Head', status: 'In Progress' },
     { title: 'Staff background verification', dueDate: '25-Feb-2026', assignedTo: 'HR Manager', status: 'Pending' },
     { title: 'POCSO training completion', dueDate: '20-Feb-2026', assignedTo: 'Vice Principal', status: 'In Progress' },
   ];
 
-  const upcomingItems = [
+  const upcomingItems = isPreschool ? [
+    { title: 'ECCE guidelines compliance audit (NEP 2020)', dueDate: '15-Mar-2026', assignedTo: 'Centre Head', status: 'Scheduled' },
+    { title: 'Building safety & childproofing inspection', dueDate: '01-Apr-2026', assignedTo: 'Admin', status: 'Scheduled' },
+    { title: 'Annual health checkup — all children', dueDate: '10-Apr-2026', assignedTo: 'Medical Officer', status: 'Scheduled' },
+    { title: 'RTE compliance report (if applicable)', dueDate: '15-Apr-2026', assignedTo: 'School Admin', status: 'Scheduled' },
+    { title: 'Food safety audit — kitchen & storage', dueDate: '20-Apr-2026', assignedTo: 'Nutritionist', status: 'Scheduled' },
+  ] : [
     { title: 'RTE compliance report', dueDate: '15-Mar-2026', assignedTo: 'School Admin', status: 'Scheduled' },
     { title: 'Infrastructure safety inspection', dueDate: '01-Apr-2026', assignedTo: 'Rajesh Kumar', status: 'Scheduled' },
     { title: 'Annual health checkup records', dueDate: '10-Apr-2026', assignedTo: 'Medical Officer', status: 'Scheduled' },
   ];
 
-  const sqaafDomains = [
+  // SQAAF for regular, ECCE Compliance domains for preschool
+  const complianceDomains = isPreschool ? [
+    { name: 'Staff-Child Ratios', score: 92, color: 'bg-emerald-500' },
+    { name: 'Health & Hygiene', score: 85, color: 'bg-blue-500' },
+    { name: 'Food Safety (FSSAI)', score: 78, color: 'bg-amber-500' },
+    { name: 'Staff Background Verification', score: 88, color: 'bg-purple-500' },
+    { name: 'First Aid & Emergency Readiness', score: 75, color: 'bg-teal-500' },
+    { name: 'Building Safety & Childproofing', score: 82, color: 'bg-indigo-500' },
+    { name: 'ECCE Curriculum (NEP 2020)', score: 70, color: 'bg-orange-500' },
+    { name: 'POCSO Compliance', score: 90, color: 'bg-rose-500' },
+  ] : [
     { name: 'Curricular Aspects', score: 82, color: 'bg-emerald-500' },
     { name: 'Teaching-Learning', score: 78, color: 'bg-blue-500' },
     { name: 'Infrastructure', score: 71, color: 'bg-amber-500' },
@@ -817,6 +906,8 @@ function ComplianceModule({ theme }: { theme: Theme }) {
     { name: 'Governance', score: 75, color: 'bg-indigo-500' },
     { name: 'Innovation', score: 68, color: 'bg-orange-500' },
   ];
+
+  const overallScore = isPreschool ? 83 : 78;
 
   const statusBadgeColor = (status: string) => {
     if (status === 'Overdue') return 'bg-red-100 text-red-700';
@@ -827,7 +918,7 @@ function ComplianceModule({ theme }: { theme: Theme }) {
 
   return (
     <div className="space-y-4">
-      <h1 className={`text-2xl font-bold ${theme.highlight}`}>Compliance</h1>
+      <h1 className={`text-2xl font-bold ${theme.highlight}`}>{isPreschool ? 'Preschool Compliance' : 'Compliance'}</h1>
 
       {/* Task Report Cards */}
       <div className="space-y-4">
@@ -896,16 +987,16 @@ function ComplianceModule({ theme }: { theme: Theme }) {
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className={`text-sm font-bold ${theme.highlight}`}>SQAAF — School Quality Assessment & Accreditation Framework</h3>
-            <p className={`text-[10px] ${theme.iconColor} mt-0.5`}>Self-assessment for continuous improvement &middot; 7 domains</p>
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>{isPreschool ? 'ECCE Compliance — Early Childhood Care & Education' : 'SQAAF — School Quality Assessment & Accreditation Framework'}</h3>
+            <p className={`text-[10px] ${theme.iconColor} mt-0.5`}>{isPreschool ? 'Health, safety, staff, food — 8 compliance domains' : 'Self-assessment for continuous improvement · 7 domains'}</p>
           </div>
           <div className={`w-14 h-14 rounded-2xl ${theme.primary} text-white flex flex-col items-center justify-center`}>
-            <span className="text-lg font-bold">78</span>
+            <span className="text-lg font-bold">{overallScore}</span>
             <span className="text-[8px]">/ 100</span>
           </div>
         </div>
         <div className="space-y-3">
-          {sqaafDomains.map(d => (
+          {complianceDomains.map(d => (
             <div key={d.name} className={`flex items-center gap-3 p-3 rounded-xl ${theme.secondaryBg}`}>
               <span className={`text-xs font-bold ${theme.highlight} w-40`}>{d.name}</span>
               <div className="flex-1 h-2 rounded-full bg-slate-200 overflow-hidden">
