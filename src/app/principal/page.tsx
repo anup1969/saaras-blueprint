@@ -13,7 +13,7 @@ import {
   PanelLeftClose, PanelLeftOpen, Banknote, IndianRupee, Mail, Inbox,
   ChevronRight, ChevronLeft, CalendarDays, GripVertical, Flag, Edit2, Save, Trash2,
   CalendarClock, Sparkles, Bot, ChevronDown, Loader2, Bus, MapPin, Paperclip,
-  ToggleLeft, ToggleRight, Percent, Headphones, Radio, Zap, Activity
+  ToggleLeft, ToggleRight, Percent, Headphones, Radio, Zap, Activity, RefreshCw
 } from 'lucide-react';
 import { ChatsView } from '@/components/ChatModule';
 import StakeholderProfile from '@/components/StakeholderProfile';
@@ -108,6 +108,150 @@ function PrincipalDashboard({ theme, themeIdx, onThemeChange, isPreschool }: { t
         {activeModule === 'support' && <SupportModule theme={theme} role="principal" />}
         {activeModule === 'profile' && <StakeholderProfile role="principal" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>
+    </div>
+  );
+}
+
+// ─── RECURRING TASKS CARD ─────────────────────────────
+function RecurringTasksCard({ theme, isPreschool }: { theme: Theme; isPreschool?: boolean }) {
+  // Mock recurring tasks with streak data
+  const recurringTasks = [
+    {
+      id: 1, title: 'Check washroom cleanliness — all floors',
+      assignee: 'Housekeeping Head', frequency: 'Twice Daily', priority: 'high' as const,
+      todayDone: 1, todayTotal: 2,
+      streak: [true, true, true, true, true, true, false, true, true, true, true, true, true, true] // last 14 days
+    },
+    {
+      id: 2, title: 'Verify fire safety equipment status',
+      assignee: 'Security Head', frequency: 'Monthly', priority: 'high' as const,
+      todayDone: 0, todayTotal: 1,
+      streak: [true, null, null, null, null, null, null, null, null, null, null, null, null, null] // monthly - only 1 per month shown
+    },
+    {
+      id: 3, title: 'Clean entire school premises',
+      assignee: 'Housekeeping Head', frequency: 'Weekly', priority: 'medium' as const,
+      todayDone: 1, todayTotal: 1,
+      streak: [true, null, null, null, null, null, null, true, null, null, null, null, null, true] // weekly
+    },
+    {
+      id: 4, title: 'Campus security walkthrough',
+      assignee: 'Security Guard', frequency: 'Daily', priority: 'medium' as const,
+      todayDone: 1, todayTotal: 1,
+      streak: [true, true, true, false, true, true, true, true, true, true, true, true, false, true]
+    },
+    {
+      id: 5, title: 'Drinking water quality check',
+      assignee: 'Lab Assistant', frequency: 'Weekly', priority: 'high' as const,
+      todayDone: 0, todayTotal: 1,
+      streak: [false, null, null, null, null, null, null, true, null, null, null, null, null, true]
+    },
+  ];
+
+  const completedToday = recurringTasks.filter(t => t.todayDone >= t.todayTotal).length;
+  const totalToday = recurringTasks.length;
+  const completionPct = Math.round((completedToday / totalToday) * 100);
+
+  const priorityDot = (p: 'high' | 'medium' | 'low') => {
+    if (p === 'high') return 'bg-red-500';
+    if (p === 'medium') return 'bg-amber-500';
+    return 'bg-blue-500';
+  };
+
+  return (
+    <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <RefreshCw size={16} className={theme.iconColor} />
+          <h3 className={`text-sm font-bold ${theme.highlight}`}>Recurring Tasks</h3>
+          <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+            completionPct === 100 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+          }`}>
+            {completedToday}/{totalToday} done today
+          </span>
+        </div>
+        <div className={`text-[10px] font-medium ${theme.iconColor}`}>
+          Last 14 days
+        </div>
+      </div>
+
+      {/* Progress bar */}
+      <div className={`w-full h-2 rounded-full ${theme.secondaryBg} mb-4`}>
+        <div
+          className={`h-2 rounded-full transition-all ${completionPct === 100 ? 'bg-emerald-500' : 'bg-amber-500'}`}
+          style={{ width: `${completionPct}%` }}
+        />
+      </div>
+
+      {/* Task list with streaks */}
+      <div className="space-y-2.5">
+        {recurringTasks.map(task => (
+          <div key={task.id} className={`p-3 rounded-xl ${theme.accentBg}`}>
+            <div className="flex items-start justify-between mb-2">
+              <div className="flex items-start gap-2 flex-1 min-w-0">
+                {/* Completion checkbox */}
+                <button className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all ${
+                  task.todayDone >= task.todayTotal
+                    ? 'bg-emerald-500 border-emerald-500'
+                    : 'border-gray-300 hover:border-emerald-400'
+                }`}>
+                  {task.todayDone >= task.todayTotal && <Check size={10} className="text-white" />}
+                </button>
+                <div className="min-w-0">
+                  <p className={`text-[11px] font-bold ${theme.highlight} truncate ${
+                    task.todayDone >= task.todayTotal ? 'line-through opacity-60' : ''
+                  }`}>{task.title}</p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className={`w-1.5 h-1.5 rounded-full ${priorityDot(task.priority)}`} />
+                    <span className={`text-[9px] ${theme.iconColor}`}>{task.assignee}</span>
+                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${theme.secondaryBg} ${theme.iconColor} font-medium`}>{task.frequency}</span>
+                    {task.todayTotal > 1 && (
+                      <span className={`text-[9px] font-bold ${task.todayDone >= task.todayTotal ? 'text-emerald-600' : 'text-amber-600'}`}>
+                        {task.todayDone}/{task.todayTotal}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+            {/* Streak row */}
+            <div className="flex items-center gap-1 ml-7">
+              {task.streak.map((day, i) => (
+                <div
+                  key={i}
+                  className={`w-4 h-4 rounded-sm flex items-center justify-center ${
+                    day === null ? `${theme.secondaryBg} opacity-30`
+                    : day ? 'bg-emerald-500'
+                    : 'bg-red-400'
+                  }`}
+                  title={day === null ? 'N/A' : day ? 'Completed' : 'Missed'}
+                >
+                  {day === true && <Check size={8} className="text-white" />}
+                  {day === false && <X size={8} className="text-white" />}
+                </div>
+              ))}
+              {/* Streak count */}
+              {(() => {
+                const recent = task.streak.filter((d): d is boolean => d !== null);
+                const completed = recent.filter(d => d === true).length;
+                const total = recent.length;
+                const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+                return (
+                  <span className={`text-[9px] font-bold ml-1 ${pct >= 90 ? 'text-emerald-600' : pct >= 70 ? 'text-amber-600' : 'text-red-600'}`}>
+                    {pct}%
+                  </span>
+                );
+              })()}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Footer note */}
+      <p className={`text-[9px] ${theme.iconColor} mt-3 pt-2 border-t ${theme.border} italic`}>
+        Recurring tasks auto-reset based on frequency. Streak shows completion history.
+      </p>
     </div>
   );
 }
@@ -404,6 +548,9 @@ function DashboardHome({ theme, onProfileClick, isPreschool }: { theme: Theme; o
 
         {/* Task Tracker — Full Task Management Dashboard */}
         <TaskTrackerPanel theme={theme} role="principal" />
+
+        {/* Recurring Tasks — Streak Tracking Card */}
+        <RecurringTasksCard theme={theme} isPreschool={isPreschool} />
       </div>
     </div>
   );

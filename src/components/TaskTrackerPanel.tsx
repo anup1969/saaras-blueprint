@@ -4,12 +4,13 @@ import React, { useState } from 'react';
 import { type Theme } from '@/lib/themes';
 import {
   ListTodo, Plus, CheckCircle, Clock, Flag, Check, Search,
-  ChevronRight, GripVertical, ArrowRight, X, Mic
+  ChevronRight, GripVertical, ArrowRight, X, Mic, RefreshCw
 } from 'lucide-react';
 
 interface TaskTrackerPanelProps {
   theme: Theme;
   role: string;
+  onRecurringTasksChange?: (tasks: Array<{id: number; title: string; priority: 'high'|'medium'|'low'; assignee: string; frequency: string; status: 'active'|'paused'}>) => void;
 }
 
 const roleTasks: Record<string, Array<{ id: number; title: string; priority: 'high' | 'medium' | 'low'; assignee: string; days: string; status: 'open' | 'in progress' | 'done' }>> = {
@@ -166,7 +167,7 @@ const defaultTasks: Array<{ id: number; title: string; priority: 'high' | 'mediu
   { id: 8, title: 'Submit weekly summary', priority: 'low', assignee: 'Self', days: '12d', status: 'open' },
 ];
 
-export default function TaskTrackerPanel({ theme, role }: TaskTrackerPanelProps) {
+export default function TaskTrackerPanel({ theme, role, onRecurringTasksChange }: TaskTrackerPanelProps) {
   const [taskTab, setTaskTab] = useState('Quick View');
   const [taskSearch, setTaskSearch] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('All');
@@ -178,11 +179,34 @@ export default function TaskTrackerPanel({ theme, role }: TaskTrackerPanelProps)
   const [newPriority, setNewPriority] = useState<'high' | 'medium' | 'low'>('medium');
   const [newAssignees, setNewAssignees] = useState<string[]>([]);
   const [newDueDate, setNewDueDate] = useState('');
+  const [showRecurringForm, setShowRecurringForm] = useState(false);
+  const [recurTitle, setRecurTitle] = useState('');
+  const [recurDescription, setRecurDescription] = useState('');
+  const [recurPriority, setRecurPriority] = useState<'high' | 'medium' | 'low'>('medium');
+  const [recurAssignees, setRecurAssignees] = useState<string[]>([]);
+  const [recurFrequency, setRecurFrequency] = useState('daily');
+  const [recurCustomInterval, setRecurCustomInterval] = useState(1);
+  const [recurCustomUnit, setRecurCustomUnit] = useState<'days' | 'weeks'>('days');
+
+  const mockRecurringTasks = role === 'principal' ? [
+    { id: 1001, title: 'Check washroom cleanliness — all floors', priority: 'high' as const, assignee: 'Housekeeping Head', frequency: 'Twice Daily', status: 'active' as const },
+    { id: 1002, title: 'Verify fire safety equipment status', priority: 'high' as const, assignee: 'Security Head', frequency: 'Monthly', status: 'active' as const },
+    { id: 1003, title: 'Clean entire school premises', priority: 'medium' as const, assignee: 'Housekeeping Head', frequency: 'Weekly', status: 'active' as const },
+    { id: 1004, title: 'Campus security walkthrough', priority: 'medium' as const, assignee: 'Security Guard', frequency: 'Daily', status: 'active' as const },
+    { id: 1005, title: 'Drinking water quality check', priority: 'high' as const, assignee: 'Lab Assistant', frequency: 'Weekly', status: 'active' as const },
+  ] : [];
+  const [recurringTasks, setRecurringTasks] = useState<Array<{id: number; title: string; priority: 'high'|'medium'|'low'; assignee: string; frequency: string; status: 'active'|'paused'}>>([...mockRecurringTasks]);
 
   const assigneeOptions = ['Self', 'Vice Principal', 'Teacher', 'HR Manager', 'Accounts Head', 'Receptionist', 'Transport Head'];
 
   const toggleAssignee = (name: string) => {
     setNewAssignees(prev =>
+      prev.includes(name) ? prev.filter(a => a !== name) : [...prev, name]
+    );
+  };
+
+  const toggleRecurAssignee = (name: string) => {
+    setRecurAssignees(prev =>
       prev.includes(name) ? prev.filter(a => a !== name) : [...prev, name]
     );
   };
@@ -193,6 +217,37 @@ export default function TaskTrackerPanel({ theme, role }: TaskTrackerPanelProps)
     setNewPriority('medium');
     setNewAssignees([]);
     setNewDueDate('');
+  };
+
+  const resetRecurringForm = () => {
+    setRecurTitle('');
+    setRecurDescription('');
+    setRecurPriority('medium');
+    setRecurAssignees([]);
+    setRecurFrequency('daily');
+    setRecurCustomInterval(1);
+    setRecurCustomUnit('days');
+  };
+
+  const handleCreateRecurring = () => {
+    if (!recurTitle.trim()) return;
+    const freqLabel = recurFrequency === 'custom'
+      ? `Every ${recurCustomInterval} ${recurCustomUnit}`
+      : recurFrequency === 'twice-daily' ? 'Twice Daily'
+      : recurFrequency.charAt(0).toUpperCase() + recurFrequency.slice(1);
+    const newRecurring = {
+      id: Date.now(),
+      title: recurTitle.trim(),
+      priority: recurPriority,
+      assignee: recurAssignees.length > 0 ? recurAssignees.join(', ') : 'Self',
+      frequency: freqLabel,
+      status: 'active' as const,
+    };
+    const newArr = [newRecurring, ...recurringTasks];
+    setRecurringTasks(newArr);
+    onRecurringTasksChange?.(newArr);
+    resetRecurringForm();
+    setShowRecurringForm(false);
   };
 
   const handleCreateTask = () => {
@@ -259,12 +314,20 @@ export default function TaskTrackerPanel({ theme, role }: TaskTrackerPanelProps)
           <ListTodo size={16} className={theme.iconColor} />
           <h3 className={`text-sm font-bold ${theme.highlight}`}>Task Tracker</h3>
         </div>
-        <button
-          onClick={() => setShowCreateForm(true)}
-          className={`px-2.5 py-1.5 ${theme.primary} text-white rounded-lg text-[10px] font-bold flex items-center gap-1`}
-        >
-          <Plus size={10} /> Create Task
-        </button>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => setShowRecurringForm(true)}
+            className={`px-2.5 py-1.5 ${theme.secondaryBg} border ${theme.border} ${theme.highlight} rounded-lg text-[10px] font-bold flex items-center gap-1 hover:${theme.buttonHover} transition-all`}
+          >
+            <RefreshCw size={10} /> Create Recurring
+          </button>
+          <button
+            onClick={() => setShowCreateForm(true)}
+            className={`px-2.5 py-1.5 ${theme.primary} text-white rounded-lg text-[10px] font-bold flex items-center gap-1`}
+          >
+            <Plus size={10} /> Create Task
+          </button>
+        </div>
       </div>
 
       {/* Create Task Modal */}
@@ -401,6 +464,184 @@ export default function TaskTrackerPanel({ theme, role }: TaskTrackerPanelProps)
                 className={`px-4 py-2 rounded-lg text-sm font-semibold ${theme.primary} text-white hover:opacity-90 transition-all`}
               >
                 Create Task
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Recurring Task Modal */}
+      {showRecurringForm && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center" onClick={() => { resetRecurringForm(); setShowRecurringForm(false); }}>
+          <div
+            className={`${theme.cardBg} rounded-2xl max-w-lg w-full mx-4 p-6 shadow-2xl`}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <h2 className={`text-lg font-bold ${theme.highlight}`}>Create Recurring Task</h2>
+                <p className={`text-xs ${theme.iconColor} mt-1 leading-relaxed`}>
+                  Set up an ongoing task with automatic reminders. Assigned stakeholders will see this in their Recurring Tasks card.
+                </p>
+              </div>
+              <button
+                onClick={() => { resetRecurringForm(); setShowRecurringForm(false); }}
+                className={`p-1 rounded-lg hover:${theme.buttonHover} transition-all shrink-0 ml-4`}
+              >
+                <X size={18} className={theme.iconColor} />
+              </button>
+            </div>
+
+            {/* Title Field */}
+            <div className="mb-4">
+              <label className={`block text-xs font-semibold ${theme.highlight} mb-1.5`}>
+                Title<span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                placeholder="Enter recurring task title"
+                value={recurTitle}
+                onChange={e => setRecurTitle(e.target.value)}
+                className={`w-full px-3 py-2 rounded-lg text-sm ${theme.secondaryBg} border ${theme.border} ${theme.highlight} outline-none focus:ring-2 focus:ring-blue-500/30 placeholder:text-gray-400`}
+              />
+            </div>
+
+            {/* Description Field */}
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-1.5">
+                <label className={`text-xs font-semibold ${theme.highlight}`}>Description</label>
+                <button className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-medium ${theme.secondaryBg} border ${theme.border} ${theme.iconColor} hover:${theme.buttonHover} transition-all`}>
+                  <Mic size={10} /> Record Voice Note
+                </button>
+              </div>
+              <textarea
+                rows={3}
+                placeholder="Enter task description or use voice dictation"
+                value={recurDescription}
+                onChange={e => setRecurDescription(e.target.value)}
+                className={`w-full px-3 py-2 rounded-lg text-sm ${theme.secondaryBg} border ${theme.border} ${theme.highlight} outline-none focus:ring-2 focus:ring-blue-500/30 resize-none placeholder:text-gray-400`}
+              />
+            </div>
+
+            {/* Priority */}
+            <div className="mb-4">
+              <label className={`block text-xs font-semibold ${theme.highlight} mb-1.5`}>
+                Priority<span className="text-red-500">*</span>
+              </label>
+              <select
+                value={recurPriority}
+                onChange={e => setRecurPriority(e.target.value as 'high' | 'medium' | 'low')}
+                className={`w-full px-3 py-2 rounded-lg text-sm font-medium ${theme.secondaryBg} border ${theme.border} ${theme.highlight} outline-none focus:ring-2 focus:ring-blue-500/30 cursor-pointer`}
+              >
+                <option value="medium">Select priority</option>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+              </select>
+            </div>
+
+            {/* Assign To Multi-select */}
+            <div className="mb-4">
+              <label className={`block text-xs font-semibold ${theme.highlight} mb-1.5`}>
+                Assign To<span className="text-red-500">*</span> <span className={`font-normal ${theme.iconColor}`}>(Multi-select enabled)</span>
+              </label>
+              <div className={`w-full px-3 py-2 rounded-lg ${theme.secondaryBg} border ${theme.border} min-h-[40px]`}>
+                {/* Selected chips */}
+                {recurAssignees.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {recurAssignees.map(a => (
+                      <span
+                        key={a}
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${theme.primary} text-white`}
+                      >
+                        {a}
+                        <button onClick={() => toggleRecurAssignee(a)} className="hover:opacity-70">
+                          <X size={10} />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {/* Options */}
+                <div className="flex flex-wrap gap-1.5">
+                  {assigneeOptions.filter(a => !recurAssignees.includes(a)).map(option => (
+                    <button
+                      key={option}
+                      onClick={() => toggleRecurAssignee(option)}
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${theme.border} ${theme.iconColor} hover:${theme.buttonHover} transition-all`}
+                    >
+                      + {option}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Frequency Selector */}
+            <div className="mb-6">
+              <label className={`block text-xs font-semibold ${theme.highlight} mb-1.5`}>
+                Frequency<span className="text-red-500">*</span>
+              </label>
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  { value: 'daily', label: 'Daily' },
+                  { value: 'twice-daily', label: 'Twice Daily' },
+                  { value: 'weekly', label: 'Weekly' },
+                  { value: 'bi-weekly', label: 'Bi-weekly' },
+                  { value: 'monthly', label: 'Monthly' },
+                  { value: 'custom', label: 'Custom' },
+                ].map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setRecurFrequency(opt.value)}
+                    className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
+                      recurFrequency === opt.value
+                        ? `${theme.primary} text-white`
+                        : `${theme.secondaryBg} border ${theme.border} ${theme.iconColor} hover:${theme.buttonHover}`
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+              {/* Custom frequency inputs */}
+              {recurFrequency === 'custom' && (
+                <div className="flex items-center gap-2 mt-3">
+                  <span className={`text-xs font-medium ${theme.iconColor}`}>Every</span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={365}
+                    value={recurCustomInterval}
+                    onChange={e => setRecurCustomInterval(Math.max(1, parseInt(e.target.value) || 1))}
+                    className={`w-16 px-2 py-1.5 rounded-lg text-sm text-center ${theme.secondaryBg} border ${theme.border} ${theme.highlight} outline-none focus:ring-2 focus:ring-blue-500/30`}
+                  />
+                  <select
+                    value={recurCustomUnit}
+                    onChange={e => setRecurCustomUnit(e.target.value as 'days' | 'weeks')}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium ${theme.secondaryBg} border ${theme.border} ${theme.highlight} outline-none focus:ring-2 focus:ring-blue-500/30 cursor-pointer`}
+                  >
+                    <option value="days">Days</option>
+                    <option value="weeks">Weeks</option>
+                  </select>
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center justify-end gap-2">
+              <button
+                onClick={() => { resetRecurringForm(); setShowRecurringForm(false); }}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold border ${theme.border} ${theme.highlight} hover:${theme.buttonHover} transition-all`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateRecurring}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold ${theme.primary} text-white hover:opacity-90 transition-all`}
+              >
+                Create Recurring Task
               </button>
             </div>
           </div>
