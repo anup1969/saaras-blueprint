@@ -7,6 +7,7 @@ import { ChatsView } from '@/components/ChatModule';
 import SupportModule from '@/components/SupportModule';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
+import RecurringTasksCard from '@/components/RecurringTasksCard';
 import { type Theme } from '@/lib/themes';
 import {
   Home, Eye, DollarSign, GraduationCap, Shield, Users, CheckCircle, XCircle,
@@ -302,6 +303,9 @@ function DashboardView({ theme, setActiveModule }: { theme: Theme; setActiveModu
 
         {/* Task Tracker */}
         <TaskTrackerPanel theme={theme} role="trustee" />
+
+        {/* Recurring Tasks — Streak Tracking Card */}
+        <RecurringTasksCard theme={theme} role="trustee" />
       </div>
     </div>
   );

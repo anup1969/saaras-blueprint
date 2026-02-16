@@ -17,6 +17,7 @@ import {
 import { ChatsView } from '@/components/ChatModule';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
+import RecurringTasksCard from '@/components/RecurringTasksCard';
 import SupportModule from '@/components/SupportModule';
 
 // ─── MODULE SIDEBAR ────────────────────────────────
@@ -226,6 +227,9 @@ function DashboardHome({ theme, stats, onProfileClick }: { theme: Theme; stats: 
 
         {/* Task Tracker */}
         <TaskTrackerPanel theme={theme} role="school-admin" />
+
+        {/* Recurring Tasks — Streak Tracking Card */}
+        <RecurringTasksCard theme={theme} role="school-admin" />
       </div>
     </div>
   );
