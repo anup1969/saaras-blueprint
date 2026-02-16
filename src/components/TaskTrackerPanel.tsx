@@ -186,7 +186,7 @@ export default function TaskTrackerPanel({ theme, role, onRecurringTasksChange }
   const [recurAssignees, setRecurAssignees] = useState<string[]>([]);
   const [recurFrequency, setRecurFrequency] = useState('daily');
   const [recurCustomInterval, setRecurCustomInterval] = useState(1);
-  const [recurCustomUnit, setRecurCustomUnit] = useState<'days' | 'weeks'>('days');
+  const [recurCustomUnit, setRecurCustomUnit] = useState<'days' | 'weeks' | 'times-per-day'>('days');
 
   const mockRecurringTasks = role === 'principal' ? [
     { id: 1001, title: 'Check washroom cleanliness — all floors', priority: 'high' as const, assignee: 'Housekeeping Head', frequency: 'Twice Daily', status: 'active' as const },
@@ -232,7 +232,9 @@ export default function TaskTrackerPanel({ theme, role, onRecurringTasksChange }
   const handleCreateRecurring = () => {
     if (!recurTitle.trim()) return;
     const freqLabel = recurFrequency === 'custom'
-      ? `Every ${recurCustomInterval} ${recurCustomUnit}`
+      ? recurCustomUnit === 'times-per-day'
+        ? `${recurCustomInterval}x Daily`
+        : `Every ${recurCustomInterval} ${recurCustomUnit}`
       : recurFrequency === 'twice-daily' ? 'Twice Daily'
       : recurFrequency.charAt(0).toUpperCase() + recurFrequency.slice(1);
     const newRecurring = {
@@ -608,7 +610,7 @@ export default function TaskTrackerPanel({ theme, role, onRecurringTasksChange }
               {/* Custom frequency inputs */}
               {recurFrequency === 'custom' && (
                 <div className="flex items-center gap-2 mt-3">
-                  <span className={`text-xs font-medium ${theme.iconColor}`}>Every</span>
+                  <span className={`text-xs font-medium ${theme.iconColor}`}>{recurCustomUnit === 'times-per-day' ? 'Repeat' : 'Every'}</span>
                   <input
                     type="number"
                     min={1}
@@ -622,6 +624,7 @@ export default function TaskTrackerPanel({ theme, role, onRecurringTasksChange }
                     onChange={e => setRecurCustomUnit(e.target.value as 'days' | 'weeks')}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium ${theme.secondaryBg} border ${theme.border} ${theme.highlight} outline-none focus:ring-2 focus:ring-blue-500/30 cursor-pointer`}
                   >
+                    <option value="times-per-day">Times / Day</option>
                     <option value="days">Days</option>
                     <option value="weeks">Weeks</option>
                   </select>
