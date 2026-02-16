@@ -230,7 +230,7 @@ function DashboardHome({ theme, onProfileClick, isPreschool }: { theme: Theme; o
       {/* Stat Cards + Quick Actions — same row */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <StatCard icon={ClipboardCheck} label="Avg Attendance" value="94.2%" color="bg-emerald-500" theme={theme} />
-        <StatCard icon={Users} label="Staff Present" value="92/98" color="bg-purple-500" sub="6 on leave" theme={theme} />
+        <StatCard icon={Users} label="New Enquiries" value="12" color="bg-purple-500" sub="5 walk-in, 7 online" theme={theme} />
         <StatCard icon={Clock} label="Pending Approvals" value="8" color="bg-amber-500" theme={theme} />
         <StatCard icon={Banknote} label="Today's Collection" value={`\u20B92,45,000`} color="bg-green-500" sub="Outstanding: \u20B918.5L" theme={theme} />
         {/* Quick Actions — compact icon row */}
@@ -251,16 +251,12 @@ function DashboardHome({ theme, onProfileClick, isPreschool }: { theme: Theme; o
         </div>
       </div>
 
-      {/* Preschool-Specific Cards */}
+      {/* Preschool-Specific Cards — actionable daily info only (ratios moved to Reports) */}
       {isPreschool && (
-        <div className="mt-4 space-y-4">
-          <p className="text-xs font-bold text-amber-600">Preschool-Specific</p>
-          <div className="grid grid-cols-4 gap-3">
-            <StatCard icon={Shield} label="Staff-Child Ratio" value="1:8" color="bg-blue-500" sub="Nursery OK" theme={theme} />
-            <StatCard icon={Heart} label="Daily Health Reports" value="2" color="bg-red-500" sub="pending review" theme={theme} />
-            <StatCard icon={TrendingUp} label="Developmental Milestones" value="85%" color="bg-emerald-500" sub="on track" theme={theme} />
-            <StatCard icon={Star} label="Parent Satisfaction" value="4.6/5.0" color="bg-amber-500" theme={theme} />
-          </div>
+        <div className="grid grid-cols-3 gap-3">
+          <StatCard icon={Heart} label="Daily Health Reports" value="2" color="bg-red-500" sub="pending review" theme={theme} />
+          <StatCard icon={TrendingUp} label="Developmental Milestones" value="85%" color="bg-emerald-500" sub="on track" theme={theme} />
+          <StatCard icon={Star} label="Parent Satisfaction" value="4.6/5.0" color="bg-amber-500" sub="this month" theme={theme} />
         </div>
       )}
 
@@ -274,10 +270,10 @@ function DashboardHome({ theme, onProfileClick, isPreschool }: { theme: Theme; o
               <h3 className={`text-sm font-bold ${theme.highlight}`}>News Board</h3>
             </div>
             <div className="flex items-center gap-2">
-              <span className={`text-[10px] px-2 py-0.5 rounded-lg ${theme.secondaryBg} ${theme.highlight} font-mono font-bold`}>
+              <span className={`text-base px-3 py-1 rounded-xl ${theme.secondaryBg} ${theme.highlight} font-mono font-bold tracking-wider`}>
                 {new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
               </span>
-              <span className={`text-[10px] px-2 py-0.5 rounded-lg bg-blue-500/20 text-blue-400 font-bold`}>Period 5 of 8</span>
+              {!isPreschool && <span className={`text-[10px] px-2 py-0.5 rounded-lg bg-blue-500/20 text-blue-400 font-bold`}>Period 5 of 8</span>}
             </div>
           </div>
 
@@ -287,12 +283,17 @@ function DashboardHome({ theme, onProfileClick, isPreschool }: { theme: Theme; o
               <Radio size={10} className="text-red-500" /> Going On Now
             </p>
             <div className="space-y-1.5">
-              {[
+              {(isPreschool ? [
+                { activity: 'Story Time — "The Hungry Caterpillar"', detail: 'Nursery A & B · Library Corner', icon: Sparkles, color: 'bg-purple-500', pulse: true },
+                { activity: 'Art & Craft — Finger Painting', detail: 'LKG · Art Room · Ms. Kavita', icon: FileText, color: 'bg-blue-500', pulse: true },
+                { activity: 'Outdoor Play — Sand Pit', detail: 'Playground · All groups · 10:30-11:15', icon: Award, color: 'bg-emerald-500', pulse: true },
+                { activity: 'Parent Drop-off Window Closing', detail: 'Gate · 5 children yet to arrive', icon: ShieldCheck, color: 'bg-red-500', pulse: true },
+              ] : [
                 { activity: 'Science Fair — Hall A', detail: 'Classes 6-8 · Judges evaluating projects', icon: Sparkles, color: 'bg-purple-500', pulse: true },
                 { activity: 'Unit Test 3 — Mathematics', detail: 'Class 10-A, 10-B · Period 5 (11:30-12:15)', icon: FileText, color: 'bg-blue-500', pulse: true },
                 { activity: 'Sports Practice — Cricket', detail: 'Ground · Inter-school team · Coach Verma', icon: Award, color: 'bg-emerald-500', pulse: false },
                 { activity: 'CBSE Inspector Visit', detail: 'Principal Office · Lab inspection at 12:30', icon: ShieldCheck, color: 'bg-red-500', pulse: true },
-              ].map((item, i) => (
+              ]).map((item, i) => (
                 <div key={i} className={`flex items-center gap-2.5 p-2 rounded-xl ${theme.accentBg} border ${theme.border}`}>
                   <div className={`w-7 h-7 rounded-lg ${item.color}/20 flex items-center justify-center shrink-0 relative`}>
                     <item.icon size={13} className={item.color.replace('bg-', 'text-')} />
@@ -314,11 +315,15 @@ function DashboardHome({ theme, onProfileClick, isPreschool }: { theme: Theme; o
               <Clock size={10} /> Upcoming Today
             </p>
             <div className="space-y-1.5">
-              {[
+              {(isPreschool ? [
+                { activity: 'Lunch Time — All Groups', detail: '12:00 PM · Dining Hall · Paneer Rice + Fruit', time: '12:00 PM', icon: Users },
+                { activity: 'Nap Time', detail: '12:45 PM · All Rooms · Rest period', time: '12:45 PM', icon: Clock },
+                { activity: 'Parent Pickup Window', detail: '3:00 PM · Gate · 56 children expected', time: '3:00 PM', icon: UserCheck },
+              ] : [
                 { activity: 'Staff Meeting', detail: '3:00 PM · Conference Room · All HODs', time: '3:00 PM', icon: Users },
                 { activity: 'PTM — Class 9', detail: '4:00 PM · Classrooms · 42 parents expected', time: '4:00 PM', icon: UserCheck },
                 { activity: 'Annual Day Rehearsal', detail: '4:30 PM · Auditorium · Dance + Drama groups', time: '4:30 PM', icon: Star },
-              ].map((item, i) => (
+              ]).map((item, i) => (
                 <div key={i} className={`flex items-center gap-2.5 p-2 rounded-xl ${theme.secondaryBg}`}>
                   <div className={`w-7 h-7 rounded-lg ${theme.accentBg} flex items-center justify-center shrink-0`}>
                     <item.icon size={13} className={theme.iconColor} />

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { type Theme } from '@/lib/themes';
 import {
   ListTodo, Plus, CheckCircle, Clock, Flag, Check, Search,
-  ChevronRight, GripVertical, ArrowRight
+  ChevronRight, GripVertical, ArrowRight, X
 } from 'lucide-react';
 
 interface TaskTrackerPanelProps {
@@ -171,8 +171,15 @@ export default function TaskTrackerPanel({ theme, role }: TaskTrackerPanelProps)
   const [taskSearch, setTaskSearch] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [customTasks, setCustomTasks] = useState<Array<{ id: number; title: string; priority: 'high' | 'medium' | 'low'; assignee: string; days: string; status: 'open' | 'in progress' | 'done' }>>([]);
+  const [newTitle, setNewTitle] = useState('');
+  const [newPriority, setNewPriority] = useState<'high' | 'medium' | 'low'>('medium');
+  const [newAssignee, setNewAssignee] = useState('');
+  const [newDueDate, setNewDueDate] = useState('');
 
-  const tasks = roleTasks[role] || defaultTasks;
+  const roleTaskList = roleTasks[role] || defaultTasks;
+  const tasks = [...customTasks, ...roleTaskList];
 
   const totalTasks = 12;
   const inProgress = 3;
@@ -209,10 +216,89 @@ export default function TaskTrackerPanel({ theme, role }: TaskTrackerPanelProps)
           <ListTodo size={16} className={theme.iconColor} />
           <h3 className={`text-sm font-bold ${theme.highlight}`}>Task Tracker</h3>
         </div>
-        <button className={`px-2.5 py-1.5 ${theme.primary} text-white rounded-lg text-[10px] font-bold flex items-center gap-1`}>
-          <Plus size={10} /> Create Task
+        <button
+          onClick={() => setShowCreateForm(prev => !prev)}
+          className={`px-2.5 py-1.5 ${theme.primary} text-white rounded-lg text-[10px] font-bold flex items-center gap-1`}
+        >
+          {showCreateForm ? <X size={10} /> : <Plus size={10} />} {showCreateForm ? 'Close' : 'Create Task'}
         </button>
       </div>
+
+      {/* Create Task Form */}
+      {showCreateForm && (
+        <div className={`${theme.secondaryBg} border ${theme.border} rounded-xl p-3 mb-3`}>
+          <div className="grid grid-cols-2 gap-2 mb-2">
+            <input
+              type="text"
+              placeholder="Enter task title..."
+              value={newTitle}
+              onChange={e => setNewTitle(e.target.value)}
+              className={`px-2 py-1.5 rounded-lg text-[10px] ${theme.cardBg} border ${theme.border} ${theme.highlight} outline-none placeholder:${theme.iconColor}`}
+            />
+            <select
+              value={newPriority}
+              onChange={e => setNewPriority(e.target.value as 'high' | 'medium' | 'low')}
+              className={`px-2 py-1.5 rounded-lg text-[10px] font-medium ${theme.cardBg} border ${theme.border} ${theme.highlight} outline-none cursor-pointer`}
+            >
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+          <div className="grid grid-cols-2 gap-2 mb-2">
+            <input
+              type="text"
+              placeholder="Assignee name"
+              value={newAssignee}
+              onChange={e => setNewAssignee(e.target.value)}
+              className={`px-2 py-1.5 rounded-lg text-[10px] ${theme.cardBg} border ${theme.border} ${theme.highlight} outline-none placeholder:${theme.iconColor}`}
+            />
+            <input
+              type="text"
+              placeholder="e.g. Today, 3d, 1w"
+              value={newDueDate}
+              onChange={e => setNewDueDate(e.target.value)}
+              className={`px-2 py-1.5 rounded-lg text-[10px] ${theme.cardBg} border ${theme.border} ${theme.highlight} outline-none placeholder:${theme.iconColor}`}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                if (!newTitle.trim()) return;
+                const newTask = {
+                  id: Date.now(),
+                  title: newTitle.trim(),
+                  priority: newPriority,
+                  assignee: newAssignee.trim() || 'Self',
+                  days: newDueDate.trim() || '—',
+                  status: 'open' as const,
+                };
+                setCustomTasks(prev => [newTask, ...prev]);
+                setNewTitle('');
+                setNewPriority('medium');
+                setNewAssignee('');
+                setNewDueDate('');
+                setShowCreateForm(false);
+              }}
+              className={`px-3 py-1.5 ${theme.primary} text-white rounded-lg text-[10px] font-bold`}
+            >
+              Add Task
+            </button>
+            <button
+              onClick={() => {
+                setNewTitle('');
+                setNewPriority('medium');
+                setNewAssignee('');
+                setNewDueDate('');
+                setShowCreateForm(false);
+              }}
+              className={`px-3 py-1.5 ${theme.secondaryBg} border ${theme.border} ${theme.highlight} rounded-lg text-[10px] font-bold`}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Stat cards row */}
       <div className="grid grid-cols-4 gap-2 mb-3">
