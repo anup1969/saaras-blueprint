@@ -7,7 +7,7 @@ import {
   Building2, GraduationCap, Users, Shield, MessageSquare,
   Banknote, Briefcase, Bus, Check, ChevronRight, ChevronLeft, ChevronDown, Save, Rocket,
   Upload, Plus, X, Eye, AlertTriangle, CheckCircle, Lock, Circle, AlertCircle,
-  Layers, ArrowRight, Download, Megaphone, Clock, Package, Info,
+  Layers, ArrowRight, Download, Clock, Package, Info,
   Headphones, Bot, Phone, Mail, Video, Sparkles, Calendar, Key
 } from 'lucide-react';
 
@@ -17,11 +17,10 @@ const steps = [
   { id: 2, label: 'Academic Structure', icon: GraduationCap, short: 'Academic' },
   { id: 3, label: 'Plan & Modules', icon: Layers, short: 'Modules' },
   { id: 4, label: 'Roles & Permissions', icon: Shield, short: 'Roles' },
-  { id: 5, label: 'Communication', icon: MessageSquare, short: 'Chat' },
-  { id: 6, label: 'Fee Structure', icon: Banknote, short: 'Fees' },
-  { id: 7, label: 'HR & Staff', icon: Briefcase, short: 'HR' },
-  { id: 8, label: 'Transport', icon: Bus, short: 'Transport' },
-  { id: 9, label: 'Review & Launch', icon: Rocket, short: 'Launch' },
+  { id: 5, label: 'Fee Structure', icon: Banknote, short: 'Fees' },
+  { id: 6, label: 'HR & Staff', icon: Briefcase, short: 'HR' },
+  { id: 7, label: 'Transport', icon: Bus, short: 'Transport' },
+  { id: 8, label: 'Review & Launch', icon: Rocket, short: 'Launch' },
 ];
 
 // ─── HELPER COMPONENTS ────────────────────────────────
@@ -110,11 +109,10 @@ function Step1Identity({ theme, onInstitutionTypeChange }: { theme: Theme; onIns
     { id: 'org3', name: 'Udgam Trust', schools: ['Udgam CBSE', 'Udgam IB'] },
   ];
   const selectedOrg = MOCK_ORGS.find(o => o.id === existingOrg);
-  // Multi-school (Connected) state
-  const [numSchools, setNumSchools] = useState(2);
+  // Multi-school (Connected) state — one school per onboarding run
+  const [numSchools] = useState(1);
   const [schoolConfigs, setSchoolConfigs] = useState([
     { name: '', type: 'Regular School', board: 'CBSE', shortName: '' },
-    { name: '', type: 'Regular School', board: 'IB (International Baccalaureate)', shortName: '' },
   ]);
   const [sharedRoles, setSharedRoles] = useState<Record<string, boolean>>({
     'Trustee': true, 'School Admin': true, 'HR Manager': true, 'Accounts Head': true,
@@ -122,13 +120,6 @@ function Step1Identity({ theme, onInstitutionTypeChange }: { theme: Theme; onIns
   });
   const updateSchoolConfig = (idx: number, field: string, value: string) => {
     setSchoolConfigs(prev => prev.map((s, i) => i === idx ? { ...s, [field]: value } : s));
-  };
-  const handleNumSchoolsChange = (n: number) => {
-    setNumSchools(n);
-    setSchoolConfigs(prev => {
-      if (n > prev.length) return [...prev, ...Array(n - prev.length).fill(null).map(() => ({ name: '', type: 'Regular School', board: 'CBSE', shortName: '' }))];
-      return prev.slice(0, n);
-    });
   };
   // REMARK 10: Multiple boards → different entities/school names
   const [differentEntities, setDifferentEntities] = useState(false);
@@ -196,7 +187,7 @@ function Step1Identity({ theme, onInstitutionTypeChange }: { theme: Theme; onIns
                   <span className={`text-sm font-bold ${theme.highlight}`}>New Organisation</span>
                 </div>
                 {schoolCount === 'multiple' && <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold mb-2 inline-block">SELECTED</span>}
-                <p className={`text-[10px] ${theme.iconColor}`}>Set up a new trust/chain with 2+ schools. Shared reporting & admin.</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Set up a new trust/org with 1 school. Add more schools later via &quot;Add to Existing Org&quot;.</p>
                 <div className="flex flex-wrap gap-1 mt-2">
                   {['Shared Reporting', 'Group Admin'].map(f => (
                     <span key={f} className={`text-[9px] px-1.5 py-0.5 rounded ${schoolCount === 'multiple' ? 'bg-blue-100 text-blue-700' : `${theme.secondaryBg} ${theme.iconColor}`}`}>{f}</span>
@@ -327,13 +318,10 @@ function Step1Identity({ theme, onInstitutionTypeChange }: { theme: Theme; onIns
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>
-                  Number of Schools <span className="text-red-500">*</span>
+                  School Setup
                 </label>
-                <div className="flex items-center gap-2">
-                  <button onClick={() => numSchools > 2 && handleNumSchoolsChange(numSchools - 1)} className={`w-8 h-8 rounded-lg ${theme.secondaryBg} ${theme.highlight} font-bold text-sm ${theme.buttonHover}`}>−</button>
-                  <span className={`text-lg font-bold ${theme.highlight} w-8 text-center`}>{numSchools}</span>
-                  <button onClick={() => numSchools < 10 && handleNumSchoolsChange(numSchools + 1)} className={`w-8 h-8 rounded-lg ${theme.secondaryBg} ${theme.highlight} font-bold text-sm ${theme.buttonHover}`}>+</button>
-                </div>
+                <p className={`text-xs ${theme.highlight} font-bold`}>1 school per onboarding</p>
+                <p className={`text-[10px] ${theme.iconColor} mt-0.5`}>To add more schools, re-run onboarding with &quot;Add to Existing Org&quot;</p>
               </div>
               <FormField label="Registration Number" placeholder="e.g. Trust/Society registration" theme={theme} />
             </div>
@@ -341,7 +329,7 @@ function Step1Identity({ theme, onInstitutionTypeChange }: { theme: Theme; onIns
 
           {/* Per-School Configuration Cards */}
           <div className={`${theme.cardBg} rounded-2xl border-2 border-indigo-300 p-4 space-y-3`}>
-            <SectionTitle title="Per-School Configuration" subtitle={`Configure each of the ${numSchools} schools individually — each gets its own type, board, and setup`} theme={theme} />
+            <SectionTitle title="School Configuration" subtitle="Configure this school — it gets its own database schema, principal, teachers, students, and settings" theme={theme} />
             <div className="space-y-3">
               {schoolConfigs.map((sc, idx) => (
                 <div key={idx} className={`p-4 rounded-xl border-2 ${idx === 0 ? 'border-emerald-300 bg-emerald-50/5' : `${theme.border} ${theme.secondaryBg}`}`}>
@@ -1274,8 +1262,8 @@ function Step2Academic({ theme, institutionType }: { theme: Theme; institutionTy
                 )}
               </div>
 
-              {/* Saturday Different Schedule Toggle */}
-              <div className={`p-3 rounded-xl border-2 border-dashed ${shift.useSaturdaySchedule ? 'border-blue-300 bg-blue-50/30' : theme.border} ${theme.cardBg} space-y-2`}>
+              {/* Saturday Different Schedule Toggle — hidden when Mon-Fri (no Saturday) */}
+              {workingDays !== 'Monday - Friday' && <div className={`p-3 rounded-xl border-2 border-dashed ${shift.useSaturdaySchedule ? 'border-blue-300 bg-blue-50/30' : theme.border} ${theme.cardBg} space-y-2`}>
                 <button onClick={() => updateShift(shift.id, 'useSaturdaySchedule', !shift.useSaturdaySchedule)}
                   className="flex items-center gap-2 cursor-pointer w-full text-left">
                   <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${shift.useSaturdaySchedule ? 'bg-blue-500 border-blue-500' : theme.border}`}>
@@ -1333,7 +1321,7 @@ function Step2Academic({ theme, institutionType }: { theme: Theme; institutionTy
                     ))}
                   </div>
                 )}
-              </div>
+              </div>}
             </div>
           ))}
         </div>
@@ -1537,6 +1525,30 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
       [mod]: { ...prev[mod], [role]: !(prev[mod]?.[role] ?? false) },
     }));
   };
+
+  // ─── CHAT MODULE CONFIGURATION (moved from old Step 5) ───
+  const [chatDmPerms, setChatDmPerms] = useState<Record<string, boolean>>({
+    'Teacher→Teacher (Same Dept)': true, 'Teacher→Teacher (Any Dept)': true,
+    'Teacher→Admin / Office': true, 'Teacher→Principal / VP': true,
+    'Parent→Class Teacher': true, 'Parent→Any Teacher': false,
+    'Parent→Admin / Office': false, 'Non-Teaching Staff→Teaching Staff': false,
+    'Admin→Anyone': true, 'Principal / VP→Anyone': true,
+  });
+  const [chatParentMode, setChatParentMode] = useState('Full Two-Way');
+  const [chatGroupCreators, setChatGroupCreators] = useState<Record<string, boolean>>({
+    'School Admin': true, 'Principal / VP': true, 'HODs': false, 'Teachers': false,
+  });
+  const [chatDefaultGroups, setChatDefaultGroups] = useState<Record<string, boolean>>({
+    'All Staff': true, 'Teaching Staff': true, 'Non-Teaching Staff': true,
+    'Class-wise Teacher Groups': true, 'Department Groups': true,
+    'Class-wise Parent Groups': true, 'House Groups': true,
+  });
+
+  const chatParentModes = [
+    { mode: 'Full Two-Way', desc: 'Parents can initiate AND reply to conversations with permitted teachers' },
+    { mode: 'Reply Only', desc: 'Parents can only reply to messages initiated by teachers' },
+    { mode: 'Broadcast Only', desc: 'One-way: teachers/admin send, parents can only read' },
+  ];
 
   // ─── MODULE TOGGLES ───
   const allModuleNames = [
@@ -2294,6 +2306,80 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
                           {STAKEHOLDER_ROLES.filter(r => getRBACState(name, r)).length} of {STAKEHOLDER_ROLES.length} roles have access to {name}
                         </p>
                       </div>
+
+                      {/* Chat Module Settings — shown only for Communication / Chat */}
+                      {name === 'Communication / Chat' && (
+                        <div className="mt-4 space-y-4 border-t border-slate-200 pt-4">
+                          <p className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Chat Module Settings</p>
+
+                          {/* DM Permissions */}
+                          <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+                            <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Direct Message Permissions</p>
+                            <p className={`text-[10px] ${theme.iconColor} mb-2`}>Who can initiate conversations with whom?</p>
+                            <div className="space-y-1.5">
+                              {Object.entries(chatDmPerms).map(([key, on]) => (
+                                <div key={key} className={`flex items-center justify-between p-2 rounded-lg ${theme.cardBg}`}>
+                                  <span className={`text-[10px] ${theme.highlight}`}>{key.replace('→', ' → ')}</span>
+                                  <Toggle on={on} onChange={() => setChatDmPerms(p => ({ ...p, [key]: !p[key] }))} theme={theme} />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Parent Communication Mode */}
+                          <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+                            <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Parent Communication Mode</p>
+                            <div className="space-y-1.5">
+                              {chatParentModes.map(m => (
+                                <button key={m.mode} onClick={() => setChatParentMode(m.mode)}
+                                  className={`w-full flex items-center gap-3 p-2.5 rounded-lg border text-left transition-all ${
+                                    chatParentMode === m.mode ? 'border-emerald-400 bg-emerald-50' : `${theme.border} ${theme.cardBg}`
+                                  }`}>
+                                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${chatParentMode === m.mode ? 'border-emerald-500' : theme.border}`}>
+                                    {chatParentMode === m.mode && <div className="w-2 h-2 rounded-full bg-emerald-500" />}
+                                  </div>
+                                  <div>
+                                    <p className={`text-[10px] font-bold ${theme.highlight}`}>{m.mode}</p>
+                                    <p className={`text-[9px] ${theme.iconColor}`}>{m.desc}</p>
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Group Creation & Defaults */}
+                          <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+                            <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Group Creation & Defaults</p>
+                            <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1.5`}>Who can create groups?</p>
+                            <div className="space-y-1.5 mb-3">
+                              {Object.entries(chatGroupCreators).map(([role, can]) => (
+                                <div key={role} className={`flex items-center justify-between p-2 rounded-lg ${theme.cardBg}`}>
+                                  <span className={`text-[10px] ${theme.highlight}`}>{role}</span>
+                                  <Toggle on={can} onChange={() => setChatGroupCreators(p => ({ ...p, [role]: !p[role] }))} theme={theme} />
+                                </div>
+                              ))}
+                            </div>
+                            <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1.5`}>Auto-create default groups?</p>
+                            <div className="space-y-1.5">
+                              {Object.entries(chatDefaultGroups).map(([group, auto]) => (
+                                <div key={group} className={`flex items-center justify-between p-2 rounded-lg ${theme.cardBg}`}>
+                                  <span className={`text-[10px] ${theme.highlight}`}>{group}</span>
+                                  <Toggle on={auto} onChange={() => setChatDefaultGroups(p => ({ ...p, [group]: !p[group] }))} theme={theme} />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Chat Storage & Retention */}
+                          <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+                            <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Chat Storage & Retention</p>
+                            <div className="grid grid-cols-2 gap-3">
+                              <SelectField label="Chat Storage Limit" options={['10 GB (Starter)', '25 GB (Professional)', '50 GB (Enterprise)', 'Custom']} value="50 GB (Enterprise)" theme={theme} hint="Set by plan tier" />
+                              <SelectField label="Message Retention" options={['6 months', '1 year (then archive)', '2 years', 'Forever', 'School decides']} value="1 year (then archive)" theme={theme} hint="School Admin manages within this cap" />
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -2427,11 +2513,6 @@ function Step4Roles({ theme, institutionType }: { theme: Theme; institutionType:
   const roleDescs = isPreschool ? preschoolDescs : regularDescs;
 
   const [roles, setRoles] = useState<Record<string, boolean>>(initialRoles);
-  const [hrAccess, setHrAccess] = useState<Record<string, boolean>>(
-    isPreschool
-      ? { 'Principal / Centre Head': true, 'School Admin': true, 'Trustee': true }
-      : { 'Principal': true, 'School Admin': true, 'Vice Principal': false, 'Trustee': true, 'Accounts Head': false }
-  );
 
   const toggleRole = (role: string) => {
     if (mandatoryRoles.includes(role)) return;
@@ -2518,124 +2599,12 @@ function Step4Roles({ theme, institutionType }: { theme: Theme; institutionType:
         </div>
       </div>
 
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <SectionTitle title="HR Management Access" subtitle="Which stakeholder dashboards should include the HR Management module?" theme={theme} />
-        <div className="space-y-2">
-          {Object.entries(hrAccess).map(([role, enabled]) => (
-            <div key={role} className={`flex items-center justify-between p-3 rounded-xl ${theme.secondaryBg}`}>
-              <div>
-                <span className={`text-xs font-bold ${theme.highlight}`}>{role}</span>
-                {(role === 'Principal' || role === 'School Admin') && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-600 font-bold ml-2">Recommended</span>
-                )}
-              </div>
-              <Toggle on={enabled} onChange={() => setHrAccess(p => ({ ...p, [role]: !p[role] }))} theme={theme} />
-            </div>
-          ))}
-        </div>
-        <p className={`text-[10px] ${theme.iconColor} mt-2`}>{Object.values(hrAccess).filter(Boolean).length} dashboards will show the HR Management module</p>
-      </div>
+      {/* HR Management Access removed — covered by per-module RBAC in Step 3 */}
     </div>
   );
 }
 
-// ─── STEP 5: COMMUNICATION ───────────────────────────
-function Step5Communication({ theme, institutionType }: { theme: Theme; institutionType: string }) {
-  const [dmPerms, setDmPerms] = useState<Record<string, boolean>>({
-    'Teacher→Teacher (Same Dept)': true, 'Teacher→Teacher (Any Dept)': true,
-    'Teacher→Admin / Office': true, 'Teacher→Principal / VP': true,
-    'Parent→Class Teacher': true, 'Parent→Any Teacher': false,
-    'Parent→Admin / Office': false, 'Non-Teaching Staff→Teaching Staff': false,
-    'Admin→Anyone': true, 'Principal / VP→Anyone': true,
-  });
-  const [parentMode, setParentMode] = useState('Full Two-Way');
-  const [groupCreators, setGroupCreators] = useState<Record<string, boolean>>({
-    'School Admin': true, 'Principal / VP': true, 'HODs': false, 'Teachers': false,
-  });
-  const [defaultGroups, setDefaultGroups] = useState<Record<string, boolean>>({
-    'All Staff': true, 'Teaching Staff': true, 'Non-Teaching Staff': true,
-    'Class-wise Teacher Groups': true, 'Department Groups': true,
-    'Class-wise Parent Groups': true, 'House Groups': true,
-  });
-
-  const parentModes = [
-    { mode: 'Full Two-Way', desc: 'Parents can initiate AND reply to conversations with permitted teachers', icon: MessageSquare },
-    { mode: 'Reply Only', desc: 'Parents can only reply to messages initiated by teachers', icon: ArrowRight },
-    { mode: 'Broadcast Only', desc: 'One-way: teachers/admin send, parents can only read', icon: Megaphone },
-  ];
-
-  return (
-    <div className="space-y-6">
-      <SectionTitle title="Communication & Chat Configuration" subtitle="Set messaging rules, parent communication, and group policies" theme={theme} />
-
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <SectionTitle title="Direct Message Permissions" subtitle="Who can initiate conversations with whom?" theme={theme} />
-        <div className="space-y-2">
-          {Object.entries(dmPerms).map(([key, on]) => (
-            <div key={key} className={`flex items-center justify-between p-3 rounded-xl ${theme.secondaryBg}`}>
-              <span className={`text-xs ${theme.highlight}`}>{key.replace('→', ' → ')}</span>
-              <Toggle on={on} onChange={() => setDmPerms(p => ({ ...p, [key]: !p[key] }))} theme={theme} />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <SectionTitle title="Parent Communication Mode" subtitle="How should parents interact in the chat system?" theme={theme} />
-        <div className="space-y-2">
-          {parentModes.map(m => (
-            <button key={m.mode} onClick={() => setParentMode(m.mode)}
-              className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all text-left ${
-                parentMode === m.mode ? 'border-emerald-400 bg-emerald-50' : `${theme.border} ${theme.cardBg}`
-              }`}>
-              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${parentMode === m.mode ? 'border-emerald-500' : theme.border}`}>
-                {parentMode === m.mode && <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />}
-              </div>
-              <m.icon size={18} className={parentMode === m.mode ? 'text-emerald-600' : theme.iconColor} />
-              <div>
-                <p className={`text-xs font-bold ${theme.highlight}`}>{m.mode}</p>
-                <p className={`text-[10px] ${theme.iconColor}`}>{m.desc}</p>
-              </div>
-            </button>
-          ))}
-        </div>
-        <p className={`text-[10px] ${theme.iconColor} mt-2`}>This can be changed anytime by SA or Account Manager.</p>
-      </div>
-
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <SectionTitle title="Group Creation & Defaults" theme={theme} />
-        <div className="space-y-2">
-          <p className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Who can create groups?</p>
-          {Object.entries(groupCreators).map(([role, can]) => (
-            <div key={role} className={`flex items-center justify-between p-3 rounded-xl ${theme.secondaryBg}`}>
-              <span className={`text-xs ${theme.highlight}`}>{role}</span>
-              <Toggle on={can} onChange={() => setGroupCreators(p => ({ ...p, [role]: !p[role] }))} theme={theme} />
-            </div>
-          ))}
-        </div>
-        <div className="mt-4 space-y-2">
-          <p className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Auto-create these default groups?</p>
-          {Object.entries(defaultGroups).map(([group, auto]) => (
-            <div key={group} className={`flex items-center justify-between p-3 rounded-xl ${theme.secondaryBg}`}>
-              <span className={`text-xs ${theme.highlight}`}>{group}</span>
-              <Toggle on={auto} onChange={() => setDefaultGroups(p => ({ ...p, [group]: !p[group] }))} theme={theme} />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <SectionTitle title="Chat Storage & Retention" theme={theme} />
-        <div className="grid grid-cols-2 gap-3">
-          <SelectField label="Chat Storage Limit" options={['10 GB (Starter)', '25 GB (Professional)', '50 GB (Enterprise)', 'Custom']} value="50 GB (Enterprise)" theme={theme} hint="Set by plan tier" />
-          <SelectField label="Message Retention" options={['6 months', '1 year (then archive)', '2 years', 'Forever', 'School decides']} value="1 year (then archive)" theme={theme} hint="School Admin manages within this cap" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── STEP 6: FEE STRUCTURE ───────────────────────────
+// ─── STEP 5: FEE STRUCTURE (was Step 6) ──────────────
 function Step6Fees({ theme, institutionType }: { theme: Theme; institutionType: string }) {
   const [feeHeads, setFeeHeads] = useState<Record<string, boolean>>({
     'Tuition Fee': true, 'Admission Fee': true, 'Annual Charges': true, 'Transport Fee': true,
@@ -3075,8 +3044,8 @@ function Step8Transport({ theme, institutionType }: { theme: Theme; institutionT
 function Step9Review({ theme, goToStep }: { theme: Theme; goToStep: (s: number) => void }) {
   const [checklist, setChecklist] = useState<Record<string, boolean>>({
     'School basic info entered': true, 'Academic structure configured': true,
-    'Plan selected & modules enabled': true, 'Approval workflows set': true,
-    'Communication rules configured': true, 'Fee heads defined': true,
+    'Plan selected & modules enabled': true, 'Chat/Communication configured': true,
+    'Approval workflows set': true, 'Fee heads defined': true,
     'Class-wise fee amounts entered': false, 'Staff data imported (CSV/Excel)': false,
     'Student data imported': false, 'Route details entered': false,
     'Test login as School Admin': false, 'Welcome email sent to school': false,
@@ -3085,12 +3054,11 @@ function Step9Review({ theme, goToStep }: { theme: Theme; goToStep: (s: number) 
   const sections = [
     { title: 'School Identity', status: 'complete', step: 1, items: ['Delhi Public School, Ahmedabad', 'CBSE · K-12 · English Medium', 'Academic Year: April - March'] },
     { title: 'Academic Structure', status: 'complete', step: 2, items: ['15 classes (Nursery to 12th)', '2-3 sections per class', 'House System: 4 houses', 'Mon-Sat, 8:00 - 14:30'] },
-    { title: 'Plan & Modules', status: 'complete', step: 3, items: ['Enterprise Plan (₹1,50,000/yr)', '24 of 27 modules enabled', '50 GB storage, unlimited users'] },
+    { title: 'Plan & Modules', status: 'complete', step: 3, items: ['Enterprise Plan (₹1,50,000/yr)', '24 of 27 modules enabled', '50 GB storage, unlimited users', 'Chat: Full two-way, 7 groups, 10 DM rules'] },
     { title: 'Roles & Permissions', status: 'complete', step: 4, items: ['10 stakeholder dashboards active', '6 approval workflows configured', 'Multi-authority approvals enabled'] },
-    { title: 'Communication', status: 'complete', step: 5, items: ['Full two-way parent communication', '7 default groups auto-created', 'DM permissions set for 10 role pairs'] },
-    { title: 'Fee Structure', status: 'partial', step: 6, items: ['8 fee heads configured', 'Quarterly payment · 10th due date', 'Late fee: ₹50/month after 15 days', '⚠ Class-wise amounts not yet entered'] },
-    { title: 'HR & Staff', status: 'complete', step: 7, items: ['11 departments with designations', '6 leave types + approval chain', 'Biometric + App, multi-shift ready', 'Payroll: monthly cycle, PF + PT + TDS', '6-month probation, 30-day notice', 'Annual appraisal, 5-stage review'] },
-    { title: 'Transport', status: 'partial', step: 8, items: ['8 routes, 8 vehicles', 'GPS tracking enabled', '⚠ Route details not yet entered'] },
+    { title: 'Fee Structure', status: 'partial', step: 5, items: ['8 fee heads configured', 'Quarterly payment · 10th due date', 'Late fee: ₹50/month after 15 days', '⚠ Class-wise amounts not yet entered'] },
+    { title: 'HR & Staff', status: 'complete', step: 6, items: ['11 departments with designations', '6 leave types + approval chain', 'Biometric + App, multi-shift ready', 'Payroll: monthly cycle, PF + PT + TDS', '6-month probation, 30-day notice', 'Annual appraisal, 5-stage review'] },
+    { title: 'Transport', status: 'partial', step: 7, items: ['8 routes, 8 vehicles', 'GPS tracking enabled', '⚠ Route details not yet entered'] },
   ];
 
   const completedCount = sections.filter(s => s.status === 'complete').length;
@@ -3189,13 +3157,12 @@ export default function OnboardingWizard({ theme, onBack }: { theme: Theme; onBa
   const [stepStatus, setStepStatus] = useState<Record<number, StepCompletionStatus>>({
     1: 'partial',  // Identity: partially filled (has defaults but user hasn't completed all)
     2: 'partial',  // Academic: has default classes/sections but timing needs review
-    3: 'empty',    // Modules: not yet configured
+    3: 'empty',    // Modules: not yet configured (includes Chat/Communication config)
     4: 'empty',    // Roles: not yet configured
-    5: 'empty',    // Communication: not yet configured
-    6: 'empty',    // Fees: not yet configured
-    7: 'empty',    // HR: not yet configured
-    8: 'empty',    // Transport: not yet configured
-    9: 'empty',    // Review: not applicable until others are done
+    5: 'empty',    // Fees: not yet configured
+    6: 'empty',    // HR: not yet configured
+    7: 'empty',    // Transport: not yet configured
+    8: 'empty',    // Review: not applicable until others are done
   });
 
   useEffect(() => {
@@ -3219,11 +3186,10 @@ export default function OnboardingWizard({ theme, onBack }: { theme: Theme; onBa
       case 2: return <Step2Academic theme={theme} institutionType={institutionType} />;
       case 3: return <Step3Modules theme={theme} institutionType={institutionType} />;
       case 4: return <Step4Roles theme={theme} institutionType={institutionType} />;
-      case 5: return <Step5Communication theme={theme} institutionType={institutionType} />;
-      case 6: return <Step6Fees theme={theme} institutionType={institutionType} />;
-      case 7: return <Step7HR theme={theme} institutionType={institutionType} />;
-      case 8: return <Step8Transport theme={theme} institutionType={institutionType} />;
-      case 9: return <Step9Review theme={theme} goToStep={setCurrentStep} />;
+      case 5: return <Step6Fees theme={theme} institutionType={institutionType} />;
+      case 6: return <Step7HR theme={theme} institutionType={institutionType} />;
+      case 7: return <Step8Transport theme={theme} institutionType={institutionType} />;
+      case 8: return <Step9Review theme={theme} goToStep={setCurrentStep} />;
       default: return <Step1Identity theme={theme} onInstitutionTypeChange={setInstitutionType} />;
     }
   };
