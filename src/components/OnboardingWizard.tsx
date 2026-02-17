@@ -714,6 +714,66 @@ function Step2Academic({ theme, institutionType }: { theme: Theme; institutionTy
   ]);
   const [colorPickerOpen, setColorPickerOpen] = useState<string | null>(null);
 
+  // ─── SUBJECTS CONFIGURATION ───
+  const BOARD_SUBJECTS: Record<string, string[]> = {
+    'CBSE': ['English', 'Hindi', 'Mathematics', 'Science', 'Social Science', 'Computer Science', 'Physical Education', 'Art & Craft', 'Music', 'Moral Science', 'Sanskrit', 'Environmental Studies (EVS)', 'General Knowledge'],
+    'ICSE / ISC': ['English', 'Hindi', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'History', 'Geography', 'Civics', 'Computer Applications', 'Art', 'Physical Education', 'Environmental Science', 'Economic Applications'],
+    'IB (International Baccalaureate)': ['English A', 'Language B', 'Mathematics', 'Sciences', 'Individuals & Societies', 'Arts', 'Design', 'Physical Education', 'Theory of Knowledge'],
+    'default': ['English', 'Hindi', 'Mathematics', 'Science', 'Social Studies', 'Computer', 'Physical Education', 'Art', 'Music', 'Moral Science'],
+  };
+  const PRESCHOOL_LEARNING_AREAS = ['Language', 'Numeracy', 'Motor Skills', 'Creative Arts', 'Social Skills', 'Environmental Awareness'];
+  const [subjects, setSubjects] = useState<string[]>(BOARD_SUBJECTS['CBSE']);
+  const [newSubject, setNewSubject] = useState('');
+  const [subjectClassMap, setSubjectClassMap] = useState<Record<string, { from: string; to: string }>>({});
+  const enabledClasses = Object.entries(classes).filter(([, v]) => v).map(([k]) => k);
+
+  const addSubject = () => {
+    const trimmed = newSubject.trim();
+    if (trimmed && !subjects.includes(trimmed)) {
+      setSubjects(prev => [...prev, trimmed]);
+      setNewSubject('');
+    }
+  };
+  const removeSubject = (subj: string) => {
+    setSubjects(prev => prev.filter(s => s !== subj));
+    setSubjectClassMap(prev => {
+      const next = { ...prev };
+      delete next[subj];
+      return next;
+    });
+  };
+
+  // ─── ATTENDANCE TYPES ───
+  const [attendanceTypes, setAttendanceTypes] = useState<Record<string, boolean>>(
+    isPreschool
+      ? { 'Present': true, 'Absent': true, 'Late Arrival': true, 'Early Pickup': true, 'Sick Leave': true, 'Holiday': true }
+      : { 'Present': true, 'Absent': true, 'Late': true, 'Half Day': true, 'Medical Leave': true, 'On Duty': false, 'Holiday': true, 'Excused Absence': false }
+  );
+  const [newAttendanceType, setNewAttendanceType] = useState('');
+  const addAttendanceType = () => {
+    const trimmed = newAttendanceType.trim();
+    if (trimmed && !(trimmed in attendanceTypes)) {
+      setAttendanceTypes(prev => ({ ...prev, [trimmed]: true }));
+      setNewAttendanceType('');
+    }
+  };
+
+  // ─── SHIFT-TO-CLASS MAPPING ───
+  const [shiftClassMap, setShiftClassMap] = useState<Record<string, string[]>>({
+    's1': ['Nursery', 'LKG', 'UKG'],
+    's2': ['Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5'],
+    's3': ['Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10', 'Class 11', 'Class 12'],
+  });
+  const toggleShiftClass = (shiftId: string, className: string) => {
+    setShiftClassMap(prev => {
+      const current = prev[shiftId] || [];
+      if (current.includes(className)) {
+        return { ...prev, [shiftId]: current.filter(c => c !== className) };
+      }
+      return { ...prev, [shiftId]: [...current, className] };
+    });
+  };
+
   // State-managed shifts
   const [workingDays, setWorkingDays] = useState('Monday - Saturday');
   // REMARKS 6, 7, 8, 9: Per-day schedule for Custom working days
@@ -877,6 +937,52 @@ function Step2Academic({ theme, institutionType }: { theme: Theme; institutionTy
           {preschoolHouseEnabled && (
             <p className={`text-[10px] ${theme.iconColor}`}>Configure house names and colors in the same way as regular schools.</p>
           )}
+        </div>
+
+        {/* ─── PRESCHOOL LEARNING AREAS ─── */}
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <SectionTitle title="Learning Areas" subtitle="Core developmental areas tracked for preschool children" theme={theme} />
+          <div className="flex gap-2 flex-wrap">
+            {PRESCHOOL_LEARNING_AREAS.map(area => (
+              <span key={area} className={`text-[10px] px-3 py-1.5 rounded-lg ${theme.primary} text-white font-bold`}>
+                {area}
+              </span>
+            ))}
+          </div>
+          <p className={`text-[10px] ${theme.iconColor} mt-2`}>
+            <Info size={10} className="inline mr-1 text-blue-500" />
+            Learning areas are pre-configured for preschool. Teachers will log activities under these areas in the daily activity log.
+          </p>
+        </div>
+
+        {/* ─── PRESCHOOL ATTENDANCE TYPES ─── */}
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <SectionTitle title="Attendance Types" subtitle="Define which attendance statuses teachers can mark" theme={theme} />
+          <div className="space-y-2">
+            {Object.entries(attendanceTypes).map(([type, enabled]) => (
+              <div key={type} className={`flex items-center justify-between p-3 rounded-xl ${theme.secondaryBg}`}>
+                <span className={`text-xs font-medium ${theme.highlight}`}>{type}</span>
+                <Toggle on={enabled} onChange={() => setAttendanceTypes(prev => ({ ...prev, [type]: !prev[type] }))} theme={theme} />
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-2 mt-3">
+            <input
+              value={newAttendanceType}
+              onChange={(e) => setNewAttendanceType(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && addAttendanceType()}
+              placeholder="Add custom attendance type..."
+              className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none ${theme.highlight}`}
+            />
+            <button onClick={addAttendanceType}
+              className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-1`}>
+              <Plus size={10} /> Add
+            </button>
+          </div>
+          <p className={`text-[10px] ${theme.iconColor} mt-2`}>
+            <Info size={10} className="inline mr-1 text-blue-500" />
+            Teachers will see only enabled types when marking attendance.
+          </p>
         </div>
 
         <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
@@ -1065,6 +1171,106 @@ function Step2Academic({ theme, institutionType }: { theme: Theme; institutionTy
         )}
       </div>
 
+      {/* ─── SUBJECTS CONFIGURATION ─── */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <SectionTitle title="Subjects" subtitle="Pre-populated based on board — add, remove, or map to class ranges" theme={theme} />
+
+        {/* Subject chips */}
+        <div className="flex gap-2 flex-wrap mb-3">
+          {subjects.map(subj => (
+            <span key={subj} className={`text-[10px] px-2.5 py-1 rounded-lg ${theme.primary} text-white font-bold flex items-center gap-1`}>
+              {subj}
+              <button onClick={() => removeSubject(subj)} title={`Remove ${subj}`}>
+                <X size={8} className="cursor-pointer opacity-70 hover:opacity-100" />
+              </button>
+            </span>
+          ))}
+        </div>
+
+        {/* Add subject input */}
+        <div className="flex gap-2 mb-4">
+          <input
+            value={newSubject}
+            onChange={(e) => setNewSubject(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && addSubject()}
+            placeholder="Add custom subject..."
+            className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none ${theme.highlight}`}
+          />
+          <button onClick={addSubject}
+            className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-1`}>
+            <Plus size={10} /> Add
+          </button>
+        </div>
+
+        {/* Subject-to-class mapping */}
+        <div className={`p-3 rounded-xl border ${theme.border} ${theme.secondaryBg} space-y-2`}>
+          <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-2`}>Subject → Class Range Mapping</p>
+          {subjects.map(subj => {
+            const mapping = subjectClassMap[subj] || { from: '', to: '' };
+            return (
+              <div key={subj} className={`flex items-center gap-3 p-2 rounded-lg ${theme.cardBg}`}>
+                <span className={`text-[10px] font-bold ${theme.highlight} w-40 truncate`}>{subj}</span>
+                <div className="flex items-center gap-2">
+                  <span className={`text-[9px] ${theme.iconColor}`}>From:</span>
+                  <select
+                    value={mapping.from}
+                    onChange={(e) => setSubjectClassMap(prev => ({ ...prev, [subj]: { ...mapping, from: e.target.value } }))}
+                    className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] outline-none ${theme.highlight}`}
+                  >
+                    <option value="">All Classes</option>
+                    {enabledClasses.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                  <span className={`text-[9px] ${theme.iconColor}`}>→</span>
+                  <span className={`text-[9px] ${theme.iconColor}`}>To:</span>
+                  <select
+                    value={mapping.to}
+                    onChange={(e) => setSubjectClassMap(prev => ({ ...prev, [subj]: { ...mapping, to: e.target.value } }))}
+                    className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] outline-none ${theme.highlight}`}
+                  >
+                    <option value="">All Classes</option>
+                    {enabledClasses.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+              </div>
+            );
+          })}
+          <p className={`text-[9px] ${theme.iconColor} mt-1`}>
+            <Info size={10} className="inline mr-1 text-blue-500" />
+            Leave &quot;All Classes&quot; for subjects taught across all grades. Set a specific range for grade-specific subjects (e.g., EVS for Nursery → Class 5).
+          </p>
+        </div>
+      </div>
+
+      {/* ─── ATTENDANCE TYPES ─── */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <SectionTitle title="Attendance Types" subtitle="Define which attendance statuses teachers can mark" theme={theme} />
+        <div className="space-y-2">
+          {Object.entries(attendanceTypes).map(([type, enabled]) => (
+            <div key={type} className={`flex items-center justify-between p-3 rounded-xl ${theme.secondaryBg}`}>
+              <span className={`text-xs font-medium ${theme.highlight}`}>{type}</span>
+              <Toggle on={enabled} onChange={() => setAttendanceTypes(prev => ({ ...prev, [type]: !prev[type] }))} theme={theme} />
+            </div>
+          ))}
+        </div>
+        <div className="flex gap-2 mt-3">
+          <input
+            value={newAttendanceType}
+            onChange={(e) => setNewAttendanceType(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && addAttendanceType()}
+            placeholder="Add custom attendance type..."
+            className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none ${theme.highlight}`}
+          />
+          <button onClick={addAttendanceType}
+            className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-1`}>
+            <Plus size={10} /> Add
+          </button>
+        </div>
+        <p className={`text-[10px] ${theme.iconColor} mt-2`}>
+          <Info size={10} className="inline mr-1 text-blue-500" />
+          Teachers will see only enabled types when marking attendance.
+        </p>
+      </div>
+
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
         <SectionTitle title="School Timings & Shifts" subtitle="Fully configurable: reporting time, bell schedule, breaks, per-day variations — each shift is independent" theme={theme} />
         <div className="mb-4">
@@ -1171,6 +1377,32 @@ function Step2Academic({ theme, institutionType }: { theme: Theme; institutionTy
                     <option value="Senior Secondary">Senior Secondary</option>
                   </select>
                 </div>
+              </div>
+
+              {/* Classes in this Shift */}
+              <div className={`p-3 rounded-xl border ${theme.border} ${theme.cardBg}`}>
+                <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-2`}>Classes in this Shift</p>
+                <div className="flex gap-1.5 flex-wrap">
+                  {enabledClasses.map(cls => {
+                    const isSelected = (shiftClassMap[shift.id] || []).includes(cls);
+                    return (
+                      <button
+                        key={cls}
+                        onClick={() => toggleShiftClass(shift.id, cls)}
+                        className={`text-[10px] px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+                          isSelected
+                            ? `${theme.primary} text-white`
+                            : `border ${theme.border} ${theme.iconColor} hover:bg-slate-100`
+                        }`}
+                      >
+                        {cls}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className={`text-[9px] ${theme.iconColor} mt-1.5`}>
+                  Click to toggle which classes attend this shift. {(shiftClassMap[shift.id] || []).length} class{(shiftClassMap[shift.id] || []).length !== 1 ? 'es' : ''} selected.
+                </p>
               </div>
 
               {/* Row 2: Reporting, First Bell, First Period, End Time */}
@@ -2606,29 +2838,91 @@ function Step4Roles({ theme, institutionType }: { theme: Theme; institutionType:
 
 // ─── STEP 5: FEE STRUCTURE (was Step 6) ──────────────
 function Step6Fees({ theme, institutionType }: { theme: Theme; institutionType: string }) {
+  // ─── Fee Template ───
+  const [feeTemplate, setFeeTemplate] = useState('component-based');
+  const feeTemplates = [
+    { id: 'simple-annual', name: 'Simple Annual', desc: 'Single annual fee per class — simplest setup' },
+    { id: 'component-based', name: 'Component-Based', desc: 'Multiple fee heads (tuition + lab + library...) — most common' },
+    { id: 'term-wise', name: 'Term-Wise', desc: 'Fees split by term (Term 1, Term 2, Term 3) with different amounts' },
+  ];
+
+  // ─── Fee Heads ───
   const [feeHeads, setFeeHeads] = useState<Record<string, boolean>>({
     'Tuition Fee': true, 'Admission Fee': true, 'Annual Charges': true, 'Transport Fee': true,
     'Activity / Extra-curricular Fee': true, 'Lab Fee': true, 'Library Fee': false, 'Exam Fee': true,
     'Development Fund': false, 'Smart Class / IT Fee': false, 'Uniform / Books': false, 'Hostel Fee': false,
   });
-  const [payModes, setPayModes] = useState<Record<string, boolean>>({
-    'Online (Razorpay)': true, 'UPI': true, 'Cash': true, 'Cheque': true, 'NEFT / RTGS': true, 'Demand Draft': true,
-  });
-  const [lateFeeOn, setLateFeeOn] = useState(true);
-  const [concessions, setConcessions] = useState<Record<string, boolean>>({
-    'Sibling Discount': true, 'EWS / RTE (25%)': true, 'Merit Scholarship': true,
-    'Staff Child Discount': true, 'Financial Hardship': true, 'Sports Quota': true, 'Custom': false,
-  });
-
   const feeFreqs: Record<string, string> = {
     'Tuition Fee': 'Monthly', 'Admission Fee': 'One-time', 'Annual Charges': 'Annual', 'Transport Fee': 'Monthly',
     'Activity / Extra-curricular Fee': 'Monthly', 'Lab Fee': 'Annual', 'Library Fee': 'Annual', 'Exam Fee': 'Per Exam',
     'Development Fund': 'Annual', 'Smart Class / IT Fee': 'Annual', 'Uniform / Books': 'Annual', 'Hostel Fee': 'Monthly',
   };
+  const feeCategories: Record<string, 'recurring' | 'one-time'> = {
+    'Tuition Fee': 'recurring', 'Admission Fee': 'one-time', 'Annual Charges': 'one-time',
+    'Transport Fee': 'recurring', 'Activity / Extra-curricular Fee': 'recurring', 'Lab Fee': 'one-time',
+    'Library Fee': 'one-time', 'Exam Fee': 'one-time', 'Development Fund': 'one-time',
+    'Smart Class / IT Fee': 'one-time', 'Uniform / Books': 'one-time', 'Hostel Fee': 'recurring',
+  };
+
+  // ─── Class-wise Fee Config ───
+  const schoolClassGroups = [
+    { id: 'pre-primary', label: 'Pre-Primary (Nursery\u2013UKG)', classes: ['Nursery', 'LKG', 'UKG'] },
+    { id: 'primary', label: 'Primary (Class 1\u20135)', classes: ['1', '2', '3', '4', '5'] },
+    { id: 'middle', label: 'Middle (Class 6\u20138)', classes: ['6', '7', '8'] },
+    { id: 'secondary', label: 'Secondary (Class 9\u201310)', classes: ['9', '10'] },
+    { id: 'senior', label: 'Senior (Class 11\u201312)', classes: ['11', '12'] },
+  ];
+  const preschoolClassGroups = [
+    { id: 'playgroup', label: 'Playgroup', classes: ['Playgroup'] },
+    { id: 'nursery', label: 'Nursery', classes: ['Nursery'] },
+    { id: 'junior-kg', label: 'Junior KG', classes: ['Junior KG'] },
+    { id: 'senior-kg', label: 'Senior KG', classes: ['Senior KG'] },
+  ];
+  const classGroups = institutionType === 'preschool' ? preschoolClassGroups : schoolClassGroups;
+  const defaultSchoolFees: Record<string, string> = {
+    'pre-primary': '45,000', 'primary': '55,000', 'middle': '65,000', 'secondary': '75,000', 'senior': '85,000',
+  };
+  const defaultPreschoolFees: Record<string, string> = {
+    'playgroup': '35,000', 'nursery': '40,000', 'junior-kg': '45,000', 'senior-kg': '50,000',
+  };
+  const [classFees, setClassFees] = useState<Record<string, string>>(
+    institutionType === 'preschool' ? defaultPreschoolFees : defaultSchoolFees
+  );
+
+  // ─── Payment Config ───
+  const [payModes, setPayModes] = useState<Record<string, boolean>>({
+    'Online (Razorpay)': true, 'UPI': true, 'Cash': true, 'Cheque': true, 'NEFT / RTGS': true, 'Demand Draft': true,
+  });
+
+  // ─── Late Fee ───
+  const [lateFeeOn, setLateFeeOn] = useState(true);
+
+  // ─── Fee Defaulter Blocking ───
+  const [defaulterBlocking, setDefaulterBlocking] = useState(false);
+  const [blockActions, setBlockActions] = useState<Record<string, boolean>>({
+    'Block Report Card Download': false,
+    'Block Exam Hall Ticket': false,
+    'Block TC / Transfer Certificate': false,
+    'Show Alert on Student Profile': true,
+  });
+
+  // ─── Concessions ───
+  const [concessions, setConcessions] = useState<Record<string, boolean>>({
+    'Sibling Discount': true, 'EWS / RTE (25%)': true, 'Merit Scholarship': true,
+    'Staff Child Discount': true, 'Financial Hardship': true, 'Sports Quota': true, 'Custom': false,
+  });
+  const [concessionValues, setConcessionValues] = useState<Record<string, { type: 'percentage' | 'fixed'; value: string }>>({
+    'Sibling Discount': { type: 'percentage', value: '10' },
+    'EWS / RTE (25%)': { type: 'percentage', value: '25' },
+    'Merit Scholarship': { type: 'percentage', value: '15' },
+    'Staff Child Discount': { type: 'percentage', value: '50' },
+    'Financial Hardship': { type: 'percentage', value: '20' },
+    'Sports Quota': { type: 'percentage', value: '10' },
+  });
 
   return (
     <div className="space-y-6">
-      <SectionTitle title="Fee Structure (Basic Setup)" subtitle="Define fee heads and class categories — detailed amounts can be configured later" theme={theme} />
+      <SectionTitle title="Fee Structure (Basic Setup)" subtitle="Define fee heads, class-wise amounts, and policies — detailed configuration available after setup" theme={theme} />
 
       {institutionType === 'preschool' && (
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3 flex items-start gap-2">
@@ -2639,21 +2933,55 @@ function Step6Fees({ theme, institutionType }: { theme: Theme; institutionType: 
         </div>
       )}
 
+      {/* ── Section 1: Fee Template Selection ── */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <SectionTitle title="Fee Template" subtitle="Choose how your fee structure is organized" theme={theme} />
+        <div className="grid grid-cols-3 gap-3">
+          {feeTemplates.map(t => (
+            <button key={t.id} onClick={() => setFeeTemplate(t.id)}
+              className={`p-4 rounded-xl border-2 cursor-pointer text-left transition-all ${
+                feeTemplate === t.id ? 'border-emerald-400 bg-emerald-50 ring-2 ring-emerald-200' : `${theme.border} ${theme.cardBg}`
+              }`}>
+              <div className="flex items-center gap-2 mb-1">
+                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                  feeTemplate === t.id ? 'border-emerald-500 bg-emerald-500' : theme.border
+                }`}>
+                  {feeTemplate === t.id && <Check size={10} className="text-white" />}
+                </div>
+                <span className={`text-xs font-bold ${theme.highlight}`}>{t.name}</span>
+              </div>
+              {feeTemplate === t.id && <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold mb-1 inline-block">SELECTED</span>}
+              <p className={`text-[10px] ${theme.iconColor} mt-1`}>{t.desc}</p>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Section 2: Fee Heads with Recurring/One-time Badges ── */}
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
         <SectionTitle title="Fee Heads" subtitle="What fees does the school charge?" theme={theme} />
         <div className="space-y-2">
-          {Object.entries(feeHeads).map(([head, on]) => (
-            <div key={head} className={`flex items-center justify-between p-3 rounded-xl ${theme.secondaryBg}`}>
-              <div className="flex items-center gap-2">
-                <span className={`text-xs font-medium ${theme.highlight}`}>{head}</span>
-                {head === 'Tuition Fee' && <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-600 font-bold">Core</span>}
+          {Object.entries(feeHeads).map(([head, on]) => {
+            const category = feeCategories[head];
+            return (
+              <div key={head} className={`flex items-center justify-between p-3 rounded-xl ${theme.secondaryBg}`}>
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs font-medium ${theme.highlight}`}>{head}</span>
+                  {head === 'Tuition Fee' && <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-600 font-bold">Core</span>}
+                  {category === 'recurring' && (
+                    <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold">Recurring</span>
+                  )}
+                  {category === 'one-time' && (
+                    <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-sky-100 text-sky-700 font-bold">One-time</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className={`text-[10px] ${theme.iconColor}`}>{feeFreqs[head]}</span>
+                  <Toggle on={on} onChange={() => head !== 'Tuition Fee' && setFeeHeads(p => ({ ...p, [head]: !p[head] }))} theme={theme} />
+                </div>
               </div>
-              <div className="flex items-center gap-3">
-                <span className={`text-[10px] ${theme.iconColor}`}>{feeFreqs[head]}</span>
-                <Toggle on={on} onChange={() => head !== 'Tuition Fee' && setFeeHeads(p => ({ ...p, [head]: !p[head] }))} theme={theme} />
-              </div>
-            </div>
-          ))}
+            );
+          })}
           <button className={`w-full flex items-center justify-center gap-2 p-2.5 rounded-xl border-2 border-dashed ${theme.border} ${theme.iconColor} text-xs font-bold`}>
             <Plus size={12} /> Add Custom Fee Head
           </button>
@@ -2661,6 +2989,41 @@ function Step6Fees({ theme, institutionType }: { theme: Theme; institutionType: 
         <p className={`text-[10px] ${theme.iconColor} mt-2`}>{Object.values(feeHeads).filter(Boolean).length} fee heads active</p>
       </div>
 
+      {/* ── Section 3: Class-Wise Fee Configuration ── */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <SectionTitle title="Class-Wise Fee Configuration" subtitle="Set annual fee amount per class group — installments auto-calculated from payment frequency" theme={theme} />
+        <div className="space-y-2">
+          <div className={`grid grid-cols-[1fr_auto_auto] gap-3 px-3 py-2`}>
+            <span className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Class Group</span>
+            <span className={`text-[10px] font-bold ${theme.iconColor} uppercase text-right`}>Classes</span>
+            <span className={`text-[10px] font-bold ${theme.iconColor} uppercase text-right`}>Annual Fee</span>
+          </div>
+          {classGroups.map(group => (
+            <div key={group.id} className={`grid grid-cols-[1fr_auto_auto] gap-3 items-center p-3 rounded-xl ${theme.secondaryBg}`}>
+              <span className={`text-xs font-bold ${theme.highlight}`}>{group.label}</span>
+              <div className="flex flex-wrap gap-1 justify-end">
+                {group.classes.map(c => (
+                  <span key={c} className={`text-[9px] px-1.5 py-0.5 rounded border ${theme.border} ${theme.iconColor}`}>{c}</span>
+                ))}
+              </div>
+              <div className="flex items-center gap-1">
+                <span className={`text-xs ${theme.iconColor}`}>&#8377;</span>
+                <input
+                  type="text"
+                  value={classFees[group.id] || ''}
+                  onChange={e => setClassFees(p => ({ ...p, [group.id]: e.target.value }))}
+                  className={`w-24 px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-right ${theme.highlight} outline-none focus:ring-2 focus:ring-emerald-300`}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+        <p className={`text-[10px] ${theme.iconColor} mt-2 flex items-center gap-1`}>
+          <Info size={10} /> These are total annual fees — installments calculated automatically based on payment frequency
+        </p>
+      </div>
+
+      {/* ── Section 4: Payment Configuration ── */}
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
         <SectionTitle title="Payment Configuration" theme={theme} />
         <div className="grid grid-cols-2 gap-3">
@@ -2683,6 +3046,7 @@ function Step6Fees({ theme, institutionType }: { theme: Theme; institutionType: 
         </div>
       </div>
 
+      {/* ── Section 5: Late Fee + Fee Defaulter Blocking (side by side) ── */}
       <div className="grid grid-cols-2 gap-4">
         <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
           <div className="flex items-center justify-between mb-3">
@@ -2692,22 +3056,72 @@ function Step6Fees({ theme, institutionType }: { theme: Theme; institutionType: 
           {lateFeeOn && (
             <div className="space-y-2">
               <FormField label="Grace Period (days)" value="15" type="number" theme={theme} />
-              <FormField label="Late Fee Amount" value="₹50 per month" theme={theme} />
+              <FormField label="Late Fee Amount" value="&#8377;50 per month" theme={theme} />
               <SelectField label="Calculation" options={['Fixed amount per month', 'Percentage of due amount', 'Slab-wise']} value="Fixed amount per month" theme={theme} />
             </div>
           )}
         </div>
+
         <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-          <SectionTitle title="Concession Types Available" theme={theme} />
-          <div className="space-y-2">
-            {Object.entries(concessions).map(([c, on]) => (
-              <div key={c} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <span className={`text-xs ${theme.highlight}`}>{c}</span>
+          <div className="flex items-center justify-between mb-3">
+            <SectionTitle title="Fee Defaulter Policy" subtitle="Restrict actions for fee defaulters" theme={theme} />
+            <Toggle on={defaulterBlocking} onChange={() => setDefaulterBlocking(!defaulterBlocking)} theme={theme} />
+          </div>
+          {defaulterBlocking && (
+            <div className="space-y-2">
+              {Object.entries(blockActions).map(([action, on]) => (
+                <div key={action} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                  <span className={`text-[10px] font-medium ${theme.highlight}`}>{action}</span>
+                  <Toggle on={on} onChange={() => setBlockActions(p => ({ ...p, [action]: !p[action] }))} theme={theme} />
+                </div>
+              ))}
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-2.5 flex items-start gap-2 mt-2">
+                <AlertTriangle size={12} className="text-amber-500 mt-0.5 shrink-0" />
+                <p className="text-[10px] text-amber-800">
+                  Blocked students can still attend classes — only administrative actions are restricted
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Section 6: Enhanced Concession Configuration ── */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <SectionTitle title="Concession Types & Values" subtitle="Enable concessions and configure default discount amount or percentage" theme={theme} />
+        <div className="space-y-2">
+          {Object.entries(concessions).map(([c, on]) => (
+            <div key={c} className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+              <div className="flex items-center justify-between">
+                <span className={`text-xs font-medium ${theme.highlight}`}>{c}</span>
                 <Toggle on={on} onChange={() => setConcessions(p => ({ ...p, [c]: !p[c] }))} theme={theme} />
               </div>
-            ))}
-          </div>
+              {on && c !== 'Custom' && concessionValues[c] && (
+                <div className="flex items-center gap-2 mt-2 pl-1">
+                  <select
+                    value={concessionValues[c].type}
+                    onChange={e => setConcessionValues(p => ({ ...p, [c]: { ...p[c], type: e.target.value as 'percentage' | 'fixed' } }))}
+                    className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight} outline-none`}
+                  >
+                    <option value="percentage">Percentage</option>
+                    <option value="fixed">Fixed Amount</option>
+                  </select>
+                  <div className="flex items-center gap-1">
+                    {concessionValues[c].type === 'fixed' && <span className={`text-[10px] ${theme.iconColor}`}>&#8377;</span>}
+                    <input
+                      type="text"
+                      value={concessionValues[c].value}
+                      onChange={e => setConcessionValues(p => ({ ...p, [c]: { ...p[c], value: e.target.value } }))}
+                      className={`w-16 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] text-center ${theme.highlight} outline-none focus:ring-2 focus:ring-emerald-300`}
+                    />
+                    {concessionValues[c].type === 'percentage' && <span className={`text-[10px] ${theme.iconColor}`}>%</span>}
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
+        <p className={`text-[10px] ${theme.iconColor} mt-2`}>{Object.values(concessions).filter(Boolean).length} concession types active</p>
       </div>
     </div>
   );
@@ -2988,10 +3402,51 @@ function Step8Transport({ theme, institutionType }: { theme: Theme; institutionT
     'Route Deviation Alert': 'Notify if bus goes off defined route', 'RFID Student Boarding': 'Track which students boarded/alighted',
   };
 
+  // Route Configuration
+  const [routes, setRoutes] = useState([
+    { id: 1, name: 'Route A \u2014 North', stops: 8, capacity: 45, pickupTime: '07:00', dropoffTime: '14:30' },
+    { id: 2, name: 'Route B \u2014 South', stops: 6, capacity: 40, pickupTime: '07:15', dropoffTime: '14:45' },
+    { id: 3, name: 'Route C \u2014 East', stops: 10, capacity: 50, pickupTime: '06:45', dropoffTime: '14:15' },
+  ]);
+  const addRoute = () => setRoutes(prev => [...prev, { id: Date.now(), name: '', stops: 0, capacity: 0, pickupTime: '07:00', dropoffTime: '14:30' }]);
+  const removeRoute = (id: number) => setRoutes(prev => prev.filter(r => r.id !== id));
+  const updateRoute = (id: number, field: string, value: string | number) => setRoutes(prev => prev.map(r => r.id === id ? { ...r, [field]: value } : r));
+
+  // Vehicle Fleet
+  const [vehicles, setVehicles] = useState([
+    { id: 1, regNo: '', model: 'School Bus (45-seater)', capacity: 45, type: 'Bus' },
+    { id: 2, regNo: '', model: 'School Bus (40-seater)', capacity: 40, type: 'Bus' },
+  ]);
+  const vehicleTypes = ['Bus', 'Mini Bus', 'Van', 'Auto', 'Tempo Traveller'];
+  const addVehicle = () => setVehicles(prev => [...prev, { id: Date.now(), regNo: '', model: '', capacity: 0, type: 'Bus' }]);
+  const removeVehicle = (id: number) => setVehicles(prev => prev.filter(v => v.id !== id));
+  const updateVehicle = (id: number, field: string, value: string | number) => setVehicles(prev => prev.map(v => v.id === id ? { ...v, [field]: value } : v));
+
+  // Driver Information
+  const [drivers, setDrivers] = useState([
+    { id: 1, name: '', phone: '', licenseNo: '', licenseExpiry: '' },
+    { id: 2, name: '', phone: '', licenseNo: '', licenseExpiry: '' },
+  ]);
+  const addDriver = () => setDrivers(prev => [...prev, { id: Date.now(), name: '', phone: '', licenseNo: '', licenseExpiry: '' }]);
+  const removeDriver = (id: number) => setDrivers(prev => prev.filter(d => d.id !== id));
+  const updateDriver = (id: number, field: string, value: string) => setDrivers(prev => prev.map(d => d.id === id ? { ...d, [field]: value } : d));
+
+  // Transport Fee Structure
+  const [transportFeeType, setTransportFeeType] = useState<'flat' | 'route-wise' | 'distance-based'>('route-wise');
+  const feeOptions: { value: 'flat' | 'route-wise' | 'distance-based'; label: string; desc: string; recommended?: boolean }[] = [
+    { value: 'flat', label: 'Flat Fee', desc: 'Same transport fee for all students regardless of route' },
+    { value: 'route-wise', label: 'Route-Wise', desc: 'Different fee per route (longer routes cost more)', recommended: true },
+    { value: 'distance-based', label: 'Distance-Based', desc: 'Fee calculated by distance from school to pickup point' },
+  ];
+
+  // Walk-in vs Transport Tagging
+  const [walkInTagging, setWalkInTagging] = useState(true);
+
   return (
     <div className="space-y-6">
       <SectionTitle title="Transport Configuration" subtitle="Bus routes, vehicles, and tracking setup" theme={theme} />
 
+      {/* Master Toggle */}
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
         <div className="flex items-center justify-between mb-4">
           <SectionTitle title="Transport Module" subtitle="Does this school provide bus/van service?" theme={theme} />
@@ -3008,6 +3463,125 @@ function Step8Transport({ theme, institutionType }: { theme: Theme; institutionT
 
       {transportOn && (
         <>
+          {/* Route Configuration */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+            <SectionTitle title="Route Setup" subtitle="Define school bus routes \u2014 stops, capacity, and timings" theme={theme} />
+            <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] gap-2 mb-2">
+              <span className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Route Name</span>
+              <span className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Stops</span>
+              <span className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Capacity</span>
+              <span className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Pickup</span>
+              <span className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Dropoff</span>
+              <span className="w-7" />
+            </div>
+            <div className="space-y-2">
+              {routes.map(route => (
+                <div key={route.id} className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] gap-2 items-center">
+                  <input type="text" value={route.name} onChange={e => updateRoute(route.id, 'name', e.target.value)}
+                    placeholder="e.g. Route D \u2014 West"
+                    className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none ${theme.highlight}`} />
+                  <input type="number" value={route.stops || ''} onChange={e => updateRoute(route.id, 'stops', Number(e.target.value))}
+                    placeholder="0" min={0}
+                    className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none text-center ${theme.highlight}`} />
+                  <input type="number" value={route.capacity || ''} onChange={e => updateRoute(route.id, 'capacity', Number(e.target.value))}
+                    placeholder="0" min={0}
+                    className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none text-center ${theme.highlight}`} />
+                  <input type="time" value={route.pickupTime} onChange={e => updateRoute(route.id, 'pickupTime', e.target.value)}
+                    className={`px-2 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none ${theme.highlight}`} />
+                  <input type="time" value={route.dropoffTime} onChange={e => updateRoute(route.id, 'dropoffTime', e.target.value)}
+                    className={`px-2 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none ${theme.highlight}`} />
+                  {routes.length > 1 ? (
+                    <button onClick={() => removeRoute(route.id)} className="text-red-400 hover:text-red-600 p-1" title="Remove route">
+                      <X size={14} />
+                    </button>
+                  ) : <span className="w-7" />}
+                </div>
+              ))}
+            </div>
+            <button onClick={addRoute}
+              className={`mt-3 text-[10px] px-3 py-1.5 rounded-xl border-2 border-dashed ${theme.border} ${theme.iconColor} font-bold hover:opacity-80`}>
+              + Add Route
+            </button>
+          </div>
+
+          {/* Vehicle Fleet */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+            <SectionTitle title="Vehicle Fleet" subtitle="Register vehicles \u2014 details can be updated later in Transport module" theme={theme} />
+            <div className="grid grid-cols-[2fr_1.5fr_1fr_auto] gap-2 mb-2">
+              <span className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Registration No.</span>
+              <span className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Vehicle Type</span>
+              <span className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Capacity</span>
+              <span className="w-7" />
+            </div>
+            <div className="space-y-2">
+              {vehicles.map(vehicle => (
+                <div key={vehicle.id} className="grid grid-cols-[2fr_1.5fr_1fr_auto] gap-2 items-center">
+                  <input type="text" value={vehicle.regNo} onChange={e => updateVehicle(vehicle.id, 'regNo', e.target.value)}
+                    placeholder="e.g. GJ-01-AB-1234"
+                    className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none ${theme.highlight}`} />
+                  <select value={vehicle.type} onChange={e => updateVehicle(vehicle.id, 'type', e.target.value)}
+                    className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none ${theme.highlight}`}>
+                    {vehicleTypes.map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                  <input type="number" value={vehicle.capacity || ''} onChange={e => updateVehicle(vehicle.id, 'capacity', Number(e.target.value))}
+                    placeholder="0" min={0}
+                    className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none text-center ${theme.highlight}`} />
+                  {vehicles.length > 1 ? (
+                    <button onClick={() => removeVehicle(vehicle.id)} className="text-red-400 hover:text-red-600 p-1" title="Remove vehicle">
+                      <X size={14} />
+                    </button>
+                  ) : <span className="w-7" />}
+                </div>
+              ))}
+            </div>
+            <button onClick={addVehicle}
+              className={`mt-3 text-[10px] px-3 py-1.5 rounded-xl border-2 border-dashed ${theme.border} ${theme.iconColor} font-bold hover:opacity-80`}>
+              + Add Vehicle
+            </button>
+          </div>
+
+          {/* Driver & Staff */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+            <SectionTitle title="Driver & Staff" subtitle="Driver details \u2014 license verification happens post-onboarding" theme={theme} />
+            <div className="grid grid-cols-[1.5fr_1fr_1.5fr_1fr_auto] gap-2 mb-2">
+              <span className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Driver Name</span>
+              <span className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Phone</span>
+              <span className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>License No.</span>
+              <span className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>License Expiry</span>
+              <span className="w-7" />
+            </div>
+            <div className="space-y-2">
+              {drivers.map(driver => (
+                <div key={driver.id} className="grid grid-cols-[1.5fr_1fr_1.5fr_1fr_auto] gap-2 items-center">
+                  <input type="text" value={driver.name} onChange={e => updateDriver(driver.id, 'name', e.target.value)}
+                    placeholder="Full name"
+                    className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none ${theme.highlight}`} />
+                  <input type="text" value={driver.phone} onChange={e => updateDriver(driver.id, 'phone', e.target.value)}
+                    placeholder="9876543210"
+                    className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none ${theme.highlight}`} />
+                  <input type="text" value={driver.licenseNo} onChange={e => updateDriver(driver.id, 'licenseNo', e.target.value)}
+                    placeholder="e.g. GJ01-2020-1234567"
+                    className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none ${theme.highlight}`} />
+                  <input type="date" value={driver.licenseExpiry} onChange={e => updateDriver(driver.id, 'licenseExpiry', e.target.value)}
+                    className={`px-2 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none ${theme.highlight}`} />
+                  {drivers.length > 1 ? (
+                    <button onClick={() => removeDriver(driver.id)} className="text-red-400 hover:text-red-600 p-1" title="Remove driver">
+                      <X size={14} />
+                    </button>
+                  ) : <span className="w-7" />}
+                </div>
+              ))}
+            </div>
+            <button onClick={addDriver}
+              className={`mt-3 text-[10px] px-3 py-1.5 rounded-xl border-2 border-dashed ${theme.border} ${theme.iconColor} font-bold hover:opacity-80`}>
+              + Add Driver
+            </button>
+            <p className={`text-[10px] ${theme.iconColor} mt-2 flex items-center gap-1`}>
+              <Info size={10} /> Bus nannies/attendants can be added later from HR module
+            </p>
+          </div>
+
+          {/* Tracking & Safety */}
           <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
             <SectionTitle title="Tracking & Safety" theme={theme} />
             <div className="space-y-2">
@@ -3023,6 +3597,7 @@ function Step8Transport({ theme, institutionType }: { theme: Theme; institutionT
             </div>
           </div>
 
+          {/* Student Pickup Policy */}
           <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
             <SectionTitle title="Student Pickup Policy" theme={theme} />
             <div className="space-y-2">
@@ -3033,6 +3608,60 @@ function Step8Transport({ theme, institutionType }: { theme: Theme; institutionT
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* Transport Fee Structure */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+            <SectionTitle title="Transport Fee Structure" subtitle="How should transport fees be calculated?" theme={theme} />
+            <div className="space-y-2">
+              {feeOptions.map(opt => (
+                <button key={opt.value} onClick={() => setTransportFeeType(opt.value)}
+                  className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all ${
+                    transportFeeType === opt.value
+                      ? `ring-2 ring-offset-1 ${theme.secondaryBg}`
+                      : theme.secondaryBg
+                  }`}>
+                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                    transportFeeType === opt.value ? 'border-current' : theme.border
+                  }`}>
+                    {transportFeeType === opt.value && (
+                      <div className={`w-2 h-2 rounded-full ${theme.primary}`} />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs font-bold ${theme.highlight}`}>{opt.label}</span>
+                      {opt.recommended && (
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-bold">RECOMMENDED</span>
+                      )}
+                    </div>
+                    <p className={`text-[10px] ${theme.iconColor}`}>{opt.desc}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+            <p className={`text-[10px] ${theme.iconColor} mt-2 flex items-center gap-1`}>
+              <Info size={10} /> Actual amounts are configured in the Fee Structure step
+            </p>
+          </div>
+
+          {/* Student Transport Tagging */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+            <SectionTitle title="Student Transport Tagging" theme={theme} />
+            <div className={`flex items-center justify-between p-3 rounded-xl ${theme.secondaryBg}`}>
+              <div>
+                <span className={`text-xs font-bold ${theme.highlight}`}>Tag each student as Transport User or Walk-in during enrollment</span>
+                <p className={`text-[10px] ${theme.iconColor} mt-0.5`}>
+                  Walk-in students follow different pickup procedures. Transport users get bus assignment and parent tracking app access.
+                </p>
+              </div>
+              <Toggle on={walkInTagging} onChange={() => setWalkInTagging(!walkInTagging)} theme={theme} />
+            </div>
+            {walkInTagging && (
+              <p className={`text-[10px] mt-2 px-3 py-2 rounded-lg bg-blue-50 text-blue-700 font-medium`}>
+                Students will be asked to select their transport mode during admission
+              </p>
+            )}
           </div>
         </>
       )}
