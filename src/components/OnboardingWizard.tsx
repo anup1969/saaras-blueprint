@@ -2746,25 +2746,57 @@ function Step6Fees({ theme, institutionType }: { theme: Theme; institutionType: 
 
 // ─── STEP 7: HR & STAFF ─────────────────────────────
 function Step7HR({ theme, institutionType }: { theme: Theme; institutionType: string }) {
-  const [departments, setDepartments] = useState(['Teaching', 'Administration', 'Accounts', 'IT / Computer', 'Library', 'Transport', 'Security', 'Housekeeping', 'Lab', 'Sports', 'Medical']);
+  const defaultDesignations: Record<string, string[]> = {
+    'Teaching': ['PGT', 'TGT', 'PRT', 'Coordinator', 'HOD'],
+    'Administration': ['Office Manager', 'Office Assistant', 'Data Entry Operator'],
+    'Accounts': ['Accounts Head', 'Accountant', 'Cashier'],
+    'IT / Computer': ['IT Manager', 'Lab Technician', 'IT Support'],
+    'Library': ['Head Librarian', 'Assistant Librarian'],
+    'Transport': ['Fleet Manager', 'Driver', 'Helper/Attendant'],
+    'Security': ['Security Head', 'Security Guard'],
+    'Housekeeping': ['Housekeeping Supervisor', 'Housekeeping Staff'],
+    'Lab': ['Lab Coordinator', 'Lab Assistant'],
+    'Sports': ['Sports Head', 'Sports Coach', 'PT Instructor'],
+    'Medical': ['School Doctor', 'Nurse', 'Counsellor'],
+  };
+  const [departments, setDepartments] = useState(Object.keys(defaultDesignations));
   const [leaveCarry, setLeaveCarry] = useState<Record<string, boolean>>({
     'Casual Leave (CL)': false, 'Sick Leave (SL)': false, 'Earned Leave (EL)': true,
     'Maternity Leave (ML)': false, 'Paternity Leave': false, 'Compensatory Off': false,
   });
+  const [sandwichRule, setSandwichRule] = useState(false);
+  const [halfDayLeave, setHalfDayLeave] = useState(true);
+  const [multiShift, setMultiShift] = useState(false);
+  const [workingDays, setWorkingDays] = useState('Mon-Sat');
+  const [customDays, setCustomDays] = useState<Record<string, boolean>>({ Mon: true, Tue: true, Wed: true, Thu: true, Fri: true, Sat: true, Sun: false });
+  const [salaryComponents, setSalaryComponents] = useState<Record<string, boolean>>({
+    'Basic Salary': true, 'HRA': true, 'DA (Dearness Allowance)': true,
+    'Conveyance Allowance': false, 'Medical Allowance': false, 'Special Allowance': true,
+  });
+  const [deductions, setDeductions] = useState<Record<string, boolean>>({
+    'PF (12%)': true, 'ESI (0.75%)': false, 'Professional Tax': true, 'TDS': true,
+  });
+  const [hrLetters, setHrLetters] = useState<Record<string, boolean>>({
+    'Appointment Letter': true, 'Experience Letter': true, 'Salary Certificate': true,
+    'Relieving Letter': true, 'Warning Letter': true, 'NOC': true,
+    'Increment Letter': false, 'Transfer Letter': false,
+  });
+  const [reviewStages, setReviewStages] = useState(['Self Review', 'Peer Review', 'HOD Review', 'Principal Review', 'Final Rating']);
+  const [onboardingChecklist, setOnboardingChecklist] = useState(['Document Verification', 'ID Card Generation', 'Bank Details Collection', 'IT Equipment Handover', 'Policy Acknowledgement', 'Department Introduction']);
 
   const removeDept = (d: string) => setDepartments(prev => prev.filter(x => x !== d));
-  const addDept = () => {
-    const name = prompt('Enter department name:');
-    if (name && !departments.includes(name)) setDepartments(prev => [...prev, name]);
-  };
+  const addDept = () => { const name = prompt('Enter department name:'); if (name && !departments.includes(name)) setDepartments(prev => [...prev, name]); };
+  const removeChip = (list: string[], setList: (v: string[]) => void, item: string) => setList(list.filter(x => x !== item));
+  const addChip = (list: string[], setList: (v: string[]) => void, promptText: string) => { const name = prompt(promptText); if (name && !list.includes(name)) setList([...list, name]); };
 
   return (
     <div className="space-y-6">
-      <SectionTitle title="HR & Staff Configuration" subtitle="Departments, designations, leave policies, and attendance" theme={theme} />
+      <SectionTitle title="HR & Staff Configuration" subtitle="Departments, leave, attendance, payroll, onboarding, appraisals & HR letters" theme={theme} />
 
+      {/* Section 1: Departments & Designations */}
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <SectionTitle title="Departments" subtitle="Staff departments — click X to remove, + to add" theme={theme} />
-        <div className="flex flex-wrap gap-2">
+        <SectionTitle title="Departments & Designations" subtitle="Staff departments with role designations — click X to remove, + to add" theme={theme} />
+        <div className="flex flex-wrap gap-2 mb-3">
           {departments.map(d => (
             <span key={d} className={`text-xs px-3 py-1.5 rounded-xl ${theme.primary} text-white font-bold flex items-center gap-1`}>
               {d} <button onClick={() => removeDept(d)}><X size={10} className="cursor-pointer" /></button>
@@ -2772,37 +2804,63 @@ function Step7HR({ theme, institutionType }: { theme: Theme; institutionType: st
           ))}
           <button onClick={addDept} className={`text-xs px-3 py-1.5 rounded-xl border-2 border-dashed ${theme.border} ${theme.iconColor} font-bold`}>+ Add</button>
         </div>
-        <p className={`text-[10px] ${theme.iconColor} mt-2`}>{departments.length} departments</p>
+        <div className="space-y-2">
+          {departments.map(d => (
+            <div key={d} className={`p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <span className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>{d}</span>
+              <div className="flex flex-wrap gap-1.5 mt-1">
+                {(defaultDesignations[d] || ['Staff']).map(des => (
+                  <span key={des} className={`text-[10px] px-2 py-0.5 rounded-lg border ${theme.border} ${theme.highlight}`}>{des}</span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+        <p className={`text-[10px] ${theme.iconColor} mt-2`}>{departments.length} departments configured</p>
       </div>
 
+      {/* Section 2: Leave Policy */}
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <SectionTitle title="Leave Policy" subtitle="Annual leave allocation per staff member" theme={theme} />
+        <SectionTitle title="Leave Policy" subtitle="Annual leave allocation, approval chain & rules" theme={theme} />
         <div className="space-y-2">
           {[
-            { type: 'Casual Leave (CL)', days: 12 },
-            { type: 'Sick Leave (SL)', days: 6 },
-            { type: 'Earned Leave (EL)', days: 15 },
-            { type: 'Maternity Leave (ML)', days: 180 },
-            { type: 'Paternity Leave', days: 15 },
-            { type: 'Compensatory Off', days: 0 },
+            { type: 'Casual Leave (CL)', days: 12 }, { type: 'Sick Leave (SL)', days: 6 },
+            { type: 'Earned Leave (EL)', days: 15 }, { type: 'Maternity Leave (ML)', days: 180 },
+            { type: 'Paternity Leave', days: 15 }, { type: 'Compensatory Off', days: 0 },
           ].map(l => (
-            <div key={l.type} className={`flex items-center gap-4 p-3 rounded-xl ${theme.secondaryBg}`}>
+            <div key={l.type} className={`flex items-center gap-4 p-2.5 rounded-xl ${theme.secondaryBg}`}>
               <span className={`text-xs font-bold ${theme.highlight} flex-1`}>{l.type}</span>
               <div className="flex items-center gap-2">
-                <span className={`text-[10px] ${theme.iconColor}`}>Days/year:</span>
-                <input type="number" defaultValue={l.days} className={`w-16 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight}`} />
+                <span className={`text-[10px] ${theme.iconColor}`}>Days/yr:</span>
+                <input type="number" defaultValue={l.days} className={`w-14 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight}`} />
               </div>
-              <div className="flex items-center gap-2">
-                <span className={`text-[10px] ${theme.iconColor}`}>Carry forward:</span>
+              <div className="flex items-center gap-1.5">
+                <span className={`text-[10px] ${theme.iconColor}`}>Carry:</span>
                 <Toggle on={leaveCarry[l.type]} onChange={() => setLeaveCarry(p => ({ ...p, [l.type]: !p[l.type] }))} theme={theme} />
               </div>
             </div>
           ))}
         </div>
+        <div className="grid grid-cols-2 gap-3 mt-3">
+          <SelectField label="Leave Approval Chain" options={['HOD → Principal', 'Direct → Principal', 'Direct → HR → Principal']} value="HOD → Principal" theme={theme} />
+          <FormField label="Max Consecutive Days" value="3" type="number" theme={theme} hint="Max days in a row without escalation" />
+        </div>
+        <div className="grid grid-cols-3 gap-3 mt-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <span className={`text-[10px] font-bold ${theme.highlight}`}>Sandwich Rule</span>
+            <Toggle on={sandwichRule} onChange={() => setSandwichRule(!sandwichRule)} theme={theme} />
+          </div>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <span className={`text-[10px] font-bold ${theme.highlight}`}>Half-day Leave</span>
+            <Toggle on={halfDayLeave} onChange={() => setHalfDayLeave(!halfDayLeave)} theme={theme} />
+          </div>
+          <FormField label="LWP Threshold (days)" value="3" type="number" theme={theme} hint="Absent without leave → LWP" />
+        </div>
       </div>
 
+      {/* Section 3: Staff Attendance & Shifts */}
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <SectionTitle title="Staff Attendance Method" theme={theme} />
+        <SectionTitle title="Staff Attendance & Shifts" theme={theme} />
         <div className="grid grid-cols-2 gap-3">
           <SelectField label="Primary Method" options={['Biometric (Fingerprint)', 'Biometric (Face)', 'App-based (GPS)', 'RFID Card', 'Manual Register', 'Hybrid (Bio + App)']} value="Biometric (Fingerprint)" theme={theme} required />
           <SelectField label="Fallback Method" options={['App-based', 'Manual Register', 'None']} value="App-based" theme={theme} />
@@ -2812,6 +2870,132 @@ function Step7HR({ theme, institutionType }: { theme: Theme; institutionType: st
           <FormField label="Grace Period (mins)" value="15" type="number" theme={theme} />
           <FormField label="Half-day After (mins late)" value="60" type="number" theme={theme} />
         </div>
+        <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg} mt-3`}>
+          <div>
+            <span className={`text-xs font-bold ${theme.highlight}`}>Multiple Shifts</span>
+            <p className={`text-[10px] ${theme.iconColor}`}>Enable if staff work different shift timings</p>
+          </div>
+          <Toggle on={multiShift} onChange={() => setMultiShift(!multiShift)} theme={theme} />
+        </div>
+        {multiShift && (
+          <div className="grid grid-cols-2 gap-3 mt-2">
+            {[{ name: 'Morning', start: '07:45', end: '14:15' }, { name: 'Afternoon', start: '12:00', end: '18:00' }].map(s => (
+              <div key={s.name} className={`p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <span className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>{s.name} Shift</span>
+                <div className="grid grid-cols-2 gap-2 mt-1">
+                  <FormField label="Start" value={s.start} type="time" theme={theme} />
+                  <FormField label="End" value={s.end} type="time" theme={theme} />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="mt-3">
+          <SelectField label="Working Days" options={['Mon-Fri', 'Mon-Sat', 'Custom']} value={workingDays} theme={theme} onChange={setWorkingDays} />
+          {workingDays === 'Custom' && (
+            <div className="flex gap-2 mt-2">
+              {Object.entries(customDays).map(([day, on]) => (
+                <button key={day} onClick={() => setCustomDays(p => ({ ...p, [day]: !p[day] }))}
+                  className={`text-[10px] px-2.5 py-1.5 rounded-lg font-bold ${on ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.iconColor}`}`}>{day}</button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Section 4: Payroll Configuration */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <SectionTitle title="Payroll Configuration" subtitle="Pay cycle, salary structure & statutory deductions" theme={theme} />
+        <div className="grid grid-cols-3 gap-3">
+          <SelectField label="Pay Cycle" options={['Monthly on 1st', 'Monthly on last working day', 'Bi-monthly']} value="Monthly on 1st" theme={theme} />
+          <FormField label="Pay Day" value="1" type="number" theme={theme} hint="1-28" />
+          <SelectField label="Bank Transfer Mode" options={['NEFT', 'RTGS', 'IMPS', 'Cheque']} value="NEFT" theme={theme} />
+        </div>
+        <div className="grid grid-cols-2 gap-3 mt-3">
+          <div>
+            <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Salary Components</label>
+            <div className="space-y-1.5">
+              {Object.entries(salaryComponents).map(([comp, on]) => (
+                <div key={comp} className={`flex items-center justify-between p-2 rounded-lg ${theme.secondaryBg}`}>
+                  <span className={`text-[10px] font-medium ${theme.highlight}`}>{comp}</span>
+                  {comp === 'Basic Salary' ? <span className={`text-[9px] ${theme.iconColor}`}>Always ON</span>
+                    : <Toggle on={on} onChange={() => setSalaryComponents(p => ({ ...p, [comp]: !p[comp] }))} theme={theme} />}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Statutory Deductions</label>
+            <div className="space-y-1.5">
+              {Object.entries(deductions).map(([ded, on]) => (
+                <div key={ded} className={`flex items-center justify-between p-2 rounded-lg ${theme.secondaryBg}`}>
+                  <span className={`text-[10px] font-medium ${theme.highlight}`}>{ded}</span>
+                  <Toggle on={on} onChange={() => setDeductions(p => ({ ...p, [ded]: !p[ded] }))} theme={theme} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Section 5: Probation & Onboarding */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <SectionTitle title="Probation & Onboarding" subtitle="New hire defaults and exit policies" theme={theme} />
+        <div className="grid grid-cols-2 gap-3">
+          <SelectField label="Default Probation Period" options={['3 months', '6 months', '1 year', 'None']} value="6 months" theme={theme} />
+          <SelectField label="Confirmation Process" options={['Auto after probation', 'Manual review required']} value="Manual review required" theme={theme} />
+        </div>
+        <div className="grid grid-cols-2 gap-3 mt-3">
+          <SelectField label="Notice Period for Resignation" options={['15 days', '30 days', '60 days', '90 days']} value="30 days" theme={theme} />
+          <div />
+        </div>
+        <div className="mt-3">
+          <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Onboarding Checklist</label>
+          <div className="flex flex-wrap gap-1.5">
+            {onboardingChecklist.map(item => (
+              <span key={item} className={`text-[10px] px-2.5 py-1 rounded-lg ${theme.primary} text-white font-bold flex items-center gap-1`}>
+                {item} <button onClick={() => removeChip(onboardingChecklist, setOnboardingChecklist, item)}><X size={8} className="cursor-pointer" /></button>
+              </span>
+            ))}
+            <button onClick={() => addChip(onboardingChecklist, setOnboardingChecklist, 'Enter checklist item:')}
+              className={`text-[10px] px-2.5 py-1 rounded-lg border-2 border-dashed ${theme.border} ${theme.iconColor} font-bold`}>+ Add</button>
+          </div>
+        </div>
+      </div>
+
+      {/* Section 6: Performance & Appraisal */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <SectionTitle title="Performance & Appraisal" subtitle="Review cycles and rating configuration" theme={theme} />
+        <div className="grid grid-cols-2 gap-3">
+          <SelectField label="Appraisal Cycle" options={['Annual', 'Bi-annual', 'Quarterly']} value="Annual" theme={theme} />
+          <SelectField label="Rating Scale" options={['1-5 Scale', '1-10 Scale', 'A-E Grade', 'Outstanding-Needs Improvement']} value="1-5 Scale" theme={theme} />
+        </div>
+        <div className="mt-3">
+          <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Review Stages</label>
+          <div className="flex flex-wrap gap-1.5">
+            {reviewStages.map((stage, i) => (
+              <span key={stage} className={`text-[10px] px-2.5 py-1 rounded-lg ${theme.primary} text-white font-bold flex items-center gap-1`}>
+                {i + 1}. {stage} <button onClick={() => removeChip(reviewStages, setReviewStages, stage)}><X size={8} className="cursor-pointer" /></button>
+              </span>
+            ))}
+            <button onClick={() => addChip(reviewStages, setReviewStages, 'Enter review stage:')}
+              className={`text-[10px] px-2.5 py-1 rounded-lg border-2 border-dashed ${theme.border} ${theme.iconColor} font-bold`}>+ Add</button>
+          </div>
+        </div>
+      </div>
+
+      {/* Section 7: HR Letters & Templates */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <SectionTitle title="HR Letters & Templates" subtitle="Enable letter templates available to HR" theme={theme} />
+        <div className="grid grid-cols-2 gap-1.5">
+          {Object.entries(hrLetters).map(([letter, on]) => (
+            <div key={letter} className={`flex items-center justify-between p-2 rounded-lg ${theme.secondaryBg}`}>
+              <span className={`text-[10px] font-medium ${theme.highlight}`}>{letter}</span>
+              <Toggle on={on} onChange={() => setHrLetters(p => ({ ...p, [letter]: !p[letter] }))} theme={theme} />
+            </div>
+          ))}
+        </div>
+        <p className={`text-[10px] ${theme.iconColor} mt-2 flex items-center gap-1`}><Info size={10} /> Letter templates can be customized after setup in HR Settings</p>
       </div>
     </div>
   );
@@ -2905,7 +3089,7 @@ function Step9Review({ theme, goToStep }: { theme: Theme; goToStep: (s: number) 
     { title: 'Roles & Permissions', status: 'complete', step: 4, items: ['10 stakeholder dashboards active', '6 approval workflows configured', 'Multi-authority approvals enabled'] },
     { title: 'Communication', status: 'complete', step: 5, items: ['Full two-way parent communication', '7 default groups auto-created', 'DM permissions set for 10 role pairs'] },
     { title: 'Fee Structure', status: 'partial', step: 6, items: ['8 fee heads configured', 'Quarterly payment · 10th due date', 'Late fee: ₹50/month after 15 days', '⚠ Class-wise amounts not yet entered'] },
-    { title: 'HR & Staff', status: 'complete', step: 7, items: ['11 departments', '6 leave types configured', 'Biometric attendance + App fallback'] },
+    { title: 'HR & Staff', status: 'complete', step: 7, items: ['11 departments with designations', '6 leave types + approval chain', 'Biometric + App, multi-shift ready', 'Payroll: monthly cycle, PF + PT + TDS', '6-month probation, 30-day notice', 'Annual appraisal, 5-stage review'] },
     { title: 'Transport', status: 'partial', step: 8, items: ['8 routes, 8 vehicles', 'GPS tracking enabled', '⚠ Route details not yet entered'] },
   ];
 
