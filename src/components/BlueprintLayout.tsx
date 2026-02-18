@@ -8,7 +8,7 @@ import {
   UserCheck, Briefcase, Calculator, Phone, Bus, ShieldCheck, Headphones,
   Home, ChevronLeft, Menu, LogOut, MessageSquare, Bell,
   FileText, CheckCircle, Calendar, AlertTriangle, ClipboardCheck,
-  Palette, Maximize2, Minimize2, MessageCircle, X, Send, Search, Heart, ToggleLeft, ToggleRight
+  Palette, Maximize2, Minimize2, MessageCircle, X, Send, Search, Heart, ToggleLeft, ToggleRight, Settings
 } from 'lucide-react';
 import { themes, VIVID_VARIANTS, type Theme } from '@/lib/themes';
 import { getLoggedInUser, logoutUser, type TeamMember } from '@/lib/auth';
@@ -23,6 +23,7 @@ const VIVID_THEME_IDX = 4; // Virtual index for Vivid (beyond the 4 base themes)
 const regularNavItems = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/school-admin', label: 'School Admin', icon: Building2 },
+  { href: '/school-super-admin', label: 'School Super Admin', icon: Settings },
   { href: '/principal', label: 'Principal', icon: GraduationCap },
   { href: '/teacher', label: 'Teacher', icon: BookOpen },
   { href: '/student', label: 'Student', icon: User },
@@ -44,6 +45,7 @@ const regularNavItems = [
 const preschoolNavItems = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/school-admin', label: 'School Admin', icon: Building2 },
+  { href: '/school-super-admin', label: 'School Super Admin', icon: Settings },
   { href: '/principal', label: 'Principal / Centre Head', icon: GraduationCap },
   { href: '/teacher', label: 'Teacher', icon: BookOpen },
   { href: '/parent', label: 'Parent', icon: Users },

@@ -1,0 +1,1693 @@
+'use client';
+
+import React, { useState } from 'react';
+import BlueprintLayout from '@/components/BlueprintLayout';
+import { StatCard, Toggle, TabBar, DataTable, SearchBar } from '@/components/shared';
+import { type Theme } from '@/lib/themes';
+import {
+  Home, Banknote, GraduationCap, Briefcase, Bus, ClipboardCheck, FileText,
+  MessageSquare, Calendar, Clock, Shield, Award, Upload, ShieldCheck, Headphones,
+  Settings, CheckCircle, AlertTriangle, Plus, X, Save, Download, Filter,
+  Search, Edit, Trash2, Eye, ChevronDown, ChevronUp, PanelLeftClose, PanelLeftOpen,
+  BookOpen, Users, Bell, Mail, Phone, MapPin, Printer, Hash, Lock, Key
+} from 'lucide-react';
+import SupportModule from '@/components/SupportModule';
+
+// ─── MODULE SIDEBAR ────────────────────────────────
+const modules = [
+  { id: 'dashboard', label: 'Dashboard', icon: Home },
+  { id: 'fee-config', label: 'Fee Configuration', icon: Banknote },
+  { id: 'academic-config', label: 'Academic Config', icon: GraduationCap },
+  { id: 'hr-config', label: 'HR & Payroll', icon: Briefcase },
+  { id: 'transport-config', label: 'Transport', icon: Bus },
+  { id: 'attendance-config', label: 'Attendance', icon: ClipboardCheck },
+  { id: 'exam-config', label: 'Exams & Grading', icon: FileText },
+  { id: 'communication-config', label: 'Communication', icon: MessageSquare },
+  { id: 'timetable-config', label: 'Timetable & Bell', icon: Calendar },
+  { id: 'leave-config', label: 'Leave Policy', icon: Clock },
+  { id: 'visitor-config', label: 'Visitor Rules', icon: Shield },
+  { id: 'certificate-config', label: 'Certificates', icon: Award },
+  { id: 'data-migration', label: 'Data Migration', icon: Upload },
+  { id: 'audit-log', label: 'Audit Log', icon: ShieldCheck },
+  { id: 'support', label: 'Support', icon: Headphones },
+];
+
+// ─── HELPER COMPONENTS ─────────────────────────────
+function SSAToggle({ on, onChange, theme }: { on: boolean; onChange: () => void; theme: Theme }) {
+  return (
+    <button onClick={onChange} className={`w-9 h-5 rounded-full relative transition-colors ${on ? theme.primary : 'bg-gray-300'}`}>
+      <div className={`w-4 h-4 bg-white rounded-full absolute top-0.5 transition-transform ${on ? 'translate-x-4' : 'translate-x-0.5'}`} />
+    </button>
+  );
+}
+
+function SectionCard({ title, subtitle, children, theme }: { title: string; subtitle?: string; children: React.ReactNode; theme: Theme }) {
+  return (
+    <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+      <h3 className={`text-sm font-bold ${theme.highlight} mb-1`}>{title}</h3>
+      {subtitle && <p className={`text-[10px] ${theme.iconColor} mb-3`}>{subtitle}</p>}
+      {!subtitle && <div className="mb-3" />}
+      {children}
+    </div>
+  );
+}
+
+function InputField({ placeholder, value, onChange, theme, type, disabled }: {
+  placeholder?: string; value: string; onChange: (v: string) => void; theme: Theme; type?: string; disabled?: boolean;
+}) {
+  return (
+    <input
+      type={type || 'text'}
+      placeholder={placeholder}
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      disabled={disabled}
+      className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none focus:ring-2 focus:ring-slate-300 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+    />
+  );
+}
+
+function SelectField({ options, value, onChange, theme, placeholder }: {
+  options: string[]; value: string; onChange: (v: string) => void; theme: Theme; placeholder?: string;
+}) {
+  return (
+    <select value={value} onChange={e => onChange(e.target.value)}
+      className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none focus:ring-2 focus:ring-slate-300`}>
+      {placeholder && <option value="">{placeholder}</option>}
+      {options.map(o => <option key={o} value={o}>{o}</option>)}
+    </select>
+  );
+}
+
+// ─── MAIN COMPONENT ────────────────────────────────
+function SchoolSuperAdminDashboard({ theme }: { theme?: Theme }) {
+  const [activeModule, setActiveModule] = useState('dashboard');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  if (!theme) return null;
+
+  return (
+    <div className="flex gap-4 -m-6">
+      <div className={`${sidebarCollapsed ? 'w-14' : 'w-48'} ${theme.cardBg} border-r ${theme.border} min-h-screen p-2 space-y-0.5 shrink-0 transition-all duration-200`}>
+        <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-between'} px-2 py-2`}>
+          {!sidebarCollapsed && <p className={`text-[10px] font-bold ${theme.iconColor} uppercase px-1`}>Modules</p>}
+          <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} className={`p-1 rounded-lg ${theme.buttonHover} ${theme.iconColor} transition-all`}>
+            {sidebarCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={14} />}
+          </button>
+        </div>
+        {modules.map(m => (
+          <button key={m.id} onClick={() => setActiveModule(m.id)} title={sidebarCollapsed ? m.label : undefined}
+            className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center px-2 py-2.5' : 'gap-2 px-3 py-2'} rounded-lg text-xs font-medium transition-all ${
+              activeModule === m.id ? `${theme.primary} text-white` : `${theme.iconColor} ${theme.buttonHover}`
+            }`}>
+            <m.icon size={sidebarCollapsed ? 18 : 14} /> {!sidebarCollapsed && m.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex-1 p-6 space-y-4 overflow-x-hidden">
+        {activeModule === 'dashboard' && <SSADashboardHome theme={theme} />}
+        {activeModule === 'fee-config' && <FeeConfigModule theme={theme} />}
+        {activeModule === 'academic-config' && <AcademicConfigModule theme={theme} />}
+        {activeModule === 'hr-config' && <HRConfigModule theme={theme} />}
+        {activeModule === 'transport-config' && <TransportConfigModule theme={theme} />}
+        {activeModule === 'attendance-config' && <AttendanceConfigModule theme={theme} />}
+        {activeModule === 'exam-config' && <ExamConfigModule theme={theme} />}
+        {activeModule === 'communication-config' && <CommunicationConfigModule theme={theme} />}
+        {activeModule === 'timetable-config' && <TimetableConfigModule theme={theme} />}
+        {activeModule === 'leave-config' && <LeaveConfigModule theme={theme} />}
+        {activeModule === 'visitor-config' && <VisitorConfigModule theme={theme} />}
+        {activeModule === 'certificate-config' && <CertificateConfigModule theme={theme} />}
+        {activeModule === 'data-migration' && <DataMigrationModule theme={theme} />}
+        {activeModule === 'audit-log' && <AuditLogModule theme={theme} />}
+        {activeModule === 'support' && <SupportModule theme={theme} role="school-super-admin" />}
+      </div>
+    </div>
+  );
+}
+
+// ─── DASHBOARD HOME ────────────────────────────────
+function SSADashboardHome({ theme }: { theme: Theme }) {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className={`text-2xl font-bold ${theme.highlight}`}>School Super Admin</h1>
+          <p className={`text-xs ${theme.iconColor}`}>Deep module configuration &mdash; all changes are audit-logged</p>
+        </div>
+      </div>
+
+      <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 flex items-start gap-3">
+        <ShieldCheck size={20} className="text-amber-500 mt-0.5 shrink-0" />
+        <div>
+          <p className="text-sm font-bold text-amber-800">All Actions Are Immutably Logged</p>
+          <p className="text-xs text-amber-700 mt-1">Every configuration change you make is recorded with timestamp, before/after values, and your IP address. Audit logs are stored in Saaras-controlled storage and cannot be modified or deleted by anyone at the school level.</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard icon={Settings} label="Modules Configured" value="18 / 27" color="bg-indigo-500" theme={theme} />
+        <StatCard icon={CheckCircle} label="Config Complete" value="67%" color="bg-emerald-500" theme={theme} />
+        <StatCard icon={Clock} label="Last Change" value="2 hrs ago" color="bg-blue-500" theme={theme} />
+        <StatCard icon={AlertTriangle} label="Pending Setup" value="9" color="bg-amber-500" theme={theme} />
+      </div>
+
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Module Configuration Status</h3>
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+          {[
+            { name: 'Fee Structure', status: 'complete', items: '8 fee heads, 5 class groups', icon: Banknote },
+            { name: 'Academic Calendar', status: 'complete', items: 'Holidays, exam dates set', icon: Calendar },
+            { name: 'HR & Payroll', status: 'partial', items: '11 depts, payroll pending', icon: Briefcase },
+            { name: 'Transport Routes', status: 'pending', items: 'Not yet configured', icon: Bus },
+            { name: 'Attendance Rules', status: 'complete', items: 'Daily marking, bio + app', icon: ClipboardCheck },
+            { name: 'Exam & Report Cards', status: 'partial', items: 'Schedule done, templates pending', icon: FileText },
+            { name: 'Leave Policy', status: 'complete', items: '6 types, approval chain set', icon: Clock },
+            { name: 'Timetable & Bell', status: 'pending', items: 'Not yet configured', icon: Calendar },
+            { name: 'Communication Rules', status: 'complete', items: 'DM rules, groups configured', icon: MessageSquare },
+            { name: 'Visitor Policy', status: 'partial', items: 'Check-in done, pickup pending', icon: Shield },
+            { name: 'Certificates', status: 'pending', items: 'Templates not uploaded', icon: Award },
+            { name: 'Data Migration', status: 'pending', items: 'No data imported yet', icon: Upload },
+          ].map(mod => (
+            <div key={mod.name} className={`p-3 rounded-xl ${theme.secondaryBg} flex items-start gap-2`}>
+              <mod.icon size={14} className={
+                mod.status === 'complete' ? 'text-emerald-500' :
+                mod.status === 'partial' ? 'text-amber-500' : 'text-slate-400'
+              } />
+              <div>
+                <p className={`text-xs font-bold ${theme.highlight}`}>{mod.name}</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>{mod.items}</p>
+                <span className={`text-[9px] px-1.5 py-0.5 rounded mt-1 inline-block font-bold ${
+                  mod.status === 'complete' ? 'bg-emerald-100 text-emerald-700' :
+                  mod.status === 'partial' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'
+                }`}>
+                  {mod.status === 'complete' ? 'COMPLETE' : mod.status === 'partial' ? 'IN PROGRESS' : 'NOT STARTED'}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Recent Configuration Changes</h3>
+        <div className="space-y-2">
+          {[
+            { action: 'Updated fee structure for Class 9-10', time: '2 hours ago', module: 'Fees' },
+            { action: 'Added 3 new bus routes (Route D, E, F)', time: '5 hours ago', module: 'Transport' },
+            { action: 'Modified leave approval chain', time: '1 day ago', module: 'Leave' },
+            { action: 'Uploaded report card template', time: '1 day ago', module: 'Exams' },
+            { action: 'Set DM permissions for Parent to Teacher', time: '2 days ago', module: 'Chat' },
+          ].map((activity, i) => (
+            <div key={i} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <div>
+                <p className={`text-xs ${theme.highlight}`}>{activity.action}</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>{activity.time}</p>
+              </div>
+              <span className={`text-[9px] px-2 py-0.5 rounded-lg ${theme.accentBg} ${theme.iconColor} font-bold`}>{activity.module}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── FEE CONFIGURATION MODULE ──────────────────────
+function FeeConfigModule({ theme }: { theme: Theme }) {
+  const [feeTemplate, setFeeTemplate] = useState('component-based');
+  const [feeHeads, setFeeHeads] = useState<Record<string, boolean>>({
+    'Tuition Fee': true, 'Admission Fee': true, 'Annual Charges': true, 'Transport Fee': true,
+    'Activity Fee': true, 'Lab Fee': true, 'Library Fee': false, 'Exam Fee': true,
+    'Development Fund': false, 'Smart Class / IT Fee': false, 'Uniform / Books': false, 'Hostel Fee': false,
+  });
+  const [feeFrequency, setFeeFrequency] = useState<Record<string, string>>({
+    'Tuition Fee': 'Monthly', 'Admission Fee': 'One-time', 'Annual Charges': 'Yearly',
+    'Transport Fee': 'Monthly', 'Activity Fee': 'Quarterly', 'Lab Fee': 'Yearly', 'Exam Fee': 'Term-wise',
+  });
+  const classGroups = ['Pre-Primary (NUR-KG)', 'Primary (1-5)', 'Middle (6-8)', 'Secondary (9-10)', 'Senior (11-12)'];
+  const [classAmounts, setClassAmounts] = useState<Record<string, Record<string, string>>>({
+    'Pre-Primary (NUR-KG)': { 'Tuition Fee': '3000', 'Admission Fee': '15000', 'Annual Charges': '8000', 'Transport Fee': '2000', 'Activity Fee': '1500', 'Lab Fee': '0', 'Exam Fee': '1000' },
+    'Primary (1-5)': { 'Tuition Fee': '3500', 'Admission Fee': '18000', 'Annual Charges': '10000', 'Transport Fee': '2000', 'Activity Fee': '2000', 'Lab Fee': '1000', 'Exam Fee': '1200' },
+    'Middle (6-8)': { 'Tuition Fee': '4500', 'Admission Fee': '20000', 'Annual Charges': '12000', 'Transport Fee': '2500', 'Activity Fee': '2500', 'Lab Fee': '2000', 'Exam Fee': '1500' },
+    'Secondary (9-10)': { 'Tuition Fee': '5500', 'Admission Fee': '25000', 'Annual Charges': '15000', 'Transport Fee': '2500', 'Activity Fee': '3000', 'Lab Fee': '3000', 'Exam Fee': '2000' },
+    'Senior (11-12)': { 'Tuition Fee': '7000', 'Admission Fee': '30000', 'Annual Charges': '18000', 'Transport Fee': '3000', 'Activity Fee': '3500', 'Lab Fee': '5000', 'Exam Fee': '2500' },
+  });
+  const [paymentModes, setPaymentModes] = useState<Record<string, boolean>>({ UPI: true, 'Net Banking': true, 'Credit Card': true, 'Debit Card': true, Cash: true, Cheque: true, 'DD/NEFT': true });
+  const [lateFeeEnabled, setLateFeeEnabled] = useState(true);
+  const [lateFeeAmount, setLateFeeAmount] = useState('50');
+  const [lateFeeGrace, setLateFeeGrace] = useState('7');
+  const [lateFeeMethod, setLateFeeMethod] = useState('per-day');
+  const [lateFeeMax, setLateFeeMax] = useState('500');
+  const [billingCycle, setBillingCycle] = useState('Monthly');
+  const [dueDate, setDueDate] = useState('10');
+  const [concessions, setConcessions] = useState([
+    { type: 'Sibling Discount', method: 'percentage', value: '10' },
+    { type: 'Staff Child', method: 'percentage', value: '100' },
+    { type: 'Merit Scholarship', method: 'percentage', value: '25' },
+    { type: 'EWS Quota', method: 'percentage', value: '100' },
+    { type: 'Single Parent', method: 'fixed', value: '5000' },
+  ]);
+  const [blockRules, setBlockRules] = useState<Record<string, boolean>>({
+    'Block report card if fees overdue > 60 days': true,
+    'Block TC generation if outstanding > 0': true,
+    'Block exam hall ticket if current term unpaid': false,
+    'Send auto-reminder before blocking': true,
+  });
+  const [reminders] = useState([
+    { timing: '7 days before due', channel: 'Push + SMS', enabled: true },
+    { timing: '3 days before due', channel: 'Push', enabled: true },
+    { timing: '1 day before due', channel: 'Push + SMS', enabled: true },
+    { timing: '1 day after due', channel: 'Push + SMS + Email', enabled: true },
+    { timing: '7 days after due', channel: 'Push + SMS', enabled: true },
+    { timing: '15 days after due', channel: 'Push + SMS + Call', enabled: true },
+    { timing: '30 days after due', channel: 'Push + SMS + Email + Call', enabled: true },
+  ]);
+
+  const activeHeads = Object.entries(feeHeads).filter(([, v]) => v).map(([k]) => k);
+  const frequencies = ['Monthly', 'Quarterly', 'Term-wise', 'Half-yearly', 'Yearly', 'One-time'];
+
+  return (
+    <div className="space-y-4">
+      <h2 className={`text-lg font-bold ${theme.highlight}`}>Fee Configuration</h2>
+      <p className={`text-xs ${theme.iconColor}`}>Configure fee structure, class-wise amounts, payment rules, and concessions</p>
+
+      <SectionCard title="Fee Template" subtitle="Choose how fees are structured for your school" theme={theme}>
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { id: 'simple-annual', name: 'Simple Annual', desc: 'One lump-sum fee per year per class' },
+            { id: 'component-based', name: 'Component-Based', desc: 'Multiple fee heads with individual amounts' },
+            { id: 'term-wise', name: 'Term-Wise', desc: 'Split by terms (Term 1, Term 2, etc.)' },
+          ].map(t => (
+            <button key={t.id} onClick={() => setFeeTemplate(t.id)}
+              className={`p-3 rounded-xl text-left border-2 transition-all ${feeTemplate === t.id ? `${theme.primary} text-white border-transparent` : `${theme.secondaryBg} ${theme.border} ${theme.highlight}`}`}>
+              <p className="text-xs font-bold">{t.name}</p>
+              <p className={`text-[10px] mt-1 ${feeTemplate === t.id ? 'text-white/80' : theme.iconColor}`}>{t.desc}</p>
+            </button>
+          ))}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Fee Heads" subtitle="Toggle fee components on/off and set frequency" theme={theme}>
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+          {Object.entries(feeHeads).map(([head, enabled]) => (
+            <div key={head} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <SSAToggle on={enabled} onChange={() => setFeeHeads(p => ({ ...p, [head]: !p[head] }))} theme={theme} />
+                <span className={`text-xs font-medium ${theme.highlight} truncate`}>{head}</span>
+              </div>
+              {enabled && (
+                <select value={feeFrequency[head] || 'Yearly'} onChange={e => setFeeFrequency(p => ({ ...p, [head]: e.target.value }))}
+                  className={`text-[10px] px-1.5 py-0.5 rounded-lg border ${theme.border} ${theme.inputBg} ${theme.highlight} ml-2`}>
+                  {frequencies.map(f => <option key={f} value={f}>{f}</option>)}
+                </select>
+              )}
+            </div>
+          ))}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Class-wise Fee Amounts" subtitle="Set amounts per class group for each active fee head (values in INR)" theme={theme}>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className={theme.secondaryBg}>
+                <th className={`text-left px-3 py-2 font-bold ${theme.iconColor} sticky left-0 ${theme.secondaryBg}`}>Class Group</th>
+                {activeHeads.map(h => (
+                  <th key={h} className={`text-center px-2 py-2 font-bold ${theme.iconColor} whitespace-nowrap`}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {classGroups.map(cg => (
+                <tr key={cg} className={`border-t ${theme.border}`}>
+                  <td className={`px-3 py-2 font-bold ${theme.highlight} sticky left-0 ${theme.cardBg} whitespace-nowrap`}>{cg}</td>
+                  {activeHeads.map(h => (
+                    <td key={h} className="px-2 py-1.5">
+                      <div className="flex items-center gap-0.5">
+                        <span className={`text-[10px] ${theme.iconColor}`}>{'\u20B9'}</span>
+                        <input type="text" value={classAmounts[cg]?.[h] || ''}
+                          onChange={e => setClassAmounts(p => ({ ...p, [cg]: { ...p[cg], [h]: e.target.value } }))}
+                          className={`w-16 px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none focus:ring-1 focus:ring-slate-300`} />
+                      </div>
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </SectionCard>
+
+      <div className="grid grid-cols-2 gap-4">
+        <SectionCard title="Payment Configuration" subtitle="Modes, billing cycle, and due dates" theme={theme}>
+          <div className="space-y-3">
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Accepted Payment Modes</p>
+              <div className="grid grid-cols-2 gap-1.5">
+                {Object.entries(paymentModes).map(([mode, enabled]) => (
+                  <div key={mode} className={`flex items-center gap-2 p-2 rounded-lg ${theme.secondaryBg}`}>
+                    <SSAToggle on={enabled} onChange={() => setPaymentModes(p => ({ ...p, [mode]: !p[mode] }))} theme={theme} />
+                    <span className={`text-xs ${theme.highlight}`}>{mode}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Billing Cycle</p>
+                <SelectField options={['Monthly', 'Quarterly', 'Term-wise', 'Half-yearly', 'Yearly']} value={billingCycle} onChange={setBillingCycle} theme={theme} />
+              </div>
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Due Date (day of month)</p>
+                <InputField value={dueDate} onChange={setDueDate} theme={theme} type="number" />
+              </div>
+            </div>
+          </div>
+        </SectionCard>
+
+        <SectionCard title="Late Fee Rules" subtitle="Penalties for overdue payments" theme={theme}>
+          <div className="space-y-3">
+            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <span className={`text-xs font-bold ${theme.highlight}`}>Enable Late Fee</span>
+              <SSAToggle on={lateFeeEnabled} onChange={() => setLateFeeEnabled(!lateFeeEnabled)} theme={theme} />
+            </div>
+            {lateFeeEnabled && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Amount ({'\u20B9'})</p>
+                  <InputField value={lateFeeAmount} onChange={setLateFeeAmount} theme={theme} type="number" />
+                </div>
+                <div>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Grace Period (days)</p>
+                  <InputField value={lateFeeGrace} onChange={setLateFeeGrace} theme={theme} type="number" />
+                </div>
+                <div>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Calculation</p>
+                  <SelectField options={['per-day', 'per-week', 'flat']} value={lateFeeMethod} onChange={setLateFeeMethod} theme={theme} />
+                </div>
+                <div>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Max Late Fee ({'\u20B9'})</p>
+                  <InputField value={lateFeeMax} onChange={setLateFeeMax} theme={theme} type="number" />
+                </div>
+              </div>
+            )}
+          </div>
+        </SectionCard>
+      </div>
+
+      <SectionCard title="Concession Configuration" subtitle="Discount types with percentage or fixed amounts" theme={theme}>
+        <div className="space-y-2">
+          {concessions.map((c, i) => (
+            <div key={i} className={`flex items-center gap-3 p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <input value={c.type} onChange={e => { const n = [...concessions]; n[i] = { ...n[i], type: e.target.value }; setConcessions(n); }}
+                className={`flex-1 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+              <select value={c.method} onChange={e => { const n = [...concessions]; n[i] = { ...n[i], method: e.target.value }; setConcessions(n); }}
+                className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`}>
+                <option value="percentage">%</option>
+                <option value="fixed">{'\u20B9'} Fixed</option>
+              </select>
+              <input value={c.value} onChange={e => { const n = [...concessions]; n[i] = { ...n[i], value: e.target.value }; setConcessions(n); }}
+                className={`w-20 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none`} />
+              <button onClick={() => setConcessions(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={14} /></button>
+            </div>
+          ))}
+          <button onClick={() => setConcessions(p => [...p, { type: '', method: 'percentage', value: '0' }])}
+            className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
+            <Plus size={12} /> Add Concession
+          </button>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Fee Defaulter Blocking Rules" subtitle="Actions when fees are overdue" theme={theme}>
+        <div className="space-y-2">
+          {Object.entries(blockRules).map(([rule, enabled]) => (
+            <div key={rule} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <span className={`text-xs ${theme.highlight}`}>{rule}</span>
+              <SSAToggle on={enabled} onChange={() => setBlockRules(p => ({ ...p, [rule]: !p[rule] }))} theme={theme} />
+            </div>
+          ))}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Fee Reminder Schedule" subtitle="Automated reminders before and after due date" theme={theme}>
+        <div className="space-y-1.5">
+          {reminders.map((r, i) => (
+            <div key={i} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <div className="flex items-center gap-3">
+                <span className={`text-xs font-bold ${theme.highlight}`}>{r.timing}</span>
+                <span className={`text-[10px] px-2 py-0.5 rounded-lg ${theme.accentBg} ${theme.iconColor}`}>{r.channel}</span>
+              </div>
+              <div className={`w-2 h-2 rounded-full ${r.enabled ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+            </div>
+          ))}
+        </div>
+      </SectionCard>
+
+      <div className="flex justify-end gap-3 pt-2">
+        <button className={`px-4 py-2 rounded-xl ${theme.secondaryBg} ${theme.highlight} text-xs font-bold`}>Reset to Defaults</button>
+        <button className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-2`}><Save size={14} /> Save Fee Configuration</button>
+      </div>
+    </div>
+  );
+}
+
+// ─── ACADEMIC CONFIG MODULE ────────────────────────
+function AcademicConfigModule({ theme }: { theme: Theme }) {
+  const [subjects, setSubjects] = useState<Record<string, string[]>>({
+    'Class 1-5': ['English', 'Hindi', 'Mathematics', 'EVS', 'Computer', 'Art', 'Physical Ed.'],
+    'Class 6-8': ['English', 'Hindi', 'Mathematics', 'Science', 'Social Science', 'Sanskrit', 'Computer', 'Art', 'Physical Ed.'],
+    'Class 9-10': ['English', 'Hindi', 'Mathematics', 'Science', 'Social Science', 'IT', 'Physical Ed.'],
+    'Class 11-12 Science': ['English', 'Physics', 'Chemistry', 'Mathematics', 'Biology/CS', 'Physical Ed.'],
+    'Class 11-12 Commerce': ['English', 'Accountancy', 'Business Studies', 'Economics', 'Mathematics/IP', 'Physical Ed.'],
+  });
+  const [newSubject, setNewSubject] = useState('');
+  const [activeGroup, setActiveGroup] = useState('Class 1-5');
+  const [sections] = useState<Record<string, string[]>>({
+    'Class 1': ['A', 'B', 'C'], 'Class 2': ['A', 'B', 'C'], 'Class 3': ['A', 'B'],
+    'Class 4': ['A', 'B'], 'Class 5': ['A', 'B'], 'Class 6': ['A', 'B', 'C'],
+    'Class 7': ['A', 'B', 'C'], 'Class 8': ['A', 'B'], 'Class 9': ['A', 'B', 'C'],
+    'Class 10': ['A', 'B', 'C'], 'Class 11': ['A', 'B'], 'Class 12': ['A', 'B'],
+  });
+  const [houses] = useState([
+    { name: 'Red House', color: 'bg-red-500', captain: 'Aarav Sharma' },
+    { name: 'Blue House', color: 'bg-blue-500', captain: 'Priya Patel' },
+    { name: 'Green House', color: 'bg-emerald-500', captain: 'Rohan Kumar' },
+    { name: 'Yellow House', color: 'bg-amber-500', captain: 'Ananya Singh' },
+  ]);
+  const [holidays] = useState([
+    { date: '26 Jan', name: 'Republic Day', type: 'National' },
+    { date: '14 Mar', name: 'Holi', type: 'Festival' },
+    { date: '15 Aug', name: 'Independence Day', type: 'National' },
+    { date: '2 Oct', name: 'Gandhi Jayanti', type: 'National' },
+    { date: '12 Nov', name: 'Diwali', type: 'Festival' },
+    { date: '25 Dec', name: 'Christmas', type: 'Festival' },
+  ]);
+  const [academicYear, setAcademicYear] = useState({ start: '2025-04-01', end: '2026-03-31' });
+
+  return (
+    <div className="space-y-4">
+      <h2 className={`text-lg font-bold ${theme.highlight}`}>Academic Configuration</h2>
+      <p className={`text-xs ${theme.iconColor}`}>Subjects, sections, houses, holidays, and academic calendar</p>
+
+      <SectionCard title="Academic Year" subtitle="Set start and end dates" theme={theme}>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Start Date</p>
+            <InputField value={academicYear.start} onChange={v => setAcademicYear(p => ({ ...p, start: v }))} theme={theme} type="date" />
+          </div>
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>End Date</p>
+            <InputField value={academicYear.end} onChange={v => setAcademicYear(p => ({ ...p, end: v }))} theme={theme} type="date" />
+          </div>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Subject Master List" subtitle="Add or remove subjects per class group" theme={theme}>
+        <div className="flex gap-2 mb-3 flex-wrap">
+          {Object.keys(subjects).map(g => (
+            <button key={g} onClick={() => setActiveGroup(g)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${activeGroup === g ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.highlight}`}`}>
+              {g}
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-2 mb-3">
+          {(subjects[activeGroup] || []).map(s => (
+            <span key={s} className={`flex items-center gap-1 px-2.5 py-1 rounded-lg ${theme.secondaryBg} text-xs font-medium ${theme.highlight}`}>
+              {s}
+              <button onClick={() => setSubjects(p => ({ ...p, [activeGroup]: p[activeGroup].filter(x => x !== s) }))} className="text-red-400 hover:text-red-600"><X size={10} /></button>
+            </span>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <input value={newSubject} onChange={e => setNewSubject(e.target.value)} placeholder="Add subject..."
+            className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+          <button onClick={() => { if (newSubject.trim()) { setSubjects(p => ({ ...p, [activeGroup]: [...(p[activeGroup] || []), newSubject.trim()] })); setNewSubject(''); } }}
+            className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}><Plus size={14} /></button>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Section Configuration" subtitle="Sections per class" theme={theme}>
+        <div className="grid grid-cols-3 lg:grid-cols-4 gap-2">
+          {Object.entries(sections).map(([cls, secs]) => (
+            <div key={cls} className={`p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <p className={`text-xs font-bold ${theme.highlight}`}>{cls}</p>
+              <div className="flex gap-1 mt-1">
+                {secs.map(s => (
+                  <span key={s} className={`text-[10px] px-1.5 py-0.5 rounded ${theme.accentBg} ${theme.iconColor} font-bold`}>{s}</span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="House System" subtitle="School houses for inter-house activities" theme={theme}>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {houses.map(h => (
+            <div key={h.name} className={`p-3 rounded-xl ${theme.secondaryBg} flex items-center gap-2`}>
+              <div className={`w-8 h-8 rounded-lg ${h.color} flex items-center justify-center text-white text-xs font-bold`}>{h.name[0]}</div>
+              <div>
+                <p className={`text-xs font-bold ${theme.highlight}`}>{h.name}</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Captain: {h.captain}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Holiday Calendar" subtitle="School holidays and observances" theme={theme}>
+        <div className="space-y-1.5">
+          {holidays.map((h, i) => (
+            <div key={i} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <div className="flex items-center gap-3">
+                <span className={`text-xs font-bold ${theme.highlight} w-16`}>{h.date}</span>
+                <span className={`text-xs ${theme.highlight}`}>{h.name}</span>
+              </div>
+              <span className={`text-[9px] px-2 py-0.5 rounded-lg font-bold ${h.type === 'National' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>{h.type}</span>
+            </div>
+          ))}
+          <button className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
+            <Plus size={12} /> Add Holiday
+          </button>
+        </div>
+      </SectionCard>
+    </div>
+  );
+}
+
+// ─── HR & PAYROLL CONFIG MODULE ────────────────────
+function HRConfigModule({ theme }: { theme: Theme }) {
+  const [departments, setDepartments] = useState(['Administration', 'Teaching - Primary', 'Teaching - Secondary', 'Teaching - Senior', 'Accounts', 'IT', 'Transport', 'Housekeeping', 'Security', 'Library', 'Lab']);
+  const [designations, setDesignations] = useState(['Principal', 'Vice Principal', 'HOD', 'PGT', 'TGT', 'PRT', 'Lab Assistant', 'Librarian', 'Accountant', 'Driver', 'Peon', 'Security Guard']);
+  const [newDept, setNewDept] = useState('');
+  const [newDesig, setNewDesig] = useState('');
+  const [salaryComponents] = useState([
+    { name: 'Basic Salary', type: 'earning', percentage: '40%' },
+    { name: 'HRA', type: 'earning', percentage: '20%' },
+    { name: 'DA', type: 'earning', percentage: '15%' },
+    { name: 'Transport Allowance', type: 'earning', percentage: '5%' },
+    { name: 'Special Allowance', type: 'earning', percentage: '10%' },
+    { name: 'PF (Employee)', type: 'deduction', percentage: '12%' },
+    { name: 'ESI', type: 'deduction', percentage: '0.75%' },
+    { name: 'Professional Tax', type: 'deduction', percentage: 'Fixed' },
+    { name: 'TDS', type: 'deduction', percentage: 'Slab' },
+  ]);
+  const [payCycle, setPayCycle] = useState('Monthly');
+  const [payDay, setPayDay] = useState('Last working day');
+  const [staffAttendance, setStaffAttendance] = useState<Record<string, boolean>>({
+    'Biometric': true, 'Mobile App': true, 'RFID': false, 'Manual Register': true, 'Geo-fencing': false,
+  });
+  const [onboardingChecklist] = useState([
+    'Document verification (Aadhaar, PAN, Degree certificates)',
+    'Police verification submission',
+    'Bank account details for salary',
+    'PF & ESI registration',
+    'Photo ID card generation',
+    'System login creation',
+    'Assign department & reporting manager',
+    'Probation period agreement',
+  ]);
+  const [hrLetters] = useState(['Offer Letter', 'Appointment Letter', 'Confirmation Letter', 'Experience Letter', 'Relieving Letter', 'Salary Slip', 'Warning Letter', 'Termination Letter']);
+  const [appraisalStages] = useState(['Self Assessment', 'HOD Review', 'Principal Review', 'Management Approval', 'Letter Generation']);
+
+  return (
+    <div className="space-y-4">
+      <h2 className={`text-lg font-bold ${theme.highlight}`}>HR &amp; Payroll Configuration</h2>
+      <p className={`text-xs ${theme.iconColor}`}>Departments, salary structure, pay cycle, attendance, and HR processes</p>
+
+      <div className="grid grid-cols-2 gap-4">
+        <SectionCard title="Departments" subtitle="Add or remove departments" theme={theme}>
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {departments.map(d => (
+              <span key={d} className={`flex items-center gap-1 px-2.5 py-1 rounded-lg ${theme.secondaryBg} text-xs font-medium ${theme.highlight}`}>
+                {d}
+                <button onClick={() => setDepartments(p => p.filter(x => x !== d))} className="text-red-400 hover:text-red-600"><X size={10} /></button>
+              </span>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <input value={newDept} onChange={e => setNewDept(e.target.value)} placeholder="Add department..."
+              className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+            <button onClick={() => { if (newDept.trim()) { setDepartments(p => [...p, newDept.trim()]); setNewDept(''); } }}
+              className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}><Plus size={14} /></button>
+          </div>
+        </SectionCard>
+
+        <SectionCard title="Designations" subtitle="Add or remove designations" theme={theme}>
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {designations.map(d => (
+              <span key={d} className={`flex items-center gap-1 px-2.5 py-1 rounded-lg ${theme.secondaryBg} text-xs font-medium ${theme.highlight}`}>
+                {d}
+                <button onClick={() => setDesignations(p => p.filter(x => x !== d))} className="text-red-400 hover:text-red-600"><X size={10} /></button>
+              </span>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <input value={newDesig} onChange={e => setNewDesig(e.target.value)} placeholder="Add designation..."
+              className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+            <button onClick={() => { if (newDesig.trim()) { setDesignations(p => [...p, newDesig.trim()]); setNewDesig(''); } }}
+              className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}><Plus size={14} /></button>
+          </div>
+        </SectionCard>
+      </div>
+
+      <SectionCard title="Salary Structure" subtitle="Earning and deduction components" theme={theme}>
+        <div className="space-y-1.5">
+          {salaryComponents.map((c, i) => (
+            <div key={i} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <div className="flex items-center gap-2">
+                <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold ${c.type === 'earning' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                  {c.type === 'earning' ? 'EARN' : 'DED'}
+                </span>
+                <span className={`text-xs font-medium ${theme.highlight}`}>{c.name}</span>
+              </div>
+              <span className={`text-xs font-bold ${theme.iconColor}`}>{c.percentage}</span>
+            </div>
+          ))}
+        </div>
+      </SectionCard>
+
+      <div className="grid grid-cols-2 gap-4">
+        <SectionCard title="Pay Cycle" subtitle="Payment schedule and processing" theme={theme}>
+          <div className="space-y-3">
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Cycle</p>
+              <SelectField options={['Monthly', 'Bi-weekly', 'Weekly']} value={payCycle} onChange={setPayCycle} theme={theme} />
+            </div>
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Pay Day</p>
+              <SelectField options={['1st of month', '5th of month', '10th of month', 'Last working day']} value={payDay} onChange={setPayDay} theme={theme} />
+            </div>
+          </div>
+        </SectionCard>
+
+        <SectionCard title="Staff Attendance Methods" subtitle="Toggle marking methods" theme={theme}>
+          <div className="space-y-2">
+            {Object.entries(staffAttendance).map(([method, enabled]) => (
+              <div key={method} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <span className={`text-xs ${theme.highlight}`}>{method}</span>
+                <SSAToggle on={enabled} onChange={() => setStaffAttendance(p => ({ ...p, [method]: !p[method] }))} theme={theme} />
+              </div>
+            ))}
+          </div>
+        </SectionCard>
+      </div>
+
+      <SectionCard title="Staff Onboarding Checklist" subtitle="Required steps for new staff" theme={theme}>
+        <div className="space-y-1.5">
+          {onboardingChecklist.map((item, i) => (
+            <div key={i} className={`flex items-center gap-2 p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <CheckCircle size={14} className="text-emerald-500" />
+              <span className={`text-xs ${theme.highlight}`}>{item}</span>
+            </div>
+          ))}
+        </div>
+      </SectionCard>
+
+      <div className="grid grid-cols-2 gap-4">
+        <SectionCard title="HR Letter Templates" subtitle="Auto-generated letters" theme={theme}>
+          <div className="flex flex-wrap gap-2">
+            {hrLetters.map(l => (
+              <span key={l} className={`px-2.5 py-1.5 rounded-lg ${theme.secondaryBg} text-xs font-medium ${theme.highlight}`}>{l}</span>
+            ))}
+          </div>
+        </SectionCard>
+
+        <SectionCard title="Performance Appraisal Stages" subtitle="Multi-level review process" theme={theme}>
+          <div className="space-y-1.5">
+            {appraisalStages.map((s, i) => (
+              <div key={i} className={`flex items-center gap-2 p-2 rounded-xl ${theme.secondaryBg}`}>
+                <span className={`text-[10px] w-5 h-5 rounded-full ${theme.primary} text-white flex items-center justify-center font-bold`}>{i + 1}</span>
+                <span className={`text-xs ${theme.highlight}`}>{s}</span>
+              </div>
+            ))}
+          </div>
+        </SectionCard>
+      </div>
+    </div>
+  );
+}
+
+// ─── TRANSPORT CONFIG MODULE ───────────────────────
+function TransportConfigModule({ theme }: { theme: Theme }) {
+  const [routes] = useState([
+    { name: 'Route A', stops: 8, capacity: 40, morning: '7:00 AM', evening: '3:30 PM', driver: 'Ramesh Kumar', vehicle: 'GJ-01-AB-1234' },
+    { name: 'Route B', stops: 12, capacity: 50, morning: '6:45 AM', evening: '3:45 PM', driver: 'Suresh Patel', vehicle: 'GJ-01-CD-5678' },
+    { name: 'Route C', stops: 6, capacity: 30, morning: '7:15 AM', evening: '3:15 PM', driver: 'Mahesh Singh', vehicle: 'GJ-01-EF-9012' },
+  ]);
+  const [vehicles] = useState([
+    { reg: 'GJ-01-AB-1234', type: 'Bus', capacity: 40, year: '2022', insurance: 'Valid till Dec 2025', gps: true },
+    { reg: 'GJ-01-CD-5678', type: 'Bus', capacity: 50, year: '2021', insurance: 'Valid till Mar 2025', gps: true },
+    { reg: 'GJ-01-EF-9012', type: 'Mini Bus', capacity: 30, year: '2023', insurance: 'Valid till Jun 2026', gps: true },
+    { reg: 'GJ-01-GH-3456', type: 'Van', capacity: 15, year: '2023', insurance: 'Valid till Sep 2025', gps: false },
+  ]);
+  const [drivers] = useState([
+    { name: 'Ramesh Kumar', phone: '98765-43210', license: 'GJ-01-2020-1234', expiry: 'Mar 2027', badge: true },
+    { name: 'Suresh Patel', phone: '98765-43211', license: 'GJ-01-2019-5678', expiry: 'Dec 2026', badge: true },
+    { name: 'Mahesh Singh', phone: '98765-43212', license: 'GJ-01-2021-9012', expiry: 'Jun 2028', badge: true },
+  ]);
+  const [safetyToggles, setSafetyToggles] = useState<Record<string, boolean>>({
+    'GPS Live Tracking': true, 'Parent App Tracking': true, 'RFID Student Tap': false,
+    'Speed Alert (> 40 kmph in school zone)': true, 'SOS Button in Vehicle': true,
+    'CCTV Recording': false, 'Route Deviation Alert': true, 'Geo-fence Alert': true,
+  });
+  const [feeModel, setFeeModel] = useState('route-wise');
+  const [pickupPolicy, setPickupPolicy] = useState<Record<string, boolean>>({
+    'Only registered guardians can pick up': true, 'OTP verification for pickup': true,
+    'Photo verification at gate': false, 'Pre-registration for non-guardian pickup': true,
+  });
+
+  return (
+    <div className="space-y-4">
+      <h2 className={`text-lg font-bold ${theme.highlight}`}>Transport Configuration</h2>
+      <p className={`text-xs ${theme.iconColor}`}>Routes, vehicles, drivers, safety, and fee structure</p>
+
+      <SectionCard title="Routes" subtitle="Bus routes with stops, capacity, and timings" theme={theme}>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead><tr className={theme.secondaryBg}>
+              {['Route', 'Stops', 'Capacity', 'Morning', 'Evening', 'Driver', 'Vehicle'].map(h => (
+                <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
+              ))}
+            </tr></thead>
+            <tbody>
+              {routes.map((r, i) => (
+                <tr key={i} className={`border-t ${theme.border}`}>
+                  <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{r.name}</td>
+                  <td className={`px-3 py-2 ${theme.highlight}`}>{r.stops}</td>
+                  <td className={`px-3 py-2 ${theme.highlight}`}>{r.capacity}</td>
+                  <td className={`px-3 py-2 ${theme.highlight}`}>{r.morning}</td>
+                  <td className={`px-3 py-2 ${theme.highlight}`}>{r.evening}</td>
+                  <td className={`px-3 py-2 ${theme.highlight}`}>{r.driver}</td>
+                  <td className={`px-3 py-2 ${theme.iconColor} font-mono text-[10px]`}>{r.vehicle}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <button className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl mt-2`}>
+          <Plus size={12} /> Add Route
+        </button>
+      </SectionCard>
+
+      <SectionCard title="Vehicle Fleet" subtitle="Registered vehicles with insurance and GPS status" theme={theme}>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead><tr className={theme.secondaryBg}>
+              {['Registration', 'Type', 'Capacity', 'Year', 'Insurance', 'GPS'].map(h => (
+                <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
+              ))}
+            </tr></thead>
+            <tbody>
+              {vehicles.map((v, i) => (
+                <tr key={i} className={`border-t ${theme.border}`}>
+                  <td className={`px-3 py-2 font-mono font-bold ${theme.highlight}`}>{v.reg}</td>
+                  <td className={`px-3 py-2 ${theme.highlight}`}>{v.type}</td>
+                  <td className={`px-3 py-2 ${theme.highlight}`}>{v.capacity}</td>
+                  <td className={`px-3 py-2 ${theme.highlight}`}>{v.year}</td>
+                  <td className={`px-3 py-2 ${theme.iconColor} text-[10px]`}>{v.insurance}</td>
+                  <td className="px-3 py-2"><span className={`w-2 h-2 rounded-full inline-block ${v.gps ? 'bg-emerald-500' : 'bg-slate-300'}`} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Driver Details" subtitle="Registered drivers with license info" theme={theme}>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead><tr className={theme.secondaryBg}>
+              {['Name', 'Phone', 'License No.', 'License Expiry', 'Badge'].map(h => (
+                <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
+              ))}
+            </tr></thead>
+            <tbody>
+              {drivers.map((d, i) => (
+                <tr key={i} className={`border-t ${theme.border}`}>
+                  <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{d.name}</td>
+                  <td className={`px-3 py-2 ${theme.highlight}`}>{d.phone}</td>
+                  <td className={`px-3 py-2 font-mono ${theme.iconColor}`}>{d.license}</td>
+                  <td className={`px-3 py-2 ${theme.highlight}`}>{d.expiry}</td>
+                  <td className="px-3 py-2"><span className={`w-2 h-2 rounded-full inline-block ${d.badge ? 'bg-emerald-500' : 'bg-slate-300'}`} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </SectionCard>
+
+      <div className="grid grid-cols-2 gap-4">
+        <SectionCard title="Tracking &amp; Safety" subtitle="Safety features and alerts" theme={theme}>
+          <div className="space-y-2">
+            {Object.entries(safetyToggles).map(([feature, enabled]) => (
+              <div key={feature} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <span className={`text-xs ${theme.highlight}`}>{feature}</span>
+                <SSAToggle on={enabled} onChange={() => setSafetyToggles(p => ({ ...p, [feature]: !p[feature] }))} theme={theme} />
+              </div>
+            ))}
+          </div>
+        </SectionCard>
+
+        <div className="space-y-4">
+          <SectionCard title="Transport Fee Model" subtitle="How transport fees are calculated" theme={theme}>
+            <div className="space-y-2">
+              {[
+                { id: 'flat', name: 'Flat Rate', desc: 'Same fee for all routes' },
+                { id: 'route-wise', name: 'Route-wise', desc: 'Different fee per route' },
+                { id: 'distance-based', name: 'Distance-based', desc: 'Fee based on km from school' },
+              ].map(m => (
+                <button key={m.id} onClick={() => setFeeModel(m.id)}
+                  className={`w-full text-left p-2.5 rounded-xl border transition-all ${feeModel === m.id ? `border-2 ${theme.primary} text-white` : `${theme.secondaryBg} ${theme.border}`}`}>
+                  <p className={`text-xs font-bold ${feeModel === m.id ? '' : theme.highlight}`}>{m.name}</p>
+                  <p className={`text-[10px] ${feeModel === m.id ? 'text-white/80' : theme.iconColor}`}>{m.desc}</p>
+                </button>
+              ))}
+            </div>
+          </SectionCard>
+
+          <SectionCard title="Pickup Policies" subtitle="Student pickup verification rules" theme={theme}>
+            <div className="space-y-2">
+              {Object.entries(pickupPolicy).map(([policy, enabled]) => (
+                <div key={policy} className={`flex items-center justify-between p-2 rounded-xl ${theme.secondaryBg}`}>
+                  <span className={`text-[11px] ${theme.highlight}`}>{policy}</span>
+                  <SSAToggle on={enabled} onChange={() => setPickupPolicy(p => ({ ...p, [policy]: !p[policy] }))} theme={theme} />
+                </div>
+              ))}
+            </div>
+          </SectionCard>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── ATTENDANCE CONFIG MODULE ──────────────────────
+function AttendanceConfigModule({ theme }: { theme: Theme }) {
+  const [markingMethods, setMarkingMethods] = useState<Record<string, boolean>>({
+    'Biometric (Fingerprint/Face)': true, 'Mobile App (Teacher)': true, 'RFID Card': false,
+    'Manual Register': true, 'QR Code Scan': false,
+  });
+  const [frequency, setFrequency] = useState('daily');
+  const [gracePeriod, setGracePeriod] = useState('15');
+  const [halfDayCutoff, setHalfDayCutoff] = useState('11:30');
+  const [absentThreshold, setAbsentThreshold] = useState('3');
+  const [autoNotify, setAutoNotify] = useState<Record<string, boolean>>({
+    'Notify parent on absence (immediate)': true,
+    'Notify parent on late arrival': true,
+    'Weekly attendance summary to parents': true,
+    'Alert class teacher if absent > 3 consecutive days': true,
+    'Alert principal if attendance < 75%': true,
+    'Auto-mark absent if not marked by 10 AM': false,
+  });
+
+  return (
+    <div className="space-y-4">
+      <h2 className={`text-lg font-bold ${theme.highlight}`}>Attendance Configuration</h2>
+      <p className={`text-xs ${theme.iconColor}`}>Marking methods, frequency, grace periods, and notification rules</p>
+
+      <div className="grid grid-cols-2 gap-4">
+        <SectionCard title="Marking Methods" subtitle="How attendance is recorded" theme={theme}>
+          <div className="space-y-2">
+            {Object.entries(markingMethods).map(([method, enabled]) => (
+              <div key={method} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <span className={`text-xs ${theme.highlight}`}>{method}</span>
+                <SSAToggle on={enabled} onChange={() => setMarkingMethods(p => ({ ...p, [method]: !p[method] }))} theme={theme} />
+              </div>
+            ))}
+          </div>
+        </SectionCard>
+
+        <SectionCard title="Frequency &amp; Timing" subtitle="When and how often attendance is marked" theme={theme}>
+          <div className="space-y-3">
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Marking Frequency</p>
+              <SelectField options={['daily', 'twice-daily', 'period-wise']} value={frequency} onChange={setFrequency} theme={theme} />
+            </div>
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Grace Period for Late (minutes)</p>
+              <InputField value={gracePeriod} onChange={setGracePeriod} theme={theme} type="number" />
+            </div>
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Half-Day Cutoff Time</p>
+              <InputField value={halfDayCutoff} onChange={setHalfDayCutoff} theme={theme} type="time" />
+            </div>
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Consecutive Absent Days for Alert</p>
+              <InputField value={absentThreshold} onChange={setAbsentThreshold} theme={theme} type="number" />
+            </div>
+          </div>
+        </SectionCard>
+      </div>
+
+      <SectionCard title="Auto-Notification Rules" subtitle="Automated alerts for attendance events" theme={theme}>
+        <div className="space-y-2">
+          {Object.entries(autoNotify).map(([rule, enabled]) => (
+            <div key={rule} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <span className={`text-xs ${theme.highlight}`}>{rule}</span>
+              <SSAToggle on={enabled} onChange={() => setAutoNotify(p => ({ ...p, [rule]: !p[rule] }))} theme={theme} />
+            </div>
+          ))}
+        </div>
+      </SectionCard>
+    </div>
+  );
+}
+
+// ─── EXAM & GRADING CONFIG MODULE ──────────────────
+function ExamConfigModule({ theme }: { theme: Theme }) {
+  const [gradingSystem, setGradingSystem] = useState('cbse');
+  const [gradeBoundaries, setGradeBoundaries] = useState([
+    { grade: 'A1', min: '91', max: '100', gp: '10' },
+    { grade: 'A2', min: '81', max: '90', gp: '9' },
+    { grade: 'B1', min: '71', max: '80', gp: '8' },
+    { grade: 'B2', min: '61', max: '70', gp: '7' },
+    { grade: 'C1', min: '51', max: '60', gp: '6' },
+    { grade: 'C2', min: '41', max: '50', gp: '5' },
+    { grade: 'D', min: '33', max: '40', gp: '4' },
+    { grade: 'E (Fail)', min: '0', max: '32', gp: '0' },
+  ]);
+  const [reportTemplate, setReportTemplate] = useState('cbse-standard');
+  const [examSchedule] = useState([
+    { exam: 'Unit Test 1', startDate: '15 Jun', endDate: '20 Jun', classes: 'All', status: 'Completed' },
+    { exam: 'Unit Test 2', startDate: '25 Aug', endDate: '30 Aug', classes: 'All', status: 'Completed' },
+    { exam: 'Half Yearly', startDate: '01 Oct', endDate: '15 Oct', classes: 'All', status: 'Upcoming' },
+    { exam: 'Unit Test 3', startDate: '10 Dec', endDate: '15 Dec', classes: 'All', status: 'Scheduled' },
+    { exam: 'Annual Exam', startDate: '01 Mar', endDate: '15 Mar', classes: 'All', status: 'Scheduled' },
+  ]);
+  const [rankDisplay, setRankDisplay] = useState<Record<string, boolean>>({
+    'Show class rank': true, 'Show section rank': true, 'Show percentile': false,
+    'Show subject-wise rank': false, 'Show grade distribution graph': true,
+  });
+
+  return (
+    <div className="space-y-4">
+      <h2 className={`text-lg font-bold ${theme.highlight}`}>Exams &amp; Grading Configuration</h2>
+      <p className={`text-xs ${theme.iconColor}`}>Grading system, grade boundaries, report cards, and exam schedules</p>
+
+      <SectionCard title="Grading System" subtitle="Select the grading methodology" theme={theme}>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+          {[
+            { id: 'marks', name: 'Marks Only' },
+            { id: 'grades', name: 'Grades Only' },
+            { id: 'both', name: 'Marks + Grades' },
+            { id: 'cbse', name: 'CBSE CCE Pattern' },
+          ].map(g => (
+            <button key={g.id} onClick={() => setGradingSystem(g.id)}
+              className={`p-2.5 rounded-xl text-xs font-bold transition-all ${gradingSystem === g.id ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.highlight}`}`}>
+              {g.name}
+            </button>
+          ))}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Grade Boundaries" subtitle="Grade mapping with marks range and grade points" theme={theme}>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead><tr className={theme.secondaryBg}>
+              {['Grade', 'Min Marks', 'Max Marks', 'Grade Points'].map(h => (
+                <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
+              ))}
+            </tr></thead>
+            <tbody>
+              {gradeBoundaries.map((g, i) => (
+                <tr key={i} className={`border-t ${theme.border}`}>
+                  <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{g.grade}</td>
+                  <td className="px-3 py-1.5">
+                    <input value={g.min} onChange={e => { const n = [...gradeBoundaries]; n[i] = { ...n[i], min: e.target.value }; setGradeBoundaries(n); }}
+                      className={`w-16 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none`} />
+                  </td>
+                  <td className="px-3 py-1.5">
+                    <input value={g.max} onChange={e => { const n = [...gradeBoundaries]; n[i] = { ...n[i], max: e.target.value }; setGradeBoundaries(n); }}
+                      className={`w-16 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none`} />
+                  </td>
+                  <td className="px-3 py-1.5">
+                    <input value={g.gp} onChange={e => { const n = [...gradeBoundaries]; n[i] = { ...n[i], gp: e.target.value }; setGradeBoundaries(n); }}
+                      className={`w-16 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none`} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </SectionCard>
+
+      <div className="grid grid-cols-2 gap-4">
+        <SectionCard title="Report Card Template" subtitle="Select template for printing" theme={theme}>
+          <div className="space-y-2">
+            {['cbse-standard', 'icse-format', 'state-board', 'custom'].map(t => (
+              <button key={t} onClick={() => setReportTemplate(t)}
+                className={`w-full text-left p-2.5 rounded-xl border transition-all ${reportTemplate === t ? `border-2 ${theme.primary} text-white` : `${theme.secondaryBg} ${theme.border}`}`}>
+                <p className={`text-xs font-bold capitalize ${reportTemplate === t ? '' : theme.highlight}`}>{t.replace('-', ' ')}</p>
+              </button>
+            ))}
+          </div>
+        </SectionCard>
+
+        <SectionCard title="Rank Display Options" subtitle="What ranks to show on report cards" theme={theme}>
+          <div className="space-y-2">
+            {Object.entries(rankDisplay).map(([opt, enabled]) => (
+              <div key={opt} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <span className={`text-xs ${theme.highlight}`}>{opt}</span>
+                <SSAToggle on={enabled} onChange={() => setRankDisplay(p => ({ ...p, [opt]: !p[opt] }))} theme={theme} />
+              </div>
+            ))}
+          </div>
+        </SectionCard>
+      </div>
+
+      <SectionCard title="Exam Schedule" subtitle="Planned exams for the academic year" theme={theme}>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead><tr className={theme.secondaryBg}>
+              {['Exam', 'Start', 'End', 'Classes', 'Status'].map(h => (
+                <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
+              ))}
+            </tr></thead>
+            <tbody>
+              {examSchedule.map((e, i) => (
+                <tr key={i} className={`border-t ${theme.border}`}>
+                  <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{e.exam}</td>
+                  <td className={`px-3 py-2 ${theme.highlight}`}>{e.startDate}</td>
+                  <td className={`px-3 py-2 ${theme.highlight}`}>{e.endDate}</td>
+                  <td className={`px-3 py-2 ${theme.highlight}`}>{e.classes}</td>
+                  <td className="px-3 py-2">
+                    <span className={`text-[9px] px-2 py-0.5 rounded-lg font-bold ${
+                      e.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' :
+                      e.status === 'Upcoming' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'
+                    }`}>{e.status}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </SectionCard>
+    </div>
+  );
+}
+
+// ─── COMMUNICATION CONFIG MODULE ───────────────────
+function CommunicationConfigModule({ theme }: { theme: Theme }) {
+  const [dmPermissions, setDmPermissions] = useState<Record<string, boolean>>({
+    'Parent to Class Teacher': true,
+    'Parent to Subject Teacher': false,
+    'Parent to Principal': false,
+    'Parent to Admin': true,
+    'Teacher to Parent': true,
+    'Teacher to Teacher': true,
+    'Teacher to Principal': true,
+    'Student to Teacher (Sr. Sec only)': false,
+    'Staff to HR': true,
+    'Anyone to Transport Helpdesk': true,
+  });
+  const [parentMode, setParentMode] = useState('reply-only');
+  const [groupPerms, setGroupPerms] = useState<Record<string, boolean>>({
+    'Admin can create any group': true,
+    'Principal can create any group': true,
+    'Teacher can create class groups': true,
+    'Teacher can create subject groups': true,
+    'Parent can create groups': false,
+    'Student can create groups': false,
+  });
+  const [autoGroups] = useState([
+    'Class-wise Parent Groups (auto per section)',
+    'Subject Teacher Groups',
+    'Staff Announcements',
+    'Transport Route Groups',
+    'PTA Group',
+    'Management Group',
+  ]);
+  const [chatStorage, setChatStorage] = useState<Record<string, string>>({
+    'Message retention': '1 year',
+    'File storage per user': '500 MB',
+    'Max file size': '25 MB',
+    'Allowed file types': 'PDF, DOC, JPG, PNG, MP4',
+  });
+  const [fileSharing, setFileSharing] = useState<Record<string, boolean>>({
+    'Allow image sharing': true,
+    'Allow document sharing': true,
+    'Allow video sharing': false,
+    'Allow voice messages': true,
+    'Allow location sharing': false,
+  });
+
+  return (
+    <div className="space-y-4">
+      <h2 className={`text-lg font-bold ${theme.highlight}`}>Communication Configuration</h2>
+      <p className={`text-xs ${theme.iconColor}`}>DM permissions, group rules, storage limits, and file sharing</p>
+
+      <SectionCard title="DM Permission Matrix" subtitle="Who can send direct messages to whom" theme={theme}>
+        <div className="space-y-1.5">
+          {Object.entries(dmPermissions).map(([perm, enabled]) => (
+            <div key={perm} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <span className={`text-xs ${theme.highlight}`}>{perm}</span>
+              <SSAToggle on={enabled} onChange={() => setDmPermissions(p => ({ ...p, [perm]: !p[perm] }))} theme={theme} />
+            </div>
+          ))}
+        </div>
+      </SectionCard>
+
+      <div className="grid grid-cols-2 gap-4">
+        <SectionCard title="Parent Communication Mode" subtitle="Level of parent messaging access" theme={theme}>
+          <div className="space-y-2">
+            {[
+              { id: 'full-two-way', name: 'Full Two-Way', desc: 'Parents can initiate and reply' },
+              { id: 'reply-only', name: 'Reply Only', desc: 'Parents can only reply to teacher messages' },
+              { id: 'broadcast-only', name: 'Broadcast Only', desc: 'School sends, parents read (no replies)' },
+            ].map(m => (
+              <button key={m.id} onClick={() => setParentMode(m.id)}
+                className={`w-full text-left p-2.5 rounded-xl border transition-all ${parentMode === m.id ? `border-2 ${theme.primary} text-white` : `${theme.secondaryBg} ${theme.border}`}`}>
+                <p className={`text-xs font-bold ${parentMode === m.id ? '' : theme.highlight}`}>{m.name}</p>
+                <p className={`text-[10px] ${parentMode === m.id ? 'text-white/80' : theme.iconColor}`}>{m.desc}</p>
+              </button>
+            ))}
+          </div>
+        </SectionCard>
+
+        <SectionCard title="Group Creation Permissions" subtitle="Who can create chat groups" theme={theme}>
+          <div className="space-y-2">
+            {Object.entries(groupPerms).map(([perm, enabled]) => (
+              <div key={perm} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <span className={`text-xs ${theme.highlight}`}>{perm}</span>
+                <SSAToggle on={enabled} onChange={() => setGroupPerms(p => ({ ...p, [perm]: !p[perm] }))} theme={theme} />
+              </div>
+            ))}
+          </div>
+        </SectionCard>
+      </div>
+
+      <SectionCard title="Default Auto-created Groups" subtitle="Groups automatically created by the system" theme={theme}>
+        <div className="flex flex-wrap gap-2">
+          {autoGroups.map(g => (
+            <span key={g} className={`px-2.5 py-1.5 rounded-lg ${theme.secondaryBg} text-xs font-medium ${theme.highlight} flex items-center gap-1`}>
+              <CheckCircle size={10} className="text-emerald-500" /> {g}
+            </span>
+          ))}
+        </div>
+      </SectionCard>
+
+      <div className="grid grid-cols-2 gap-4">
+        <SectionCard title="Chat Storage &amp; Retention" subtitle="Storage limits and retention policies" theme={theme}>
+          <div className="space-y-2">
+            {Object.entries(chatStorage).map(([key, val]) => (
+              <div key={key} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <span className={`text-xs ${theme.highlight}`}>{key}</span>
+                <span className={`text-xs font-bold ${theme.iconColor}`}>{val}</span>
+              </div>
+            ))}
+          </div>
+        </SectionCard>
+
+        <SectionCard title="File Sharing" subtitle="What types of files can be shared" theme={theme}>
+          <div className="space-y-2">
+            {Object.entries(fileSharing).map(([opt, enabled]) => (
+              <div key={opt} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <span className={`text-xs ${theme.highlight}`}>{opt}</span>
+                <SSAToggle on={enabled} onChange={() => setFileSharing(p => ({ ...p, [opt]: !p[opt] }))} theme={theme} />
+              </div>
+            ))}
+          </div>
+        </SectionCard>
+      </div>
+    </div>
+  );
+}
+
+// ─── TIMETABLE & BELL SCHEDULE CONFIG MODULE ───────
+function TimetableConfigModule({ theme }: { theme: Theme }) {
+  const [bellSchedule, setBellSchedule] = useState([
+    { period: 'Assembly', start: '07:30', end: '07:50' },
+    { period: 'Period 1', start: '07:50', end: '08:30' },
+    { period: 'Period 2', start: '08:30', end: '09:10' },
+    { period: 'Period 3', start: '09:10', end: '09:50' },
+    { period: 'Short Break', start: '09:50', end: '10:05' },
+    { period: 'Period 4', start: '10:05', end: '10:45' },
+    { period: 'Period 5', start: '10:45', end: '11:25' },
+    { period: 'Lunch Break', start: '11:25', end: '12:00' },
+    { period: 'Period 6', start: '12:00', end: '12:40' },
+    { period: 'Period 7', start: '12:40', end: '01:20' },
+    { period: 'Period 8', start: '01:20', end: '02:00' },
+  ]);
+  const [saturdaySchedule, setSaturdaySchedule] = useState('half-day');
+  const [zeroPeriod, setZeroPeriod] = useState(false);
+  const [zeroPeriodTime, setZeroPeriodTime] = useState({ start: '07:00', end: '07:30' });
+  const [assemblyTime, setAssemblyTime] = useState('15');
+
+  return (
+    <div className="space-y-4">
+      <h2 className={`text-lg font-bold ${theme.highlight}`}>Timetable &amp; Bell Schedule</h2>
+      <p className={`text-xs ${theme.iconColor}`}>Bell timings, breaks, Saturday schedule, and special periods</p>
+
+      <SectionCard title="Bell Schedule" subtitle="Period-wise start and end times" theme={theme}>
+        <div className="space-y-1.5">
+          {bellSchedule.map((p, i) => (
+            <div key={i} className={`flex items-center gap-3 p-2.5 rounded-xl ${p.period.includes('Break') || p.period === 'Assembly' ? 'bg-amber-50 border border-amber-200' : theme.secondaryBg}`}>
+              <span className={`text-xs font-bold ${theme.highlight} w-24`}>{p.period}</span>
+              <input type="time" value={p.start} onChange={e => { const n = [...bellSchedule]; n[i] = { ...n[i], start: e.target.value }; setBellSchedule(n); }}
+                className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+              <span className={`text-xs ${theme.iconColor}`}>to</span>
+              <input type="time" value={p.end} onChange={e => { const n = [...bellSchedule]; n[i] = { ...n[i], end: e.target.value }; setBellSchedule(n); }}
+                className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+              <span className={`text-[10px] ${theme.iconColor}`}>
+                {(() => { const [sh, sm] = p.start.split(':').map(Number); const [eh, em] = p.end.split(':').map(Number); return `${(eh * 60 + em) - (sh * 60 + sm)} min`; })()}
+              </span>
+            </div>
+          ))}
+        </div>
+      </SectionCard>
+
+      <div className="grid grid-cols-3 gap-4">
+        <SectionCard title="Saturday Schedule" theme={theme}>
+          <div className="space-y-2">
+            {['full-day', 'half-day', 'off'].map(s => (
+              <button key={s} onClick={() => setSaturdaySchedule(s)}
+                className={`w-full text-left p-2.5 rounded-xl text-xs font-bold transition-all capitalize ${saturdaySchedule === s ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.highlight}`}`}>
+                {s.replace('-', ' ')}
+              </button>
+            ))}
+          </div>
+        </SectionCard>
+
+        <SectionCard title="Zero Period" subtitle="Optional early morning period" theme={theme}>
+          <div className="space-y-3">
+            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <span className={`text-xs font-bold ${theme.highlight}`}>Enable Zero Period</span>
+              <SSAToggle on={zeroPeriod} onChange={() => setZeroPeriod(!zeroPeriod)} theme={theme} />
+            </div>
+            {zeroPeriod && (
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Start</p>
+                  <InputField value={zeroPeriodTime.start} onChange={v => setZeroPeriodTime(p => ({ ...p, start: v }))} theme={theme} type="time" />
+                </div>
+                <div>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>End</p>
+                  <InputField value={zeroPeriodTime.end} onChange={v => setZeroPeriodTime(p => ({ ...p, end: v }))} theme={theme} type="time" />
+                </div>
+              </div>
+            )}
+          </div>
+        </SectionCard>
+
+        <SectionCard title="Assembly" subtitle="Morning assembly duration" theme={theme}>
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Duration (minutes)</p>
+            <InputField value={assemblyTime} onChange={setAssemblyTime} theme={theme} type="number" />
+          </div>
+        </SectionCard>
+      </div>
+    </div>
+  );
+}
+
+// ─── LEAVE POLICY MODULE ───────────────────────────
+function LeaveConfigModule({ theme }: { theme: Theme }) {
+  const [leaveTypes, setLeaveTypes] = useState([
+    { type: 'Casual Leave (CL)', days: '12', carryForward: false, maxCarry: '0' },
+    { type: 'Sick Leave (SL)', days: '10', carryForward: true, maxCarry: '5' },
+    { type: 'Earned Leave (EL)', days: '15', carryForward: true, maxCarry: '30' },
+    { type: 'Maternity Leave', days: '180', carryForward: false, maxCarry: '0' },
+    { type: 'Paternity Leave', days: '15', carryForward: false, maxCarry: '0' },
+    { type: 'Compensatory Off', days: '0', carryForward: false, maxCarry: '0' },
+  ]);
+  const [sandwichRule, setSandwichRule] = useState(true);
+  const [halfDayLeave, setHalfDayLeave] = useState(true);
+  const [approvalChain] = useState([
+    { level: 1, approver: 'HOD / Coordinator', timeLimit: '24 hours' },
+    { level: 2, approver: 'Vice Principal', timeLimit: '48 hours' },
+    { level: 3, approver: 'Principal', timeLimit: '72 hours' },
+  ]);
+  const [maxConsecutive, setMaxConsecutive] = useState('5');
+  const [lwpThreshold, setLwpThreshold] = useState('3');
+
+  return (
+    <div className="space-y-4">
+      <h2 className={`text-lg font-bold ${theme.highlight}`}>Leave Policy Configuration</h2>
+      <p className={`text-xs ${theme.iconColor}`}>Leave types, carry-forward rules, approval chain, and thresholds</p>
+
+      <SectionCard title="Leave Types &amp; Annual Allocation" subtitle="Days per year per leave type" theme={theme}>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead><tr className={theme.secondaryBg}>
+              {['Leave Type', 'Days/Year', 'Carry Forward', 'Max Carry'].map(h => (
+                <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
+              ))}
+            </tr></thead>
+            <tbody>
+              {leaveTypes.map((lt, i) => (
+                <tr key={i} className={`border-t ${theme.border}`}>
+                  <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{lt.type}</td>
+                  <td className="px-3 py-1.5">
+                    <input value={lt.days} onChange={e => { const n = [...leaveTypes]; n[i] = { ...n[i], days: e.target.value }; setLeaveTypes(n); }}
+                      className={`w-16 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none`} />
+                  </td>
+                  <td className="px-3 py-2">
+                    <SSAToggle on={lt.carryForward} onChange={() => { const n = [...leaveTypes]; n[i] = { ...n[i], carryForward: !n[i].carryForward }; setLeaveTypes(n); }} theme={theme} />
+                  </td>
+                  <td className="px-3 py-1.5">
+                    <input value={lt.maxCarry} onChange={e => { const n = [...leaveTypes]; n[i] = { ...n[i], maxCarry: e.target.value }; setLeaveTypes(n); }}
+                      disabled={!lt.carryForward}
+                      className={`w-16 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none ${!lt.carryForward ? 'opacity-30' : ''}`} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </SectionCard>
+
+      <div className="grid grid-cols-2 gap-4">
+        <SectionCard title="Leave Rules" subtitle="Special rules for leave calculation" theme={theme}>
+          <div className="space-y-3">
+            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <div>
+                <p className={`text-xs font-bold ${theme.highlight}`}>Sandwich Rule</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Holidays between leave days count as leave</p>
+              </div>
+              <SSAToggle on={sandwichRule} onChange={() => setSandwichRule(!sandwichRule)} theme={theme} />
+            </div>
+            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <div>
+                <p className={`text-xs font-bold ${theme.highlight}`}>Half-Day Leave</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Allow staff to take half-day leave</p>
+              </div>
+              <SSAToggle on={halfDayLeave} onChange={() => setHalfDayLeave(!halfDayLeave)} theme={theme} />
+            </div>
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Max Consecutive Leave Days (without special approval)</p>
+              <InputField value={maxConsecutive} onChange={setMaxConsecutive} theme={theme} type="number" />
+            </div>
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>LWP Threshold (days after leave balance exhausted)</p>
+              <InputField value={lwpThreshold} onChange={setLwpThreshold} theme={theme} type="number" />
+            </div>
+          </div>
+        </SectionCard>
+
+        <SectionCard title="Approval Chain" subtitle="Multi-level leave approval workflow" theme={theme}>
+          <div className="space-y-2">
+            {approvalChain.map((a, i) => (
+              <div key={i} className={`flex items-center gap-3 p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <span className={`text-[10px] w-6 h-6 rounded-full ${theme.primary} text-white flex items-center justify-center font-bold`}>{a.level}</span>
+                <div className="flex-1">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{a.approver}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>Must respond within {a.timeLimit}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </SectionCard>
+      </div>
+    </div>
+  );
+}
+
+// ─── VISITOR RULES CONFIG MODULE ───────────────────
+function VisitorConfigModule({ theme }: { theme: Theme }) {
+  const [pickupMethod, setPickupMethod] = useState('otp');
+  const [rules, setRules] = useState<Record<string, boolean>>({
+    'Pre-registration required for all visitors': true,
+    'Photo capture at entry gate': true,
+    'Visitor badge printing': true,
+    'Escort required for campus visit': false,
+    'Emergency contact verification on pickup': true,
+    'ID proof mandatory': true,
+    'Temperature check': false,
+  });
+  const [restrictedHours, setRestrictedHours] = useState({ start: '11:00', end: '12:00' });
+  const [maxVisitDuration, setMaxVisitDuration] = useState('60');
+
+  return (
+    <div className="space-y-4">
+      <h2 className={`text-lg font-bold ${theme.highlight}`}>Visitor &amp; Pickup Rules</h2>
+      <p className={`text-xs ${theme.iconColor}`}>Visitor verification, pickup policies, and security rules</p>
+
+      <SectionCard title="Pickup Verification Method" subtitle="How student pickup is verified" theme={theme}>
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            { id: 'otp', name: 'OTP Verification', desc: 'Parent receives OTP on phone' },
+            { id: 'photo', name: 'Photo Match', desc: 'Guard matches face with registered photo' },
+            { id: 'rfid', name: 'RFID/QR Card', desc: 'Parent scans card at gate' },
+          ].map(m => (
+            <button key={m.id} onClick={() => setPickupMethod(m.id)}
+              className={`p-3 rounded-xl text-left border-2 transition-all ${pickupMethod === m.id ? `${theme.primary} text-white border-transparent` : `${theme.secondaryBg} ${theme.border}`}`}>
+              <p className={`text-xs font-bold ${pickupMethod === m.id ? '' : theme.highlight}`}>{m.name}</p>
+              <p className={`text-[10px] mt-1 ${pickupMethod === m.id ? 'text-white/80' : theme.iconColor}`}>{m.desc}</p>
+            </button>
+          ))}
+        </div>
+      </SectionCard>
+
+      <div className="grid grid-cols-2 gap-4">
+        <SectionCard title="Visitor Rules" subtitle="Gate and campus rules" theme={theme}>
+          <div className="space-y-2">
+            {Object.entries(rules).map(([rule, enabled]) => (
+              <div key={rule} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <span className={`text-xs ${theme.highlight}`}>{rule}</span>
+                <SSAToggle on={enabled} onChange={() => setRules(p => ({ ...p, [rule]: !p[rule] }))} theme={theme} />
+              </div>
+            ))}
+          </div>
+        </SectionCard>
+
+        <SectionCard title="Timing Restrictions" subtitle="Restricted visiting hours and limits" theme={theme}>
+          <div className="space-y-3">
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Restricted Hours (no visitors allowed)</p>
+              <div className="flex items-center gap-2">
+                <InputField value={restrictedHours.start} onChange={v => setRestrictedHours(p => ({ ...p, start: v }))} theme={theme} type="time" />
+                <span className={`text-xs ${theme.iconColor}`}>to</span>
+                <InputField value={restrictedHours.end} onChange={v => setRestrictedHours(p => ({ ...p, end: v }))} theme={theme} type="time" />
+              </div>
+            </div>
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Max Visit Duration (minutes)</p>
+              <InputField value={maxVisitDuration} onChange={setMaxVisitDuration} theme={theme} type="number" />
+            </div>
+          </div>
+        </SectionCard>
+      </div>
+    </div>
+  );
+}
+
+// ─── CERTIFICATE CONFIG MODULE ─────────────────────
+function CertificateConfigModule({ theme }: { theme: Theme }) {
+  const [templates] = useState([
+    { name: 'Transfer Certificate (TC)', status: 'uploaded', lastModified: '15 Jan 2025' },
+    { name: 'Character Certificate', status: 'uploaded', lastModified: '15 Jan 2025' },
+    { name: 'Bonafide Certificate', status: 'uploaded', lastModified: '10 Feb 2025' },
+    { name: 'Migration Certificate', status: 'pending', lastModified: '-' },
+    { name: 'Sports Certificate', status: 'pending', lastModified: '-' },
+    { name: 'Merit Certificate', status: 'uploaded', lastModified: '20 Jan 2025' },
+  ]);
+  const [features, setFeatures] = useState<Record<string, boolean>>({
+    'Auto-numbering (sequential)': true,
+    'Digital signature': true,
+    'QR code verification': true,
+    'Watermark on PDF': true,
+    'Approval required before generation': true,
+    'Duplicate certificate tracking': true,
+  });
+  const [approvalWorkflow] = useState(['Class Teacher Initiates', 'Admin Verifies Details', 'Principal Approves', 'Certificate Generated']);
+
+  return (
+    <div className="space-y-4">
+      <h2 className={`text-lg font-bold ${theme.highlight}`}>Certificate Configuration</h2>
+      <p className={`text-xs ${theme.iconColor}`}>Templates, auto-numbering, digital signatures, and approval workflow</p>
+
+      <SectionCard title="Certificate Templates" subtitle="Upload and manage certificate templates" theme={theme}>
+        <div className="space-y-2">
+          {templates.map((t, i) => (
+            <div key={i} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <div className="flex items-center gap-2">
+                <Award size={14} className={t.status === 'uploaded' ? 'text-emerald-500' : 'text-slate-400'} />
+                <div>
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{t.name}</p>
+                  {t.lastModified !== '-' && <p className={`text-[10px] ${theme.iconColor}`}>Last modified: {t.lastModified}</p>}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className={`text-[9px] px-2 py-0.5 rounded-lg font-bold ${t.status === 'uploaded' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                  {t.status === 'uploaded' ? 'UPLOADED' : 'PENDING'}
+                </span>
+                <button className={`p-1 rounded-lg ${theme.buttonHover}`}><Upload size={12} className={theme.iconColor} /></button>
+                {t.status === 'uploaded' && <button className={`p-1 rounded-lg ${theme.buttonHover}`}><Eye size={12} className={theme.iconColor} /></button>}
+              </div>
+            </div>
+          ))}
+        </div>
+      </SectionCard>
+
+      <div className="grid grid-cols-2 gap-4">
+        <SectionCard title="Certificate Features" subtitle="Toggle features for all certificates" theme={theme}>
+          <div className="space-y-2">
+            {Object.entries(features).map(([feat, enabled]) => (
+              <div key={feat} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <span className={`text-xs ${theme.highlight}`}>{feat}</span>
+                <SSAToggle on={enabled} onChange={() => setFeatures(p => ({ ...p, [feat]: !p[feat] }))} theme={theme} />
+              </div>
+            ))}
+          </div>
+        </SectionCard>
+
+        <SectionCard title="Approval Workflow" subtitle="Steps before a certificate is generated" theme={theme}>
+          <div className="space-y-2">
+            {approvalWorkflow.map((step, i) => (
+              <div key={i} className={`flex items-center gap-3 p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <span className={`text-[10px] w-6 h-6 rounded-full ${theme.primary} text-white flex items-center justify-center font-bold`}>{i + 1}</span>
+                <span className={`text-xs font-bold ${theme.highlight}`}>{step}</span>
+              </div>
+            ))}
+          </div>
+        </SectionCard>
+      </div>
+    </div>
+  );
+}
+
+// ─── DATA MIGRATION MODULE ─────────────────────────
+function DataMigrationModule({ theme }: { theme: Theme }) {
+  const [imports] = useState([
+    { type: 'Students', template: 'students-template.xlsx', status: 'not-started', records: 0, errors: 0 },
+    { type: 'Staff', template: 'staff-template.xlsx', status: 'not-started', records: 0, errors: 0 },
+    { type: 'Fee Records', template: 'fees-template.xlsx', status: 'not-started', records: 0, errors: 0 },
+    { type: 'Library Books', template: 'library-template.xlsx', status: 'not-started', records: 0, errors: 0 },
+    { type: 'Transport Data', template: 'transport-template.xlsx', status: 'not-started', records: 0, errors: 0 },
+    { type: 'Attendance History', template: 'attendance-template.xlsx', status: 'not-started', records: 0, errors: 0 },
+  ]);
+
+  return (
+    <div className="space-y-4">
+      <h2 className={`text-lg font-bold ${theme.highlight}`}>Data Migration</h2>
+      <p className={`text-xs ${theme.iconColor}`}>Import existing data from CSV/Excel files</p>
+
+      <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex items-start gap-3">
+        <AlertTriangle size={16} className="text-blue-500 mt-0.5 shrink-0" />
+        <div>
+          <p className="text-sm font-bold text-blue-800">Before You Import</p>
+          <p className="text-xs text-blue-700 mt-1">Download the template for each data type, fill it following the format exactly, then upload. Validation runs automatically. You can rollback any import within 24 hours.</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+        {imports.map((imp, i) => (
+          <div key={i} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>{imp.type}</h3>
+              <span className={`text-[9px] px-2 py-0.5 rounded-lg font-bold ${
+                imp.status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
+                imp.status === 'in-progress' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500'
+              }`}>
+                {imp.status === 'not-started' ? 'NOT STARTED' : imp.status.toUpperCase()}
+              </span>
+            </div>
+
+            <button className={`w-full flex items-center justify-center gap-2 p-2.5 rounded-xl ${theme.secondaryBg} ${theme.buttonHover} mb-2 transition-all`}>
+              <Download size={14} className={theme.iconColor} />
+              <span className={`text-xs font-bold ${theme.iconColor}`}>Download Template</span>
+            </button>
+
+            <div className={`w-full border-2 border-dashed ${theme.border} rounded-xl p-4 text-center cursor-pointer ${theme.buttonHover} transition-all`}>
+              <Upload size={20} className={`mx-auto mb-1 ${theme.iconColor}`} />
+              <p className={`text-[10px] ${theme.iconColor}`}>Drop CSV/Excel file here or click to browse</p>
+            </div>
+
+            {imp.records > 0 && (
+              <div className="mt-2 space-y-1">
+                <div className="flex justify-between text-[10px]">
+                  <span className={theme.iconColor}>Records: {imp.records}</span>
+                  {imp.errors > 0 && <span className="text-red-500">Errors: {imp.errors}</span>}
+                </div>
+                <div className="w-full h-1.5 rounded-full bg-slate-200">
+                  <div className="h-full rounded-full bg-emerald-500" style={{ width: `${((imp.records - imp.errors) / imp.records) * 100}%` }} />
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── AUDIT LOG MODULE ──────────────────────────────
+function AuditLogModule({ theme }: { theme: Theme }) {
+  const [filterModule, setFilterModule] = useState('All');
+  const [logs] = useState([
+    { date: '18 Feb 2026 14:30', action: 'Updated', module: 'Fees', details: 'Changed Class 9-10 Tuition Fee: 5000 to 5500', user: 'admin@school.com' },
+    { date: '18 Feb 2026 11:15', action: 'Created', module: 'Transport', details: 'Added Route D: 10 stops, 45 capacity', user: 'admin@school.com' },
+    { date: '17 Feb 2026 16:45', action: 'Updated', module: 'Leave', details: 'Modified approval chain: Added VP as Level 2', user: 'admin@school.com' },
+    { date: '17 Feb 2026 10:20', action: 'Uploaded', module: 'Exams', details: 'Report card template: CBSE standard v2', user: 'admin@school.com' },
+    { date: '16 Feb 2026 09:00', action: 'Updated', module: 'Communication', details: 'DM permission: Parent to Teacher set to ON', user: 'admin@school.com' },
+    { date: '15 Feb 2026 15:30', action: 'Created', module: 'HR', details: 'New department: Sports', user: 'admin@school.com' },
+    { date: '15 Feb 2026 11:00', action: 'Updated', module: 'Attendance', details: 'Grace period changed: 10 min to 15 min', user: 'admin@school.com' },
+    { date: '14 Feb 2026 14:00', action: 'Deleted', module: 'Transport', details: 'Removed Route X (no students assigned)', user: 'admin@school.com' },
+  ]);
+
+  const filteredLogs = filterModule === 'All' ? logs : logs.filter(l => l.module === filterModule);
+  const allModules = ['All', ...Array.from(new Set(logs.map(l => l.module)))];
+
+  return (
+    <div className="space-y-4">
+      <h2 className={`text-lg font-bold ${theme.highlight}`}>Audit Log</h2>
+      <p className={`text-xs ${theme.iconColor}`}>Read-only view of configuration changes (limited subset for SSA)</p>
+
+      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3 flex items-start gap-2">
+        <Lock size={14} className="text-amber-500 mt-0.5 shrink-0" />
+        <p className="text-xs text-amber-700">Full audit logs with IP addresses and before/after values are accessible only to Saaras Account Manager. You can view a summary of recent changes here.</p>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <div className="flex gap-1">
+          {allModules.map(m => (
+            <button key={m} onClick={() => setFilterModule(m)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${filterModule === m ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.highlight}`}`}>
+              {m}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} overflow-hidden`}>
+        <table className="w-full text-xs">
+          <thead className={theme.secondaryBg}>
+            <tr>
+              {['Date / Time', 'Action', 'Module', 'Details', 'User'].map(h => (
+                <th key={h} className={`text-left px-4 py-3 font-bold ${theme.iconColor} uppercase text-[10px]`}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {filteredLogs.map((log, i) => (
+              <tr key={i} className={`border-t ${theme.border}`}>
+                <td className={`px-4 py-3 ${theme.iconColor} text-[10px] whitespace-nowrap`}>{log.date}</td>
+                <td className="px-4 py-3">
+                  <span className={`text-[9px] px-2 py-0.5 rounded-lg font-bold ${
+                    log.action === 'Created' ? 'bg-emerald-100 text-emerald-700' :
+                    log.action === 'Updated' ? 'bg-blue-100 text-blue-700' :
+                    log.action === 'Deleted' ? 'bg-red-100 text-red-700' : 'bg-purple-100 text-purple-700'
+                  }`}>{log.action}</span>
+                </td>
+                <td className={`px-4 py-3 font-bold ${theme.highlight}`}>{log.module}</td>
+                <td className={`px-4 py-3 ${theme.highlight}`}>{log.details}</td>
+                <td className={`px-4 py-3 ${theme.iconColor} text-[10px]`}>{log.user}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ─── EXPORT ──────────────────────────────────────────
+export default function Page() {
+  return (
+    <BlueprintLayout>
+      <SchoolSuperAdminDashboard />
+    </BlueprintLayout>
+  );
+}
