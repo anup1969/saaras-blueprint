@@ -8,7 +8,8 @@ import {
   UserCheck, Briefcase, Calculator, Phone, Bus, ShieldCheck, Headphones,
   Home, ChevronLeft, Menu, LogOut, MessageSquare, Bell,
   FileText, CheckCircle, Calendar, AlertTriangle, ClipboardCheck,
-  Palette, Maximize2, Minimize2, MessageCircle, X, Send, Search, Heart, ToggleLeft, ToggleRight, Settings
+  Palette, Maximize2, Minimize2, MessageCircle, X, Send, Search, Heart, ToggleLeft, ToggleRight, Settings,
+  Handshake
 } from 'lucide-react';
 import { themes, VIVID_VARIANTS, type Theme } from '@/lib/themes';
 import { getLoggedInUser, logoutUser, type TeamMember } from '@/lib/auth';
@@ -37,6 +38,7 @@ const regularNavItems = [
   { href: '/transport-head', label: 'Transport Head', icon: Bus },
   { href: '/security', label: 'Security', icon: ShieldCheck },
   { href: '/account-manager', label: 'Account Manager', icon: Headphones },
+  { href: '/reseller', label: 'Reseller', icon: Handshake },
   { href: '/chat', label: 'Chat', icon: MessageSquare },
   { href: '/auth', label: 'Auth / Login', icon: Shield },
 ];
@@ -61,6 +63,7 @@ const preschoolNavItems = [
   { href: '/nutritionist', label: 'Nutritionist', icon: Heart },
   { href: '/activity-coordinator', label: 'Activity Coordinator', icon: Calendar },
   { href: '/account-manager', label: 'Account Manager', icon: Headphones },
+  { href: '/reseller', label: 'Reseller', icon: Handshake },
   { href: '/chat', label: 'Chat', icon: MessageSquare },
   { href: '/auth', label: 'Auth / Login', icon: Shield },
 ];

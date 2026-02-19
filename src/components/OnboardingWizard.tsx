@@ -1933,6 +1933,8 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
   const [billingStartDate, setBillingStartDate] = useState('');
   const [billTo, setBillTo] = useState<'organisation' | 'school'>('organisation');
   const [finalPrice, setFinalPrice] = useState('');
+  const [salesChannel, setSalesChannel] = useState<'direct' | 'reseller'>('direct');
+  const [selectedReseller, setSelectedReseller] = useState('');
   const [perSchoolConfig, setPerSchoolConfig] = useState([
     { name: 'School 1', students: '500', storage: '15', modules: 'All' },
     { name: 'School 2', students: '300', storage: '10', modules: 'Core + Pro' },
@@ -2532,6 +2534,94 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
               <Plus size={10} /> Add School
             </button>
           </div>
+        </div>
+
+        {/* ── SALES CHANNEL (Reseller Attribution) ── */}
+        <div className={`mt-4 p-4 rounded-2xl border-2 border-purple-300 ${theme.cardBg} space-y-3`}>
+          <SectionTitle title="Sales Channel" subtitle="How was this school acquired? Direct sale or through a reseller partner" theme={theme} />
+
+          <div>
+            <label className={labelCls}>Sales Channel <span className="text-red-500">*</span></label>
+            <div className="flex gap-3">
+              <button onClick={() => setSalesChannel('direct')}
+                className={`flex-1 p-3 rounded-xl border-2 text-center cursor-pointer text-xs font-medium transition-all ${
+                  salesChannel === 'direct' ? 'border-emerald-400 bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200' : `${theme.border} ${theme.cardBg} ${theme.highlight}`
+                }`}>
+                <span className="block text-sm font-bold mb-0.5">Direct</span>
+                <span className={`text-[10px] ${salesChannel === 'direct' ? 'text-emerald-600' : theme.iconColor}`}>Saaras sales team</span>
+              </button>
+              <button onClick={() => setSalesChannel('reseller')}
+                className={`flex-1 p-3 rounded-xl border-2 text-center cursor-pointer text-xs font-medium transition-all ${
+                  salesChannel === 'reseller' ? 'border-purple-400 bg-purple-50 text-purple-700 ring-1 ring-purple-200' : `${theme.border} ${theme.cardBg} ${theme.highlight}`
+                }`}>
+                <span className="block text-sm font-bold mb-0.5">Reseller</span>
+                <span className={`text-[10px] ${salesChannel === 'reseller' ? 'text-purple-600' : theme.iconColor}`}>Channel partner</span>
+              </button>
+            </div>
+          </div>
+
+          {salesChannel === 'reseller' && (
+            <div className="space-y-3">
+              <div>
+                <label className={labelCls}>Select Reseller <span className="text-red-500">*</span></label>
+                <select value={selectedReseller} onChange={e => setSelectedReseller(e.target.value)} className={inputCls}>
+                  <option value="">Choose a reseller partner...</option>
+                  <option value="EduPartners India">EduPartners India (Gujarat &amp; Rajasthan)</option>
+                  <option value="SchoolConnect Pro">SchoolConnect Pro (Maharashtra)</option>
+                  <option value="LearnBridge">LearnBridge (Karnataka)</option>
+                  <option value="EduReach Network">EduReach Network (Tamil Nadu)</option>
+                  <option value="SmartSchool Partners">SmartSchool Partners (Delhi NCR)</option>
+                  <option value="AcademiX Solutions">AcademiX Solutions (MP &amp; Chhattisgarh)</option>
+                  <option value="EduVenture">EduVenture (Rajasthan)</option>
+                  <option value="Pioneer Ed">Pioneer Ed (UP)</option>
+                </select>
+              </div>
+
+              {selectedReseller && (
+                <div className={`grid grid-cols-3 gap-3`}>
+                  <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+                    <p className={`text-[10px] ${theme.iconColor}`}>Reseller Commission Rate</p>
+                    <p className={`text-sm font-bold ${theme.primaryText}`}>
+                      {selectedReseller === 'SchoolConnect Pro' ? '20%' :
+                       ['EduPartners India', 'EduReach Network', 'AcademiX Solutions'].includes(selectedReseller) ? '18%' : '15%'}
+                    </p>
+                    <p className={`text-[9px] ${theme.iconColor}`}>Auto-filled from reseller tier</p>
+                  </div>
+                  <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+                    <p className={`text-[10px] ${theme.iconColor}`}>Partner ID</p>
+                    <p className={`text-xs font-bold font-mono ${theme.highlight}`}>
+                      {selectedReseller === 'EduPartners India' ? 'RP-2024-047' :
+                       selectedReseller === 'SchoolConnect Pro' ? 'RP-2024-012' :
+                       selectedReseller === 'LearnBridge' ? 'RP-2024-063' :
+                       selectedReseller === 'EduReach Network' ? 'RP-2024-089' :
+                       selectedReseller === 'SmartSchool Partners' ? 'RP-2025-003' :
+                       selectedReseller === 'AcademiX Solutions' ? 'RP-2024-034' :
+                       selectedReseller === 'EduVenture' ? 'RP-2023-091' : 'RP-2024-055'}
+                    </p>
+                  </div>
+                  <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+                    <p className={`text-[10px] ${theme.iconColor}`}>Current Schools</p>
+                    <p className={`text-xs font-bold ${theme.highlight}`}>
+                      {selectedReseller === 'EduPartners India' ? '12' :
+                       selectedReseller === 'SchoolConnect Pro' ? '15' :
+                       selectedReseller === 'LearnBridge' ? '8' :
+                       selectedReseller === 'EduReach Network' ? '10' :
+                       selectedReseller === 'SmartSchool Partners' ? '6' :
+                       selectedReseller === 'AcademiX Solutions' ? '9' :
+                       selectedReseller === 'EduVenture' ? '4' : '3'} schools
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 flex items-start gap-2">
+                <Info size={12} className="text-purple-500 mt-0.5 shrink-0" />
+                <p className="text-[10px] text-purple-700">
+                  <strong>Billing note:</strong> School will be billed directly by Saaras. Commission to reseller is handled separately via the Reseller Management module. Payout processed monthly on the 15th.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className={`${theme.secondaryBg} rounded-xl p-3 flex items-start gap-2 mt-3`}>
