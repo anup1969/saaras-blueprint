@@ -32,102 +32,86 @@ const modules = [
 // ─── MOCK DATA ──────────────────────────────────────
 
 const mockRoutes = [
-  { id: 'RT-001', name: 'Satellite', area: 'Satellite - Jodhpur', stops: 8, students: 42, driver: 'Ramesh Prajapati', vehicle: 'GJ-01-AB-1234', timing: '6:45 AM - 8:00 AM', status: 'Active' },
-  { id: 'RT-002', name: 'Prahlad Nagar', area: 'Prahlad Nagar - Thaltej', stops: 6, students: 35, driver: 'Mahendra Solanki', vehicle: 'GJ-01-CD-5678', timing: '6:50 AM - 7:55 AM', status: 'Active' },
-  { id: 'RT-003', name: 'SG Highway', area: 'SG Highway - Bodakdev', stops: 10, students: 48, driver: 'Bhavesh Thakor', vehicle: 'GJ-01-EF-9012', timing: '6:30 AM - 8:10 AM', status: 'Active' },
-  { id: 'RT-004', name: 'Maninagar', area: 'Maninagar - Isanpur', stops: 7, students: 38, driver: 'Suresh Parmar', vehicle: 'GJ-01-GH-3456', timing: '6:40 AM - 7:50 AM', status: 'Active' },
-  { id: 'RT-005', name: 'Navrangpura', area: 'Navrangpura - Paldi', stops: 5, students: 28, driver: 'Dinesh Raval', vehicle: 'GJ-01-IJ-7890', timing: '7:00 AM - 7:45 AM', status: 'Active' },
-  { id: 'RT-006', name: 'Chandkheda', area: 'Chandkheda - Motera', stops: 9, students: 44, driver: 'Jayesh Patel', vehicle: 'GJ-01-KL-2345', timing: '6:35 AM - 8:05 AM', status: 'Active' },
-  { id: 'RT-007', name: 'Vastral', area: 'Vastral - Odhav', stops: 6, students: 30, driver: 'Prakash Bhatt', vehicle: 'GJ-01-MN-6789', timing: '6:55 AM - 7:50 AM', status: 'Maintenance' },
-  { id: 'RT-008', name: 'Bopal', area: 'Bopal - South Bopal', stops: 7, students: 36, driver: 'Ketan Joshi', vehicle: 'GJ-01-OP-1122', timing: '6:45 AM - 7:55 AM', status: 'Active' },
+  { id: 'RT-001', name: 'Route A', area: 'Satellite - Jodhpur', stops: 8, students: 38, driver: 'Ramesh Kumar', vehicle: 'GJ-01-AB-1234', timing: '7:00 AM / 3:30 PM', status: 'Active' },
+  { id: 'RT-002', name: 'Route B', area: 'Prahlad Nagar - Thaltej', stops: 12, students: 46, driver: 'Suresh Patel', vehicle: 'GJ-01-CD-5678', timing: '6:45 AM / 3:45 PM', status: 'Active' },
+  { id: 'RT-003', name: 'Route C', area: 'SG Highway - Bodakdev', stops: 6, students: 28, driver: 'Mahesh Singh', vehicle: 'GJ-01-EF-9012', timing: '7:15 AM / 3:15 PM', status: 'Active' },
+  { id: 'RT-004', name: 'Route D', area: 'Maninagar - Isanpur', stops: 7, students: 38, driver: 'Jayesh Patel', vehicle: 'GJ-01-GH-3456', timing: '6:40 AM / 3:40 PM', status: 'Active' },
+  { id: 'RT-005', name: 'Route E', area: 'Navrangpura - Paldi', stops: 5, students: 28, driver: 'Dinesh Raval', vehicle: 'GJ-01-IJ-7890', timing: '7:00 AM / 3:30 PM', status: 'Active' },
+  { id: 'RT-006', name: 'Route F', area: 'Chandkheda - Motera', stops: 9, students: 44, driver: 'Prakash Bhatt', vehicle: 'GJ-01-KL-2345', timing: '6:35 AM / 3:35 PM', status: 'Active' },
 ];
 
 const mockVehicles = [
-  { id: 'GJ-01-AB-1234', type: 'Bus', capacity: 52, driver: 'Ramesh Prajapati', route: 'Satellite', insurance: '2026-08-15', puc: '2026-05-20', fitness: '2027-01-10', km: '45,230', status: 'Active' },
-  { id: 'GJ-01-CD-5678', type: 'Bus', capacity: 52, driver: 'Mahendra Solanki', route: 'Prahlad Nagar', insurance: '2026-11-02', puc: '2026-07-14', fitness: '2027-03-22', km: '38,120', status: 'Active' },
-  { id: 'GJ-01-EF-9012', type: 'Bus', capacity: 56, driver: 'Bhavesh Thakor', route: 'SG Highway', insurance: '2026-06-30', puc: '2026-04-10', fitness: '2026-12-05', km: '52,870', status: 'Active' },
-  { id: 'GJ-01-GH-3456', type: 'Van', capacity: 26, driver: 'Suresh Parmar', route: 'Maninagar', insurance: '2026-09-18', puc: '2026-06-25', fitness: '2027-02-14', km: '31,450', status: 'Active' },
-  { id: 'GJ-01-IJ-7890', type: 'Van', capacity: 26, driver: 'Dinesh Raval', route: 'Navrangpura', insurance: '2026-10-05', puc: '2026-08-01', fitness: '2027-04-20', km: '28,670', status: 'Active' },
-  { id: 'GJ-01-KL-2345', type: 'Bus', capacity: 52, driver: 'Jayesh Patel', route: 'Chandkheda', insurance: '2026-07-22', puc: '2026-03-15', fitness: '2026-11-30', km: '48,910', status: 'Active' },
-  { id: 'GJ-01-MN-6789', type: 'Bus', capacity: 48, driver: 'Prakash Bhatt', route: 'Vastral', insurance: '2026-12-10', puc: '2026-09-05', fitness: '2027-05-18', km: '55,320', status: 'Maintenance' },
-  { id: 'GJ-01-OP-1122', type: 'Van', capacity: 26, driver: 'Ketan Joshi', route: 'Bopal', insurance: '2026-08-28', puc: '2026-05-12', fitness: '2027-01-25', km: '22,140', status: 'Active' },
+  { id: 'GJ-01-AB-1234', type: 'Bus', capacity: 40, driver: 'Ramesh Kumar', route: 'Route A', insurance: '2026-08-15', puc: '2026-05-20', fitness: '2027-01-10', km: '45,230', status: 'Active', year: 2022 },
+  { id: 'GJ-01-CD-5678', type: 'Bus', capacity: 50, driver: 'Suresh Patel', route: 'Route B', insurance: '2026-11-02', puc: '2026-07-14', fitness: '2027-03-22', km: '38,120', status: 'Active', year: 2021 },
+  { id: 'GJ-01-EF-9012', type: 'Mini Bus', capacity: 30, driver: 'Mahesh Singh', route: 'Route C', insurance: '2026-06-30', puc: '2026-04-10', fitness: '2026-12-05', km: '52,870', status: 'Active', year: 2023 },
+  { id: 'GJ-01-GH-3456', type: 'Van', capacity: 26, driver: 'Jayesh Patel', route: 'Route D', insurance: '2026-09-18', puc: '2026-06-25', fitness: '2027-02-14', km: '31,450', status: 'Active', year: 2020 },
+  { id: 'GJ-01-IJ-7890', type: 'Van', capacity: 26, driver: 'Dinesh Raval', route: 'Route E', insurance: '2026-10-05', puc: '2026-08-01', fitness: '2027-04-20', km: '28,670', status: 'Active', year: 2022 },
+  { id: 'GJ-01-KL-2345', type: 'Bus', capacity: 52, driver: 'Prakash Bhatt', route: 'Route F', insurance: '2026-07-22', puc: '2026-03-15', fitness: '2026-11-30', km: '48,910', status: 'Active', year: 2019 },
 ];
 
 const mockDrivers = [
-  { id: 'DRV-001', name: 'Ramesh Prajapati', license: 'GJ01-20180045623', phone: '98250 12345', vehicle: 'GJ-01-AB-1234', experience: '12 yrs', documents: 'Complete', bloodGroup: 'B+' },
-  { id: 'DRV-002', name: 'Mahendra Solanki', license: 'GJ01-20190078412', phone: '98250 23456', vehicle: 'GJ-01-CD-5678', experience: '8 yrs', documents: 'Complete', bloodGroup: 'O+' },
-  { id: 'DRV-003', name: 'Bhavesh Thakor', license: 'GJ01-20170032189', phone: '98250 34567', vehicle: 'GJ-01-EF-9012', experience: '15 yrs', documents: 'Complete', bloodGroup: 'A+' },
-  { id: 'DRV-004', name: 'Suresh Parmar', license: 'GJ01-20200091245', phone: '98250 45678', vehicle: 'GJ-01-GH-3456', experience: '6 yrs', documents: 'Pending', bloodGroup: 'AB+' },
+  { id: 'DRV-001', name: 'Ramesh Kumar', license: 'GJ01-20180045623', phone: '98250 12345', vehicle: 'GJ-01-AB-1234', experience: '12 yrs', documents: 'Complete', bloodGroup: 'B+' },
+  { id: 'DRV-002', name: 'Suresh Patel', license: 'GJ01-20190078412', phone: '98250 23456', vehicle: 'GJ-01-CD-5678', experience: '8 yrs', documents: 'Complete', bloodGroup: 'O+' },
+  { id: 'DRV-003', name: 'Mahesh Singh', license: 'GJ01-20170032189', phone: '98250 34567', vehicle: 'GJ-01-EF-9012', experience: '15 yrs', documents: 'Complete', bloodGroup: 'A+' },
+  { id: 'DRV-004', name: 'Jayesh Patel', license: 'GJ01-20200091245', phone: '98250 45678', vehicle: 'GJ-01-GH-3456', experience: '6 yrs', documents: 'Complete', bloodGroup: 'AB+' },
   { id: 'DRV-005', name: 'Dinesh Raval', license: 'GJ01-20160054378', phone: '98250 56789', vehicle: 'GJ-01-IJ-7890', experience: '18 yrs', documents: 'Complete', bloodGroup: 'O-' },
-  { id: 'DRV-006', name: 'Jayesh Patel', license: 'GJ01-20210012567', phone: '98250 67890', vehicle: 'GJ-01-KL-2345', experience: '5 yrs', documents: 'Complete', bloodGroup: 'B+' },
-  { id: 'DRV-007', name: 'Prakash Bhatt', license: 'GJ01-20150089034', phone: '98250 78901', vehicle: 'GJ-01-MN-6789', experience: '20 yrs', documents: 'Complete', bloodGroup: 'A-' },
-  { id: 'DRV-008', name: 'Ketan Joshi', license: 'GJ01-20220045890', phone: '98250 89012', vehicle: 'GJ-01-OP-1122', experience: '3 yrs', documents: 'Pending', bloodGroup: 'O+' },
+  { id: 'DRV-006', name: 'Prakash Bhatt', license: 'GJ01-20150089034', phone: '98250 67890', vehicle: 'GJ-01-KL-2345', experience: '20 yrs', documents: 'Complete', bloodGroup: 'A-' },
 ];
 
 const mockGPSVehicles = [
-  { vehicle: 'GJ-01-AB-1234', route: 'Satellite', speed: '35 km/h', lastStop: 'Jodhpur Cross Roads', nextStop: 'Satellite Circle', eta: '7:42 AM', progress: 75, status: 'Running' },
-  { vehicle: 'GJ-01-CD-5678', route: 'Prahlad Nagar', speed: '28 km/h', lastStop: 'Prahlad Nagar Garden', nextStop: 'Thaltej Cross Roads', eta: '7:38 AM', progress: 60, status: 'Running' },
-  { vehicle: 'GJ-01-EF-9012', route: 'SG Highway', speed: '42 km/h', lastStop: 'Bodakdev', nextStop: 'Judges Bungalow', eta: '7:50 AM', progress: 45, status: 'Running' },
-  { vehicle: 'GJ-01-GH-3456', route: 'Maninagar', speed: '0 km/h', lastStop: 'Isanpur Circle', nextStop: 'Maninagar Station', eta: '7:35 AM', progress: 30, status: 'Stopped' },
-  { vehicle: 'GJ-01-IJ-7890', route: 'Navrangpura', speed: '22 km/h', lastStop: 'Paldi', nextStop: 'Navrangpura BRTS', eta: '7:30 AM', progress: 85, status: 'Running' },
-  { vehicle: 'GJ-01-KL-2345', route: 'Chandkheda', speed: '38 km/h', lastStop: 'Motera Stadium', nextStop: 'Chandkheda BRTS', eta: '7:55 AM', progress: 40, status: 'Running' },
-  { vehicle: 'GJ-01-OP-1122', route: 'Bopal', speed: '30 km/h', lastStop: 'South Bopal', nextStop: 'Bopal Cross Roads', eta: '7:40 AM', progress: 65, status: 'Running' },
+  { vehicle: 'GJ-01-AB-1234', route: 'Route A', speed: '35 km/h', lastStop: 'Jodhpur Cross Roads', nextStop: 'Satellite Circle', eta: '7:42 AM', progress: 75, status: 'Running' },
+  { vehicle: 'GJ-01-CD-5678', route: 'Route B', speed: '28 km/h', lastStop: 'Prahlad Nagar Garden', nextStop: 'Thaltej Cross Roads', eta: '7:38 AM', progress: 60, status: 'Running' },
+  { vehicle: 'GJ-01-EF-9012', route: 'Route C', speed: '42 km/h', lastStop: 'Bodakdev', nextStop: 'Judges Bungalow', eta: '7:50 AM', progress: 45, status: 'Running' },
+  { vehicle: 'GJ-01-GH-3456', route: 'Route D', speed: '0 km/h', lastStop: 'Isanpur Circle', nextStop: 'Maninagar Station', eta: '7:35 AM', progress: 30, status: 'Stopped' },
+  { vehicle: 'GJ-01-IJ-7890', route: 'Route E', speed: '22 km/h', lastStop: 'Paldi', nextStop: 'Navrangpura BRTS', eta: '7:30 AM', progress: 85, status: 'Running' },
+  { vehicle: 'GJ-01-KL-2345', route: 'Route F', speed: '38 km/h', lastStop: 'Motera Stadium', nextStop: 'Chandkheda BRTS', eta: '7:55 AM', progress: 40, status: 'Running' },
 ];
 
 const mockStudentsByRoute = [
-  { route: 'Satellite', students: [
+  { route: 'Route A', students: [
     { id: 'STU-101', name: 'Arjun Mehta', class: '8-A', stop: 'Jodhpur Cross Roads', pickup: '6:50 AM', phone: '98250 11111' },
     { id: 'STU-102', name: 'Priya Sharma', class: '6-B', stop: 'Satellite Circle', pickup: '6:55 AM', phone: '98250 11112' },
     { id: 'STU-103', name: 'Rohan Desai', class: '9-A', stop: 'Shyamal Cross Roads', pickup: '7:00 AM', phone: '98250 11113' },
     { id: 'STU-104', name: 'Ananya Patel', class: '5-C', stop: 'Prernatirth Derasar', pickup: '7:05 AM', phone: '98250 11114' },
     { id: 'STU-105', name: 'Vivaan Shah', class: '7-A', stop: 'Judges Bungalow', pickup: '7:10 AM', phone: '98250 11115' },
   ]},
-  { route: 'Prahlad Nagar', students: [
+  { route: 'Route B', students: [
     { id: 'STU-201', name: 'Ishaan Joshi', class: '10-A', stop: 'Prahlad Nagar Garden', pickup: '6:55 AM', phone: '98250 22221' },
     { id: 'STU-202', name: 'Kavya Trivedi', class: '4-B', stop: 'Thaltej Cross Roads', pickup: '7:00 AM', phone: '98250 22222' },
     { id: 'STU-203', name: 'Aditya Pandya', class: '8-C', stop: 'Sola Bridge', pickup: '7:05 AM', phone: '98250 22223' },
     { id: 'STU-204', name: 'Nisha Raval', class: '6-A', stop: 'Sandesh Press Road', pickup: '7:10 AM', phone: '98250 22224' },
   ]},
-  { route: 'SG Highway', students: [
+  { route: 'Route C', students: [
     { id: 'STU-301', name: 'Dev Chauhan', class: '9-B', stop: 'Bodakdev Circle', pickup: '6:35 AM', phone: '98250 33331' },
     { id: 'STU-302', name: 'Riya Bhatt', class: '7-C', stop: 'Pakwan Cross Roads', pickup: '6:42 AM', phone: '98250 33332' },
     { id: 'STU-303', name: 'Aarav Nair', class: '5-A', stop: 'Rajpath Club', pickup: '6:48 AM', phone: '98250 33333' },
     { id: 'STU-304', name: 'Meera Iyer', class: '10-B', stop: 'Sola Overbridge', pickup: '6:55 AM', phone: '98250 33334' },
-    { id: 'STU-305', name: 'Kabir Rao', class: '3-B', stop: 'Gota Cross Roads', pickup: '7:02 AM', phone: '98250 33335' },
-    { id: 'STU-306', name: 'Sanya Modi', class: '8-A', stop: 'Vaishnodevi Circle', pickup: '7:08 AM', phone: '98250 33336' },
   ]},
-  { route: 'Maninagar', students: [
+  { route: 'Route D', students: [
     { id: 'STU-401', name: 'Harsh Panchal', class: '6-A', stop: 'Isanpur Circle', pickup: '6:45 AM', phone: '98250 44441' },
     { id: 'STU-402', name: 'Pooja Thakor', class: '9-C', stop: 'Maninagar Station', pickup: '6:52 AM', phone: '98250 44442' },
     { id: 'STU-403', name: 'Yash Solanki', class: '4-A', stop: 'Kagdapith', pickup: '7:00 AM', phone: '98250 44443' },
   ]},
-  { route: 'Navrangpura', students: [
+  { route: 'Route E', students: [
     { id: 'STU-501', name: 'Tanvi Vyas', class: '7-B', stop: 'Paldi', pickup: '7:05 AM', phone: '98250 55551' },
     { id: 'STU-502', name: 'Dhruv Parikh', class: '10-A', stop: 'Navrangpura BRTS', pickup: '7:12 AM', phone: '98250 55552' },
     { id: 'STU-503', name: 'Shreya Dave', class: '5-B', stop: 'CG Road', pickup: '7:18 AM', phone: '98250 55553' },
   ]},
-  { route: 'Chandkheda', students: [
+  { route: 'Route F', students: [
     { id: 'STU-601', name: 'Mihir Acharya', class: '8-B', stop: 'Motera Stadium', pickup: '6:40 AM', phone: '98250 66661' },
     { id: 'STU-602', name: 'Aishwarya Gajjar', class: '6-C', stop: 'Chandkheda BRTS', pickup: '6:48 AM', phone: '98250 66662' },
     { id: 'STU-603', name: 'Parth Rana', class: '9-A', stop: 'Sabarmati', pickup: '6:55 AM', phone: '98250 66663' },
     { id: 'STU-604', name: 'Diya Kothari', class: '3-A', stop: 'Kali Circle', pickup: '7:02 AM', phone: '98250 66664' },
   ]},
-  { route: 'Bopal', students: [
-    { id: 'STU-801', name: 'Arnav Shukla', class: '7-A', stop: 'South Bopal', pickup: '6:50 AM', phone: '98250 88881' },
-    { id: 'STU-802', name: 'Kiara Jain', class: '5-C', stop: 'Bopal Cross Roads', pickup: '6:58 AM', phone: '98250 88882' },
-    { id: 'STU-803', name: 'Vihan Thakkar', class: '10-C', stop: 'Ghuma', pickup: '7:05 AM', phone: '98250 88883' },
-  ]},
 ];
 
 const mockMaintenance = [
-  { id: 'MNT-001', vehicle: 'GJ-01-MN-6789', type: 'Engine Overhaul', date: '2026-02-10', cost: '₹45,000', nextDue: '2026-08-10', vendor: 'Tata Motors Service, Naroda', status: 'In Progress' },
-  { id: 'MNT-002', vehicle: 'GJ-01-AB-1234', type: 'Tyre Replacement (4x)', date: '2026-02-05', cost: '₹32,000', nextDue: '2027-02-05', vendor: 'Apollo Tyres, Narol', status: 'Completed' },
-  { id: 'MNT-003', vehicle: 'GJ-01-EF-9012', type: 'AC Service', date: '2026-01-28', cost: '₹8,500', nextDue: '2026-07-28', vendor: 'CoolAir Services, SG Highway', status: 'Completed' },
-  { id: 'MNT-004', vehicle: 'GJ-01-CD-5678', type: 'Brake Pad Replacement', date: '2026-01-20', cost: '₹12,000', nextDue: '2026-07-20', vendor: 'Maruti Service Center, Prahladnagar', status: 'Completed' },
-  { id: 'MNT-005', vehicle: 'GJ-01-GH-3456', type: 'Oil Change + Filter', date: '2026-01-15', cost: '₹4,200', nextDue: '2026-04-15', vendor: 'Quick Lube, Maninagar', status: 'Completed' },
-  { id: 'MNT-006', vehicle: 'GJ-01-KL-2345', type: 'Battery Replacement', date: '2026-01-10', cost: '₹9,800', nextDue: '2028-01-10', vendor: 'Exide Battery Point, Motera', status: 'Completed' },
-  { id: 'MNT-007', vehicle: 'GJ-01-OP-1122', type: 'Full Body Wash + Polish', date: '2026-01-08', cost: '₹2,500', nextDue: '2026-04-08', vendor: 'Sparkle Auto Spa, Bopal', status: 'Completed' },
-  { id: 'MNT-008', vehicle: 'GJ-01-IJ-7890', type: 'GPS Device Repair', date: '2026-01-05', cost: '₹3,800', nextDue: 'N/A', vendor: 'TechTrack Solutions, CG Road', status: 'Completed' },
+  { id: 'MNT-001', vehicle: 'GJ-01-AB-1234', type: 'Tyre Replacement (4x)', date: '2026-02-05', cost: '₹32,000', nextDue: '2027-02-05', vendor: 'Apollo Tyres, Narol', status: 'Completed' },
+  { id: 'MNT-002', vehicle: 'GJ-01-EF-9012', type: 'AC Service', date: '2026-01-28', cost: '₹8,500', nextDue: '2026-07-28', vendor: 'CoolAir Services, SG Highway', status: 'Completed' },
+  { id: 'MNT-003', vehicle: 'GJ-01-CD-5678', type: 'Brake Pad Replacement', date: '2026-01-20', cost: '₹12,000', nextDue: '2026-07-20', vendor: 'Maruti Service Center, Prahladnagar', status: 'Completed' },
+  { id: 'MNT-004', vehicle: 'GJ-01-GH-3456', type: 'Oil Change + Filter', date: '2026-01-15', cost: '₹4,200', nextDue: '2026-04-15', vendor: 'Quick Lube, Maninagar', status: 'Completed' },
+  { id: 'MNT-005', vehicle: 'GJ-01-KL-2345', type: 'Battery Replacement', date: '2026-01-10', cost: '₹9,800', nextDue: '2028-01-10', vendor: 'Exide Battery Point, Motera', status: 'Completed' },
+  { id: 'MNT-006', vehicle: 'GJ-01-IJ-7890', type: 'GPS Device Repair', date: '2026-01-05', cost: '₹3,800', nextDue: 'N/A', vendor: 'TechTrack Solutions, CG Road', status: 'Completed' },
 ];
 
 // ─── MAIN COMPONENT ─────────────────────────────────
@@ -190,16 +174,16 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
 
       {/* Stats Row 1 */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Bus} label="Total Vehicles" value={8} color="bg-blue-500" theme={theme} />
-        <StatCard icon={Route} label="Active Routes" value={7} color="bg-emerald-500" sub="1 under maintenance" theme={theme} />
-        <StatCard icon={Users} label="Students Using Transport" value={301} color="bg-indigo-500" theme={theme} />
-        <StatCard icon={Navigation} label="Vehicles On Road" value={7} color="bg-teal-500" sub="all running on time" theme={theme} />
+        <StatCard icon={Bus} label="Total Vehicles" value={6} color="bg-blue-500" theme={theme} />
+        <StatCard icon={Route} label="Active Routes" value={6} color="bg-emerald-500" sub="all active" theme={theme} />
+        <StatCard icon={Users} label="Students Using Transport" value={222} color="bg-indigo-500" theme={theme} />
+        <StatCard icon={Navigation} label="Vehicles On Road" value={6} color="bg-teal-500" sub="all running on time" theme={theme} />
       </div>
 
       {/* Stats Row 2 */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={User} label="Drivers Present" value="8/8" color="bg-purple-500" sub="100% attendance" theme={theme} />
-        <StatCard icon={CheckCircle} label="Trips Completed Today" value={14} color="bg-emerald-500" sub="7 morning + 7 pickup" theme={theme} />
+        <StatCard icon={User} label="Drivers Present" value="6/6" color="bg-purple-500" sub="100% attendance" theme={theme} />
+        <StatCard icon={CheckCircle} label="Trips Completed Today" value={12} color="bg-emerald-500" sub="6 morning + 6 pickup" theme={theme} />
         <StatCard icon={AlertTriangle} label="Maintenance Due" value={2} color="bg-amber-500" sub="next 30 days" theme={theme} />
         <StatCard icon={IndianRupee} label="Monthly Fuel Cost" value="₹1.85L" color="bg-orange-500" sub="Feb 2026" theme={theme} />
       </div>
@@ -252,11 +236,11 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
           <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Recent Activity</h3>
           <div className="space-y-2">
             {[
-              { text: 'GJ-01-MN-6789 (Vastral route) sent for engine overhaul at Tata Motors Service', time: '2 hours ago', type: 'maintenance' },
-              { text: 'All morning pickup trips completed - 7/7 routes on time', time: '8:15 AM', type: 'trip' },
-              { text: 'New student Aarohi Patel (Class 3-B) added to Satellite route', time: 'Yesterday', type: 'student' },
-              { text: 'PUC renewal completed for GJ-01-KL-2345 (Chandkheda route)', time: 'Yesterday', type: 'document' },
-              { text: 'Driver Suresh Parmar documents pending - license renewal due Mar 2026', time: '2 days ago', type: 'alert' },
+              { text: 'GJ-01-EF-9012 (Route C) AC service completed at CoolAir Services', time: '2 hours ago', type: 'maintenance' },
+              { text: 'All morning pickup trips completed - 6/6 routes on time', time: '8:15 AM', type: 'trip' },
+              { text: 'New student Aarohi Patel (Class 3-B) added to Route A', time: 'Yesterday', type: 'student' },
+              { text: 'PUC renewal completed for GJ-01-KL-2345 (Route F)', time: 'Yesterday', type: 'document' },
+              { text: 'Tyre replacement completed for GJ-01-AB-1234 (Route A)', time: '2 days ago', type: 'maintenance' },
             ].map((a, i) => (
               <div key={i} className={`flex items-center gap-3 p-2 rounded-xl ${theme.accentBg}`}>
                 <div className={`w-2 h-2 rounded-full ${
@@ -353,7 +337,7 @@ function VehiclesModule({ theme }: { theme: Theme }) {
         <h1 className={`text-2xl font-bold ${theme.highlight}`}>Vehicle Fleet</h1>
         <button className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}><Plus size={14} /> Add Vehicle</button>
       </div>
-      <TabBar tabs={['All Vehicles', 'Bus', 'Van', 'Under Maintenance']} active={tab} onChange={setTab} theme={theme} />
+      <TabBar tabs={['All Vehicles', 'Bus', 'Mini Bus', 'Van', 'Under Maintenance']} active={tab} onChange={setTab} theme={theme} />
       <div className="flex gap-3">
         <SearchBar placeholder="Search by vehicle number, driver, route..." theme={theme} icon={Search} />
         <button className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold ${theme.iconColor} flex items-center gap-1`}><Filter size={12} /> Filter</button>
@@ -362,19 +346,19 @@ function VehiclesModule({ theme }: { theme: Theme }) {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Bus} label="Total Fleet" value={8} color="bg-blue-500" theme={theme} />
-        <StatCard icon={CheckCircle} label="Active Vehicles" value={7} color="bg-emerald-500" theme={theme} />
-        <StatCard icon={Wrench} label="Under Maintenance" value={1} color="bg-amber-500" theme={theme} />
-        <StatCard icon={Gauge} label="Total KM Logged" value="3.22L" color="bg-indigo-500" sub="all vehicles" theme={theme} />
+        <StatCard icon={Bus} label="Total Fleet" value={6} color="bg-blue-500" theme={theme} />
+        <StatCard icon={CheckCircle} label="Active Vehicles" value={6} color="bg-emerald-500" theme={theme} />
+        <StatCard icon={Wrench} label="Under Maintenance" value={0} color="bg-amber-500" theme={theme} />
+        <StatCard icon={Gauge} label="Total KM Logged" value="2.45L" color="bg-indigo-500" sub="all vehicles" theme={theme} />
       </div>
 
       <DataTable
         headers={['Vehicle No.', 'Type', 'Capacity', 'Driver', 'Route', 'KM Run', 'Insurance', 'PUC', 'Fitness', 'Status', '']}
         rows={mockVehicles
-          .filter(v => tab === 'All Vehicles' || (tab === 'Bus' && v.type === 'Bus') || (tab === 'Van' && v.type === 'Van') || (tab === 'Under Maintenance' && v.status === 'Maintenance'))
+          .filter(v => tab === 'All Vehicles' || (tab === 'Bus' && v.type === 'Bus') || (tab === 'Mini Bus' && v.type === 'Mini Bus') || (tab === 'Van' && v.type === 'Van') || (tab === 'Under Maintenance' && v.status === 'Maintenance'))
           .map(v => [
             <span key="id" className={`font-mono text-xs font-bold ${theme.highlight}`}>{v.id}</span>,
-            <span key="type" className={`text-xs px-2 py-0.5 rounded-full font-bold ${v.type === 'Bus' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>{v.type}</span>,
+            <span key="type" className={`text-xs px-2 py-0.5 rounded-full font-bold ${v.type === 'Bus' ? 'bg-blue-100 text-blue-700' : v.type === 'Mini Bus' ? 'bg-teal-100 text-teal-700' : 'bg-purple-100 text-purple-700'}`}>{v.type}</span>,
             <span key="cap" className={theme.iconColor}>{v.capacity} seats</span>,
             <span key="driver" className={theme.iconColor}>{v.driver}</span>,
             <span key="route" className={`font-bold ${theme.primaryText}`}>{v.route}</span>,
@@ -391,7 +375,7 @@ function VehiclesModule({ theme }: { theme: Theme }) {
         theme={theme}
       />
       <div className={`flex items-center justify-between text-xs ${theme.iconColor} px-2`}>
-        <span>Showing {mockVehicles.filter(v => tab === 'All Vehicles' || (tab === 'Bus' && v.type === 'Bus') || (tab === 'Van' && v.type === 'Van') || (tab === 'Under Maintenance' && v.status === 'Maintenance')).length} of {mockVehicles.length} vehicles</span>
+        <span>Showing {mockVehicles.filter(v => tab === 'All Vehicles' || (tab === 'Bus' && v.type === 'Bus') || (tab === 'Mini Bus' && v.type === 'Mini Bus') || (tab === 'Van' && v.type === 'Van') || (tab === 'Under Maintenance' && v.status === 'Maintenance')).length} of {mockVehicles.length} vehicles</span>
         <div className="flex gap-1">
           <button className={`px-3 py-1.5 rounded-lg ${theme.secondaryBg}`}>Previous</button>
           <button className={`px-3 py-1.5 rounded-lg ${theme.primary} text-white`}>1</button>
@@ -490,9 +474,9 @@ function GPSTrackingModule({ theme }: { theme: Theme }) {
 
       {/* Summary */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Navigation} label="Running" value={6} color="bg-emerald-500" theme={theme} />
+        <StatCard icon={Navigation} label="Running" value={5} color="bg-emerald-500" theme={theme} />
         <StatCard icon={CircleDot} label="Stopped" value={1} color="bg-red-500" theme={theme} />
-        <StatCard icon={Wrench} label="In Garage" value={1} color="bg-amber-500" sub="maintenance" theme={theme} />
+        <StatCard icon={Wrench} label="In Garage" value={0} color="bg-amber-500" sub="" theme={theme} />
         <StatCard icon={Timer} label="Avg Speed" value="32 km/h" color="bg-blue-500" theme={theme} />
       </div>
 
@@ -508,13 +492,12 @@ function GPSTrackingModule({ theme }: { theme: Theme }) {
             </div>
           </div>
           {/* Simulated vehicle dots */}
-          <div className="absolute top-[20%] left-[30%] w-3 h-3 bg-emerald-500 rounded-full animate-pulse" title="GJ-01-AB-1234" />
-          <div className="absolute top-[40%] left-[55%] w-3 h-3 bg-emerald-500 rounded-full animate-pulse" title="GJ-01-CD-5678" />
-          <div className="absolute top-[60%] left-[25%] w-3 h-3 bg-emerald-500 rounded-full animate-pulse" title="GJ-01-EF-9012" />
-          <div className="absolute top-[35%] left-[70%] w-3 h-3 bg-red-500 rounded-full" title="GJ-01-GH-3456 - Stopped" />
-          <div className="absolute top-[75%] left-[45%] w-3 h-3 bg-emerald-500 rounded-full animate-pulse" title="GJ-01-IJ-7890" />
-          <div className="absolute top-[15%] left-[65%] w-3 h-3 bg-emerald-500 rounded-full animate-pulse" title="GJ-01-KL-2345" />
-          <div className="absolute top-[50%] left-[80%] w-3 h-3 bg-emerald-500 rounded-full animate-pulse" title="GJ-01-OP-1122" />
+          <div className="absolute top-[20%] left-[30%] w-3 h-3 bg-emerald-500 rounded-full animate-pulse" title="GJ-01-AB-1234 - Route A" />
+          <div className="absolute top-[40%] left-[55%] w-3 h-3 bg-emerald-500 rounded-full animate-pulse" title="GJ-01-CD-5678 - Route B" />
+          <div className="absolute top-[60%] left-[25%] w-3 h-3 bg-emerald-500 rounded-full animate-pulse" title="GJ-01-EF-9012 - Route C" />
+          <div className="absolute top-[35%] left-[70%] w-3 h-3 bg-red-500 rounded-full" title="GJ-01-GH-3456 - Route D - Stopped" />
+          <div className="absolute top-[75%] left-[45%] w-3 h-3 bg-emerald-500 rounded-full animate-pulse" title="GJ-01-IJ-7890 - Route E" />
+          <div className="absolute top-[15%] left-[65%] w-3 h-3 bg-emerald-500 rounded-full animate-pulse" title="GJ-01-KL-2345 - Route F" />
         </div>
       </div>
 
@@ -574,7 +557,7 @@ function GPSTrackingModule({ theme }: { theme: Theme }) {
 // ─── STUDENTS BY ROUTE MODULE ───────────────────────
 
 function StudentsByRouteModule({ theme }: { theme: Theme }) {
-  const [selectedRoute, setSelectedRoute] = useState('Satellite');
+  const [selectedRoute, setSelectedRoute] = useState('Route A');
   const routeData = mockStudentsByRoute.find(r => r.route === selectedRoute);
 
   return (
@@ -719,9 +702,9 @@ function MaintenanceModule({ theme }: { theme: Theme }) {
         <div className="space-y-2">
           {[
             { vehicle: 'GJ-01-KL-2345', service: 'PUC Renewal', due: 'Mar 15, 2026', urgency: 'Urgent' },
-            { vehicle: 'GJ-01-OP-1122', service: 'Full Body Wash + Polish', due: 'Apr 8, 2026', urgency: 'Normal' },
             { vehicle: 'GJ-01-EF-9012', service: 'PUC Renewal', due: 'Apr 10, 2026', urgency: 'Normal' },
             { vehicle: 'GJ-01-GH-3456', service: 'Oil Change + Filter', due: 'Apr 15, 2026', urgency: 'Normal' },
+            { vehicle: 'GJ-01-AB-1234', service: 'Insurance Renewal', due: 'Aug 15, 2026', urgency: 'Normal' },
           ].map((item, i) => (
             <div key={i} className={`flex items-center justify-between p-3 rounded-xl ${theme.accentBg} border ${theme.border}`}>
               <div className="flex items-center gap-3">
@@ -772,9 +755,9 @@ function CommunicationModule({ theme }: { theme: Theme }) {
         <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 space-y-2`}>
           <h3 className={`text-sm font-bold ${theme.highlight} mb-2`}>Recent Messages</h3>
           {[
-            { from: 'Ramesh Prajapati (Driver)', text: 'Bus #1 has a flat tyre near Jodhpur Cross Roads. Need replacement.', time: '07:45 AM' },
+            { from: 'Ramesh Kumar (Driver)', text: 'Route A bus has a flat tyre near Jodhpur Cross Roads. Need replacement.', time: '07:45 AM' },
             { from: 'Mrs. Priya Nair (Parent)', text: 'Arjun will not be taking the bus this week. Please note.', time: '08:10 AM' },
-            { from: 'Admin Office', text: 'New student added to Satellite route — pickup from Shyamal Cross Roads.', time: '09:30 AM' },
+            { from: 'Admin Office', text: 'New student added to Route A — pickup from Shyamal Cross Roads.', time: '09:30 AM' },
           ].map((m, i) => (
             <div key={i} className={`p-3 rounded-xl ${theme.accentBg}`}>
               <div className="flex items-center justify-between mb-1">
@@ -791,9 +774,9 @@ function CommunicationModule({ theme }: { theme: Theme }) {
         <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 space-y-2`}>
           <h3 className={`text-sm font-bold ${theme.highlight} mb-2`}>Route Alerts</h3>
           {[
-            { route: 'Satellite (RT-001)', alert: 'Bus delayed by 15 min due to traffic at SG Highway', time: '07:30 AM', severity: 'Warning' },
-            { route: 'Vastral (RT-007)', alert: 'Route suspended — vehicle under maintenance', time: '06:00 AM', severity: 'Critical' },
-            { route: 'Chandkheda (RT-006)', alert: 'Alternate route active due to road construction near Motera', time: 'Yesterday', severity: 'Info' },
+            { route: 'Route A (RT-001)', alert: 'Bus delayed by 15 min due to traffic at SG Highway', time: '07:30 AM', severity: 'Warning' },
+            { route: 'Route D (RT-004)', alert: 'Vehicle stopped at Isanpur Circle — minor engine issue', time: '06:00 AM', severity: 'Critical' },
+            { route: 'Route F (RT-006)', alert: 'Alternate route active due to road construction near Motera', time: 'Yesterday', severity: 'Info' },
           ].map((a, i) => (
             <div key={i} className={`p-3 rounded-xl ${theme.accentBg} flex items-center gap-3`}>
               <div className={`w-2 h-2 rounded-full ${a.severity === 'Critical' ? 'bg-red-500' : a.severity === 'Warning' ? 'bg-amber-500' : 'bg-blue-500'}`} />

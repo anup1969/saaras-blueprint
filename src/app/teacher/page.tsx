@@ -70,16 +70,16 @@ const homeworkList = [
 ];
 
 const gradebookStudents = [
-  { roll: 1, name: 'Aarav Mehta', ut1: 18, ut2: 20, halfYearly: 72, ut3: 19, ut4: 17, annual: 0 },
-  { roll: 2, name: 'Ananya Iyer', ut1: 20, ut2: 19, halfYearly: 85, ut3: 20, ut4: 20, annual: 0 },
-  { roll: 3, name: 'Arjun Nair', ut1: 15, ut2: 16, halfYearly: 61, ut3: 14, ut4: 15, annual: 0 },
-  { roll: 4, name: 'Diya Kulkarni', ut1: 19, ut2: 20, halfYearly: 78, ut3: 18, ut4: 19, annual: 0 },
-  { roll: 5, name: 'Harsh Patel', ut1: 12, ut2: 14, halfYearly: 55, ut3: 13, ut4: 12, annual: 0 },
-  { roll: 6, name: 'Isha Reddy', ut1: 20, ut2: 20, halfYearly: 92, ut3: 20, ut4: 20, annual: 0 },
-  { roll: 7, name: 'Karan Singh', ut1: 16, ut2: 17, halfYearly: 68, ut3: 15, ut4: 16, annual: 0 },
-  { roll: 8, name: 'Meera Joshi', ut1: 17, ut2: 18, halfYearly: 74, ut3: 18, ut4: 17, annual: 0 },
-  { roll: 9, name: 'Nikhil Verma', ut1: 10, ut2: 11, halfYearly: 42, ut3: 11, ut4: 10, annual: 0 },
-  { roll: 10, name: 'Pooja Sharma', ut1: 19, ut2: 19, halfYearly: 80, ut3: 19, ut4: 18, annual: 0 },
+  { roll: 1, name: 'Aarav Mehta', ut1: 18, ut2: 20, halfYearly: 72, ut3: 19, annual: 0 },
+  { roll: 2, name: 'Ananya Iyer', ut1: 20, ut2: 19, halfYearly: 85, ut3: 20, annual: 0 },
+  { roll: 3, name: 'Arjun Nair', ut1: 15, ut2: 16, halfYearly: 61, ut3: 14, annual: 0 },
+  { roll: 4, name: 'Diya Kulkarni', ut1: 19, ut2: 20, halfYearly: 78, ut3: 18, annual: 0 },
+  { roll: 5, name: 'Harsh Patel', ut1: 12, ut2: 14, halfYearly: 55, ut3: 13, annual: 0 },
+  { roll: 6, name: 'Isha Reddy', ut1: 20, ut2: 20, halfYearly: 92, ut3: 20, annual: 0 },
+  { roll: 7, name: 'Karan Singh', ut1: 16, ut2: 17, halfYearly: 68, ut3: 15, annual: 0 },
+  { roll: 8, name: 'Meera Joshi', ut1: 17, ut2: 18, halfYearly: 74, ut3: 18, annual: 0 },
+  { roll: 9, name: 'Nikhil Verma', ut1: 10, ut2: 11, halfYearly: 42, ut3: 11, annual: 0 },
+  { roll: 10, name: 'Pooja Sharma', ut1: 19, ut2: 19, halfYearly: 80, ut3: 19, annual: 0 },
 ];
 
 const timetableData: Record<string, string[]> = {
@@ -88,17 +88,17 @@ const timetableData: Record<string, string[]> = {
   Wed: ['10-A Math', 'Free', 'Free', '8-B Math', '6-A Math', 'Free', 'Lab Duty', 'Free'],
   Thu: ['Free', '10-B Math', '8-A Math', 'Free', 'Free', '6-B Math', 'Free', 'PTM Slot'],
   Fri: ['10-A Math', 'Free', 'Free', '8-B Math', '6-A Math', 'Free', 'Free', 'Free'],
-  Sat: ['Free', 'Free', '8-A Math', '8-B Math', 'Free', '6-B Math', 'Free', 'Free'],
+  Sat: ['8-A Math', '8-B Math', '6-B Math', 'Free', '', '', '', ''],
 };
 
 const periodTimings = [
-  '8:00 - 8:40', '8:40 - 9:20', '9:20 - 10:00', '10:20 - 11:00',
-  '11:00 - 11:40', '11:40 - 12:20', '1:00 - 1:40', '1:40 - 2:20',
+  '7:50 - 8:30', '8:30 - 9:10', '9:10 - 9:50', '10:05 - 10:45',
+  '10:45 - 11:25', '12:00 - 12:40', '12:40 - 1:20', '1:20 - 2:00',
 ];
 
 const leaveBalance = [
   { type: 'Casual Leave', code: 'CL', used: 4, total: 12, color: 'bg-blue-500' },
-  { type: 'Sick Leave', code: 'SL', used: 2, total: 6, color: 'bg-amber-500' },
+  { type: 'Sick Leave', code: 'SL', used: 2, total: 10, color: 'bg-amber-500' },
   { type: 'Earned Leave', code: 'EL', used: 0, total: 15, color: 'bg-emerald-500' },
   { type: 'Maternity Leave', code: 'ML', used: 0, total: 180, color: 'bg-purple-500' },
 ];
@@ -113,7 +113,7 @@ const leaveHistory = [
 const diaryEntries = [
   { id: 'D001', date: '12 Feb 2026', class: '10-A', subject: 'Mathematics', message: 'Completed Ch 7 Coordinate Geometry. Homework assigned — Exercise 7.2, Q1-Q10. Students must bring graph sheets tomorrow.' },
   { id: 'D002', date: '12 Feb 2026', class: '8-A', subject: 'Mathematics', message: 'Started Ch 4 Practical Geometry. Students need compass and protractor from tomorrow.' },
-  { id: 'D003', date: '11 Feb 2026', class: '10-B', subject: 'Mathematics', message: 'Revised Quadratic Equations. Unit Test 4 on 15 Feb — syllabus: Ch 4 & Ch 5.' },
+  { id: 'D003', date: '11 Feb 2026', class: '10-B', subject: 'Mathematics', message: 'Revised Quadratic Equations. Unit Test 3 on 15 Feb — syllabus: Ch 4 & Ch 5.' },
   { id: 'D004', date: '11 Feb 2026', class: '6-A', subject: 'Mathematics', message: 'Fractions & Decimals practice. Weak students to attend extra class on Saturday.' },
   { id: 'D005', date: '10 Feb 2026', class: '8-B', subject: 'Mathematics', message: 'Areas & Volumes — completed mensuration problems. Worksheets distributed.' },
   { id: 'D006', date: '10 Feb 2026', class: '6-B', subject: 'Mathematics', message: 'Number system revision complete. Chapter test next Monday.' },
@@ -353,7 +353,7 @@ function DashboardHome({ theme, isPreschool }: { theme: Theme; isPreschool?: boo
           <div className="space-y-2">
             {[
               { title: 'Annual Day rehearsal schedule — all class teachers to release students at 1:00 PM on 14 Feb', priority: 'Important', priorityColor: 'bg-red-100 text-red-700', from: 'Principal Office', time: '8:00 AM' },
-              { title: 'Reminder: UT-4 marks entry deadline extended to 17 Feb — submit via ERP portal only', priority: 'Action Required', priorityColor: 'bg-amber-100 text-amber-700', from: 'Exam Cell', time: '7:45 AM' },
+              { title: 'Reminder: UT-3 marks entry deadline extended to 17 Feb — submit via ERP portal only', priority: 'Action Required', priorityColor: 'bg-amber-100 text-amber-700', from: 'Exam Cell', time: '7:45 AM' },
               { title: 'Staff wellness session this Saturday 15 Feb, 10:00 AM — Yoga & stress management in auditorium', priority: 'General', priorityColor: 'bg-blue-100 text-blue-700', from: 'HR Department', time: '7:30 AM' },
             ].map((circ, i) => (
               <div key={i} className={`p-3 rounded-xl ${theme.secondaryBg} ${theme.buttonHover} cursor-pointer transition-all`}>
@@ -385,9 +385,9 @@ function DashboardHome({ theme, isPreschool }: { theme: Theme; isPreschool?: boo
         <div className="space-y-2">
           {[
             { task: 'Mark attendance for 10-A & 8-A (today)', due: 'Today by 9:30 AM', priority: 'Urgent', priorityColor: 'bg-red-500', status: 'Overdue', statusColor: 'text-red-600', icon: ClipboardCheck },
-            { task: 'Enter UT-4 marks for Class 10-B — Ch 4 & Ch 5', due: 'Due: 17 Feb 2026', priority: 'High', priorityColor: 'bg-amber-500', status: 'Pending', statusColor: 'text-amber-600', icon: PenTool },
+            { task: 'Enter UT-3 marks for Class 10-B — Ch 4 & Ch 5', due: 'Due: 17 Feb 2026', priority: 'High', priorityColor: 'bg-amber-500', status: 'Pending', statusColor: 'text-amber-600', icon: PenTool },
             { task: 'Review & grade homework — Ch 3 Linear Equations (8-A)', due: 'Due: 13 Feb 2026', priority: 'Medium', priorityColor: 'bg-blue-500', status: 'In Progress', statusColor: 'text-blue-600', icon: FileText },
-            { task: 'Prepare question paper for UT-4 — Class 10-A & 10-B', due: 'Due: 14 Feb 2026', priority: 'High', priorityColor: 'bg-amber-500', status: 'Not Started', statusColor: 'text-slate-500', icon: Pencil },
+            { task: 'Prepare question paper for UT-3 — Class 10-A & 10-B', due: 'Due: 14 Feb 2026', priority: 'High', priorityColor: 'bg-amber-500', status: 'Not Started', statusColor: 'text-slate-500', icon: Pencil },
           ].map((todo, i) => (
             <div key={i} className={`flex items-center gap-3 p-3 rounded-xl ${theme.secondaryBg} ${theme.buttonHover} transition-all`}>
               <div className={`w-8 h-8 rounded-lg ${todo.priorityColor} flex items-center justify-center text-white shrink-0`}>
@@ -417,11 +417,11 @@ function DashboardHome({ theme, isPreschool }: { theme: Theme; isPreschool?: boo
         </div>
         <div className="space-y-2">
           {[
-            { period: 1, time: '8:00 - 8:40', subject: 'Mathematics', class: '10-A', room: 'Room 301', status: 'Completed', statusColor: 'bg-emerald-100 text-emerald-700', isCurrent: false },
-            { period: 4, time: '10:20 - 11:00', subject: 'Mathematics', class: '8-B', room: 'Room 205', status: 'Current', statusColor: 'bg-blue-500 text-white', isCurrent: true },
-            { period: 5, time: '11:00 - 11:40', subject: 'Mathematics', class: '6-A', room: 'Room 106', status: 'Upcoming', statusColor: 'bg-amber-100 text-amber-700', isCurrent: false },
-            { period: 7, time: '1:00 - 1:40', subject: 'Lab Duty', class: 'Science Lab', room: 'Lab 2', status: 'Upcoming', statusColor: 'bg-purple-100 text-purple-700', isCurrent: false },
-            { period: 2, time: '8:40 - 9:20', subject: 'Free Period', class: '—', room: '—', status: 'Done', statusColor: 'bg-slate-100 text-slate-500', isCurrent: false },
+            { period: 1, time: '7:50 - 8:30', subject: 'Mathematics', class: '10-A', room: 'Room 301', status: 'Completed', statusColor: 'bg-emerald-100 text-emerald-700', isCurrent: false },
+            { period: 4, time: '10:05 - 10:45', subject: 'Mathematics', class: '8-B', room: 'Room 205', status: 'Current', statusColor: 'bg-blue-500 text-white', isCurrent: true },
+            { period: 5, time: '10:45 - 11:25', subject: 'Mathematics', class: '6-A', room: 'Room 106', status: 'Upcoming', statusColor: 'bg-amber-100 text-amber-700', isCurrent: false },
+            { period: 7, time: '12:40 - 1:20', subject: 'Lab Duty', class: 'Science Lab', room: 'Lab 2', status: 'Upcoming', statusColor: 'bg-purple-100 text-purple-700', isCurrent: false },
+            { period: 2, time: '8:30 - 9:10', subject: 'Free Period', class: '—', room: '—', status: 'Done', statusColor: 'bg-slate-100 text-slate-500', isCurrent: false },
           ]
             .sort((a, b) => a.period - b.period)
             .map((cls, i) => (
@@ -568,6 +568,7 @@ function AttendanceModule({ theme }: { theme: Theme }) {
         <button className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}><Download size={14} /> Export Report</button>
       </div>
       <TabBar tabs={['Mark Attendance', 'Calendar View', 'Reports']} active={tab} onChange={setTab} theme={theme} />
+      <p className="text-[10px] text-amber-600 mb-2">📋 Attendance method: Mobile App (Teacher) · Frequency: Daily — configured by SSA</p>
 
       {tab === 'Mark Attendance' && (
         <>
@@ -849,7 +850,7 @@ function GradebookModule({ theme }: { theme: Theme }) {
   const [selectedExam, setSelectedExam] = useState('Half Yearly');
   const [tab, setTab] = useState('Enter Marks');
 
-  const maxMarks: Record<string, number> = { 'UT-1': 20, 'UT-2': 20, 'Half Yearly': 100, 'UT-3': 20, 'UT-4': 20, 'Annual': 100 };
+  const maxMarks: Record<string, number> = { 'UT-1': 20, 'UT-2': 20, 'Half Yearly': 100, 'UT-3': 20, 'Annual': 100 };
   const currentMax = maxMarks[selectedExam] || 100;
 
   const getMarks = (s: typeof gradebookStudents[0]) => {
@@ -858,7 +859,6 @@ function GradebookModule({ theme }: { theme: Theme }) {
       case 'UT-2': return s.ut2;
       case 'Half Yearly': return s.halfYearly;
       case 'UT-3': return s.ut3;
-      case 'UT-4': return s.ut4;
       case 'Annual': return s.annual;
       default: return 0;
     }
@@ -885,7 +885,7 @@ function GradebookModule({ theme }: { theme: Theme }) {
         <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg}`}>
           <span className={`text-xs font-bold ${theme.iconColor}`}>Exam:</span>
           <select value={selectedExam} onChange={e => setSelectedExam(e.target.value)} className={`text-xs font-bold ${theme.highlight} bg-transparent outline-none`}>
-            {['UT-1', 'UT-2', 'Half Yearly', 'UT-3', 'UT-4', 'Annual'].map(e => <option key={e} value={e}>{e}</option>)}
+            {['UT-1', 'UT-2', 'Half Yearly', 'UT-3', 'Annual'].map(e => <option key={e} value={e}>{e}</option>)}
           </select>
         </div>
         <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg}`}>
@@ -959,10 +959,10 @@ function GradebookModule({ theme }: { theme: Theme }) {
 
       {tab === 'Overview' && (
         <DataTable
-          headers={['Roll', 'Name', 'UT-1 (20)', 'UT-2 (20)', 'Half Yearly (100)', 'UT-3 (20)', 'UT-4 (20)', 'Total', '%']}
+          headers={['Roll', 'Name', 'UT-1 (20)', 'UT-2 (20)', 'Half Yearly (100)', 'UT-3 (20)', 'Total', '%']}
           rows={gradebookStudents.map(s => {
-            const total = s.ut1 + s.ut2 + s.halfYearly + s.ut3 + s.ut4;
-            const pct = Math.round((total / 180) * 100);
+            const total = s.ut1 + s.ut2 + s.halfYearly + s.ut3;
+            const pct = Math.round((total / 160) * 100);
             return [
               <span key="r" className={theme.iconColor}>{s.roll}</span>,
               <span key="n" className={`font-bold ${theme.highlight}`}>{s.name}</span>,
@@ -970,8 +970,7 @@ function GradebookModule({ theme }: { theme: Theme }) {
               <span key="u2" className={theme.iconColor}>{s.ut2}</span>,
               <span key="hy" className={`font-bold ${theme.highlight}`}>{s.halfYearly}</span>,
               <span key="u3" className={theme.iconColor}>{s.ut3}</span>,
-              <span key="u4" className={theme.iconColor}>{s.ut4}</span>,
-              <span key="t" className={`font-bold ${theme.highlight}`}>{total}/180</span>,
+              <span key="t" className={`font-bold ${theme.highlight}`}>{total}/160</span>,
               <span key="p" className={`font-bold ${pct >= 80 ? 'text-emerald-600' : pct >= 50 ? 'text-amber-600' : 'text-red-600'}`}>{pct}%</span>,
             ];
           })}
@@ -1028,6 +1027,7 @@ function TimetableModule({ theme }: { theme: Theme }) {
         </div>
       </div>
 
+      <p className="text-[10px] text-amber-600 mb-1">📋 Bell schedule per SSA · Saturday: Half-day (4 periods)</p>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon={BookOpen} label="Classes/Week" value="18" color="bg-blue-500" theme={theme} />
         <StatCard icon={Clock} label="Free Periods" value="14" color="bg-emerald-500" theme={theme} />
@@ -1126,6 +1126,7 @@ function LeaveModule({ theme }: { theme: Theme }) {
         </button>
       </div>
       <TabBar tabs={['Leave Balance', 'History', 'Calendar']} active={tab} onChange={setTab} theme={theme} />
+      <p className="text-[10px] text-amber-600 mb-2">📋 Leave policy: Sandwich rule ON · Max consecutive: 5 days · Half-day: Allowed — as per SSA config</p>
 
       {/* Apply Leave Form */}
       {showApply && (

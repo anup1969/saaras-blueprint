@@ -273,6 +273,7 @@ function VisitorCheckinModule({ theme }: { theme: Theme }) {
         </button>
       </div>
       <TabBar tabs={['Check-in Form', 'Today\'s Visitors', 'Pre-Approved']} active={tab} onChange={setTab} theme={theme} />
+      <p className="text-[10px] text-amber-600 mb-2">📋 Visitor policy per SSA: Photo capture ON · Badge printing ON · ID mandatory · Restricted hours: 11:00-12:00 · Max duration: 60 min</p>
 
       {tab === 'Check-in Form' && (
         <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-6`}>
@@ -444,6 +445,7 @@ function StudentPickupModule({ theme }: { theme: Theme }) {
         </div>
       </div>
       <TabBar tabs={['Pickup Queue', 'Release Log', 'Authorized Persons']} active={tab} onChange={setTab} theme={theme} />
+      <p className="text-[10px] text-amber-600 mb-1">📋 Pickup: OTP verification ON · Registered guardians only · Pre-registration required — per SSA config</p>
 
       {tab === 'Pickup Queue' && (
         <>

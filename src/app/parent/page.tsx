@@ -43,7 +43,7 @@ const childrenData: ChildProfile[] = [
     roll: 1,
     photo: 'AP',
     classTeacher: 'Mrs. Sunita Sharma',
-    house: 'Tagore House',
+    house: 'Blue House',
     bloodGroup: 'B+',
     admissionNo: 'SRS/2019/1042',
   },
@@ -55,7 +55,7 @@ const childrenData: ChildProfile[] = [
     roll: 8,
     photo: 'AP',
     classTeacher: 'Mr. Ramesh Iyer',
-    house: 'Raman House',
+    house: 'Green House',
     bloodGroup: 'O+',
     admissionNo: 'SRS/2023/2187',
   },
@@ -169,7 +169,7 @@ const feesData: Record<string, {
   breakdown: { head: string; amount: number }[];
 }> = {
   child1: {
-    currentDue: 18500, totalPaid: 67500, totalAnnual: 86000, nextDueDate: '15 Mar 2026', nextDueAmount: 18500,
+    currentDue: 14500, totalPaid: 67500, totalAnnual: 82000, nextDueDate: '10 Mar 2026', nextDueAmount: 14500,
     payments: [
       { id: 'P1', date: '12 Jan 2026', description: 'Term 3 - Tuition Fee', amount: 15000, mode: 'UPI', receiptNo: 'REC-2026-3421', status: 'Paid' },
       { id: 'P2', date: '12 Jan 2026', description: 'Term 3 - Transport Fee', amount: 4500, mode: 'UPI', receiptNo: 'REC-2026-3422', status: 'Paid' },
@@ -180,19 +180,18 @@ const feesData: Record<string, {
       { id: 'P7', date: '01 Apr 2025', description: 'Admission Fee + Annual Charges', amount: 9000, mode: 'Cash', receiptNo: 'REC-2025-0340', status: 'Paid' },
     ],
     upcoming: [
-      { installment: 'Term 4 - Tuition Fee', dueDate: '15 Mar 2026', amount: 15000, status: 'Upcoming' },
-      { installment: 'Term 4 - Transport Fee', dueDate: '15 Mar 2026', amount: 3500, status: 'Upcoming' },
+      { installment: 'Term 4 - Tuition Fee', dueDate: '10 Mar 2026', amount: 15000, status: 'Upcoming' },
+      { installment: 'Term 4 - Transport Fee', dueDate: '10 Mar 2026', amount: 3500, status: 'Upcoming' },
     ],
     breakdown: [
       { head: 'Tuition Fee', amount: 60000 },
       { head: 'Transport Fee', amount: 16000 },
-      { head: 'Lab/Computer Fee', amount: 4000 },
       { head: 'Annual Charges', amount: 3000 },
       { head: 'Activity Fee', amount: 3000 },
     ],
   },
   child2: {
-    currentDue: 0, totalPaid: 52000, totalAnnual: 68000, nextDueDate: '15 Mar 2026', nextDueAmount: 16000,
+    currentDue: 0, totalPaid: 52000, totalAnnual: 68000, nextDueDate: '10 Mar 2026', nextDueAmount: 16000,
     payments: [
       { id: 'P1', date: '05 Jan 2026', description: 'Term 3 - Tuition Fee', amount: 12000, mode: 'UPI', receiptNo: 'REC-2026-3210', status: 'Paid' },
       { id: 'P2', date: '05 Jan 2026', description: 'Term 3 - Transport Fee', amount: 4000, mode: 'UPI', receiptNo: 'REC-2026-3211', status: 'Paid' },
@@ -202,8 +201,8 @@ const feesData: Record<string, {
       { id: 'P6', date: '01 Apr 2025', description: 'Admission Fee + Annual Charges', amount: 4000, mode: 'Cash', receiptNo: 'REC-2025-0215', status: 'Paid' },
     ],
     upcoming: [
-      { installment: 'Term 4 - Tuition Fee', dueDate: '15 Mar 2026', amount: 12000, status: 'Upcoming' },
-      { installment: 'Term 4 - Transport Fee', dueDate: '15 Mar 2026', amount: 4000, status: 'Upcoming' },
+      { installment: 'Term 4 - Tuition Fee', dueDate: '10 Mar 2026', amount: 12000, status: 'Upcoming' },
+      { installment: 'Term 4 - Transport Fee', dueDate: '10 Mar 2026', amount: 4000, status: 'Upcoming' },
     ],
     breakdown: [
       { head: 'Tuition Fee', amount: 48000 },
@@ -288,34 +287,38 @@ const transportData: Record<string, {
   estimatedArrival: string;
 }> = {
   child1: {
-    busNo: 'Bus 7', routeNo: 'R-07', routeName: 'Satellite - Prahlad Nagar - SG Highway',
-    driverName: 'Ramji Chauhan', driverPhone: '+91 98765 43210', conductorName: 'Sunil Yadav', conductorPhone: '+91 98765 43211',
-    vehicleNo: 'GJ-01-XX-4567', capacity: 42,
-    pickupStop: 'Prahlad Nagar Garden', pickupTime: '7:15 AM', dropStop: 'Prahlad Nagar Garden', dropTime: '2:45 PM',
+    busNo: 'Bus A', routeNo: 'Route A', routeName: 'Route A - Morning 7:00 AM',
+    driverName: 'Ramesh Kumar', driverPhone: '+91 98765 43210', conductorName: 'Sunil Yadav', conductorPhone: '+91 98765 43211',
+    vehicleNo: 'GJ-01-AB-1234', capacity: 42,
+    pickupStop: 'Stop 3', pickupTime: '7:12 AM', dropStop: 'Stop 3', dropTime: '2:45 PM',
     stops: [
-      { name: 'Satellite BRTS', time: '7:00 AM', isCurrent: false, isChild: false },
-      { name: 'Jodhpur Cross Roads', time: '7:08 AM', isCurrent: false, isChild: false },
-      { name: 'Prahlad Nagar Garden', time: '7:15 AM', isCurrent: false, isChild: true },
-      { name: 'Sindhu Bhavan Road', time: '7:22 AM', isCurrent: true, isChild: false },
-      { name: 'SG Highway - Sola', time: '7:30 AM', isCurrent: false, isChild: false },
-      { name: 'School Gate', time: '7:40 AM', isCurrent: false, isChild: false },
+      { name: 'Stop 1', time: '7:00 AM', isCurrent: false, isChild: false },
+      { name: 'Stop 2', time: '7:06 AM', isCurrent: false, isChild: false },
+      { name: 'Stop 3', time: '7:12 AM', isCurrent: false, isChild: true },
+      { name: 'Stop 4', time: '7:18 AM', isCurrent: true, isChild: false },
+      { name: 'Stop 5', time: '7:24 AM', isCurrent: false, isChild: false },
+      { name: 'Stop 6', time: '7:30 AM', isCurrent: false, isChild: false },
+      { name: 'Stop 7', time: '7:36 AM', isCurrent: false, isChild: false },
+      { name: 'School Gate', time: '7:42 AM', isCurrent: false, isChild: false },
     ],
-    estimatedArrival: '7:40 AM (On Time)',
+    estimatedArrival: '7:42 AM (On Time)',
   },
   child2: {
-    busNo: 'Bus 7', routeNo: 'R-07', routeName: 'Satellite - Prahlad Nagar - SG Highway',
-    driverName: 'Ramji Chauhan', driverPhone: '+91 98765 43210', conductorName: 'Sunil Yadav', conductorPhone: '+91 98765 43211',
-    vehicleNo: 'GJ-01-XX-4567', capacity: 42,
-    pickupStop: 'Prahlad Nagar Garden', pickupTime: '7:15 AM', dropStop: 'Prahlad Nagar Garden', dropTime: '2:45 PM',
+    busNo: 'Bus A', routeNo: 'Route A', routeName: 'Route A - Morning 7:00 AM',
+    driverName: 'Ramesh Kumar', driverPhone: '+91 98765 43210', conductorName: 'Sunil Yadav', conductorPhone: '+91 98765 43211',
+    vehicleNo: 'GJ-01-AB-1234', capacity: 42,
+    pickupStop: 'Stop 3', pickupTime: '7:12 AM', dropStop: 'Stop 3', dropTime: '2:45 PM',
     stops: [
-      { name: 'Satellite BRTS', time: '7:00 AM', isCurrent: false, isChild: false },
-      { name: 'Jodhpur Cross Roads', time: '7:08 AM', isCurrent: false, isChild: false },
-      { name: 'Prahlad Nagar Garden', time: '7:15 AM', isCurrent: false, isChild: true },
-      { name: 'Sindhu Bhavan Road', time: '7:22 AM', isCurrent: true, isChild: false },
-      { name: 'SG Highway - Sola', time: '7:30 AM', isCurrent: false, isChild: false },
-      { name: 'School Gate', time: '7:40 AM', isCurrent: false, isChild: false },
+      { name: 'Stop 1', time: '7:00 AM', isCurrent: false, isChild: false },
+      { name: 'Stop 2', time: '7:06 AM', isCurrent: false, isChild: false },
+      { name: 'Stop 3', time: '7:12 AM', isCurrent: false, isChild: true },
+      { name: 'Stop 4', time: '7:18 AM', isCurrent: true, isChild: false },
+      { name: 'Stop 5', time: '7:24 AM', isCurrent: false, isChild: false },
+      { name: 'Stop 6', time: '7:30 AM', isCurrent: false, isChild: false },
+      { name: 'Stop 7', time: '7:36 AM', isCurrent: false, isChild: false },
+      { name: 'School Gate', time: '7:42 AM', isCurrent: false, isChild: false },
     ],
-    estimatedArrival: '7:40 AM (On Time)',
+    estimatedArrival: '7:42 AM (On Time)',
   },
 };
 
@@ -827,6 +830,7 @@ function FeesModule({ theme, child }: { theme: Theme; child: ChildProfile }) {
       </div>
 
       <TabBar tabs={['Overview', 'Payment History', 'Upcoming', 'Fee Structure']} active={activeTab} onChange={setActiveTab} theme={theme} />
+      <p className="text-[10px] text-amber-600 mb-2">📋 Fee policy per SSA: Due 10th monthly · Late fee ₹50/day (7-day grace) · Blocking: Report card if &gt;60 days overdue</p>
 
       {activeTab === 'Overview' && (
         <div className="space-y-4">
@@ -1069,6 +1073,7 @@ function CommunicationModule({ theme, child }: { theme: Theme; child: ChildProfi
       </div>
 
       <TabBar tabs={['Notices', 'Messages', 'PTM Schedule', 'Compose', 'Chat']} active={activeTab} onChange={setActiveTab} theme={theme} />
+      <p className="text-[10px] text-amber-600 mb-1">📋 Communication mode: Reply Only — set by SSA. You can reply to teacher messages.</p>
 
       {activeTab === 'Notices' && (
         <div className="space-y-3">
@@ -1246,6 +1251,7 @@ function TransportModule({ theme, child }: { theme: Theme; child: ChildProfile }
         </span>
       </div>
 
+      <p className="text-[10px] text-amber-600 mb-1">📋 Pickup policy: OTP verification required · Pre-registration: ON — configured by SSA</p>
       {/* Bus Info Cards */}
       <div className="grid grid-cols-3 gap-3">
         <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>

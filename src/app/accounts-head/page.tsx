@@ -31,9 +31,9 @@ const feeCollections = [
 const concessions = [
   { student: 'Kavya Desai', class: '4-A', type: 'Sibling Discount', amount: '₹1,500', percent: '10%', approved: 'School Admin', status: 'Active' },
   { student: 'Ravi Kumar', class: '7-B', type: 'EWS / RTE', amount: '₹6,500', percent: '100%', approved: 'Trust', status: 'Active' },
-  { student: 'Prachi Shah', class: '9-A', type: 'Merit Scholarship', amount: '₹3,000', percent: '20%', approved: 'Principal', status: 'Active' },
-  { student: 'Mohammed Ali', class: '5-B', type: 'Staff Child', amount: '₹5,000', percent: '50%', approved: 'HR', status: 'Active' },
-  { student: 'Sneha Patel', class: '2-A', type: 'Financial Hardship', amount: '₹2,000', percent: '15%', approved: 'Trust', status: 'Pending' },
+  { student: 'Prachi Shah', class: '9-A', type: 'Merit Scholarship', amount: '₹3,750', percent: '25%', approved: 'Principal', status: 'Active' },
+  { student: 'Mohammed Ali', class: '5-B', type: 'Staff Child', amount: '₹7,700', percent: '100%', approved: 'HR', status: 'Active' },
+  { student: 'Sneha Patel', class: '2-A', type: 'Single Parent', amount: '₹5,000', percent: 'Fixed', approved: 'Trust', status: 'Active' },
 ];
 
 const expenses = [
@@ -46,11 +46,17 @@ const expenses = [
 ];
 
 const salaryBreakdown = [
-  { dept: 'Teaching Staff', headcount: 48, gross: '₹5,80,000', deductions: '₹72,000', net: '₹5,08,000' },
-  { dept: 'Admin & Office', headcount: 15, gross: '₹1,20,000', deductions: '₹15,000', net: '₹1,05,000' },
-  { dept: 'Transport', headcount: 8, gross: '₹48,000', deductions: '₹6,000', net: '₹42,000' },
-  { dept: 'Security', headcount: 5, gross: '₹30,000', deductions: '₹3,500', net: '₹26,500' },
+  { dept: 'Administration', headcount: 12, gross: '₹1,10,000', deductions: '₹14,000', net: '₹96,000' },
+  { dept: 'Teaching-Primary', headcount: 22, gross: '₹2,40,000', deductions: '₹30,000', net: '₹2,10,000' },
+  { dept: 'Teaching-Secondary', headcount: 24, gross: '₹2,80,000', deductions: '₹35,000', net: '₹2,45,000' },
+  { dept: 'Teaching-Senior', headcount: 22, gross: '₹2,90,000', deductions: '₹36,000', net: '₹2,54,000' },
+  { dept: 'Accounts', headcount: 6, gross: '₹52,000', deductions: '₹6,500', net: '₹45,500' },
+  { dept: 'IT', headcount: 4, gross: '₹38,000', deductions: '₹4,500', net: '₹33,500' },
+  { dept: 'Transport', headcount: 18, gross: '₹1,08,000', deductions: '₹13,000', net: '₹95,000' },
   { dept: 'Housekeeping', headcount: 10, gross: '₹42,000', deductions: '₹5,000', net: '₹37,000' },
+  { dept: 'Security', headcount: 12, gross: '₹60,000', deductions: '₹7,000', net: '₹53,000' },
+  { dept: 'Library', headcount: 4, gross: '₹32,000', deductions: '₹4,000', net: '₹28,000' },
+  { dept: 'Lab', headcount: 8, gross: '₹56,000', deductions: '₹7,000', net: '₹49,000' },
 ];
 
 const bankReconciliation = [
@@ -212,6 +218,7 @@ function CollectionsView({ theme }: { theme: Theme }) {
         <div className="flex-1"><SearchBar placeholder="Search by student name or receipt..." theme={theme} icon={Search} /></div>
         <TabBar tabs={['All', 'Paid', 'Pending', 'Overdue']} active={tab} onChange={setTab} theme={theme} />
       </div>
+      <p className="text-[10px] text-amber-600 mb-2">📋 Fee template: Component-based · Billing: Monthly · 7 active fee heads — configured by SSA</p>
 
       <DataTable
         headers={['Student', 'Class', 'Amount', 'Mode', 'Date', 'Receipt', 'Status']}
@@ -248,6 +255,7 @@ function ConcessionsView({ theme }: { theme: Theme }) {
         </button>
       </div>
 
+      <p className="text-[10px] text-amber-600 mb-2">📋 Concession types per SSA: Sibling 10%, Staff Child 100%, Merit 25%, EWS 100%, Single Parent ₹5000</p>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard icon={Percent} label="Active Concessions" value={concessions.filter(c => c.status === 'Active').length} color="bg-blue-500" theme={theme} />
         <StatCard icon={DollarSign} label="Total Waived" value="₹18,000" color="bg-amber-500" sub="This month" theme={theme} />

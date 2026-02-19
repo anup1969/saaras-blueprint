@@ -24,7 +24,7 @@ const studentProfile = {
   rollNo: 1,
   board: 'CBSE',
   admissionNo: 'SAR-2022-0101',
-  house: 'Shivaji House',
+  house: 'Red House',
   section: 'A',
   dob: '15 Mar 2011',
   bloodGroup: 'B+',
@@ -35,19 +35,19 @@ const studentProfile = {
 
 // ─── MOCK: TODAY'S CLASSES ──────────────────────────
 const todaysClasses = [
-  { period: 1, time: '8:00 - 8:40', subject: 'Mathematics', teacher: 'Mr. Sharma', room: 'Room 201' },
-  { period: 2, time: '8:40 - 9:20', subject: 'Science', teacher: 'Mrs. Iyer', room: 'Lab 3' },
-  { period: 3, time: '9:20 - 10:00', subject: 'English', teacher: 'Ms. D\'Souza', room: 'Room 201' },
-  { period: 4, time: '10:20 - 11:00', subject: 'Hindi', teacher: 'Mrs. Mishra', room: 'Room 201' },
-  { period: 5, time: '11:00 - 11:40', subject: 'Social Science', teacher: 'Mr. Reddy', room: 'Room 201' },
-  { period: 6, time: '11:40 - 12:20', subject: 'Computer Science', teacher: 'Mr. Joshi', room: 'Comp Lab 1' },
-  { period: 7, time: '1:00 - 1:40', subject: 'Physical Education', teacher: 'Mr. Singh', room: 'Ground' },
-  { period: 8, time: '1:40 - 2:20', subject: 'Art', teacher: 'Mrs. Kulkarni', room: 'Art Room' },
+  { period: 1, time: '7:50 - 8:30', subject: 'Mathematics', teacher: 'Mr. Sharma', room: 'Room 201' },
+  { period: 2, time: '8:30 - 9:10', subject: 'Science', teacher: 'Mrs. Iyer', room: 'Lab 3' },
+  { period: 3, time: '9:10 - 9:50', subject: 'English', teacher: 'Ms. D\'Souza', room: 'Room 201' },
+  { period: 4, time: '10:05 - 10:45', subject: 'Hindi', teacher: 'Mrs. Mishra', room: 'Room 201' },
+  { period: 5, time: '10:45 - 11:25', subject: 'Social Science', teacher: 'Mr. Reddy', room: 'Room 201' },
+  { period: 6, time: '12:00 - 12:40', subject: 'Computer Science', teacher: 'Mr. Joshi', room: 'Comp Lab 1' },
+  { period: 7, time: '12:40 - 1:20', subject: 'Physical Education', teacher: 'Mr. Singh', room: 'Ground' },
+  { period: 8, time: '1:20 - 2:00', subject: 'Art', teacher: 'Mrs. Kulkarni', room: 'Art Room' },
 ];
 
 // ─── MOCK: TIMETABLE ────────────────────────────────
 const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-const periods = ['P1\n8:00', 'P2\n8:40', 'P3\n9:20', 'P4\n10:20', 'P5\n11:00', 'P6\n11:40', 'P7\n1:00', 'P8\n1:40'];
+const periods = ['P1\n7:50', 'P2\n8:30', 'P3\n9:10', 'P4\n10:05', 'P5\n10:45', 'P6\n12:00', 'P7\n12:40', 'P8\n1:20'];
 
 const subjectColors: Record<string, string> = {
   'Maths': 'bg-blue-100 text-blue-700 border-blue-200',
@@ -72,7 +72,7 @@ const timetableData: Record<string, string[]> = {
   Wednesday: ['Science', 'English', 'Maths', 'SST', 'Hindi', 'PE', 'Art', 'GK'],
   Thursday:  ['Hindi', 'Science', 'SST', 'Maths', 'English', 'CS', 'Music', 'Moral Sc.'],
   Friday:    ['Maths', 'Hindi', 'Science', 'English', 'PE', 'SST', 'CS', 'Library'],
-  Saturday:  ['English', 'Maths', 'Science', 'GK', 'Art', 'Hindi', '', ''],
+  Saturday:  ['English', 'Maths', 'Science', 'GK', '', '', '', ''],
 };
 
 // ─── MOCK: HOMEWORK ─────────────────────────────────
@@ -88,7 +88,7 @@ const homeworkData = [
 ];
 
 // ─── MOCK: RESULTS ──────────────────────────────────
-const examTypes = ['Unit Test 1', 'Unit Test 2', 'Unit Test 3', 'Half Yearly', 'Annual'];
+const examTypes = ['Unit Test 1', 'Unit Test 2', 'Half Yearly', 'Unit Test 3', 'Annual'];
 
 const resultsData: Record<string, { subject: string; maxMarks: number; obtained: number; grade: string }[]> = {
   'Unit Test 1': [
@@ -165,11 +165,11 @@ const monthlyAttendance = [
 // ─── MOCK: FEES ─────────────────────────────────────
 const feeStructure = [
   { head: 'Tuition Fee', amount: 4500, frequency: 'Monthly' },
-  { head: 'Lab Fee', amount: 500, frequency: 'Monthly' },
-  { head: 'Library Fee', amount: 300, frequency: 'Monthly' },
-  { head: 'Computer Fee', amount: 400, frequency: 'Monthly' },
-  { head: 'Activity Fee', amount: 300, frequency: 'Monthly' },
+  { head: 'Admission Fee', amount: 5000, frequency: 'Annual' },
   { head: 'Annual Charges', amount: 8000, frequency: 'Annual' },
+  { head: 'Transport Fee', amount: 1500, frequency: 'Monthly' },
+  { head: 'Activity Fee', amount: 300, frequency: 'Monthly' },
+  { head: 'Lab Fee', amount: 500, frequency: 'Monthly' },
   { head: 'Exam Fee', amount: 3000, frequency: 'Half-Yearly' },
 ];
 
@@ -406,6 +406,7 @@ function TimetableModule({ theme }: { theme: Theme }) {
         </span>
       </div>
 
+      <p className="text-[10px] text-amber-600 mb-1">📋 Bell schedule per SSA config · Saturday: Half-day</p>
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} overflow-hidden overflow-x-auto`}>
         <table className="w-full text-sm">
           <thead className={theme.secondaryBg}>
@@ -443,15 +444,15 @@ function TimetableModule({ theme }: { theme: Theme }) {
         <div className="flex gap-4">
           <div className={`flex items-center gap-2 px-3 py-2 rounded-xl ${theme.secondaryBg}`}>
             <Clock size={14} className={theme.iconColor} />
-            <span className={`text-xs ${theme.highlight} font-bold`}>Short Break: 10:00 - 10:20</span>
+            <span className={`text-xs ${theme.highlight} font-bold`}>Short Break: 9:50 - 10:05</span>
           </div>
           <div className={`flex items-center gap-2 px-3 py-2 rounded-xl ${theme.secondaryBg}`}>
             <Clock size={14} className={theme.iconColor} />
-            <span className={`text-xs ${theme.highlight} font-bold`}>Lunch Break: 12:20 - 1:00</span>
+            <span className={`text-xs ${theme.highlight} font-bold`}>Lunch Break: 11:25 - 12:00</span>
           </div>
           <div className={`flex items-center gap-2 px-3 py-2 rounded-xl ${theme.secondaryBg}`}>
             <Clock size={14} className={theme.iconColor} />
-            <span className={`text-xs ${theme.highlight} font-bold`}>Dismissal: 2:20 PM</span>
+            <span className={`text-xs ${theme.highlight} font-bold`}>Dismissal: 2:00 PM</span>
           </div>
         </div>
       </div>
@@ -760,6 +761,7 @@ function FeesModule({ theme }: { theme: Theme }) {
       </div>
 
       <TabBar tabs={['Overview', 'Fee Structure', 'Payment History']} active={activeTab} onChange={setActiveTab} theme={theme} />
+      <p className="text-[10px] text-amber-600 mb-2">📋 Fee structure configured by SSA · Due date: 10th · Late fee: ₹50/day after 7-day grace · Max: ₹500</p>
 
       {activeTab === 'Overview' && (
         <div className="space-y-4">

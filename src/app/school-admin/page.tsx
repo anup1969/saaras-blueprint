@@ -208,7 +208,7 @@ function DashboardHome({ theme, stats, onProfileClick }: { theme: Theme; stats: 
               {[
                 { activity: 'Staff Meeting', detail: '3:00 PM · Conference Room · All HODs', time: '3:00 PM', icon: Users },
                 { activity: 'Fee Deadline — Class 8', detail: '5:00 PM · 12 students with pending dues', time: '5:00 PM', icon: Banknote },
-                { activity: 'Transport Schedule Change', detail: 'Route 5 & 7 — modified pickup from tomorrow', time: '4:30 PM', icon: Bus },
+                { activity: 'Transport Schedule Change', detail: 'Route E & F — modified pickup from tomorrow', time: '4:30 PM', icon: Bus },
               ].map((item, i) => (
                 <div key={i} className={`flex items-center gap-2.5 p-2 rounded-xl ${theme.secondaryBg}`}>
                   <div className={`w-7 h-7 rounded-lg ${theme.accentBg} flex items-center justify-center shrink-0`}>
@@ -444,7 +444,7 @@ function StudentAddForm({ theme, onBack }: { theme: Theme; onBack: () => void })
   const religionOptions = ['Hindu', 'Muslim', 'Christian', 'Sikh', 'Jain', 'Buddhist', 'Other'];
   const categoryOptions = ['General', 'OBC', 'SC', 'ST', 'EWS', 'Other'];
   const languageOptions = ['Hindi', 'English', 'Gujarati', 'Marathi', 'Tamil', 'Telugu', 'Kannada', 'Bengali', 'Malayalam', 'Punjabi', 'Urdu', 'Sanskrit'];
-  const routeOptions = ['R1 - North City', 'R2 - South Zone', 'R3 - East Side', 'R4 - West Ring', 'R5 - Central'];
+  const routeOptions = ['Route A', 'Route B', 'Route C', 'Route D', 'Route E', 'Route F'];
   const boardOptions = ['CBSE', 'ICSE', 'State Board', 'IB', 'IGCSE', 'Other'];
 
   return (
@@ -1135,9 +1135,9 @@ function TransportModule({ theme }: { theme: Theme }) {
       {tab === 'Vehicles' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
-            { no: 'GJ-01-AB-1234', type: 'Bus (45 seats)', km: '45,230 km', status: 'Running' },
-            { no: 'GJ-01-CD-5678', type: 'Mini Bus (25 seats)', km: '32,100 km', status: 'Running' },
-            { no: 'GJ-01-EF-9012', type: 'Bus (50 seats)', km: '67,800 km', status: 'Maintenance' },
+            { no: 'GJ-01-AB-1234', type: 'Bus (40 seats)', km: '45,230 km', status: 'Running' },
+            { no: 'GJ-01-CD-5678', type: 'Bus (50 seats)', km: '38,120 km', status: 'Running' },
+            { no: 'GJ-01-EF-9012', type: 'Mini Bus (30 seats)', km: '52,870 km', status: 'Running' },
           ].map((v, i) => (
             <div key={i} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
               <div className="flex justify-between items-start mb-2">

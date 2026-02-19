@@ -1604,25 +1604,25 @@ const MODULE_SUBMODULES: Record<string, ModuleConfig> = {
   'Staff Management': {
     features: ['Profile & Documents', 'Joining / Exit', 'ID Card Generation', 'Staff Directory', 'Attendance'],
     decisions: [
-      { name: 'Staff Attendance Method', type: 'select', options: ['Biometric', 'App-based GPS', 'RFID Card', 'Manual', 'Hybrid (Bio + App)'], default: 'Biometric', hint: 'Primary attendance method' },
+      { name: 'Staff Attendance Method', type: 'multi-select', options: ['Biometric (Fingerprint/Face)', 'Mobile App', 'RFID Card', 'Manual Register', 'Geo-fencing'], default: ['Biometric (Fingerprint/Face)', 'Mobile App'], hint: 'Select all applicable methods' },
       { name: 'Self-service Portal', type: 'toggle', default: true, hint: 'Staff can view payslips, apply leave, update profile' },
     ],
   },
   'Fee Management': {
     features: ['Fee Structure', 'Collection & Receipts', 'Concessions', 'Late Fee Rules', 'Reports & Ledger', 'Online Payment', 'Reminders'],
     decisions: [
-      { name: 'Payment Modes Accepted', type: 'multi-select', options: ['Cash', 'UPI', 'Cheque', 'NEFT/RTGS', 'Demand Draft', 'Online Gateway (Razorpay)', 'eNACH Auto-debit'], default: ['Cash', 'UPI', 'Online Gateway (Razorpay)'], hint: 'Which payment methods are available?' },
+      { name: 'Payment Modes Accepted', type: 'multi-select', options: ['Cash', 'UPI', 'Net Banking', 'Credit Card', 'Debit Card', 'Cheque', 'DD/NEFT'], default: ['Cash', 'UPI', 'Net Banking', 'Cheque'], hint: 'Which payment methods are available?' },
       { name: 'Fee Reminder Channel', type: 'multi-select', options: ['SMS', 'Email', 'Push Notification', 'WhatsApp'], default: ['SMS', 'Push Notification'] },
-      { name: 'Late Fee Policy', type: 'select', options: ['No Late Fee', 'Fixed Amount per Month', 'Percentage-based', 'Slab-based (escalating)'], default: 'Fixed Amount per Month' },
-      { name: 'Concession Types', type: 'multi-select', options: ['Sibling Discount', 'Staff Ward', 'Merit Scholarship', 'EWS / RTE', 'Management Quota', 'Custom'], default: ['Sibling Discount', 'Staff Ward', 'Merit Scholarship'] },
+      { name: 'Late Fee Policy', type: 'select', options: ['No Late Fee', 'Per Day (Fixed Amount)', 'Per Week (Fixed Amount)', 'Flat Monthly Fee'], default: 'Per Day (Fixed Amount)' },
+      { name: 'Concession Types', type: 'multi-select', options: ['Sibling Discount', 'Staff Child', 'Merit Scholarship', 'EWS Quota', 'Single Parent', 'Custom'], default: ['Sibling Discount', 'Staff Child', 'Merit Scholarship'] },
       { name: 'Fee Defaulter Blocking', type: 'toggle', default: false, hint: 'Block report card / TC if fees pending' },
     ],
   },
   'Attendance': {
     features: ['Student Attendance', 'Staff Attendance', 'Biometric Integration', 'Reports & Analytics', 'Absent Notifications'],
     decisions: [
-      { name: 'Attendance Frequency', type: 'select', options: ['Once Daily (Morning)', 'Twice Daily (AM + PM)', 'Period-wise (Every Period)'], default: 'Once Daily (Morning)', hint: 'How often is attendance marked?' },
-      { name: 'Marking Method', type: 'multi-select', options: ['App-based', 'Biometric', 'RFID', 'Manual Register'], default: ['App-based'] },
+      { name: 'Attendance Frequency', type: 'select', options: ['Daily', 'Twice Daily (AM + PM)', 'Period-wise'], default: 'Daily', hint: 'How often is attendance marked?' },
+      { name: 'Marking Method', type: 'multi-select', options: ['Biometric (Fingerprint/Face)', 'Mobile App (Teacher)', 'RFID Card', 'Manual Register', 'QR Code Scan'], default: ['Mobile App (Teacher)'] },
       { name: 'Auto-notify Parents on Absence', type: 'toggle', default: true },
       { name: 'Late Coming Tracking', type: 'toggle', default: true, hint: 'Track students who arrive after bell' },
     ],
@@ -1715,7 +1715,7 @@ const MODULE_SUBMODULES: Record<string, ModuleConfig> = {
     features: ['Exam Schedule', 'Marks Entry', 'Report Card Generation', 'Analytics', 'Board Exam Support'],
     decisions: [
       { name: 'Grading System', type: 'select', options: ['Marks Only (Numeric)', 'Grades Only (A-F)', 'Both Marks + Grades', 'CBSE CCE Pattern', 'Custom'], default: 'Both Marks + Grades' },
-      { name: 'Report Card Format', type: 'select', options: ['Standard Template', 'Board-specific (CBSE/ICSE)', 'Custom Design'], default: 'Standard Template' },
+      { name: 'Report Card Format', type: 'select', options: ['CBSE Standard', 'ICSE Format', 'State Board', 'Custom Design'], default: 'CBSE Standard' },
       { name: 'Online Marks Entry by Teachers', type: 'toggle', default: true },
       { name: 'Parent Access to Report Card', type: 'toggle', default: true },
       { name: 'Rank Display', type: 'select', options: ['Show Rank', 'Show Grade Band Only', 'No Ranking'], default: 'Show Rank' },
@@ -1724,9 +1724,9 @@ const MODULE_SUBMODULES: Record<string, ModuleConfig> = {
   'HR & Payroll': {
     features: ['Payroll Processing', 'Salary Structure', 'Deductions & Tax', 'Pay Slips', 'Compliance Reports'],
     decisions: [
-      { name: 'Departments', type: 'multi-select', options: ['Teaching', 'Administration', 'Accounts', 'IT', 'Library', 'Transport', 'Security', 'Housekeeping', 'Lab', 'Sports', 'Medical'], default: ['Teaching', 'Administration', 'Accounts'] },
+      { name: 'Departments', type: 'multi-select', options: ['Administration', 'Teaching-Primary', 'Teaching-Secondary', 'Teaching-Senior', 'Accounts', 'IT', 'Transport', 'Housekeeping', 'Security', 'Library', 'Lab'], default: ['Administration', 'Teaching-Primary', 'Teaching-Secondary', 'Teaching-Senior', 'Accounts'] },
       { name: 'Statutory Deductions', type: 'multi-select', options: ['PF (EPF)', 'ESI', 'Professional Tax', 'TDS'], default: ['PF (EPF)', 'Professional Tax', 'TDS'] },
-      { name: 'Pay Cycle', type: 'select', options: ['Monthly (1st)', 'Monthly (Last Working Day)', 'Bi-monthly'], default: 'Monthly (1st)' },
+      { name: 'Pay Cycle', type: 'select', options: ['Monthly (1st)', 'Monthly (Last Working Day)', 'Bi-weekly', 'Weekly'], default: 'Monthly (Last Working Day)' },
       { name: 'Self-service Payslip', type: 'toggle', default: true },
     ],
   },
@@ -3021,6 +3021,141 @@ function Step4Roles({ theme, institutionType }: { theme: Theme; institutionType:
   );
 }
 
+// ─── CRITICAL FIELD LOCKS SECTION (Step 5) ───────────
+function CriticalFieldLocksSection({ theme }: { theme: Theme }) {
+  const [authPhone, setAuthPhone] = useState('');
+  const [authEmail, setAuthEmail] = useState('');
+  const [authRole, setAuthRole] = useState('Trustee');
+  const [lockableFields, setLockableFields] = useState<Record<string, boolean>>({
+    'Fee Structure Changes': false,
+    'Student Profile Deletion': true,
+    'Staff Profile Deletion': true,
+    'Payment Mode Changes': false,
+    'Concession Approval (>25%)': false,
+    'Permission/Role Changes': true,
+    'Transport Route Deletion': false,
+    'Data Export/Migration': false,
+    'Audit Log Access': true,
+    'Academic Calendar Changes': false,
+  });
+
+  const fieldDescriptions: Record<string, string> = {
+    'Fee Structure Changes': 'Modify fee heads, amounts',
+    'Student Profile Deletion': 'Permanently delete student records',
+    'Staff Profile Deletion': 'Permanently delete staff records',
+    'Payment Mode Changes': 'Add/remove payment methods',
+    'Concession Approval (>25%)': 'Approve large concessions',
+    'Permission/Role Changes': 'Modify role permissions',
+    'Transport Route Deletion': 'Delete transport routes',
+    'Data Export/Migration': 'Export or migrate school data',
+    'Audit Log Access': 'View detailed audit logs',
+    'Academic Calendar Changes': 'Modify academic calendar dates',
+  };
+
+  const lockedCount = Object.values(lockableFields).filter(Boolean).length;
+
+  return (
+    <div className={`${theme.cardBg} rounded-2xl border-2 border-rose-300 p-4`}>
+      <div className="flex items-start gap-3 mb-4">
+        <div className="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center shrink-0">
+          <Lock size={18} className="text-rose-600" />
+        </div>
+        <div>
+          <h3 className={`text-sm font-bold ${theme.highlight}`}>Critical Field Locks (Optional)</h3>
+          <p className={`text-[10px] ${theme.iconColor} mt-0.5`}>Lock sensitive SSA fields &mdash; changes will require OTP verification from authorized contact</p>
+        </div>
+      </div>
+
+      {/* Master Authentication Contact */}
+      <div className={`${theme.secondaryBg} rounded-xl p-3 mb-4`}>
+        <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-2`}>Master Authentication Contact</p>
+        <div className="grid grid-cols-2 gap-3 mb-3">
+          <div>
+            <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>
+              Phone (OTP) <span className="text-red-500">*</span>
+            </label>
+            <div className="flex items-center gap-1">
+              <span className={`text-xs ${theme.iconColor} px-2 py-2.5 rounded-l-xl border ${theme.border} ${theme.inputBg}`}>+91</span>
+              <input
+                type="tel"
+                value={authPhone}
+                onChange={e => setAuthPhone(e.target.value)}
+                placeholder="98765 43210"
+                className={`flex-1 px-3 py-2.5 rounded-r-xl border ${theme.border} ${theme.inputBg} text-sm outline-none focus:ring-2 focus:ring-slate-300 ${theme.highlight}`}
+              />
+            </div>
+          </div>
+          <div>
+            <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>
+              Email (Backup)
+            </label>
+            <input
+              type="email"
+              value={authEmail}
+              onChange={e => setAuthEmail(e.target.value)}
+              placeholder="trustee@school.edu"
+              className={`w-full px-4 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none focus:ring-2 focus:ring-slate-300 ${theme.highlight}`}
+            />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>
+              Authentication Role <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={authRole}
+              onChange={e => setAuthRole(e.target.value)}
+              className={`w-full px-4 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none ${theme.highlight}`}
+            >
+              <option value="Trustee">Trustee</option>
+              <option value="Principal">Principal</option>
+              <option value="Chairman">Chairman</option>
+            </select>
+          </div>
+          <div className="flex items-end">
+            <div className={`flex items-center gap-2 px-3 py-2 rounded-xl bg-rose-50 border border-rose-200`}>
+              <Key size={12} className="text-rose-500" />
+              <span className="text-[10px] text-rose-700 font-bold">{lockedCount} fields locked</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Lockable Fields */}
+      <div className="space-y-1.5">
+        <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-2`}>Lockable Fields</p>
+        {Object.entries(lockableFields).map(([field, locked]) => (
+          <div key={field} className={`flex items-center justify-between p-2.5 rounded-xl ${locked ? 'bg-rose-50 border border-rose-200' : theme.secondaryBg} transition-all`}>
+            <div className="flex items-center gap-2.5 flex-1">
+              {locked ? <Lock size={12} className="text-rose-500 shrink-0" /> : <Circle size={12} className="text-slate-300 shrink-0" />}
+              <div>
+                <span className={`text-xs font-medium ${theme.highlight}`}>{field}</span>
+                <p className={`text-[10px] ${theme.iconColor}`}>{fieldDescriptions[field]}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setLockableFields(p => ({ ...p, [field]: !p[field] }))}
+              className={`w-9 h-5 rounded-full relative transition-colors ${locked ? 'bg-rose-500' : 'bg-gray-300'}`}
+            >
+              <div className={`w-4 h-4 bg-white rounded-full absolute top-0.5 transition-transform ${locked ? 'translate-x-4' : 'translate-x-0.5'}`} />
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* Info Note */}
+      <div className="mt-4 flex items-start gap-2 p-3 rounded-xl bg-rose-50 border border-rose-200">
+        <Info size={14} className="text-rose-500 mt-0.5 shrink-0" />
+        <p className="text-[10px] text-rose-700">
+          Locked fields show <span className="font-bold">&#x1f512;</span> in SSA dashboard. Changes require OTP verification from <strong>{authRole}</strong>.
+          The {authRole} will receive a 6-digit OTP on their registered phone/email before any locked field can be modified.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 // ─── STEP 5: REVIEW & LAUNCH ─────────────────────────
 function Step9Review({ theme, goToStep }: { theme: Theme; goToStep: (s: number) => void }) {
   const [checklist, setChecklist] = useState<Record<string, boolean>>({
@@ -3096,6 +3231,53 @@ function Step9Review({ theme, goToStep }: { theme: Theme; goToStep: (s: number) 
         </div>
       </div>
 
+      {/* Master Registered Contact — REQUIRED */}
+      <div className={`${theme.cardBg} rounded-2xl border-2 border-rose-300 p-4`}>
+        <SectionTitle title="Master Registered Contact" subtitle="REQUIRED — Used for OTP verification (locked fields), SSA credential recovery, and password resets" theme={theme} />
+        <div className="bg-rose-50 border border-rose-200 rounded-xl p-3 mb-4 flex items-start gap-2">
+          <Lock size={14} className="text-rose-500 mt-0.5 shrink-0" />
+          <p className="text-[10px] text-rose-700">
+            This contact <strong>cannot be changed</strong> without Super Admin (Saaras) approval. It is the school&apos;s ultimate recovery key &mdash; used for changing locked SSA fields, resetting SSA/Admin passwords, and emergency account access. Typically the <strong>Trustee or Chairman&apos;s</strong> personal contact.
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1`}>Master Email ID <span className="text-red-500">*</span></p>
+            <input type="email" defaultValue="chairman@dpstrust.org" placeholder="trustee@school.edu" className={`w-full px-3 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none focus:ring-2 focus:ring-rose-300 ${theme.highlight}`} />
+            <p className={`text-[9px] ${theme.iconColor} mt-1`}>Receives OTPs, password reset links, and security alerts</p>
+          </div>
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1`}>Master Mobile Number <span className="text-red-500">*</span></p>
+            <div className="flex items-center gap-1">
+              <span className={`text-xs ${theme.iconColor} px-2 py-2.5 rounded-l-xl border ${theme.border} ${theme.inputBg}`}>+91</span>
+              <input type="tel" defaultValue="98765 00001" placeholder="98765 43210" className={`flex-1 px-3 py-2.5 rounded-r-xl border ${theme.border} ${theme.inputBg} text-sm outline-none focus:ring-2 focus:ring-rose-300 ${theme.highlight}`} />
+            </div>
+            <p className={`text-[9px] ${theme.iconColor} mt-1`}>Receives OTPs for locked field changes and 2FA</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3 mt-3">
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1`}>Contact Person Name <span className="text-red-500">*</span></p>
+            <input type="text" defaultValue="" placeholder="Mr. Rajesh Patel (Chairman)" className={`w-full px-3 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none focus:ring-2 focus:ring-rose-300 ${theme.highlight}`} />
+          </div>
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1`}>Role / Designation <span className="text-red-500">*</span></p>
+            <select defaultValue="Chairman" className={`w-full px-3 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none focus:ring-2 focus:ring-rose-300 ${theme.highlight}`}>
+              <option>Chairman</option>
+              <option>Trustee</option>
+              <option>Principal</option>
+              <option>Managing Director</option>
+              <option>Secretary</option>
+            </select>
+            <p className={`text-[9px] ${theme.iconColor} mt-1`}>This person authenticates all critical SSA changes</p>
+          </div>
+        </div>
+        <div className={`mt-3 p-2.5 rounded-xl ${theme.secondaryBg} flex items-center gap-2`}>
+          <CheckCircle size={12} className="text-rose-500 shrink-0" />
+          <p className={`text-[10px] ${theme.iconColor}`}><strong>Used for:</strong> Locked field OTP verification &middot; SSA password reset &middot; Admin password reset &middot; Emergency account recovery &middot; Security alerts</p>
+        </div>
+      </div>
+
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
         <SectionTitle title="School Admin Credentials" subtitle="Auto-generated login for the School Admin dashboard" theme={theme} />
         <div className="grid grid-cols-2 gap-3">
@@ -3149,6 +3331,9 @@ function Step9Review({ theme, goToStep }: { theme: Theme; goToStep: (s: number) 
         </div>
         <p className={`text-[10px] ${theme.iconColor} mt-2`}>{checkDone} / {Object.keys(checklist).length} completed</p>
       </div>
+
+      {/* ── CRITICAL FIELD LOCKS (Optional) ── */}
+      <CriticalFieldLocksSection theme={theme} />
 
       <div className="flex items-center justify-between">
         <div className="flex gap-2">

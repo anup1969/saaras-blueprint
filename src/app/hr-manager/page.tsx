@@ -121,10 +121,10 @@ function DashboardModule({ theme, setActive }: { theme: Theme; setActive: (s: st
         </div>
         <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
           <h3 className={`font-semibold mb-3 ${theme.highlight}`}>Department Strength</h3>
-          {[{ n: 'Teaching', c: 68 }, { n: 'Admin', c: 22 }, { n: 'Transport', c: 18 }].map((d) => (
+          {[{ n: 'Teaching-Primary', c: 22 }, { n: 'Teaching-Secondary', c: 24 }, { n: 'Teaching-Senior', c: 22 }, { n: 'Administration', c: 12 }, { n: 'Accounts', c: 6 }, { n: 'IT', c: 4 }, { n: 'Transport', c: 18 }, { n: 'Housekeeping', c: 10 }, { n: 'Security', c: 12 }, { n: 'Library', c: 4 }, { n: 'Lab', c: 8 }].map((d) => (
             <div key={d.n} className="flex items-center gap-2 mb-2">
               <span className={`text-xs w-16 ${theme.iconColor}`}>{d.n}</span>
-              <div className={`flex-1 ${theme.secondaryBg} rounded-full h-2`}><div className={`${theme.primary} h-2 rounded-full`} style={{ width: (d.c / 68) * 100 + '%' }} /></div>
+              <div className={`flex-1 ${theme.secondaryBg} rounded-full h-2`}><div className={`${theme.primary} h-2 rounded-full`} style={{ width: (d.c / 24) * 100 + '%' }} /></div>
               <span className={`text-xs w-6 ${theme.highlight}`}>{d.c}</span>
             </div>
           ))}
@@ -263,6 +263,7 @@ function AttendanceModule({ theme }: { theme: Theme }) {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center"><h1 className={`text-xl font-bold ${theme.highlight}`}>Attendance</h1><button className={`px-3 py-2 ${theme.primary} text-white rounded-lg text-sm`}>Mark Attendance</button></div>
+      <p className="text-[10px] text-amber-600 mb-2">📋 Staff attendance methods: Biometric + Mobile App · Geo-fencing: OFF — per SSA config</p>
       <div className="grid grid-cols-4 gap-3"><SC icon={Users} label="Total" value="142" color="bg-indigo-600" theme={theme} /><SC icon={CheckCircle} label="Present" value="128" color="bg-emerald-500" theme={theme} /><SC icon={Calendar} label="Leave" value="8" color="bg-amber-500" theme={theme} /><SC icon={XCircle} label="Absent" value="6" color="bg-red-500" theme={theme} /></div>
       <div className={`${theme.cardBg} rounded-xl border ${theme.border} overflow-hidden`}>
         <table className="w-full text-sm"><thead><tr className={theme.secondaryBg}><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Employee</th><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Dept</th><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Check In</th><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Check Out</th><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Status</th></tr></thead>
@@ -282,6 +283,7 @@ function LeaveModule({ theme }: { theme: Theme }) {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center"><h1 className={`text-xl font-bold ${theme.highlight}`}>Leave Management</h1><button onClick={() => setShowModal(true)} className={`px-3 py-2 ${theme.primary} text-white rounded-lg text-sm`}>Apply Leave</button></div>
+      <p className="text-[10px] text-amber-600 mb-2">📋 Leave policy from SSA: Approval chain HOD→VP→Principal · Sandwich rule ON · LWP after 3 days</p>
       <div className={`${theme.cardBg} rounded-xl border ${theme.border} overflow-hidden`}>
         <div className={`p-3 border-b ${theme.border} flex gap-2`}>{filters.map((f, i) => <button key={f} onClick={() => setFilter(i)} className={`px-3 py-1 text-xs rounded-full font-bold ${i === filter ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.iconColor}`}`}>{f}</button>)}</div>
         <table className="w-full text-sm"><thead><tr className={theme.secondaryBg}><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Employee</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Type</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>From</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>To</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Days</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Status</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Actions</th></tr></thead>
@@ -298,6 +300,7 @@ function PayrollModule({ theme }: { theme: Theme }) {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center"><h1 className={`text-xl font-bold ${theme.highlight}`}>Payroll</h1><div className="flex gap-2"><div className={`flex items-center gap-1 border ${theme.border} rounded-lg px-2 py-1 ${theme.highlight}`}><ChevronLeft size={14} /><span className="text-sm">Jan 2026</span><ChevronRight size={14} /></div><button className={`px-3 py-2 ${theme.primary} text-white rounded-lg text-sm`}>Process Payroll</button></div></div>
+      <p className="text-[10px] text-amber-600 mb-2">📋 Salary structure from SSA: Basic 40%, HRA 20%, DA 15%, TA 5%, SA 10% · Pay cycle: Monthly (last working day)</p>
       <div className="grid grid-cols-4 gap-3"><SC icon={Banknote} label="Total Payroll" value={'₹'+fmt(2845000)} color="bg-indigo-600" theme={theme} /><SC icon={MinusCircle} label="Deductions" value={'₹'+fmt(412000)} color="bg-red-500" theme={theme} /><SC icon={Wallet} label="Net Payout" value={'₹'+fmt(2433000)} color="bg-emerald-500" theme={theme} /><SC icon={Users} label="Employees" value="142" color="bg-blue-500" theme={theme} /></div>
       <div className={`${theme.cardBg} rounded-xl border ${theme.border} overflow-x-auto`}>
         <table className="w-full text-sm"><thead><tr className={theme.secondaryBg}><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Employee</th><th className={`p-3 text-right text-xs font-bold ${theme.iconColor}`}>Basic</th><th className={`p-3 text-right text-xs font-bold ${theme.iconColor}`}>Gross</th><th className={`p-3 text-right text-xs font-bold ${theme.iconColor}`}>Deductions</th><th className={`p-3 text-right text-xs font-bold ${theme.iconColor}`}>Net</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Status</th></tr></thead>
@@ -319,7 +322,7 @@ function PerformanceModule({ theme }: { theme: Theme }) {
       </div>
       <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
         <h4 className={`font-medium mb-3 ${theme.highlight}`}>Department Completion</h4>
-        {[{ n: 'Teaching', s: 45, t: 68 }, { n: 'Admin', s: 18, t: 22 }, { n: 'Transport', s: 10, t: 18 }, { n: 'Security', s: 6, t: 12 }].map((d) => <div key={d.n} className="flex items-center gap-3 mb-2"><span className={`text-sm w-20 ${theme.iconColor}`}>{d.n}</span><div className={`flex-1 h-2 ${theme.secondaryBg} rounded-full`}><div className={`h-2 ${theme.primary} rounded-full`} style={{ width: (d.s / d.t) * 100 + '%' }} /></div><span className={`text-sm w-20 ${theme.highlight}`}>{d.s}/{d.t}</span></div>)}
+        {[{ n: 'Administration', s: 10, t: 12 }, { n: 'Teaching-Primary', s: 18, t: 22 }, { n: 'Teaching-Secondary', s: 20, t: 24 }, { n: 'Teaching-Senior', s: 18, t: 22 }, { n: 'Accounts', s: 5, t: 6 }, { n: 'IT', s: 3, t: 4 }, { n: 'Transport', s: 10, t: 18 }, { n: 'Housekeeping', s: 6, t: 10 }, { n: 'Security', s: 6, t: 12 }, { n: 'Library', s: 3, t: 4 }, { n: 'Lab', s: 6, t: 8 }].map((d) => <div key={d.n} className="flex items-center gap-3 mb-2"><span className={`text-sm w-32 ${theme.iconColor}`}>{d.n}</span><div className={`flex-1 h-2 ${theme.secondaryBg} rounded-full`}><div className={`h-2 ${theme.primary} rounded-full`} style={{ width: (d.s / d.t) * 100 + '%' }} /></div><span className={`text-sm w-20 ${theme.highlight}`}>{d.s}/{d.t}</span></div>)}
       </div>
     </div>
   );
@@ -359,12 +362,12 @@ function OffboardingModule({ theme }: { theme: Theme }) {
 
 // ─── REPORTS ──────────────────────────────────────────
 function ReportsModule({ theme }: { theme: Theme }) {
-  const depts = [{ n: 'Teaching', v: 68, c: '#6366F1' }, { n: 'Admin', v: 22, c: '#3B82F6' }, { n: 'Transport', v: 18, c: '#F59E0B' }, { n: 'Security', v: 12, c: '#EF4444' }, { n: 'Support', v: 15, c: '#6B7280' }];
+  const depts = [{ n: 'Administration', v: 12, c: '#6366F1' }, { n: 'Teaching-Primary', v: 22, c: '#818CF8' }, { n: 'Teaching-Secondary', v: 24, c: '#3B82F6' }, { n: 'Teaching-Senior', v: 22, c: '#60A5FA' }, { n: 'Accounts', v: 6, c: '#10B981' }, { n: 'IT', v: 4, c: '#14B8A6' }, { n: 'Transport', v: 18, c: '#F59E0B' }, { n: 'Housekeeping', v: 10, c: '#8B5CF6' }, { n: 'Security', v: 12, c: '#EF4444' }, { n: 'Library', v: 4, c: '#F97316' }, { n: 'Lab', v: 8, c: '#6B7280' }];
   return (
     <div className="space-y-4">
       <h1 className={`text-xl font-bold ${theme.highlight}`}>Reports &amp; Analytics</h1>
       <div className="grid grid-cols-2 gap-4">
-        <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}><h4 className={`font-medium mb-3 ${theme.highlight}`}>Department Distribution</h4>{depts.map((d) => <div key={d.n} className="flex items-center gap-2 mb-2"><div className="w-3 h-3 rounded" style={{ backgroundColor: d.c }} /><span className={`text-sm flex-1 ${theme.highlight}`}>{d.n}</span><div className={`w-24 h-2 ${theme.secondaryBg} rounded-full`}><div className="h-2 rounded-full" style={{ width: (d.v / 68) * 100 + '%', backgroundColor: d.c }} /></div><span className={`text-sm w-6 ${theme.highlight}`}>{d.v}</span></div>)}</div>
+        <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}><h4 className={`font-medium mb-3 ${theme.highlight}`}>Department Distribution</h4>{depts.map((d) => <div key={d.n} className="flex items-center gap-2 mb-2"><div className="w-3 h-3 rounded" style={{ backgroundColor: d.c }} /><span className={`text-sm flex-1 ${theme.highlight}`}>{d.n}</span><div className={`w-24 h-2 ${theme.secondaryBg} rounded-full`}><div className="h-2 rounded-full" style={{ width: (d.v / 24) * 100 + '%', backgroundColor: d.c }} /></div><span className={`text-sm w-6 ${theme.highlight}`}>{d.v}</span></div>)}</div>
         <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}><h4 className={`font-medium mb-3 ${theme.highlight}`}>Gender Diversity</h4><div className="flex items-center justify-center gap-6 py-4"><div className="text-center"><p className="text-2xl font-bold text-indigo-400">58%</p><p className={`text-sm ${theme.iconColor}`}>Male</p></div><div className="w-20 h-20 rounded-full border-8 border-indigo-500" style={{ borderRightColor: '#10B981', borderBottomColor: '#10B981' }} /><div className="text-center"><p className="text-2xl font-bold text-emerald-400">42%</p><p className={`text-sm ${theme.iconColor}`}>Female</p></div></div></div>
       </div>
       <div className="grid grid-cols-4 gap-4">{['Muster Roll', 'Staff Directory', 'Salary Statement', 'Leave Report'].map((r) => <div key={r} className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}><h5 className={`font-medium mb-2 ${theme.highlight}`}>{r}</h5><p className={`text-xs ${theme.iconColor} mb-3`}>Generate detailed {r.toLowerCase()}</p><button className={`w-full py-2 ${theme.primary} text-white rounded-lg text-sm font-bold`}>Generate</button></div>)}</div>
@@ -375,11 +378,11 @@ function ReportsModule({ theme }: { theme: Theme }) {
 // ─── SETTINGS (7 sub-sections) ────────────────────────
 function SettingsModule({ theme }: { theme: Theme }) {
   const [section, setSection] = useState('general');
-  const [selectedDept, setSelectedDept] = useState('Teaching');
+  const [selectedDept, setSelectedDept] = useState('Administration');
   const navItems = [{ id: 'general', icon: Settings, label: 'General' }, { id: 'employee', icon: Users, label: 'Employee Info' }, { id: 'attendance', icon: Clock, label: 'Attendance' }, { id: 'leave', icon: Calendar, label: 'Leave Tracker' }, { id: 'workflows', icon: GitBranch, label: 'Workflows' }, { id: 'approvals', icon: Shield, label: 'Approvals' }, { id: 'notifications', icon: Bell, label: 'Notifications' }];
-  const departments = [{ n: 'Teaching', c: 68 }, { n: 'Administration', c: 22 }, { n: 'Transport', c: 18 }, { n: 'Security', c: 12 }, { n: 'Support Staff', c: 15 }, { n: 'Lab & Library', c: 7 }];
-  const designations: Record<string, string[]> = { Teaching: ['Principal', 'Vice Principal', 'HOD', 'PGT', 'TGT', 'PRT'], Administration: ['Admin Head', 'Accountant', 'Office Assistant'], Transport: ['Driver', 'Helper'], Security: ['Security Guard'], 'Support Staff': ['Peon', 'Sweeper'], 'Lab & Library': ['Lab Assistant', 'Librarian'] };
-  const leaves = [{ t: 'Casual Leave', p: 'Paid', d: '12', cf: 'No', e: 'No', a: 'All' }, { t: 'Earned Leave', p: 'Paid', d: '12', cf: 'Yes', e: 'Yes', a: 'Confirmed' }, { t: 'Sick Leave', p: 'Paid', d: '12', cf: 'No', e: 'No', a: 'All' }, { t: 'Maternity', p: 'Paid', d: '180', cf: 'No', e: 'No', a: 'Female' }, { t: 'Paternity', p: 'Paid', d: '15', cf: 'No', e: 'No', a: 'Male' }, { t: 'LWP', p: 'Unpaid', d: '∞', cf: 'No', e: 'No', a: 'All' }];
+  const departments = [{ n: 'Administration', c: 12 }, { n: 'Teaching-Primary', c: 22 }, { n: 'Teaching-Secondary', c: 24 }, { n: 'Teaching-Senior', c: 22 }, { n: 'Accounts', c: 6 }, { n: 'IT', c: 4 }, { n: 'Transport', c: 18 }, { n: 'Housekeeping', c: 10 }, { n: 'Security', c: 12 }, { n: 'Library', c: 4 }, { n: 'Lab', c: 8 }];
+  const designations: Record<string, string[]> = { Administration: ['Principal', 'Vice Principal', 'Peon'], 'Teaching-Primary': ['PRT', 'HOD'], 'Teaching-Secondary': ['TGT', 'HOD'], 'Teaching-Senior': ['PGT', 'HOD'], Accounts: ['Accountant'], IT: ['IT Support'], Transport: ['Driver'], Housekeeping: ['Peon', 'Sweeper', 'Helper'], Security: ['Security Guard'], Library: ['Librarian'], Lab: ['Lab Assistant'] };
+  const leaves = [{ t: 'Casual Leave', p: 'Paid', d: '12', cf: 'No', e: 'No', a: 'All' }, { t: 'Earned Leave', p: 'Paid', d: '15', cf: 'Yes', e: 'Yes', a: 'Confirmed' }, { t: 'Sick Leave', p: 'Paid', d: '10', cf: 'No', e: 'No', a: 'All' }, { t: 'Maternity', p: 'Paid', d: '180', cf: 'No', e: 'No', a: 'Female' }, { t: 'Paternity', p: 'Paid', d: '15', cf: 'No', e: 'No', a: 'Male' }, { t: 'LWP', p: 'Unpaid', d: '∞', cf: 'No', e: 'No', a: 'All' }];
   const holidays = [{ d: '26-Jan-2026', n: 'Republic Day' }, { d: '14-Mar-2026', n: 'Holi' }, { d: '14-Apr-2026', n: 'Ambedkar Jayanti' }, { d: '15-Aug-2026', n: 'Independence Day' }, { d: '02-Oct-2026', n: 'Gandhi Jayanti' }, { d: '20-Oct-2026', n: 'Dussehra' }, { d: '08-Nov-2026', n: 'Diwali' }, { d: '25-Dec-2026', n: 'Christmas' }];
   const shifts = [{ n: 'Morning', s: '7:00 AM', e: '2:00 PM', a: 'Teaching' }, { n: 'Regular', s: '9:00 AM', e: '6:00 PM', a: 'Admin' }, { n: 'Night', s: '10:00 PM', e: '6:00 AM', a: 'Security' }];
   const workflows = [{ n: 'New Employee', f: 'Employee', t: 'On Create', a: 'Mail HR' }, { n: 'Leave Applied', f: 'Leave', t: 'On Create', a: 'Mail Manager' }, { n: 'Leave Approved', f: 'Leave', t: 'On Approval', a: 'Mail Employee' }, { n: 'Absent Marked', f: 'Attendance', t: 'Auto', a: 'Mail Employee' }];

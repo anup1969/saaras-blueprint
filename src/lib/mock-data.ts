@@ -38,9 +38,12 @@ export const feeStructure = [
 ];
 
 export const mockRoutes = [
-  { id: 'R1', name: 'North City', driver: 'Mohammed Irfan', vehicle: 'GJ-01-AB-1234', students: 35, stops: 8 },
-  { id: 'R2', name: 'South Zone', driver: 'Ramesh Yadav', vehicle: 'GJ-01-CD-5678', students: 28, stops: 6 },
-  { id: 'R3', name: 'East Side', driver: 'Kamal Patel', vehicle: 'GJ-01-EF-9012', students: 42, stops: 10 },
+  { id: 'RT-001', name: 'Route A', driver: 'Ramesh Kumar', vehicle: 'GJ-01-AB-1234', students: 38, stops: 8, status: 'Active' },
+  { id: 'RT-002', name: 'Route B', driver: 'Suresh Patel', vehicle: 'GJ-01-CD-5678', students: 46, stops: 12, status: 'Active' },
+  { id: 'RT-003', name: 'Route C', driver: 'Mahesh Singh', vehicle: 'GJ-01-EF-9012', students: 28, stops: 6, status: 'Active' },
+  { id: 'RT-004', name: 'Route D', driver: 'Jayesh Patel', vehicle: 'GJ-01-GH-3456', students: 38, stops: 7, status: 'Active' },
+  { id: 'RT-005', name: 'Route E', driver: 'Dinesh Raval', vehicle: 'GJ-01-IJ-7890', students: 28, stops: 5, status: 'Active' },
+  { id: 'RT-006', name: 'Route F', driver: 'Prakash Bhatt', vehicle: 'GJ-01-KL-2345', students: 44, stops: 9, status: 'Active' },
 ];
 
 export const mockVisitors = [
