@@ -284,6 +284,9 @@ function FeeConfigModule({ theme }: { theme: Theme }) {
     { type: 'EWS Quota', method: 'percentage', value: '100' },
     { type: 'Single Parent', method: 'fixed', value: '5000' },
   ]);
+  const [concessionApprovalRequired, setConcessionApprovalRequired] = useState(true);
+  const [concessionApprovalChain] = useState(['Accounts Officer', 'Principal', 'Trust / Management']);
+  const [maxConcessionWithoutApproval, setMaxConcessionWithoutApproval] = useState('5000');
   const [blockRules, setBlockRules] = useState<Record<string, boolean>>({
     'Block report card if fees overdue > 60 days': true,
     'Block TC generation if outstanding > 0': true,
@@ -471,6 +474,38 @@ function FeeConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
+      <SectionCard title="Concession Approval Workflow" subtitle="Require approval before applying fee concessions" theme={theme}>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Concession Approval Required</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>All concessions must go through approval chain</p>
+            </div>
+            <SSAToggle on={concessionApprovalRequired} onChange={() => setConcessionApprovalRequired(!concessionApprovalRequired)} theme={theme} />
+          </div>
+          {concessionApprovalRequired && (
+            <>
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Approval Chain</p>
+                <div className="space-y-1.5">
+                  {concessionApprovalChain.map((step, i) => (
+                    <div key={i} className={`flex items-center gap-3 p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                      <span className={`text-[10px] w-6 h-6 rounded-full ${theme.primary} text-white flex items-center justify-center font-bold shrink-0`}>{i + 1}</span>
+                      <span className={`text-xs font-bold ${theme.highlight} flex-1`}>{step}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Max Concession Without Approval ({'\u20B9'})</p>
+                <InputField value={maxConcessionWithoutApproval} onChange={setMaxConcessionWithoutApproval} theme={theme} type="number" placeholder="e.g. 5000" />
+                <p className={`text-[10px] ${theme.iconColor} mt-1`}>Concessions below this amount are auto-approved</p>
+              </div>
+            </>
+          )}
+        </div>
+      </SectionCard>
+
       <SectionCard title="Fee Defaulter Blocking Rules" subtitle="Actions when fees are overdue" theme={theme}>
         <div className="space-y-2">
           {Object.entries(blockRules).map(([rule, enabled]) => (
@@ -521,11 +556,16 @@ function AcademicConfigModule({ theme }: { theme: Theme }) {
     'Class 7': ['A', 'B', 'C'], 'Class 8': ['A', 'B'], 'Class 9': ['A', 'B', 'C'],
     'Class 10': ['A', 'B', 'C'], 'Class 11': ['A', 'B'], 'Class 12': ['A', 'B'],
   });
-  const [houses] = useState([
-    { name: 'Red House', color: 'bg-red-500', captain: 'Aarav Sharma' },
-    { name: 'Blue House', color: 'bg-blue-500', captain: 'Priya Patel' },
-    { name: 'Green House', color: 'bg-emerald-500', captain: 'Rohan Kumar' },
-    { name: 'Yellow House', color: 'bg-amber-500', captain: 'Ananya Singh' },
+  const [preschoolGroups, setPreschoolGroups] = useState([
+    { ageLevel: 'Nursery (2-3 yrs)', groupName: 'Butterflies', maxChildren: '20' },
+    { ageLevel: 'Jr. KG (3-4 yrs)', groupName: 'Sunshine', maxChildren: '22' },
+    { ageLevel: 'Sr. KG (4-5 yrs)', groupName: 'Explorers', maxChildren: '25' },
+  ]);
+  const [houses, setHouses] = useState([
+    { name: 'Red House', color: 'bg-red-500', captain: 'Aarav Sharma', mascot: 'Phoenix' },
+    { name: 'Blue House', color: 'bg-blue-500', captain: 'Priya Patel', mascot: 'Dolphin' },
+    { name: 'Green House', color: 'bg-emerald-500', captain: 'Rohan Kumar', mascot: 'Eagle' },
+    { name: 'Yellow House', color: 'bg-amber-500', captain: 'Ananya Singh', mascot: 'Tiger' },
   ]);
   const [holidays] = useState([
     { date: '26 Jan', name: 'Republic Day', type: 'National' },
@@ -596,16 +636,49 @@ function AcademicConfigModule({ theme }: { theme: Theme }) {
       </SectionCard>
 
       <SectionCard title="House System" subtitle="School houses for inter-house activities" theme={theme}>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {houses.map(h => (
-            <div key={h.name} className={`p-3 rounded-xl ${theme.secondaryBg} flex items-center gap-2`}>
-              <div className={`w-8 h-8 rounded-lg ${h.color} flex items-center justify-center text-white text-xs font-bold`}>{h.name[0]}</div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
+          {houses.map((h, i) => (
+            <div key={h.name} className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+              <div className="flex items-center gap-2 mb-2">
+                <div className={`w-8 h-8 rounded-lg ${h.color} flex items-center justify-center text-white text-xs font-bold shrink-0`}>{h.name[0]}</div>
+                <div>
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{h.name}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>Captain: {h.captain}</p>
+                </div>
+              </div>
               <div>
-                <p className={`text-xs font-bold ${theme.highlight}`}>{h.name}</p>
-                <p className={`text-[10px] ${theme.iconColor}`}>Captain: {h.captain}</p>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Mascot</p>
+                <input value={h.mascot} onChange={e => { const n = [...houses]; n[i] = { ...n[i], mascot: e.target.value }; setHouses(n); }}
+                  className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}
+                  placeholder="e.g. Phoenix" />
               </div>
             </div>
           ))}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Preschool Groups" subtitle="Age-based group names and capacity (for preschool wings)" theme={theme}>
+        <div className="space-y-2">
+          {preschoolGroups.map((g, i) => (
+            <div key={i} className={`flex items-center gap-3 p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <span className={`text-xs font-bold ${theme.highlight} w-32 shrink-0`}>{g.ageLevel}</span>
+              <div className="flex-1">
+                <p className={`text-[10px] ${theme.iconColor} mb-0.5`}>Group Name</p>
+                <input value={g.groupName} onChange={e => { const n = [...preschoolGroups]; n[i] = { ...n[i], groupName: e.target.value }; setPreschoolGroups(n); }}
+                  className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}
+                  placeholder="e.g. Butterflies" />
+              </div>
+              <div className="w-24">
+                <p className={`text-[10px] ${theme.iconColor} mb-0.5`}>Max Children</p>
+                <input type="number" value={g.maxChildren} onChange={e => { const n = [...preschoolGroups]; n[i] = { ...n[i], maxChildren: e.target.value }; setPreschoolGroups(n); }}
+                  className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none`} />
+              </div>
+            </div>
+          ))}
+          <button onClick={() => setPreschoolGroups(p => [...p, { ageLevel: '', groupName: '', maxChildren: '20' }])}
+            className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
+            <Plus size={12} /> Add Group
+          </button>
         </div>
       </SectionCard>
 
@@ -810,6 +883,8 @@ function TransportConfigModule({ theme }: { theme: Theme }) {
     'Only registered guardians can pick up': true, 'OTP verification for pickup': true,
     'Photo verification at gate': false, 'Pre-registration for non-guardian pickup': true,
   });
+  const [commuteTagging, setCommuteTagging] = useState(true);
+  const [defaultCommuteMode, setDefaultCommuteMode] = useState('School Bus');
 
   return (
     <div className="space-y-4">
@@ -932,6 +1007,24 @@ function TransportConfigModule({ theme }: { theme: Theme }) {
           </SectionCard>
         </div>
       </div>
+
+      <SectionCard title="Student Commute Tagging" subtitle="Tag how each student commutes to school" theme={theme}>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Tag Students as Walk-in / Transport</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Enables commute-mode field on each student profile</p>
+            </div>
+            <SSAToggle on={commuteTagging} onChange={() => setCommuteTagging(!commuteTagging)} theme={theme} />
+          </div>
+          {commuteTagging && (
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Default Commute Mode</p>
+              <SelectField options={['Walk-in', 'School Bus', 'Private Vehicle']} value={defaultCommuteMode} onChange={setDefaultCommuteMode} theme={theme} />
+            </div>
+          )}
+        </div>
+      </SectionCard>
     </div>
   );
 }
@@ -954,6 +1047,11 @@ function AttendanceConfigModule({ theme }: { theme: Theme }) {
     'Alert principal if attendance < 75%': true,
     'Auto-mark absent if not marked by 10 AM': false,
   });
+  const [attendanceTypes, setAttendanceTypes] = useState<Record<string, boolean>>({
+    'Present': true, 'Absent': true, 'Late': true, 'Half-Day': true,
+    'Medical Leave': true, 'On-Duty': true, 'Excused': false,
+  });
+  const [allowCustomAttendanceTypes, setAllowCustomAttendanceTypes] = useState(false);
 
   return (
     <div className="space-y-4">
@@ -1002,6 +1100,24 @@ function AttendanceConfigModule({ theme }: { theme: Theme }) {
               <SSAToggle on={enabled} onChange={() => setAutoNotify(p => ({ ...p, [rule]: !p[rule] }))} theme={theme} />
             </div>
           ))}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Attendance Types" subtitle="Named attendance statuses available to teachers" theme={theme}>
+        <div className="space-y-2">
+          {Object.entries(attendanceTypes).map(([type, enabled]) => (
+            <div key={type} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <span className={`text-xs ${theme.highlight}`}>{type}</span>
+              <SSAToggle on={enabled} onChange={() => setAttendanceTypes(p => ({ ...p, [type]: !p[type] }))} theme={theme} />
+            </div>
+          ))}
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Allow Custom Types</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Let school admins define additional attendance statuses</p>
+            </div>
+            <SSAToggle on={allowCustomAttendanceTypes} onChange={() => setAllowCustomAttendanceTypes(!allowCustomAttendanceTypes)} theme={theme} />
+          </div>
         </div>
       </SectionCard>
     </div>
@@ -1287,6 +1403,9 @@ function TimetableConfigModule({ theme }: { theme: Theme }) {
   const [zeroPeriod, setZeroPeriod] = useState(false);
   const [zeroPeriodTime, setZeroPeriodTime] = useState({ start: '07:00', end: '07:30' });
   const [assemblyTime, setAssemblyTime] = useState('15');
+  const [substitutionMode, setSubstitutionMode] = useState('Both');
+  const [substitutionBasis, setSubstitutionBasis] = useState('Both');
+  const [allowPeriodSwaps, setAllowPeriodSwaps] = useState(true);
 
   return (
     <div className="space-y-4">
@@ -1351,6 +1470,33 @@ function TimetableConfigModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
       </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <SectionCard title="Teacher Substitution" subtitle="How absent teacher periods are handled" theme={theme}>
+          <div className="space-y-3">
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Substitution Mode</p>
+              <SelectField options={['Manual', 'Auto-suggest', 'Both']} value={substitutionMode} onChange={setSubstitutionMode} theme={theme} />
+            </div>
+            {(substitutionMode === 'Auto-suggest' || substitutionMode === 'Both') && (
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Auto-suggest Based On</p>
+                <SelectField options={['Free periods', 'Subject match', 'Both']} value={substitutionBasis} onChange={setSubstitutionBasis} theme={theme} />
+              </div>
+            )}
+          </div>
+        </SectionCard>
+
+        <SectionCard title="Period Swaps" subtitle="Teacher-initiated period exchange" theme={theme}>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Allow Teachers to Swap Periods</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Teachers can request mutual period swaps for a given day</p>
+            </div>
+            <SSAToggle on={allowPeriodSwaps} onChange={() => setAllowPeriodSwaps(!allowPeriodSwaps)} theme={theme} />
+          </div>
+        </SectionCard>
+      </div>
     </div>
   );
 }
@@ -1371,6 +1517,10 @@ function LeaveConfigModule({ theme }: { theme: Theme }) {
     { level: 1, approver: 'HOD / Coordinator', timeLimit: '24 hours' },
     { level: 2, approver: 'Vice Principal', timeLimit: '48 hours' },
     { level: 3, approver: 'Principal', timeLimit: '72 hours' },
+  ]);
+  const [nonTeachingApprovalChain] = useState([
+    { level: 1, approver: 'Department Head / Supervisor', timeLimit: '24 hours' },
+    { level: 2, approver: 'Admin Officer', timeLimit: '48 hours' },
   ]);
   const [maxConsecutive, setMaxConsecutive] = useState('5');
   const [lwpThreshold, setLwpThreshold] = useState('3');
@@ -1439,19 +1589,35 @@ function LeaveConfigModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
 
-        <SectionCard title="Approval Chain" subtitle="Multi-level leave approval workflow" theme={theme}>
-          <div className="space-y-2">
-            {approvalChain.map((a, i) => (
-              <div key={i} className={`flex items-center gap-3 p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <span className={`text-[10px] w-6 h-6 rounded-full ${theme.primary} text-white flex items-center justify-center font-bold`}>{a.level}</span>
-                <div className="flex-1">
-                  <p className={`text-xs font-bold ${theme.highlight}`}>{a.approver}</p>
-                  <p className={`text-[10px] ${theme.iconColor}`}>Must respond within {a.timeLimit}</p>
+        <div className="space-y-4">
+          <SectionCard title="Teaching Staff Approval Chain" subtitle="Leave approval workflow for teaching staff" theme={theme}>
+            <div className="space-y-2">
+              {approvalChain.map((a, i) => (
+                <div key={i} className={`flex items-center gap-3 p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                  <span className={`text-[10px] w-6 h-6 rounded-full ${theme.primary} text-white flex items-center justify-center font-bold`}>{a.level}</span>
+                  <div className="flex-1">
+                    <p className={`text-xs font-bold ${theme.highlight}`}>{a.approver}</p>
+                    <p className={`text-[10px] ${theme.iconColor}`}>Must respond within {a.timeLimit}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </SectionCard>
+              ))}
+            </div>
+          </SectionCard>
+
+          <SectionCard title="Non-Teaching Staff Approval Chain" subtitle="Leave approval workflow for non-teaching staff" theme={theme}>
+            <div className="space-y-2">
+              {nonTeachingApprovalChain.map((a, i) => (
+                <div key={i} className={`flex items-center gap-3 p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                  <span className={`text-[10px] w-6 h-6 rounded-full ${theme.primary} text-white flex items-center justify-center font-bold`}>{a.level}</span>
+                  <div className="flex-1">
+                    <p className={`text-xs font-bold ${theme.highlight}`}>{a.approver}</p>
+                    <p className={`text-[10px] ${theme.iconColor}`}>Must respond within {a.timeLimit}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </SectionCard>
+        </div>
       </div>
     </div>
   );
@@ -1471,6 +1637,8 @@ function VisitorConfigModule({ theme }: { theme: Theme }) {
   });
   const [restrictedHours, setRestrictedHours] = useState({ start: '11:00', end: '12:00' });
   const [maxVisitDuration, setMaxVisitDuration] = useState('60');
+  const [cctvParentAccess, setCctvParentAccess] = useState(false);
+  const [cctvRetentionDays, setCctvRetentionDays] = useState('30');
 
   return (
     <div className="space-y-4">
@@ -1522,6 +1690,22 @@ function VisitorConfigModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
       </div>
+
+      <SectionCard title="Campus CCTV" subtitle="Parent access and recording settings for campus cameras" theme={theme}>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Live CCTV Access for Parents</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Parents can view designated campus camera feeds via app</p>
+            </div>
+            <SSAToggle on={cctvParentAccess} onChange={() => setCctvParentAccess(!cctvParentAccess)} theme={theme} />
+          </div>
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>CCTV Recording Retention (days)</p>
+            <InputField value={cctvRetentionDays} onChange={setCctvRetentionDays} theme={theme} type="number" placeholder="e.g. 30" />
+          </div>
+        </div>
+      </SectionCard>
     </div>
   );
 }
@@ -1663,6 +1847,8 @@ function CanteenConfigModule({ theme }: { theme: Theme }) {
   const [mealTypes, setMealTypes] = useState<Record<string, boolean>>({
     Breakfast: true, Lunch: true, Snack: true,
   });
+  const [preschoolMealPlan, setPreschoolMealPlan] = useState('None');
+  const [dietaryPrefTracking, setDietaryPrefTracking] = useState(true);
 
   return (
     <div className="space-y-4">
@@ -1694,6 +1880,22 @@ function CanteenConfigModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
       </div>
+
+      <SectionCard title="Preschool Meal Plan" subtitle="Meal plan type for nursery and kindergarten students" theme={theme}>
+        <div className="space-y-3">
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Meal Plan Type</p>
+            <SelectField options={['None', 'Snacks Only', 'Breakfast + Lunch', 'Full Day Meals']} value={preschoolMealPlan} onChange={setPreschoolMealPlan} theme={theme} />
+          </div>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Dietary Preferences Tracking</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Record dietary restrictions or preferences per preschool child</p>
+            </div>
+            <SSAToggle on={dietaryPrefTracking} onChange={() => setDietaryPrefTracking(!dietaryPrefTracking)} theme={theme} />
+          </div>
+        </div>
+      </SectionCard>
     </div>
   );
 }
@@ -1743,9 +1945,10 @@ function InventoryConfigModule({ theme }: { theme: Theme }) {
   const [lowStockThreshold, setLowStockThreshold] = useState('10');
   const [invToggles, setInvToggles] = useState<Record<string, boolean>>({
     'Barcode/QR Asset Tagging': true, 'Low Stock Alerts': true,
-    'Purchase Approval Workflow': true, 'Depreciation Tracking': false,
+    'Depreciation Tracking': false,
   });
   const [assetCategories] = useState(['Furniture', 'Electronics', 'Lab Equipment', 'Sports', 'Books', 'Vehicles']);
+  const [autoApproveThreshold, setAutoApproveThreshold] = useState('5000');
 
   return (
     <div className="space-y-4">
@@ -1774,6 +1977,37 @@ function InventoryConfigModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
       </div>
+
+      <SectionCard title="Purchase Approval Tiers" subtitle="Tiered approval chains based on purchase value" theme={theme}>
+        <div className="space-y-3">
+          <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight} mb-1`}>Purchase &lt; {'\u20B9'}50,000</p>
+            <div className="flex items-center gap-2 flex-wrap">
+              {['Admin', 'Principal'].map((step, i) => (
+                <React.Fragment key={step}>
+                  <span className={`text-[10px] px-2.5 py-1 rounded-lg ${theme.accentBg} ${theme.iconColor} font-bold`}>{step}</span>
+                  {i < 1 && <span className={`text-[10px] ${theme.iconColor}`}>{'\u2192'}</span>}
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+          <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight} mb-1`}>Purchase &gt; {'\u20B9'}50,000</p>
+            <div className="flex items-center gap-2 flex-wrap">
+              {['Principal', 'Trust / Management'].map((step, i) => (
+                <React.Fragment key={step}>
+                  <span className={`text-[10px] px-2.5 py-1 rounded-lg ${theme.accentBg} ${theme.iconColor} font-bold`}>{step}</span>
+                  {i < 1 && <span className={`text-[10px] ${theme.iconColor}`}>{'\u2192'}</span>}
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Auto-Approve Threshold ({'\u20B9'}) — purchases below this are auto-approved</p>
+            <InputField value={autoApproveThreshold} onChange={setAutoApproveThreshold} theme={theme} type="number" placeholder="e.g. 5000" />
+          </div>
+        </div>
+      </SectionCard>
     </div>
   );
 }
@@ -1885,6 +2119,7 @@ function EnquiryAdmissionConfigModule({ theme }: { theme: Theme }) {
     'Auto-assign Follow-ups': true, 'Online Application Form': true,
     'Auto-generate Admission Number': true, 'Document Upload Required': true,
   });
+  const [photoMandatory, setPhotoMandatory] = useState(true);
   const [leadSources] = useState(['Website', 'Walk-in', 'Phone', 'Social Media', 'Referral', 'Fair']);
 
   return (
@@ -1908,6 +2143,13 @@ function EnquiryAdmissionConfigModule({ theme }: { theme: Theme }) {
                 <SSAToggle on={enabled} onChange={() => setEnqToggles(p => ({ ...p, [feat]: !p[feat] }))} theme={theme} />
               </div>
             ))}
+            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <div>
+                <p className={`text-xs font-bold ${theme.highlight}`}>Photo Mandatory at Admission</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Student photo required to complete admission process</p>
+              </div>
+              <SSAToggle on={photoMandatory} onChange={() => setPhotoMandatory(!photoMandatory)} theme={theme} />
+            </div>
           </div>
         </SectionCard>
         <SectionCard title="Lead Sources" subtitle="Where enquiries come from (multi-select)" theme={theme}>
@@ -2382,6 +2624,8 @@ function ParentPortalConfigModule({ theme }: { theme: Theme }) {
   const [leaveApplication, setLeaveApplication] = useState(true);
   const [transportTracking, setTransportTracking] = useState(true);
   const [commMode, setCommMode] = useState('Full Two-Way');
+  const [reportCardAccess, setReportCardAccess] = useState(true);
+  const [reportCardVisibility, setReportCardVisibility] = useState('After Principal Approval');
 
   return (
     <div className="space-y-4">
@@ -2402,6 +2646,29 @@ function ParentPortalConfigModule({ theme }: { theme: Theme }) {
               <SSAToggle on={item.value} onChange={() => item.setter(!item.value)} theme={theme} />
             </div>
           ))}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Report Card Access" subtitle="Control when parents can view report cards" theme={theme}>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Report Card Access via Portal</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Parents can download report cards from the parent portal</p>
+            </div>
+            <SSAToggle on={reportCardAccess} onChange={() => setReportCardAccess(!reportCardAccess)} theme={theme} />
+          </div>
+          {reportCardAccess && (
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Report Card Visibility</p>
+              <SelectField options={['Immediately', 'After Principal Approval', 'After X Days']} value={reportCardVisibility} onChange={setReportCardVisibility} theme={theme} />
+              <p className={`text-[10px] ${theme.iconColor} mt-1`}>
+                {reportCardVisibility === 'Immediately' ? 'Report cards are visible as soon as results are published' :
+                 reportCardVisibility === 'After Principal Approval' ? 'Principal must approve before parents can view' :
+                 'Report cards become visible after a set number of days post-publication'}
+              </p>
+            </div>
+          )}
         </div>
       </SectionCard>
 
@@ -2781,6 +3048,10 @@ function SchoolIdentityConfigModule({ theme }: { theme: Theme }) {
     { name: 'Morning Shift', classes: 'Pre-Primary, Class 1-5' },
     { name: 'Regular Shift', classes: 'Class 6-12' },
   ]);
+  const [extendedHours, setExtendedHours] = useState(false);
+  const [daycareStart, setDaycareStart] = useState('06:30');
+  const [daycareEnd, setDaycareEnd] = useState('19:00');
+  const [extendedHoursFee, setExtendedHoursFee] = useState(false);
 
   return (
     <div className="space-y-4">
@@ -2852,6 +3123,39 @@ function SchoolIdentityConfigModule({ theme }: { theme: Theme }) {
             className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
             <Plus size={12} /> Add Shift
           </button>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Daycare &amp; Extended Hours" subtitle="Before/after-school care and extended hours configuration" theme={theme}>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Extended Hours Available</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>School offers before/after-school daycare or extended care</p>
+            </div>
+            <SSAToggle on={extendedHours} onChange={() => setExtendedHours(!extendedHours)} theme={theme} />
+          </div>
+          {extendedHours && (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Daycare Start Time</p>
+                  <InputField value={daycareStart} onChange={setDaycareStart} theme={theme} type="time" />
+                </div>
+                <div>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Daycare End Time</p>
+                  <InputField value={daycareEnd} onChange={setDaycareEnd} theme={theme} type="time" />
+                </div>
+              </div>
+              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <div>
+                  <p className={`text-xs font-bold ${theme.highlight}`}>Extended Hours Fee</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>Charge a separate fee for extended / daycare hours</p>
+                </div>
+                <SSAToggle on={extendedHoursFee} onChange={() => setExtendedHoursFee(!extendedHoursFee)} theme={theme} />
+              </div>
+            </>
+          )}
         </div>
       </SectionCard>
 

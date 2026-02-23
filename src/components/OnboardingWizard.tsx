@@ -7,17 +7,16 @@ import {
   Building2, GraduationCap, Users, Shield, MessageSquare,
   Check, ChevronRight, ChevronLeft, ChevronDown, Save, Rocket,
   Upload, Plus, X, Eye, AlertTriangle, CheckCircle, Lock, Circle, AlertCircle,
-  Layers, ArrowRight, Download, Clock, Package, Info,
-  Headphones, Bot, Phone, Mail, Video, Sparkles, Calendar, Key
+  Layers, Download, Package, Info,
+  Headphones, Bot, Phone, Mail, Video, Sparkles, Key
 } from 'lucide-react';
 
 // ─── WIZARD STEPS ─────────────────────────────────────
 const steps = [
   { id: 1, label: 'School Identity', icon: Building2, short: 'Identity' },
-  { id: 2, label: 'Academic Structure', icon: GraduationCap, short: 'Academic' },
-  { id: 3, label: 'Plan & Modules', icon: Layers, short: 'Modules' },
-  { id: 4, label: 'Roles & Permissions', icon: Shield, short: 'Roles' },
-  { id: 5, label: 'Review & Launch', icon: Rocket, short: 'Launch' },
+  { id: 2, label: 'Plan & Modules', icon: Layers, short: 'Modules' },
+  { id: 3, label: 'Roles & Permissions', icon: Shield, short: 'Roles' },
+  { id: 4, label: 'Review & Launch', icon: Rocket, short: 'Launch' },
 ];
 
 // ─── HELPER COMPONENTS ────────────────────────────────
@@ -538,13 +537,6 @@ function Step1Identity({ theme, onInstitutionTypeChange }: { theme: Theme; onIns
             <SelectField label="Medium of Instruction" options={['English', 'Hindi', 'Gujarati', 'Bilingual', 'Trilingual']} value="English" theme={theme} required />
             <SelectField label="School Category" options={['Co-educational', 'Boys Only', 'Girls Only']} value="Co-educational" theme={theme} required />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <SelectField label="Meals Provided" options={['None (parents send tiffin)', 'Snacks only', 'Breakfast + Lunch', 'All meals + Snacks', 'Optional meal plan']} value="Snacks only" theme={theme} />
-            <SelectField label="Daycare / Extended Hours" options={['No — fixed timings only', 'Yes — before school (7 AM)', 'Yes — after school (till 6 PM)', 'Full daycare (7 AM – 7 PM)']} value="No — fixed timings only" theme={theme} />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <SelectField label="CCTV for Parents" options={['Not available', 'Live streaming (app)', 'Recorded clips shared daily', 'Phase 2 — planned']} value="Phase 2 — planned" theme={theme} hint="Live classroom viewing for parent assurance" />
-          </div>
         </div>
       )}
 
@@ -597,985 +589,6 @@ function Step1Identity({ theme, onInstitutionTypeChange }: { theme: Theme; onIns
   );
 }
 
-// ─── HOUSE COLOR PALETTE ──────────────────────────────
-const HOUSE_COLOR_PALETTE = [
-  { label: 'Red', bg: 'bg-red-500', ring: 'ring-red-300' },
-  { label: 'Blue', bg: 'bg-blue-500', ring: 'ring-blue-300' },
-  { label: 'Green', bg: 'bg-emerald-500', ring: 'ring-emerald-300' },
-  { label: 'Yellow', bg: 'bg-amber-500', ring: 'ring-amber-300' },
-  { label: 'Purple', bg: 'bg-purple-500', ring: 'ring-purple-300' },
-  { label: 'Orange', bg: 'bg-orange-500', ring: 'ring-orange-300' },
-  { label: 'Pink', bg: 'bg-pink-500', ring: 'ring-pink-300' },
-  { label: 'Teal', bg: 'bg-teal-500', ring: 'ring-teal-300' },
-  { label: 'Indigo', bg: 'bg-indigo-500', ring: 'ring-indigo-300' },
-  { label: 'Cyan', bg: 'bg-cyan-500', ring: 'ring-cyan-300' },
-];
-
-type HouseEntry = { id: string; name: string; colorIndex: number; mascot: string };
-type BreakEntry = { id: string; name: string; afterPeriod: number; duration: number };
-type DayTimetable = { enabled: boolean; reportingTime: string; firstBell: string; startTime: string; endTime: string; periods: number; periodDuration: number; breaks: BreakEntry[] };
-type ShiftEntry = {
-  id: string; name: string; level: string;
-  // Default day config
-  reportingTime: string; firstBell: string; startTime: string; endTime: string;
-  periods: number; periodDuration: number;
-  breaks: BreakEntry[];
-  // Per-day overrides
-  useSaturdaySchedule: boolean;
-  saturdayConfig: { endTime: string; periods: number; breaks: BreakEntry[] };
-};
-
-// ─── STEP 2: ACADEMIC STRUCTURE ───────────────────────
-function Step2Academic({ theme, institutionType }: { theme: Theme; institutionType: string }) {
-  const isPreschool = institutionType === 'preschool';
-
-  // ─── PRESCHOOL-specific state ───
-  const [ageGroups, setAgeGroups] = useState<Record<string, boolean>>({
-    'Playgroup (1.5–2.5 yrs)': true,
-    'Nursery (2.5–3.5 yrs)': true,
-    'Junior KG (3.5–4.5 yrs)': true,
-    'Senior KG (4.5–5.5 yrs)': true,
-  });
-  const [preschoolGroups, setPreschoolGroups] = useState<Record<string, string[]>>({
-    'Playgroup': ['Butterflies', 'Sunshine'],
-    'Nursery': ['Rainbow', 'Stars'],
-    'Junior KG': ['Dolphins', 'Pandas'],
-    'Senior KG': ['Eagles', 'Lions'],
-  });
-  const [preschoolHouseEnabled, setPreschoolHouseEnabled] = useState(false);
-  const [preschoolShifts, setPreschoolShifts] = useState([
-    { id: 'ps1', name: 'Morning', startTime: '08:00', endTime: '12:00' },
-    { id: 'ps2', name: 'Afternoon', startTime: '12:00', endTime: '16:00' },
-    { id: 'ps3', name: 'Full Day', startTime: '08:00', endTime: '16:00' },
-  ]);
-
-  // ─── Regular school state ───
-  const [classes, setClasses] = useState<Record<string, boolean>>({
-    'Nursery': true, 'LKG': true, 'UKG': true,
-    'Class 1': true, 'Class 2': true, 'Class 3': true, 'Class 4': true, 'Class 5': true,
-    'Class 6': true, 'Class 7': true, 'Class 8': true, 'Class 9': true, 'Class 10': true,
-    'Class 11': true, 'Class 12': true,
-  });
-  const [streams, setStreams] = useState<Record<string, boolean>>({ 'Science': true, 'Commerce': true, 'Arts / Humanities': false });
-  const [houseEnabled, setHouseEnabled] = useState(true);
-
-  // State-managed sections per class range
-  const [sections, setSections] = useState<Record<string, string[]>>({
-    'Nursery - UKG': ['A', 'B'],
-    'Class 1 - 5': ['A', 'B', 'C'],
-    'Class 6 - 8': ['A', 'B', 'C'],
-    'Class 9 - 10': ['A', 'B'],
-    'Class 11 - 12': ['Sci', 'Com', 'Arts'],
-  });
-
-  const sectionStudents: Record<string, string> = {
-    'Nursery - UKG': '~30 per section',
-    'Class 1 - 5': '~35 per section',
-    'Class 6 - 8': '~40 per section',
-    'Class 9 - 10': '~42 per section',
-    'Class 11 - 12': '~40 per section',
-  };
-
-  const addSection = (range: string) => {
-    const name = window.prompt(`Enter new section name for ${range}:`);
-    if (name && name.trim()) {
-      const trimmed = name.trim();
-      setSections(prev => {
-        const current = prev[range] || [];
-        if (current.includes(trimmed)) {
-          window.alert(`Section "${trimmed}" already exists in ${range}.`);
-          return prev;
-        }
-        return { ...prev, [range]: [...current, trimmed] };
-      });
-    }
-  };
-
-  const removeSection = (range: string, sectionName: string) => {
-    setSections(prev => {
-      const current = prev[range] || [];
-      if (current.length <= 1) {
-        window.alert('Each class range must have at least 1 section.');
-        return prev;
-      }
-      return { ...prev, [range]: current.filter(s => s !== sectionName) };
-    });
-  };
-
-  // State-managed house system
-  const [houses, setHouses] = useState<HouseEntry[]>([
-    { id: 'h1', name: 'Red House', colorIndex: 0, mascot: '' },
-    { id: 'h2', name: 'Blue House', colorIndex: 1, mascot: '' },
-    { id: 'h3', name: 'Green House', colorIndex: 2, mascot: '' },
-    { id: 'h4', name: 'Yellow House', colorIndex: 3, mascot: '' },
-  ]);
-  const [colorPickerOpen, setColorPickerOpen] = useState<string | null>(null);
-
-  // ─── SUBJECTS CONFIGURATION ───
-  const BOARD_SUBJECTS: Record<string, string[]> = {
-    'CBSE': ['English', 'Hindi', 'Mathematics', 'Science', 'Social Science', 'Computer Science', 'Physical Education', 'Art & Craft', 'Music', 'Moral Science', 'Sanskrit', 'Environmental Studies (EVS)', 'General Knowledge'],
-    'ICSE / ISC': ['English', 'Hindi', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'History', 'Geography', 'Civics', 'Computer Applications', 'Art', 'Physical Education', 'Environmental Science', 'Economic Applications'],
-    'IB (International Baccalaureate)': ['English A', 'Language B', 'Mathematics', 'Sciences', 'Individuals & Societies', 'Arts', 'Design', 'Physical Education', 'Theory of Knowledge'],
-    'default': ['English', 'Hindi', 'Mathematics', 'Science', 'Social Studies', 'Computer', 'Physical Education', 'Art', 'Music', 'Moral Science'],
-  };
-  const PRESCHOOL_LEARNING_AREAS = ['Language', 'Numeracy', 'Motor Skills', 'Creative Arts', 'Social Skills', 'Environmental Awareness'];
-  const [subjects, setSubjects] = useState<string[]>(BOARD_SUBJECTS['CBSE']);
-  const [newSubject, setNewSubject] = useState('');
-  const [subjectClassMap, setSubjectClassMap] = useState<Record<string, { from: string; to: string }>>({});
-  const enabledClasses = Object.entries(classes).filter(([, v]) => v).map(([k]) => k);
-
-  const addSubject = () => {
-    const trimmed = newSubject.trim();
-    if (trimmed && !subjects.includes(trimmed)) {
-      setSubjects(prev => [...prev, trimmed]);
-      setNewSubject('');
-    }
-  };
-  const removeSubject = (subj: string) => {
-    setSubjects(prev => prev.filter(s => s !== subj));
-    setSubjectClassMap(prev => {
-      const next = { ...prev };
-      delete next[subj];
-      return next;
-    });
-  };
-
-  // ─── ATTENDANCE TYPES ───
-  const [attendanceTypes, setAttendanceTypes] = useState<Record<string, boolean>>(
-    isPreschool
-      ? { 'Present': true, 'Absent': true, 'Late Arrival': true, 'Early Pickup': true, 'Sick Leave': true, 'Holiday': true }
-      : { 'Present': true, 'Absent': true, 'Late': true, 'Half Day': true, 'Medical Leave': true, 'On Duty': false, 'Holiday': true, 'Excused Absence': false }
-  );
-  const [newAttendanceType, setNewAttendanceType] = useState('');
-  const addAttendanceType = () => {
-    const trimmed = newAttendanceType.trim();
-    if (trimmed && !(trimmed in attendanceTypes)) {
-      setAttendanceTypes(prev => ({ ...prev, [trimmed]: true }));
-      setNewAttendanceType('');
-    }
-  };
-
-  // ─── SHIFT-TO-CLASS MAPPING ───
-  const [shiftClassMap, setShiftClassMap] = useState<Record<string, string[]>>({
-    's1': ['Nursery', 'LKG', 'UKG'],
-    's2': ['Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5'],
-    's3': ['Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10', 'Class 11', 'Class 12'],
-  });
-  const toggleShiftClass = (shiftId: string, className: string) => {
-    setShiftClassMap(prev => {
-      const current = prev[shiftId] || [];
-      if (current.includes(className)) {
-        return { ...prev, [shiftId]: current.filter(c => c !== className) };
-      }
-      return { ...prev, [shiftId]: [...current, className] };
-    });
-  };
-
-  // State-managed shifts
-  const [workingDays, setWorkingDays] = useState('Monday - Saturday');
-  // REMARKS 6, 7, 8, 9: Per-day schedule for Custom working days
-  type DayStatus = 'Regular' | 'Half Day' | 'Holiday for Students' | 'Complete Holiday';
-  const [daySchedule, setDaySchedule] = useState<Record<string, { status: DayStatus; halfDayEnd: string }>>({
-    'Monday': { status: 'Regular', halfDayEnd: '12:00' },
-    'Tuesday': { status: 'Regular', halfDayEnd: '12:00' },
-    'Wednesday': { status: 'Regular', halfDayEnd: '12:00' },
-    'Thursday': { status: 'Regular', halfDayEnd: '12:00' },
-    'Friday': { status: 'Regular', halfDayEnd: '12:00' },
-    'Saturday': { status: 'Half Day', halfDayEnd: '12:00' },
-  });
-  const updateDayStatus = (day: string, status: DayStatus) => {
-    setDaySchedule(prev => ({ ...prev, [day]: { ...prev[day], status } }));
-  };
-  const updateDayHalfEnd = (day: string, halfDayEnd: string) => {
-    setDaySchedule(prev => ({ ...prev, [day]: { ...prev[day], halfDayEnd } }));
-  };
-  const defaultBreaks = (periods: number): BreakEntry[] => [
-    { id: 'b1', name: 'Short Break', afterPeriod: Math.floor(periods / 3), duration: 10 },
-    { id: 'b2', name: 'Lunch Break', afterPeriod: Math.floor(periods * 2 / 3), duration: 30 },
-  ];
-  const [shifts, setShifts] = useState<ShiftEntry[]>([
-    { id: 's1', name: 'Pre-Primary Morning', level: 'Pre-Primary', reportingTime: '07:45', firstBell: '07:55', startTime: '08:00', endTime: '12:00', periods: 5, periodDuration: 35, breaks: [{ id: 'b1', name: 'Snack Break', afterPeriod: 2, duration: 15 }], useSaturdaySchedule: false, saturdayConfig: { endTime: '11:00', periods: 3, breaks: [] } },
-    { id: 's2', name: 'Primary Morning', level: 'Primary', reportingTime: '07:30', firstBell: '07:50', startTime: '08:00', endTime: '14:00', periods: 7, periodDuration: 40, breaks: [{ id: 'b1', name: 'Short Break', afterPeriod: 3, duration: 10 }, { id: 'b2', name: 'Lunch Break', afterPeriod: 5, duration: 30 }], useSaturdaySchedule: true, saturdayConfig: { endTime: '12:00', periods: 5, breaks: [{ id: 'sb1', name: 'Break', afterPeriod: 3, duration: 10 }] } },
-    { id: 's3', name: 'Secondary', level: 'Secondary', reportingTime: '07:30', firstBell: '07:50', startTime: '08:00', endTime: '14:30', periods: 8, periodDuration: 40, breaks: [{ id: 'b1', name: 'Short Break', afterPeriod: 3, duration: 10 }, { id: 'b2', name: 'Lunch Break', afterPeriod: 6, duration: 30 }], useSaturdaySchedule: true, saturdayConfig: { endTime: '12:30', periods: 5, breaks: [{ id: 'sb1', name: 'Break', afterPeriod: 3, duration: 15 }] } },
-  ]);
-
-  const addShift = () => {
-    const newBreaks = defaultBreaks(7);
-    setShifts(prev => [...prev, { id: `s${Date.now()}`, name: '', level: '', reportingTime: '07:30', firstBell: '07:50', startTime: '08:00', endTime: '14:00', periods: 7, periodDuration: 40, breaks: newBreaks, useSaturdaySchedule: false, saturdayConfig: { endTime: '12:00', periods: 5, breaks: [] } }]);
-  };
-
-  const removeShift = (id: string) => {
-    if (shifts.length <= 1) {
-      window.alert('At least one shift is required.');
-      return;
-    }
-    setShifts(prev => prev.filter(s => s.id !== id));
-  };
-
-  const updateShift = (id: string, field: string, value: string | number | boolean) => {
-    setShifts(prev => prev.map(s => s.id === id ? { ...s, [field]: value } : s));
-  };
-  const addBreak = (shiftId: string) => {
-    setShifts(prev => prev.map(s => s.id === shiftId ? { ...s, breaks: [...s.breaks, { id: `b${Date.now()}`, name: 'Break', afterPeriod: Math.floor(s.periods / 2), duration: 15 }] } : s));
-  };
-  const removeBreak = (shiftId: string, breakId: string) => {
-    setShifts(prev => prev.map(s => s.id === shiftId ? { ...s, breaks: s.breaks.filter(b => b.id !== breakId) } : s));
-  };
-  const updateBreak = (shiftId: string, breakId: string, field: string, value: string | number) => {
-    setShifts(prev => prev.map(s => s.id === shiftId ? { ...s, breaks: s.breaks.map(b => b.id === breakId ? { ...b, [field]: value } : b) } : s));
-  };
-  const addSatBreak = (shiftId: string) => {
-    setShifts(prev => prev.map(s => s.id === shiftId ? { ...s, saturdayConfig: { ...s.saturdayConfig, breaks: [...s.saturdayConfig.breaks, { id: `sb${Date.now()}`, name: 'Break', afterPeriod: 2, duration: 10 }] } } : s));
-  };
-  const removeSatBreak = (shiftId: string, breakId: string) => {
-    setShifts(prev => prev.map(s => s.id === shiftId ? { ...s, saturdayConfig: { ...s.saturdayConfig, breaks: s.saturdayConfig.breaks.filter(b => b.id !== breakId) } } : s));
-  };
-  const updateSatBreak = (shiftId: string, breakId: string, field: string, value: string | number) => {
-    setShifts(prev => prev.map(s => s.id === shiftId ? { ...s, saturdayConfig: { ...s.saturdayConfig, breaks: s.saturdayConfig.breaks.map(b => b.id === breakId ? { ...b, [field]: value } : b) } } : s));
-  };
-  const updateSatConfig = (shiftId: string, field: string, value: string | number) => {
-    setShifts(prev => prev.map(s => s.id === shiftId ? { ...s, saturdayConfig: { ...s.saturdayConfig, [field]: value } } : s));
-  };
-
-  const addHouse = () => {
-    const newId = `h${Date.now()}`;
-    // Pick the first color not already in use, or default to 0
-    const usedColors = houses.map(h => h.colorIndex);
-    const nextColor = HOUSE_COLOR_PALETTE.findIndex((_, i) => !usedColors.includes(i));
-    setHouses(prev => [...prev, { id: newId, name: `House ${prev.length + 1}`, colorIndex: nextColor >= 0 ? nextColor : 0, mascot: '' }]);
-  };
-
-  const removeHouse = (id: string) => {
-    if (houses.length <= 2) {
-      window.alert('A minimum of 2 houses is required.');
-      return;
-    }
-    setHouses(prev => prev.filter(h => h.id !== id));
-  };
-
-  const updateHouse = (id: string, field: keyof HouseEntry, value: string | number) => {
-    setHouses(prev => prev.map(h => h.id === id ? { ...h, [field]: value } : h));
-  };
-
-  // ─── PRESCHOOL VERSION ───
-  if (isPreschool) {
-    const addPreschoolGroup = (level: string) => {
-      const name = window.prompt(`Enter new group name for ${level}:`);
-      if (name && name.trim()) {
-        setPreschoolGroups(prev => {
-          const current = prev[level] || [];
-          if (current.includes(name.trim())) return prev;
-          return { ...prev, [level]: [...current, name.trim()] };
-        });
-      }
-    };
-    const removePreschoolGroup = (level: string, groupName: string) => {
-      setPreschoolGroups(prev => {
-        const current = prev[level] || [];
-        if (current.length <= 1) { window.alert('Each age group must have at least 1 group.'); return prev; }
-        return { ...prev, [level]: current.filter(g => g !== groupName) };
-      });
-    };
-
-    return (
-      <div className="space-y-6">
-        <SectionTitle title="Academic Structure — Preschool" subtitle="Define age groups, activity groups, and daily schedule" theme={theme} />
-
-        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-          <SectionTitle title="Age Groups" subtitle="Click to toggle which age groups are offered" theme={theme} />
-          <div className="grid grid-cols-2 gap-3">
-            {Object.entries(ageGroups).map(([name, checked]) => (
-              <button key={name} onClick={() => setAgeGroups(p => ({ ...p, [name]: !p[name] }))}
-                className={`flex items-center gap-3 p-3 rounded-xl border ${checked ? 'border-emerald-300 bg-emerald-50' : `${theme.border}`} cursor-pointer transition-all`}>
-                <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${checked ? 'bg-emerald-500 border-emerald-500' : theme.border}`}>
-                  {checked && <Check size={10} className="text-white" />}
-                </div>
-                <span className={`text-xs font-medium ${theme.highlight}`}>{name}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-          <SectionTitle title="Groups per Age Level" subtitle="Fun group names for each age level (instead of sections A/B/C)" theme={theme} />
-          <div className="space-y-2">
-            {Object.entries(preschoolGroups).map(([level, groups]) => (
-              <div key={level} className={`flex items-center gap-4 p-3 rounded-xl ${theme.secondaryBg}`}>
-                <span className={`text-xs font-bold ${theme.highlight} w-28`}>{level}</span>
-                <div className="flex gap-1 flex-wrap">
-                  {groups.map(g => (
-                    <span key={g} className={`text-[10px] px-2.5 py-1 rounded-lg ${theme.primary} text-white font-bold flex items-center gap-1`}>
-                      {g}
-                      <button onClick={() => removePreschoolGroup(level, g)} title={`Remove group ${g}`}>
-                        <X size={8} className="cursor-pointer opacity-70 hover:opacity-100" />
-                      </button>
-                    </span>
-                  ))}
-                  <button onClick={() => addPreschoolGroup(level)}
-                    className={`text-[10px] px-2 py-1 rounded-lg border ${theme.border} ${theme.iconColor} hover:bg-slate-100 transition-colors`}
-                    title="Add new group">
-                    <Plus size={10} />
-                  </button>
-                </div>
-                <span className={`text-[10px] ${theme.iconColor} ml-auto whitespace-nowrap`}>~15 per group</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-          <div className="flex items-center justify-between mb-3">
-            <SectionTitle title="House System" subtitle="Optional — most preschools do not use houses" theme={theme} />
-            <Toggle on={preschoolHouseEnabled} onChange={() => setPreschoolHouseEnabled(!preschoolHouseEnabled)} theme={theme} />
-          </div>
-          {!preschoolHouseEnabled && (
-            <p className={`text-[10px] ${theme.iconColor}`}>House system is disabled (default for preschools). Toggle on if your preschool uses house groups.</p>
-          )}
-          {preschoolHouseEnabled && (
-            <p className={`text-[10px] ${theme.iconColor}`}>Configure house names and colors in the same way as regular schools.</p>
-          )}
-        </div>
-
-        {/* ─── PRESCHOOL LEARNING AREAS ─── */}
-        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-          <SectionTitle title="Learning Areas" subtitle="Core developmental areas tracked for preschool children" theme={theme} />
-          <div className="flex gap-2 flex-wrap">
-            {PRESCHOOL_LEARNING_AREAS.map(area => (
-              <span key={area} className={`text-[10px] px-3 py-1.5 rounded-lg ${theme.primary} text-white font-bold`}>
-                {area}
-              </span>
-            ))}
-          </div>
-          <p className={`text-[10px] ${theme.iconColor} mt-2`}>
-            <Info size={10} className="inline mr-1 text-blue-500" />
-            Learning areas are pre-configured for preschool. Teachers will log activities under these areas in the daily activity log.
-          </p>
-        </div>
-
-        {/* ─── PRESCHOOL ATTENDANCE TYPES ─── */}
-        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-          <SectionTitle title="Attendance Types" subtitle="Define which attendance statuses teachers can mark" theme={theme} />
-          <div className="space-y-2">
-            {Object.entries(attendanceTypes).map(([type, enabled]) => (
-              <div key={type} className={`flex items-center justify-between p-3 rounded-xl ${theme.secondaryBg}`}>
-                <span className={`text-xs font-medium ${theme.highlight}`}>{type}</span>
-                <Toggle on={enabled} onChange={() => setAttendanceTypes(prev => ({ ...prev, [type]: !prev[type] }))} theme={theme} />
-              </div>
-            ))}
-          </div>
-          <div className="flex gap-2 mt-3">
-            <input
-              value={newAttendanceType}
-              onChange={(e) => setNewAttendanceType(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && addAttendanceType()}
-              placeholder="Add custom attendance type..."
-              className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none ${theme.highlight}`}
-            />
-            <button onClick={addAttendanceType}
-              className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-1`}>
-              <Plus size={10} /> Add
-            </button>
-          </div>
-          <p className={`text-[10px] ${theme.iconColor} mt-2`}>
-            <Info size={10} className="inline mr-1 text-blue-500" />
-            Teachers will see only enabled types when marking attendance.
-          </p>
-        </div>
-
-        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-          <SectionTitle title="Daily Schedule / Shifts" subtitle="Preschool timings are typically simpler" theme={theme} />
-          <div className="space-y-2">
-            {preschoolShifts.map((shift) => (
-              <div key={shift.id} className={`flex items-center gap-4 p-3 rounded-xl ${theme.secondaryBg}`}>
-                <Clock size={14} className={theme.primaryText} />
-                <span className={`text-xs font-bold ${theme.highlight} w-24`}>{shift.name}</span>
-                <div className="flex items-center gap-2">
-                  <span className={`text-[10px] ${theme.iconColor}`}>Start:</span>
-                  <input type="time" value={shift.startTime}
-                    onChange={(e) => setPreschoolShifts(prev => prev.map(s => s.id === shift.id ? { ...s, startTime: e.target.value } : s))}
-                    className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`} />
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className={`text-[10px] ${theme.iconColor}`}>End:</span>
-                  <input type="time" value={shift.endTime}
-                    onChange={(e) => setPreschoolShifts(prev => prev.map(s => s.id === shift.id ? { ...s, endTime: e.target.value } : s))}
-                    className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`} />
-                </div>
-              </div>
-            ))}
-          </div>
-          <p className={`text-[10px] ${theme.iconColor} mt-2`}>
-            Morning (8–12), Afternoon (12–4), Full Day (8–4) are common preschool timings. Adjust as needed.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // ─── REGULAR / CONNECTED SCHOOL VERSION ───
-  return (
-    <div className="space-y-6">
-      <SectionTitle title="Academic Structure" subtitle="Define classes, sections, streams, and house system" theme={theme} />
-
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <SectionTitle title="Classes / Grades Offered" subtitle="Click to toggle" theme={theme} />
-        <div className="grid grid-cols-5 gap-2">
-          {Object.entries(classes).map(([name, checked]) => (
-            <button key={name} onClick={() => setClasses(p => ({ ...p, [name]: !p[name] }))}
-              className={`flex items-center gap-2 p-2.5 rounded-xl border ${checked ? 'border-emerald-300 bg-emerald-50' : `${theme.border}`} cursor-pointer transition-all`}>
-              <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${checked ? 'bg-emerald-500 border-emerald-500' : theme.border}`}>
-                {checked && <Check size={10} className="text-white" />}
-              </div>
-              <span className={`text-xs font-medium ${theme.highlight}`}>{name}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <SectionTitle title="Sections per Class" subtitle="How many sections does each class have?" theme={theme} />
-        <div className="space-y-2">
-          {Object.entries(sections).map(([range, sectionList]) => (
-            <div key={range} className={`flex items-center gap-4 p-3 rounded-xl ${theme.secondaryBg}`}>
-              <span className={`text-xs font-bold ${theme.highlight} w-32`}>{range}</span>
-              <div className="flex gap-1 flex-wrap">
-                {sectionList.map(s => (
-                  <span key={s} className={`text-[10px] px-2.5 py-1 rounded-lg ${theme.primary} text-white font-bold flex items-center gap-1`}>
-                    {s}
-                    <button onClick={() => removeSection(range, s)} title={`Remove section ${s}`}>
-                      <X size={8} className="cursor-pointer opacity-70 hover:opacity-100" />
-                    </button>
-                  </span>
-                ))}
-                <button
-                  onClick={() => addSection(range)}
-                  className={`text-[10px] px-2 py-1 rounded-lg border ${theme.border} ${theme.iconColor} hover:bg-slate-100 transition-colors`}
-                  title="Add new section"
-                >
-                  <Plus size={10} />
-                </button>
-              </div>
-              <span className={`text-[10px] ${theme.iconColor} ml-auto whitespace-nowrap`}>{sectionStudents[range]}</span>
-            </div>
-          ))}
-        </div>
-        <p className={`text-[10px] ${theme.iconColor} mt-2`}>
-          <Lock size={10} className="inline mr-1 text-amber-500" />
-          <strong>Note:</strong> In the live system, only Principals and School Admins can add/modify sections.
-        </p>
-      </div>
-
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <SectionTitle title="Streams (Class 11-12)" subtitle="Click to toggle" theme={theme} />
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { stream: 'Science', subjects: 'Physics, Chemistry, Maths/Bio' },
-            { stream: 'Commerce', subjects: 'Accounts, Economics, Business Studies' },
-            { stream: 'Arts / Humanities', subjects: 'History, Geography, Political Science' },
-          ].map(s => (
-            <button key={s.stream} onClick={() => setStreams(p => ({ ...p, [s.stream]: !p[s.stream] }))}
-              className={`p-4 rounded-xl border-2 cursor-pointer text-left transition-all ${streams[s.stream] ? 'border-emerald-300 bg-emerald-50' : `${theme.border} ${theme.cardBg}`}`}>
-              <div className="flex items-center gap-2 mb-2">
-                <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${streams[s.stream] ? 'bg-emerald-500 border-emerald-500' : theme.border}`}>
-                  {streams[s.stream] && <Check size={10} className="text-white" />}
-                </div>
-                <span className={`text-sm font-bold ${theme.highlight}`}>{s.stream}</span>
-              </div>
-              <p className={`text-[10px] ${theme.iconColor}`}>{s.subjects}</p>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <div className="flex items-center justify-between mb-3">
-          <SectionTitle title="House System" subtitle="Inter-house competitions, groups, points" theme={theme} />
-          <Toggle on={houseEnabled} onChange={() => setHouseEnabled(!houseEnabled)} theme={theme} />
-        </div>
-        {houseEnabled && (
-          <>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-              {houses.map(h => {
-                const paletteColor = HOUSE_COLOR_PALETTE[h.colorIndex] || HOUSE_COLOR_PALETTE[0];
-                return (
-                  <div key={h.id} className={`p-3 rounded-xl ${theme.secondaryBg} relative`}>
-                    {/* Remove button */}
-                    <button
-                      onClick={() => removeHouse(h.id)}
-                      className={`absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center ${theme.border} border hover:bg-red-100 transition-colors`}
-                      title="Remove house"
-                    >
-                      <X size={10} className="text-red-500" />
-                    </button>
-
-                    {/* Color circle — click to open palette */}
-                    <div className="relative flex justify-center mb-2">
-                      <button
-                        onClick={() => setColorPickerOpen(colorPickerOpen === h.id ? null : h.id)}
-                        className={`w-10 h-10 rounded-full ${paletteColor.bg} cursor-pointer ring-2 ring-offset-2 ${colorPickerOpen === h.id ? paletteColor.ring : 'ring-transparent'} transition-all`}
-                        title="Click to change color"
-                      />
-                      {/* Color palette dropdown */}
-                      {colorPickerOpen === h.id && (
-                        <div className={`absolute top-12 z-10 ${theme.cardBg} border ${theme.border} rounded-xl p-2 shadow-lg flex flex-wrap gap-1.5 w-40`}>
-                          {HOUSE_COLOR_PALETTE.map((pc, idx) => (
-                            <button
-                              key={pc.label}
-                              onClick={() => { updateHouse(h.id, 'colorIndex', idx); setColorPickerOpen(null); }}
-                              className={`w-6 h-6 rounded-full ${pc.bg} cursor-pointer ${h.colorIndex === idx ? `ring-2 ring-offset-1 ${pc.ring}` : ''} hover:scale-110 transition-transform`}
-                              title={pc.label}
-                            />
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* House name input */}
-                    <input
-                      value={h.name}
-                      onChange={(e) => updateHouse(h.id, 'name', e.target.value)}
-                      className={`w-full text-center text-xs font-bold ${theme.highlight} bg-transparent outline-none border-b ${theme.border} pb-1 mb-2 focus:border-blue-400`}
-                      placeholder="House name"
-                    />
-
-                    {/* Mascot input */}
-                    <input
-                      value={h.mascot}
-                      onChange={(e) => updateHouse(h.id, 'mascot', e.target.value)}
-                      className={`w-full text-center text-[10px] ${theme.iconColor} bg-transparent outline-none border-b ${theme.border} pb-1 focus:border-blue-400`}
-                      placeholder="Mascot / Logo name"
-                    />
-                  </div>
-                );
-              })}
-
-              {/* Add new house button */}
-              <button
-                onClick={addHouse}
-                className={`p-3 rounded-xl border-2 border-dashed ${theme.border} flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-slate-50 transition-colors min-h-[120px]`}
-              >
-                <Plus size={20} className={theme.iconColor} />
-                <span className={`text-[10px] font-bold ${theme.iconColor}`}>Add House</span>
-              </button>
-            </div>
-            <p className={`text-[10px] ${theme.iconColor} mt-2`}>
-              {houses.length} house{houses.length !== 1 ? 's' : ''} configured. Names, colors, and mascots are editable. Students will be auto-assigned or manually grouped.
-            </p>
-          </>
-        )}
-        {!houseEnabled && (
-          <p className={`text-[10px] ${theme.iconColor} mt-2`}>House system is disabled. Toggle on to configure houses.</p>
-        )}
-      </div>
-
-      {/* ─── SUBJECTS CONFIGURATION ─── */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <SectionTitle title="Subjects" subtitle="Pre-populated based on board — add, remove, or map to class ranges" theme={theme} />
-
-        {/* Subject chips */}
-        <div className="flex gap-2 flex-wrap mb-3">
-          {subjects.map(subj => (
-            <span key={subj} className={`text-[10px] px-2.5 py-1 rounded-lg ${theme.primary} text-white font-bold flex items-center gap-1`}>
-              {subj}
-              <button onClick={() => removeSubject(subj)} title={`Remove ${subj}`}>
-                <X size={8} className="cursor-pointer opacity-70 hover:opacity-100" />
-              </button>
-            </span>
-          ))}
-        </div>
-
-        {/* Add subject input */}
-        <div className="flex gap-2 mb-4">
-          <input
-            value={newSubject}
-            onChange={(e) => setNewSubject(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && addSubject()}
-            placeholder="Add custom subject..."
-            className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none ${theme.highlight}`}
-          />
-          <button onClick={addSubject}
-            className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-1`}>
-            <Plus size={10} /> Add
-          </button>
-        </div>
-
-        {/* Subject-to-class mapping */}
-        <div className={`p-3 rounded-xl border ${theme.border} ${theme.secondaryBg} space-y-2`}>
-          <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-2`}>Subject → Class Range Mapping</p>
-          {subjects.map(subj => {
-            const mapping = subjectClassMap[subj] || { from: '', to: '' };
-            return (
-              <div key={subj} className={`flex items-center gap-3 p-2 rounded-lg ${theme.cardBg}`}>
-                <span className={`text-[10px] font-bold ${theme.highlight} w-40 truncate`}>{subj}</span>
-                <div className="flex items-center gap-2">
-                  <span className={`text-[9px] ${theme.iconColor}`}>From:</span>
-                  <select
-                    value={mapping.from}
-                    onChange={(e) => setSubjectClassMap(prev => ({ ...prev, [subj]: { ...mapping, from: e.target.value } }))}
-                    className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] outline-none ${theme.highlight}`}
-                  >
-                    <option value="">All Classes</option>
-                    {enabledClasses.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                  <span className={`text-[9px] ${theme.iconColor}`}>→</span>
-                  <span className={`text-[9px] ${theme.iconColor}`}>To:</span>
-                  <select
-                    value={mapping.to}
-                    onChange={(e) => setSubjectClassMap(prev => ({ ...prev, [subj]: { ...mapping, to: e.target.value } }))}
-                    className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] outline-none ${theme.highlight}`}
-                  >
-                    <option value="">All Classes</option>
-                    {enabledClasses.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </div>
-              </div>
-            );
-          })}
-          <p className={`text-[9px] ${theme.iconColor} mt-1`}>
-            <Info size={10} className="inline mr-1 text-blue-500" />
-            Leave &quot;All Classes&quot; for subjects taught across all grades. Set a specific range for grade-specific subjects (e.g., EVS for Nursery → Class 5).
-          </p>
-        </div>
-      </div>
-
-      {/* ─── ATTENDANCE TYPES ─── */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <SectionTitle title="Attendance Types" subtitle="Define which attendance statuses teachers can mark" theme={theme} />
-        <div className="space-y-2">
-          {Object.entries(attendanceTypes).map(([type, enabled]) => (
-            <div key={type} className={`flex items-center justify-between p-3 rounded-xl ${theme.secondaryBg}`}>
-              <span className={`text-xs font-medium ${theme.highlight}`}>{type}</span>
-              <Toggle on={enabled} onChange={() => setAttendanceTypes(prev => ({ ...prev, [type]: !prev[type] }))} theme={theme} />
-            </div>
-          ))}
-        </div>
-        <div className="flex gap-2 mt-3">
-          <input
-            value={newAttendanceType}
-            onChange={(e) => setNewAttendanceType(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && addAttendanceType()}
-            placeholder="Add custom attendance type..."
-            className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none ${theme.highlight}`}
-          />
-          <button onClick={addAttendanceType}
-            className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-1`}>
-            <Plus size={10} /> Add
-          </button>
-        </div>
-        <p className={`text-[10px] ${theme.iconColor} mt-2`}>
-          <Info size={10} className="inline mr-1 text-blue-500" />
-          Teachers will see only enabled types when marking attendance.
-        </p>
-      </div>
-
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <SectionTitle title="School Timings & Shifts" subtitle="Fully configurable: reporting time, bell schedule, breaks, per-day variations — each shift is independent" theme={theme} />
-        <div className="mb-4">
-          <SelectField label="Working Days (applies to all shifts)" options={['Monday - Friday', 'Monday - Saturday', 'Custom']} value={workingDays} onChange={setWorkingDays} theme={theme} required />
-        </div>
-
-        {/* REMARKS 6, 7, 8, 9: Per-day schedule when Custom working days is selected */}
-        {workingDays === 'Custom' && (
-          <div className={`mb-4 p-4 rounded-xl ${theme.secondaryBg} border ${theme.border}`}>
-            <div className="mb-3">
-              <p className={`text-xs font-bold ${theme.highlight}`}>Per-Day Schedule Configuration</p>
-              <p className={`text-[10px] ${theme.iconColor} mt-0.5`}>Configure each day individually — set regular, half-day, or holiday status</p>
-            </div>
-            <div className="space-y-2">
-              <div className="grid grid-cols-6 gap-2 items-center">
-                <span className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Day</span>
-                <span className={`text-[10px] font-bold ${theme.iconColor} uppercase text-center`}>Regular</span>
-                <span className={`text-[10px] font-bold ${theme.iconColor} uppercase text-center`}>Half Day</span>
-                <span className={`text-[10px] font-bold ${theme.iconColor} uppercase text-center`}>Students Off</span>
-                <span className={`text-[10px] font-bold ${theme.iconColor} uppercase text-center`}>All Holiday</span>
-                <span className={`text-[10px] font-bold ${theme.iconColor} uppercase text-center`}>Half-Day End</span>
-              </div>
-              {Object.entries(daySchedule).map(([day, config]) => (
-                <div key={day} className={`grid grid-cols-6 gap-2 items-center p-2 rounded-lg ${
-                  config.status === 'Complete Holiday' ? 'bg-red-50' :
-                  config.status === 'Holiday for Students' ? 'bg-amber-50' :
-                  config.status === 'Half Day' ? 'bg-blue-50' :
-                  theme.cardBg
-                }`}>
-                  <span className={`text-xs font-bold ${theme.highlight}`}>{day}</span>
-                  {(['Regular', 'Half Day', 'Holiday for Students', 'Complete Holiday'] as DayStatus[]).map(status => (
-                    <div key={status} className="flex justify-center">
-                      <button
-                        onClick={() => updateDayStatus(day, status)}
-                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-all ${
-                          config.status === status
-                            ? status === 'Complete Holiday' ? 'bg-red-500 border-red-500' :
-                              status === 'Holiday for Students' ? 'bg-amber-500 border-amber-500' :
-                              status === 'Half Day' ? 'bg-blue-500 border-blue-500' :
-                              'bg-emerald-500 border-emerald-500'
-                            : theme.border
-                        }`}
-                      >
-                        {config.status === status && <Check size={10} className="text-white" />}
-                      </button>
-                    </div>
-                  ))}
-                  <div className="flex justify-center">
-                    {config.status === 'Half Day' ? (
-                      <input type="time" value={config.halfDayEnd}
-                        onChange={(e) => updateDayHalfEnd(day, e.target.value)}
-                        className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] outline-none w-full ${theme.highlight}`} />
-                    ) : (
-                      <span className={`text-[10px] ${theme.iconColor}`}>—</span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="mt-3 space-y-1">
-              <p className={`text-[10px] ${theme.iconColor}`}>
-                <Info size={10} className="inline mr-1 text-blue-500" />
-                <strong>Students Off:</strong> Students have a holiday, but admin/staff are working (e.g., some Saturdays).
-              </p>
-              <p className={`text-[10px] ${theme.iconColor}`}>
-                <AlertCircle size={10} className="inline mr-1 text-amber-500" />
-                Saturday schedules can differ — use per-shift Saturday config below for different timings.
-              </p>
-            </div>
-          </div>
-        )}
-
-        <div className="space-y-4">
-          {shifts.map((shift, idx) => (
-            <div key={shift.id} className={`p-4 rounded-xl border-2 ${idx === 0 ? 'border-emerald-300' : `${theme.border}`} ${theme.secondaryBg} relative space-y-4`}>
-              <button
-                onClick={() => removeShift(shift.id)}
-                className={`absolute top-3 right-3 w-5 h-5 rounded-full flex items-center justify-center border ${theme.border} hover:bg-red-100 transition-colors`}
-                title="Remove shift"
-              >
-                <X size={10} className="text-red-500" />
-              </button>
-
-              <div className="flex items-center gap-2">
-                <Clock size={14} className={theme.primaryText} />
-                <span className={`text-sm font-bold ${theme.highlight}`}>Shift {idx + 1}: {shift.name || '(Unnamed)'}</span>
-              </div>
-
-              {/* Row 1: Name + Level */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Shift Name <span className="text-red-500">*</span></label>
-                  <input value={shift.name} onChange={(e) => updateShift(shift.id, 'name', e.target.value)}
-                    className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none ${theme.highlight}`} placeholder="e.g. Primary Morning" />
-                </div>
-                <div>
-                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Level <span className="text-red-500">*</span></label>
-                  <select value={shift.level} onChange={(e) => updateShift(shift.id, 'level', e.target.value)}
-                    className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none ${theme.highlight}`}>
-                    <option value="">Select...</option>
-                    <option value="Pre-Primary">Pre-Primary</option>
-                    <option value="Primary">Primary</option>
-                    <option value="Secondary">Secondary</option>
-                    <option value="Senior Secondary">Senior Secondary</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Classes in this Shift */}
-              <div className={`p-3 rounded-xl border ${theme.border} ${theme.cardBg}`}>
-                <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-2`}>Classes in this Shift</p>
-                <div className="flex gap-1.5 flex-wrap">
-                  {enabledClasses.map(cls => {
-                    const isSelected = (shiftClassMap[shift.id] || []).includes(cls);
-                    return (
-                      <button
-                        key={cls}
-                        onClick={() => toggleShiftClass(shift.id, cls)}
-                        className={`text-[10px] px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
-                          isSelected
-                            ? `${theme.primary} text-white`
-                            : `border ${theme.border} ${theme.iconColor} hover:bg-slate-100`
-                        }`}
-                      >
-                        {cls}
-                      </button>
-                    );
-                  })}
-                </div>
-                <p className={`text-[9px] ${theme.iconColor} mt-1.5`}>
-                  Click to toggle which classes attend this shift. {(shiftClassMap[shift.id] || []).length} class{(shiftClassMap[shift.id] || []).length !== 1 ? 'es' : ''} selected.
-                </p>
-              </div>
-
-              {/* Row 2: Reporting, First Bell, First Period, End Time */}
-              <div className="grid grid-cols-4 gap-3">
-                <div>
-                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Reporting Time</label>
-                  <input type="time" value={shift.reportingTime} onChange={(e) => updateShift(shift.id, 'reportingTime', e.target.value)}
-                    className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none ${theme.highlight}`} />
-                  <p className={`text-[9px] ${theme.iconColor} mt-0.5`}>Students arrive by</p>
-                </div>
-                <div>
-                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>First Bell</label>
-                  <input type="time" value={shift.firstBell} onChange={(e) => updateShift(shift.id, 'firstBell', e.target.value)}
-                    className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none ${theme.highlight}`} />
-                  <p className={`text-[9px] ${theme.iconColor} mt-0.5`}>Assembly / Line-up bell</p>
-                </div>
-                <div>
-                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>1st Period Starts</label>
-                  <input type="time" value={shift.startTime} onChange={(e) => updateShift(shift.id, 'startTime', e.target.value)}
-                    className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none ${theme.highlight}`} />
-                  <p className={`text-[9px] ${theme.iconColor} mt-0.5`}>Teaching starts</p>
-                </div>
-                <div>
-                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>School Ends</label>
-                  <input type="time" value={shift.endTime} onChange={(e) => updateShift(shift.id, 'endTime', e.target.value)}
-                    className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none ${theme.highlight}`} />
-                  <p className={`text-[9px] ${theme.iconColor} mt-0.5`}>Dismissal bell</p>
-                </div>
-              </div>
-
-              {/* Row 3: Periods + Duration */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Periods Per Day</label>
-                  <input type="number" value={shift.periods} onChange={(e) => updateShift(shift.id, 'periods', parseInt(e.target.value) || 0)}
-                    className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none ${theme.highlight}`} />
-                </div>
-                <div>
-                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Period Duration (mins)</label>
-                  <input type="number" value={shift.periodDuration} onChange={(e) => updateShift(shift.id, 'periodDuration', parseInt(e.target.value) || 0)}
-                    className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none ${theme.highlight}`} />
-                </div>
-              </div>
-
-              {/* Break Configuration */}
-              <div className={`p-3 rounded-xl border ${theme.border} ${theme.cardBg} space-y-2`}>
-                <div className="flex items-center justify-between">
-                  <p className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Breaks (Mon–Fri)</p>
-                  <button onClick={() => addBreak(shift.id)}
-                    className={`text-[10px] px-2 py-1 rounded-lg ${theme.primary} text-white font-bold flex items-center gap-1`}>
-                    <Plus size={8} /> Add Break
-                  </button>
-                </div>
-                {shift.breaks.length === 0 && (
-                  <p className={`text-[10px] ${theme.iconColor}`}>No breaks configured. Click &quot;Add Break&quot; to add one.</p>
-                )}
-                {shift.breaks.map(brk => (
-                  <div key={brk.id} className={`grid grid-cols-4 gap-2 items-end p-2 rounded-lg ${theme.secondaryBg}`}>
-                    <div>
-                      <label className={`text-[9px] ${theme.iconColor} font-bold`}>Break Name</label>
-                      <input value={brk.name} onChange={(e) => updateBreak(shift.id, brk.id, 'name', e.target.value)}
-                        className={`w-full px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight}`} />
-                    </div>
-                    <div>
-                      <label className={`text-[9px] ${theme.iconColor} font-bold`}>After Period #</label>
-                      <input type="number" min={1} max={shift.periods} value={brk.afterPeriod}
-                        onChange={(e) => updateBreak(shift.id, brk.id, 'afterPeriod', parseInt(e.target.value) || 1)}
-                        className={`w-full px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight}`} />
-                    </div>
-                    <div>
-                      <label className={`text-[9px] ${theme.iconColor} font-bold`}>Duration (mins)</label>
-                      <input type="number" min={5} value={brk.duration}
-                        onChange={(e) => updateBreak(shift.id, brk.id, 'duration', parseInt(e.target.value) || 5)}
-                        className={`w-full px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight}`} />
-                    </div>
-                    <button onClick={() => removeBreak(shift.id, brk.id)}
-                      className={`px-2 py-1.5 rounded-lg border ${theme.border} text-red-500 text-[10px] font-bold hover:bg-red-50 transition-colors`}>
-                      Remove
-                    </button>
-                  </div>
-                ))}
-                {shift.breaks.length > 0 && (
-                  <p className={`text-[9px] ${theme.iconColor}`}>
-                    Schedule: {Array.from({ length: shift.periods }, (_, i) => {
-                      const brk = shift.breaks.find(b => b.afterPeriod === i + 1);
-                      return `P${i + 1}${brk ? ` → ${brk.name} (${brk.duration}m)` : ''}`;
-                    }).join(' → ')}
-                  </p>
-                )}
-              </div>
-
-              {/* Saturday Different Schedule Toggle — hidden when Mon-Fri (no Saturday) */}
-              {workingDays !== 'Monday - Friday' && <div className={`p-3 rounded-xl border-2 border-dashed ${shift.useSaturdaySchedule ? 'border-blue-300 bg-blue-50/30' : theme.border} ${theme.cardBg} space-y-2`}>
-                <button onClick={() => updateShift(shift.id, 'useSaturdaySchedule', !shift.useSaturdaySchedule)}
-                  className="flex items-center gap-2 cursor-pointer w-full text-left">
-                  <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${shift.useSaturdaySchedule ? 'bg-blue-500 border-blue-500' : theme.border}`}>
-                    {shift.useSaturdaySchedule && <Check size={12} className="text-white" />}
-                  </div>
-                  <span className={`text-[10px] font-bold ${theme.highlight}`}>Different Saturday Schedule</span>
-                  <span className={`text-[9px] ${theme.iconColor}`}>(fewer periods, shorter day)</span>
-                </button>
-                {shift.useSaturdaySchedule && (
-                  <div className="mt-2 space-y-2">
-                    <div className="grid grid-cols-3 gap-3">
-                      <div>
-                        <label className={`text-[9px] ${theme.iconColor} font-bold`}>Sat End Time</label>
-                        <input type="time" value={shift.saturdayConfig.endTime}
-                          onChange={(e) => updateSatConfig(shift.id, 'endTime', e.target.value)}
-                          className={`w-full px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight}`} />
-                      </div>
-                      <div>
-                        <label className={`text-[9px] ${theme.iconColor} font-bold`}>Sat Periods</label>
-                        <input type="number" value={shift.saturdayConfig.periods}
-                          onChange={(e) => updateSatConfig(shift.id, 'periods', parseInt(e.target.value) || 0)}
-                          className={`w-full px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight}`} />
-                      </div>
-                      <div className="flex items-end">
-                        <button onClick={() => addSatBreak(shift.id)}
-                          className={`text-[10px] px-2 py-1.5 rounded-lg ${theme.primary} text-white font-bold flex items-center gap-1`}>
-                          <Plus size={8} /> Sat Break
-                        </button>
-                      </div>
-                    </div>
-                    {shift.saturdayConfig.breaks.map(brk => (
-                      <div key={brk.id} className={`grid grid-cols-4 gap-2 items-end p-2 rounded-lg ${theme.secondaryBg}`}>
-                        <div>
-                          <label className={`text-[9px] ${theme.iconColor} font-bold`}>Break Name</label>
-                          <input value={brk.name} onChange={(e) => updateSatBreak(shift.id, brk.id, 'name', e.target.value)}
-                            className={`w-full px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight}`} />
-                        </div>
-                        <div>
-                          <label className={`text-[9px] ${theme.iconColor} font-bold`}>After Period #</label>
-                          <input type="number" min={1} value={brk.afterPeriod}
-                            onChange={(e) => updateSatBreak(shift.id, brk.id, 'afterPeriod', parseInt(e.target.value) || 1)}
-                            className={`w-full px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight}`} />
-                        </div>
-                        <div>
-                          <label className={`text-[9px] ${theme.iconColor} font-bold`}>Duration (mins)</label>
-                          <input type="number" min={5} value={brk.duration}
-                            onChange={(e) => updateSatBreak(shift.id, brk.id, 'duration', parseInt(e.target.value) || 5)}
-                            className={`w-full px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight}`} />
-                        </div>
-                        <button onClick={() => removeSatBreak(shift.id, brk.id)}
-                          className={`px-2 py-1.5 rounded-lg border ${theme.border} text-red-500 text-[10px] font-bold hover:bg-red-50`}>
-                          Remove
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>}
-            </div>
-          ))}
-        </div>
-
-        <button
-          onClick={addShift}
-          className={`w-full mt-3 flex items-center justify-center gap-2 p-2.5 rounded-xl border-2 border-dashed ${theme.border} ${theme.iconColor} text-xs font-bold hover:bg-slate-50 transition-colors`}
-        >
-          <Plus size={12} /> Add Shift
-        </button>
-        <p className={`text-[10px] ${theme.iconColor} mt-2`}>
-          {shifts.length} shift{shifts.length !== 1 ? 's' : ''} configured. Each shift has its own timings, period structure, break schedule, and optional Saturday variation.
-        </p>
-
-        {/* Bell Schedule Preview */}
-        <div className={`mt-3 p-3 rounded-xl ${theme.accentBg} flex items-start gap-2`}>
-          <Info size={12} className={`${theme.iconColor} mt-0.5 shrink-0`} />
-          <p className={`text-[10px] ${theme.iconColor}`}>
-            <strong>Bell Schedule:</strong> Auto-generated from the above configuration. Bells ring at: Reporting time, First bell (assembly), Period start/end, Break start/end, and Dismissal. Schools can customize bell sounds in settings.
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ─── MODULE SUB-MODULES & RBAC DATA ─────────────────
 type SubModuleItem =
@@ -1593,234 +606,105 @@ const MODULE_SUBMODULES: Record<string, ModuleConfig> = {
     features: ['Overview Cards', 'Quick Actions', 'News Board', 'Analytics Widgets'],
   },
   'Student Management': {
-    features: ['Admission', 'Profile & Documents', 'Promotion', 'TC / Transfer', 'Sibling Linking', 'Bulk Import'],
-    decisions: [
-      { name: 'Admission Mode', type: 'select', options: ['Online Only', 'Offline Only', 'Both Online + Offline'], default: 'Both Online + Offline', hint: 'How do parents apply?' },
-      { name: 'Auto-generate Admission No.', type: 'toggle', default: true },
-      { name: 'Document Upload Required', type: 'toggle', default: true, hint: 'Require documents during admission' },
-      { name: 'Photo Mandatory', type: 'toggle', default: true },
-    ],
+    features: ['Admission', 'Profile & Documents', 'Promotion', 'TC / Transfer', 'Sibling Linking', 'Bulk Import', 'Developmental Milestones (Preschool)', 'Daily Activity Log (Preschool)'],
   },
   'Staff Management': {
     features: ['Profile & Documents', 'Joining / Exit', 'ID Card Generation', 'Staff Directory', 'Attendance'],
-    decisions: [
-      { name: 'Staff Attendance Method', type: 'multi-select', options: ['Biometric (Fingerprint/Face)', 'Mobile App', 'RFID Card', 'Manual Register', 'Geo-fencing'], default: ['Biometric (Fingerprint/Face)', 'Mobile App'], hint: 'Select all applicable methods' },
-      { name: 'Self-service Portal', type: 'toggle', default: true, hint: 'Staff can view payslips, apply leave, update profile' },
-    ],
   },
   'Fee Management': {
     features: ['Fee Structure', 'Collection & Receipts', 'Concessions', 'Late Fee Rules', 'Reports & Ledger', 'Online Payment', 'Reminders'],
-    decisions: [
-      { name: 'Payment Modes Accepted', type: 'multi-select', options: ['Cash', 'UPI', 'Net Banking', 'Credit Card', 'Debit Card', 'Cheque', 'DD/NEFT'], default: ['Cash', 'UPI', 'Net Banking', 'Cheque'], hint: 'Which payment methods are available?' },
-      { name: 'Fee Reminder Channel', type: 'multi-select', options: ['SMS', 'Email', 'Push Notification', 'WhatsApp'], default: ['SMS', 'Push Notification'] },
-      { name: 'Late Fee Policy', type: 'select', options: ['No Late Fee', 'Per Day (Fixed Amount)', 'Per Week (Fixed Amount)', 'Flat Monthly Fee'], default: 'Per Day (Fixed Amount)' },
-      { name: 'Concession Types', type: 'multi-select', options: ['Sibling Discount', 'Staff Child', 'Merit Scholarship', 'EWS Quota', 'Single Parent', 'Custom'], default: ['Sibling Discount', 'Staff Child', 'Merit Scholarship'] },
-      { name: 'Fee Defaulter Blocking', type: 'toggle', default: false, hint: 'Block report card / TC if fees pending' },
-    ],
   },
   'Attendance': {
     features: ['Student Attendance', 'Staff Attendance', 'Biometric Integration', 'Reports & Analytics', 'Absent Notifications'],
-    decisions: [
-      { name: 'Attendance Frequency', type: 'select', options: ['Daily', 'Twice Daily (AM + PM)', 'Period-wise'], default: 'Daily', hint: 'How often is attendance marked?' },
-      { name: 'Marking Method', type: 'multi-select', options: ['Biometric (Fingerprint/Face)', 'Mobile App (Teacher)', 'RFID Card', 'Manual Register', 'QR Code Scan'], default: ['Mobile App (Teacher)'] },
-      { name: 'Auto-notify Parents on Absence', type: 'toggle', default: true },
-      { name: 'Late Coming Tracking', type: 'toggle', default: true, hint: 'Track students who arrive after bell' },
-    ],
   },
   'Timetable': {
-    features: ['Class Timetable', 'Teacher Timetable', 'Substitution Management', 'Period Allocation', 'Conflict Detection'],
-    decisions: [
-      { name: 'Substitution Mode', type: 'select', options: ['Manual Assignment', 'Auto-suggest Based on Free Periods', 'Both'], default: 'Both' },
-      { name: 'Allow Period Swaps by Teachers', type: 'toggle', default: false },
-    ],
+    features: ['Class Timetable', 'Teacher Timetable', 'Substitution Management', 'Period Allocation', 'Conflict Detection', 'Academic Calendar', 'Yearly Planner'],
   },
   'Parent Portal': {
     features: ['Child Dashboard', 'Fee Payments', 'Communication', 'Homework View', 'Attendance View', 'Report Cards'],
-    decisions: [
-      { name: 'Multi-child Support', type: 'toggle', default: true, hint: 'Parents with multiple children see all in one login' },
-      { name: 'Fee Payment via Portal', type: 'toggle', default: true },
-      { name: 'PTM Booking via Portal', type: 'toggle', default: true },
-    ],
   },
   'Student Portal': {
     features: ['Dashboard', 'Homework Submission', 'Timetable View', 'Results', 'Library'],
-    decisions: [
-      { name: 'Allow Online Homework Submission', type: 'toggle', default: true },
-      { name: 'Show Class Rank', type: 'toggle', default: false, hint: 'Display class rank on student dashboard' },
-    ],
   },
   'Communication / Chat': {
-    features: ['Chat Messaging', 'Announcements', 'Broadcasts', 'Polls & Surveys', 'Notices'],
-    decisions: [
-      { name: 'Chat Direction', type: 'select', options: ['Full Two-Way', 'Reply Only (Teacher initiates)', 'Broadcast Only (One-way)'], default: 'Full Two-Way', hint: 'How can parents communicate?' },
-      { name: 'Group Creation Permission', type: 'select', options: ['Admin Only', 'Admin + Principal', 'All Staff', 'Everyone'], default: 'Admin + Principal' },
-      { name: 'Auto-create Default Groups', type: 'toggle', default: true, hint: 'Class-wise, department-wise, house-wise groups' },
-      { name: 'File Sharing in Chat', type: 'toggle', default: true },
-      { name: 'Voice Messages', type: 'toggle', default: false },
-    ],
+    features: ['Chat Messaging', 'Announcements', 'Broadcasts', 'Polls & Surveys', 'Notices', 'Circulars & Notices'],
   },
   'Online Payment': {
     features: ['Payment Gateway', 'Payment Tracking', 'Refunds', 'Payment Reports'],
-    decisions: [
-      { name: 'Payment Gateway', type: 'select', options: ['Razorpay', 'PayU', 'CCAvenue', 'Cashfree', 'None (Offline Only)'], default: 'Razorpay' },
-      { name: 'Auto-receipt Generation', type: 'toggle', default: true },
-      { name: 'Partial Payment Allowed', type: 'toggle', default: false },
-    ],
   },
   'Enquiry / Admission': {
     features: ['Lead Capture', 'Follow-up Pipeline', 'Online Form', 'Conversion Tracking', 'Reports'],
-    decisions: [
-      { name: 'Lead Sources', type: 'multi-select', options: ['Website Form', 'Walk-in', 'Phone Call', 'Social Media', 'Referral', 'Education Fair'], default: ['Website Form', 'Walk-in', 'Phone Call'] },
-      { name: 'Auto-assign Follow-ups', type: 'toggle', default: true, hint: 'Auto-assign leads to counselors' },
-      { name: 'Online Application Form', type: 'toggle', default: true },
-    ],
   },
   'Homework / Assignments': {
     features: ['Create & Assign', 'Submission Tracking', 'Grading', 'Reports'],
-    decisions: [
-      { name: 'Submission Mode', type: 'select', options: ['Online Upload Only', 'Offline (Teacher Marks)', 'Both Online + Offline'], default: 'Both Online + Offline' },
-      { name: 'Allow Late Submission', type: 'toggle', default: true },
-      { name: 'Parent Notification on Assignment', type: 'toggle', default: true },
-    ],
   },
   'Transport Management': {
     features: ['Routes & Stops', 'Vehicle Management', 'GPS Tracking', 'Student Mapping', 'Driver App'],
-    decisions: [
-      { name: 'GPS Live Tracking', type: 'toggle', default: true },
-      { name: 'Parent Tracking App', type: 'toggle', default: true, hint: 'Parents see live bus location' },
-      { name: 'RFID Student Boarding', type: 'toggle', default: false, hint: 'Track boarding/alighting via RFID' },
-      { name: 'Speed & Route Alerts', type: 'toggle', default: false },
-      { name: 'Walk-in vs Transport Tagging', type: 'toggle', default: true, hint: 'Tag each student during enrollment' },
-      { name: 'Transport Fee Model', type: 'select', options: ['Flat Fee', 'Route-wise', 'Distance-based'], default: 'Route-wise' },
-    ],
   },
   'Visitor Management': {
-    features: ['Check-in / Check-out', 'Pre-approval', 'Student Pickup', 'Visitor Logs', 'Reports'],
-    decisions: [
-      { name: 'Pickup Verification', type: 'select', options: ['OTP-based', 'Photo ID', 'QR Code', 'Face Recognition'], default: 'OTP-based' },
-      { name: 'Pre-registration Required', type: 'toggle', default: false, hint: 'Visitors must be pre-registered' },
-      { name: 'Visitor Photo Capture', type: 'toggle', default: true },
-    ],
+    features: ['Check-in / Check-out', 'Pre-approval', 'Student Pickup', 'Visitor Logs', 'Reports', 'Front Office / Calls Log', 'Courier & Mail Room', 'Appointments', 'Staff Directory'],
   },
   'Library': {
     features: ['Book Catalog', 'Issue / Return', 'Fines', 'Reports', 'Barcode Scan'],
-    decisions: [
-      { name: 'Max Books per Student', type: 'select', options: ['1', '2', '3', '5', 'Unlimited'], default: '2' },
-      { name: 'Fine on Late Return', type: 'toggle', default: true },
-      { name: 'Digital Library (eBooks)', type: 'toggle', default: false },
-      { name: 'Barcode/QR Scanning', type: 'toggle', default: true },
-    ],
   },
   'Examination & Report Cards': {
     features: ['Exam Schedule', 'Marks Entry', 'Report Card Generation', 'Analytics', 'Board Exam Support'],
-    decisions: [
-      { name: 'Grading System', type: 'select', options: ['Marks Only (Numeric)', 'Grades Only (A-F)', 'Both Marks + Grades', 'CBSE CCE Pattern', 'Custom'], default: 'Both Marks + Grades' },
-      { name: 'Report Card Format', type: 'select', options: ['CBSE Standard', 'ICSE Format', 'State Board', 'Custom Design'], default: 'CBSE Standard' },
-      { name: 'Online Marks Entry by Teachers', type: 'toggle', default: true },
-      { name: 'Parent Access to Report Card', type: 'toggle', default: true },
-      { name: 'Rank Display', type: 'select', options: ['Show Rank', 'Show Grade Band Only', 'No Ranking'], default: 'Show Rank' },
-    ],
   },
   'HR & Payroll': {
-    features: ['Payroll Processing', 'Salary Structure', 'Deductions & Tax', 'Pay Slips', 'Compliance Reports'],
-    decisions: [
-      { name: 'Departments', type: 'multi-select', options: ['Administration', 'Teaching-Primary', 'Teaching-Secondary', 'Teaching-Senior', 'Accounts', 'IT', 'Transport', 'Housekeeping', 'Security', 'Library', 'Lab'], default: ['Administration', 'Teaching-Primary', 'Teaching-Secondary', 'Teaching-Senior', 'Accounts'] },
-      { name: 'Statutory Deductions', type: 'multi-select', options: ['PF (EPF)', 'ESI', 'Professional Tax', 'TDS'], default: ['PF (EPF)', 'Professional Tax', 'TDS'] },
-      { name: 'Pay Cycle', type: 'select', options: ['Monthly (1st)', 'Monthly (Last Working Day)', 'Bi-weekly', 'Weekly'], default: 'Monthly (Last Working Day)' },
-      { name: 'Self-service Payslip', type: 'toggle', default: true },
-    ],
+    features: ['Payroll Processing', 'Salary Structure', 'Deductions & Tax', 'Pay Slips', 'Compliance Reports', 'Performance Management', 'HR Letters & Documents', 'Offboarding / Exit Management'],
   },
   'Leave Management': {
     features: ['Apply Leave', 'Approval Workflow', 'Leave Balance', 'Holiday Calendar', 'Reports'],
-    decisions: [
-      { name: 'Leave Types', type: 'multi-select', options: ['Casual Leave', 'Sick Leave', 'Earned Leave', 'Maternity Leave', 'Paternity Leave', 'Compensatory Off', 'Study Leave'], default: ['Casual Leave', 'Sick Leave', 'Earned Leave'] },
-      { name: 'Approval Mode', type: 'select', options: ['Single-level (HOD)', 'Two-level (HOD → Principal)', 'Auto-approve (< 2 days)'], default: 'Two-level (HOD → Principal)' },
-      { name: 'Half-day Leave', type: 'toggle', default: true },
-      { name: 'Sandwich Rule', type: 'toggle', default: false, hint: 'Weekends count as leave if sandwiched' },
-    ],
   },
   'Certificates': {
     features: ['TC Generation', 'Bonafide', 'Character Certificate', 'Custom Templates', 'Bulk Print'],
-    decisions: [
-      { name: 'Auto-numbering', type: 'toggle', default: true, hint: 'Auto-generate certificate serial numbers' },
-      { name: 'Digital Signature', type: 'toggle', default: false },
-      { name: 'QR Code Verification', type: 'toggle', default: false, hint: 'Add QR code for certificate authenticity' },
-    ],
   },
   'Canteen Management': {
-    features: ['Menu Management', 'Pre-orders', 'Billing', 'Reports'],
-    decisions: [
-      { name: 'Pre-order System', type: 'toggle', default: true, hint: 'Students/parents can pre-order meals' },
-      { name: 'Wallet / Prepaid System', type: 'toggle', default: false },
-      { name: 'Allergy Tracking', type: 'toggle', default: true },
-    ],
+    features: ['Menu Management', 'Pre-orders', 'Billing', 'Reports', 'Allergy Register', 'Nutritional Targets & Meal Plans'],
   },
   'SQAAF / Quality Assessment': {
     features: ['Self Assessment', 'Quality Metrics', 'Improvement Plans', 'Reports'],
-    decisions: [
-      { name: 'Assessment Framework', type: 'select', options: ['SQAAF (Standard)', 'NAAC', 'Custom Framework'], default: 'SQAAF (Standard)' },
-      { name: 'Auto-collect Data from Modules', type: 'toggle', default: true, hint: 'Pull attendance, results, etc. automatically' },
-    ],
   },
   'Inventory Management': {
     features: ['Asset Tracking', 'Stock Management', 'Purchase Orders', 'Maintenance Logs'],
-    decisions: [
-      { name: 'Barcode/QR Asset Tagging', type: 'toggle', default: true },
-      { name: 'Low Stock Alerts', type: 'toggle', default: true },
-      { name: 'Purchase Approval Workflow', type: 'toggle', default: true },
-    ],
   },
   'Hostel Management': {
     features: ['Room Allocation', 'Mess Menu', 'Attendance', 'Fee Integration'],
-    decisions: [
-      { name: 'Mess Management', type: 'toggle', default: true },
-      { name: 'Visitor Log for Hostellers', type: 'toggle', default: true },
-      { name: 'Hostel Fee Integration with Main Fee', type: 'toggle', default: true },
-    ],
   },
   'Alumni Management': {
     features: ['Alumni Directory', 'Events', 'Communication', 'Donations'],
-    decisions: [
-      { name: 'Self-registration Portal', type: 'toggle', default: true, hint: 'Alumni can register themselves' },
-      { name: 'Donation Module', type: 'toggle', default: false },
-      { name: 'Job Board', type: 'toggle', default: false },
-    ],
   },
   'Advanced Analytics': {
     features: ['Custom Dashboards', 'Trend Analysis', 'Predictive Insights', 'Export Tools'],
-    decisions: [
-      { name: 'Predictive Analytics (AI)', type: 'toggle', default: false, hint: 'AI-powered predictions for attendance, performance' },
-      { name: 'Comparative Analysis', type: 'toggle', default: true, hint: 'Compare across classes, years, branches' },
-    ],
   },
   'Custom Reports Builder': {
     features: ['Drag & Drop Builder', 'Scheduled Reports', 'Templates', 'Export Formats'],
     decisions: [
-      { name: 'Scheduled Email Reports', type: 'toggle', default: true },
       { name: 'Export Formats', type: 'multi-select', options: ['PDF', 'Excel', 'CSV', 'Google Sheets'], default: ['PDF', 'Excel'] },
     ],
   },
   'API Access': {
     features: ['REST API Keys', 'Webhook Config', 'Rate Limits', 'Documentation'],
-    decisions: [
-      { name: 'Third-party Integrations', type: 'toggle', default: false },
-      { name: 'Webhook Notifications', type: 'toggle', default: false },
-    ],
   },
   'White Label Branding': {
     features: ['Logo & Colors', 'Custom Domain', 'Email Templates', 'App Branding'],
-    decisions: [
-      { name: 'Custom Domain', type: 'toggle', default: false },
-      { name: 'White-label Mobile App', type: 'toggle', default: false },
-      { name: 'Custom Email Templates', type: 'toggle', default: true },
-    ],
+  },
+  'Accounting / Financials': {
+    features: ['Expense Management', 'Petty Cash', 'Bank Reconciliation', 'Receipt Management', 'Financial Reports', 'Budget Planning', 'Income & Expenditure'],
+  },
+  'Discipline Management': {
+    features: ['Incident Tracking', 'Conduct Records', 'Warning & Suspension', 'Parent Notifications', 'Behavior Analytics', 'Counselor Referrals'],
+  },
+  'Compliance & Audit': {
+    features: ['CBSE/Board Affiliation', 'RTE Compliance', 'POCSO Compliance', 'Infrastructure Audit', 'Safety Standards', 'Document Repository', 'Audit Trail'],
+  },
+  'Security Management': {
+    features: ['Gate Log', 'Patrol Log', 'Emergency Protocols', 'CCTV Integration', 'Incident Reporting', 'Student Pickup Verification'],
+  },
+  'Activity & Events Management': {
+    features: ['Activity Calendar', 'Event Planning', 'Art Gallery / Portfolio', 'Competition Tracking', 'Achievement Records', 'Annual Day / Sports Day'],
   },
 };
-
-const STAKEHOLDER_ROLES = [
-  'School Admin', 'Principal', 'Vice Principal', 'Teacher', 'HR Manager',
-  'Accounts Head', 'Receptionist', 'Transport Head', 'Security', 'Trustee', 'Parent', 'Student',
-];
 
 // ─── STEP 3: PLAN & MODULES ──────────────────────────
 function Step3Modules({ theme, institutionType }: { theme: Theme; institutionType: string }) {
@@ -1945,23 +829,37 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
   const [addonStudentCount, setAddonStudentCount] = useState(0);
   const [addonPeriod, setAddonPeriod] = useState(periodOptions[0]);
 
-  // ─── MODULE EXPANSION & RBAC ───
+  // ─── MODULE EXPANSION & SUB-MODULES ───
   const [expandedModule, setExpandedModule] = useState<string | null>(null);
   const [subModuleToggles, setSubModuleToggles] = useState<Record<string, Record<string, boolean>>>({});
-  const [moduleRBAC, setModuleRBAC] = useState<Record<string, Record<string, boolean>>>({});
+
+  // ─── AI POWER PACK TOGGLES ───
+  const AI_FEATURES = [
+    { id: 'ai-analytics', label: 'AI-Powered Analytics & Predictions', desc: 'Forecast enrollment, fee defaults, and performance trends using ML models', badge: 'Analytics' },
+    { id: 'ai-attendance', label: 'Smart Attendance (Face Recognition)', desc: 'Automated face-scan attendance for students and staff via camera', badge: 'Biometric' },
+    { id: 'ai-chatbot', label: 'AI Chatbot for Parents & Students', desc: 'Conversational AI that answers queries 24/7 — fee dues, timetable, results', badge: 'Chatbot' },
+    { id: 'ai-reportcard', label: 'Automated Report Card Insights', desc: 'AI-generated narrative comments per student based on marks + attendance + behavior', badge: 'Reports' },
+    { id: 'ai-timetable', label: 'AI Timetable Optimization', desc: 'Auto-generate conflict-free timetables factoring room capacity, teacher workload, subject spread', badge: 'Timetable' },
+    { id: 'ai-fee-defaulter', label: 'Smart Fee Defaulter Prediction', desc: 'Early warning scores for fee non-payment risk before dues accumulate', badge: 'Fees' },
+    { id: 'ai-content', label: 'AI Content Generation', desc: 'Auto-draft homework questions, circular templates, and lesson plan outlines', badge: 'Content' },
+  ];
+  const [aiToggles, setAiToggles] = useState<Record<string, boolean>>(() => {
+    const init: Record<string, boolean> = {};
+    AI_FEATURES.forEach(f => { init[f.id] = true; });
+    return init;
+  });
+  const toggleAiFeature = (id: string) => setAiToggles(prev => ({ ...prev, [id]: !prev[id] }));
+  const aiEnabledCount = Object.values(aiToggles).filter(Boolean).length;
+  // Whether the current plan includes AI Power Pack
+  const isPowerPackPlan = selectedPlan === 'powerpack';
+  // Whether user has manually opted into AI add-on (non-powerpack plans)
+  const [aiAddonEnabled, setAiAddonEnabled] = useState(false);
 
   const getSubModuleState = (mod: string, sub: string) => subModuleToggles[mod]?.[sub] ?? true;
   const toggleSubModule = (mod: string, sub: string) => {
     setSubModuleToggles(prev => ({
       ...prev,
       [mod]: { ...prev[mod], [sub]: !(prev[mod]?.[sub] ?? true) },
-    }));
-  };
-  const getRBACState = (mod: string, role: string) => moduleRBAC[mod]?.[role] ?? false;
-  const toggleRBAC = (mod: string, role: string) => {
-    setModuleRBAC(prev => ({
-      ...prev,
-      [mod]: { ...prev[mod], [role]: !(prev[mod]?.[role] ?? false) },
     }));
   };
 
@@ -1975,6 +873,8 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
     'Canteen Management', 'SQAAF / Quality Assessment', 'Inventory Management', 'Hostel Management',
     'Alumni Management', 'Advanced Analytics', 'Custom Reports Builder',
     'API Access', 'White Label Branding',
+    'Accounting / Financials', 'Discipline Management', 'Compliance & Audit',
+    'Security Management', 'Activity & Events Management',
   ];
 
   const coreModules = ['Dashboard', 'Student Management', 'Staff Management', 'Fee Management', 'Attendance', 'Timetable', 'Parent Portal', 'Student Portal', 'Communication / Chat', 'Online Payment', 'Enquiry / Admission', 'Homework / Assignments'];
@@ -2103,12 +1003,10 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
   const isModuleExcluded = (name: string) => excludedModules.includes(name);
 
   const toggleModule = (name: string) => {
-    if (coreModules.includes(name)) return;
-    if (isModuleExcluded(name)) return;
     setModules(p => ({ ...p, [name]: !p[name] }));
   };
 
-  const enabledCount = Object.entries(modules).filter(([name, on]) => on && !isModuleExcluded(name)).length;
+  const enabledCount = Object.values(modules).filter(Boolean).length;
 
   const toggleSupport = (id: string) => {
     if (includedSupport.includes(id)) return; // locked ON
@@ -2738,37 +1636,33 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
         </div>
       </div>
 
-      {/* ── SECTION 4: MODULE TOGGLES with Sub-Modules & RBAC ── */}
+      {/* ── SECTION 4: MODULE TOGGLES — Flat list grouped by functional area ── */}
       {[
-        { cat: 'Core (All Plans)', list: coreModules, locked: true },
-        { cat: skuType === 'sms-pack' ? 'Professional+' : '360+', list: proModules, locked: false },
-        { cat: skuType === 'sms-pack' ? 'Enterprise Only' : 'Power Pack', list: entModules, locked: false },
+        { cat: 'Academic & Students', list: ['Student Management', 'Attendance', 'Timetable', 'Homework / Assignments', 'Examination & Report Cards', 'Discipline Management', 'Library'] },
+        { cat: 'Administration', list: ['Staff Management', 'Fee Management', 'Online Payment', 'Accounting / Financials', 'Enquiry / Admission', 'Certificates', 'Visitor Management', 'Security Management'] },
+        { cat: 'Communication & Portals', list: ['Communication / Chat', 'Parent Portal', 'Student Portal', 'Activity & Events Management'] },
+        { cat: 'HR & Operations', list: ['HR & Payroll', 'Leave Management', 'Transport Management', 'Canteen Management', 'Inventory Management', 'Hostel Management'] },
+        { cat: 'Compliance & Analytics', list: ['SQAAF / Quality Assessment', 'Compliance & Audit', 'Advanced Analytics', 'Custom Reports Builder'] },
+        { cat: 'Platform & Branding', list: ['Alumni Management', 'API Access', 'White Label Branding', 'Dashboard'] },
       ].map(cat => (
         <div key={cat.cat} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
           <SectionTitle title={cat.cat} subtitle="Click any module to configure sub-modules & role access" theme={theme} />
           <div className="space-y-2">
             {cat.list.map(name => {
-              const excluded = isModuleExcluded(name);
-              const isExpanded = expandedModule === name && modules[name] && !excluded;
+              const isExpanded = expandedModule === name && modules[name];
               const subs = MODULE_SUBMODULES[name] || { features: [] };
               return (
                 <div key={name} className="space-y-0">
                   <div className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all ${
-                    excluded ? 'bg-slate-100 opacity-60' : isExpanded ? `${theme.accentBg} ring-1 ring-slate-300` : theme.secondaryBg
+                    isExpanded ? `${theme.accentBg} ring-1 ring-slate-300` : theme.secondaryBg
                   }`}
-                    onClick={() => !excluded && modules[name] && setExpandedModule(isExpanded ? null : name)}>
+                    onClick={() => modules[name] && setExpandedModule(isExpanded ? null : name)}>
                     <div className="flex items-center gap-2">
-                      {cat.locked && <Lock size={10} className={theme.iconColor} />}
-                      {!excluded && modules[name] && subs.features.length > 0 && (
+                      {modules[name] && subs.features.length > 0 && (
                         <ChevronDown size={12} className={`${theme.iconColor} transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                       )}
-                      <span className={`text-xs font-medium ${excluded ? 'text-slate-400 line-through' : theme.highlight}`}>{name}</span>
-                      {excluded && (
-                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-100 text-red-500 font-bold ml-1">
-                          Not in {currentTier.name} plan
-                        </span>
-                      )}
-                      {!excluded && modules[name] && subs.features.length > 0 && (
+                      <span className={`text-xs font-medium ${theme.highlight}`}>{name}</span>
+                      {modules[name] && subs.features.length > 0 && (
                         <span className={`text-[9px] px-1.5 py-0.5 rounded ${theme.accentBg} ${theme.iconColor} font-medium`}>
                           {subs.features.filter(s => getSubModuleState(name, s)).length}/{subs.features.length} sub-modules
                           {subs.decisions && subs.decisions.length > 0 && ` \u00b7 ${subs.decisions.length} decisions`}
@@ -2776,11 +1670,7 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
                       )}
                     </div>
                     <div onClick={e => e.stopPropagation()}>
-                      {excluded ? (
-                        <Lock size={10} className="text-slate-300" />
-                      ) : (
-                        <Toggle on={modules[name]} onChange={() => toggleModule(name)} theme={theme} />
-                      )}
+                      <Toggle on={modules[name]} onChange={() => toggleModule(name)} theme={theme} />
                     </div>
                   </div>
 
@@ -2863,30 +1753,6 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
                         </div>
                       )}
 
-                      {/* RBAC: Stakeholder access */}
-                      <div>
-                        <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-2`}>Role-Based Access Control</p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {STAKEHOLDER_ROLES.map(role => (
-                            <button key={role} onClick={() => toggleRBAC(name, role)}
-                              className={`text-[10px] px-2 py-1 rounded-lg border cursor-pointer transition-all font-medium flex items-center gap-1 ${
-                                getRBACState(name, role)
-                                  ? `border-blue-300 bg-blue-50 text-blue-700`
-                                  : `${theme.border} ${theme.secondaryBg} ${theme.iconColor}`
-                              }`}>
-                              <div className={`w-3 h-3 rounded-sm flex items-center justify-center ${
-                                getRBACState(name, role) ? 'bg-blue-500 text-white' : `border ${theme.border}`
-                              }`}>
-                                {getRBACState(name, role) && <Check size={8} />}
-                              </div>
-                              {role}
-                            </button>
-                          ))}
-                        </div>
-                        <p className={`text-[9px] ${theme.iconColor} mt-1.5`}>
-                          {STAKEHOLDER_ROLES.filter(r => getRBACState(name, r)).length} of {STAKEHOLDER_ROLES.length} roles have access to {name}
-                        </p>
-                      </div>
                     </div>
                   )}
                 </div>
@@ -2896,29 +1762,145 @@ function Step3Modules({ theme, institutionType }: { theme: Theme; institutionTyp
         </div>
       ))}
 
-      {/* AI Features section — only for Power Pack */}
-      {skuType === 'sms-students' && selectedPlan === 'powerpack' && (
-        <div className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-2xl border-2 border-amber-300 p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <Sparkles size={16} className="text-amber-500" />
-            <SectionTitle title="AI Features (Power Pack Exclusive)" subtitle="All AI features are included and active in Power Pack tier" theme={theme} />
-          </div>
-          <div className="space-y-2">
-            {['AI Timetable Generator', 'AI Question Paper Generator', 'AI Homework Assistance', 'AI Support Bot (Natural Language)', 'AI Planner (Academic Calendar)'].map(name => (
-              <div key={name} className="flex items-center justify-between p-3 rounded-xl bg-amber-100/50">
-                <div className="flex items-center gap-2">
-                  <Sparkles size={10} className="text-amber-500" />
-                  <span className="text-xs font-medium text-amber-900">{name}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-200 text-amber-700 font-bold">INCLUDED</span>
-                  <Lock size={10} className="text-amber-400" />
-                </div>
+
+      {/* ── AI FEATURES (POWER PACK) ── */}
+      <div className="relative">
+        {/* Gradient border wrapper */}
+        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-amber-400 via-orange-400 to-purple-500 p-[2px] pointer-events-none" />
+        <div className={`relative ${theme.cardBg} rounded-2xl p-5 space-y-4`}>
+
+          {/* Header row */}
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0 shadow-md">
+                <Sparkles size={20} className="text-white" />
               </div>
-            ))}
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className={`text-sm font-bold ${theme.highlight}`}>AI Features</h3>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 text-white font-bold tracking-wide shadow-sm">
+                    POWER PACK
+                  </span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 font-bold">
+                    PREMIUM ADD-ON
+                  </span>
+                </div>
+                <p className={`text-[10px] ${theme.iconColor} mt-0.5`}>
+                  {isPowerPackPlan
+                    ? 'Included with your Power Pack (AI) plan. Toggle individual AI capabilities below.'
+                    : 'Not included in your current plan. Enable as a premium add-on (+₹50,000/yr) or upgrade to Power Pack.'}
+                </p>
+              </div>
+            </div>
+
+            {/* Plan-aware toggle */}
+            {isPowerPackPlan ? (
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className="text-[10px] px-2 py-1 rounded-lg bg-amber-100 text-amber-700 font-bold">
+                  {aiEnabledCount}/{AI_FEATURES.length} ON
+                </span>
+                <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 shrink-0">
+                <span className={`text-[10px] font-medium ${theme.iconColor}`}>Add-on</span>
+                <Toggle on={aiAddonEnabled} onChange={() => setAiAddonEnabled(!aiAddonEnabled)} theme={theme} />
+              </div>
+            )}
+          </div>
+
+          {/* Pricing / Upgrade nudge (non-powerpack only) */}
+          {!isPowerPackPlan && (
+            <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200">
+              <AlertCircle size={12} className="text-amber-500 mt-0.5 shrink-0" />
+              <div>
+                <p className="text-[10px] text-amber-700 font-bold">Add AI Power Pack as an add-on</p>
+                <p className="text-[10px] text-amber-600 mt-0.5">
+                  +₹50,000/yr on top of your current plan. Or upgrade to{' '}
+                  <button onClick={() => {}} className="underline font-bold">Power Pack (₹2,50,000/yr)</button>{' '}
+                  to get unlimited students + all AI features in one plan.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* AI Feature chips — always visible, dimmed when add-on not enabled */}
+          <div className={`space-y-2 transition-opacity ${!isPowerPackPlan && !aiAddonEnabled ? 'opacity-40 pointer-events-none' : 'opacity-100'}`}>
+            <p className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>
+              Select AI capabilities to activate
+            </p>
+            <div className="space-y-1.5">
+              {AI_FEATURES.map(feature => {
+                const isOn = aiToggles[feature.id];
+                return (
+                  <button
+                    key={feature.id}
+                    onClick={() => toggleAiFeature(feature.id)}
+                    className={`w-full flex items-center justify-between p-3 rounded-xl border-2 cursor-pointer text-left transition-all ${
+                      isOn
+                        ? 'border-amber-300 bg-amber-50/80 ring-1 ring-amber-200'
+                        : `${theme.border} ${theme.secondaryBg}`
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-all ${
+                        isOn ? 'bg-amber-500 border-amber-500' : theme.border
+                      }`}>
+                        {isOn && <Check size={10} className="text-white" />}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className={`text-xs font-semibold ${isOn ? 'text-amber-800' : theme.highlight}`}>
+                            {feature.label}
+                          </span>
+                          <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold ${
+                            isOn ? 'bg-amber-200 text-amber-700' : `${theme.secondaryBg} ${theme.iconColor}`
+                          }`}>
+                            {feature.badge}
+                          </span>
+                        </div>
+                        <p className={`text-[10px] mt-0.5 ${isOn ? 'text-amber-600' : theme.iconColor}`}>
+                          {feature.desc}
+                        </p>
+                      </div>
+                    </div>
+                    <Sparkles size={12} className={`shrink-0 ml-2 ${isOn ? 'text-amber-400' : 'text-slate-300'}`} />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Summary row */}
+          {(isPowerPackPlan || aiAddonEnabled) && (
+            <div className={`${theme.secondaryBg} rounded-xl p-3 flex items-center justify-between`}>
+              <div className="flex items-center gap-2">
+                <Sparkles size={12} className="text-amber-500" />
+                <span className={`text-[10px] font-bold ${theme.iconColor}`}>
+                  {aiEnabledCount} of {AI_FEATURES.length} AI features active
+                </span>
+              </div>
+              <div className="flex gap-1 flex-wrap justify-end">
+                {AI_FEATURES.filter(f => aiToggles[f.id]).map(f => (
+                  <span key={f.id} className="text-[9px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">
+                    {f.badge}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Footer note */}
+          <div className="flex items-start gap-2">
+            <Info size={11} className={`${theme.iconColor} mt-0.5 shrink-0`} />
+            <p className={`text-[10px] ${theme.iconColor}`}>
+              AI features are provisioned at the organisation level. Individual feature access can be restricted per school via School Admin settings.
+              Face recognition requires camera hardware at the school premises.
+            </p>
           </div>
         </div>
-      )}
+      </div>
+
 
       {/* ── SECTION 5: AUTH METHOD CONFIGURATION ── */}
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5`}>
@@ -3073,40 +2055,7 @@ function Step4Roles({ theme, institutionType }: { theme: Theme; institutionType:
         <p className={`text-[10px] ${theme.iconColor} mt-2`}>{Object.values(roles).filter(Boolean).length} dashboards active</p>
       </div>
 
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <SectionTitle title="Approval Workflows" subtitle="Define who approves what — multiple stakeholders CAN share authority" theme={theme} />
-        <div className={`p-2.5 rounded-xl border-2 border-dashed ${theme.border} mb-3`}>
-          <p className={`text-[10px] ${theme.iconColor}`}>
-            <AlertTriangle size={10} className="inline mr-1 text-amber-500" />
-            <strong>Note:</strong> Multiple people can have approval authority for the same function. E.g., both Principal AND Admin can approve leave requests.
-          </p>
-        </div>
-        <div className="space-y-3">
-          {[
-            { fn: 'Leave Approval (Teaching)', chain: ['Vice Principal', 'Principal'], options: ['VP → Principal', 'Direct to Principal', 'Admin → Principal', 'HOD → VP → Principal'] },
-            { fn: 'Leave Approval (Non-Teaching)', chain: ['Admin', 'Principal'], options: ['Admin → Principal', 'HR → Admin', 'Direct to Admin'] },
-            { fn: 'Fee Concession', chain: ['Accounts Head', 'Principal', 'Trust'], options: ['Accounts → Principal', 'Accounts → Principal → Trust', 'Direct to Trust'] },
-            { fn: 'Purchase / Expense (< ₹50K)', chain: ['Admin', 'Principal'], options: ['Admin Approves', 'Admin → Principal', 'Any HOD → Admin'] },
-            { fn: 'Purchase / Expense (> ₹50K)', chain: ['Principal', 'Trust'], options: ['Principal → Trust', 'Admin → Principal → Trust'] },
-            { fn: 'Student TC / Transfer', chain: ['Class Teacher', 'Admin', 'Principal'], options: ['CT → Admin → Principal', 'Admin → Principal', 'Direct to Principal'] },
-          ].map(a => (
-            <div key={a.fn} className={`p-3 rounded-xl ${theme.secondaryBg}`}>
-              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>{a.fn}</p>
-              <div className="flex items-center gap-2 mb-2">
-                {a.chain.map((step, i) => (
-                  <React.Fragment key={step}>
-                    <span className={`text-[10px] px-2 py-1 rounded-lg ${theme.primary} text-white font-bold`}>{step}</span>
-                    {i < a.chain.length - 1 && <ArrowRight size={10} className={theme.iconColor} />}
-                  </React.Fragment>
-                ))}
-              </div>
-              <SelectField label="" options={a.options} value={a.options[0]} theme={theme} />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* HR Management Access removed — covered by per-module RBAC in Step 3 */}
+      {/* Approval Workflows removed — configured post-onboarding in SSA settings */}
     </div>
   );
 }
@@ -3263,9 +2212,8 @@ function Step9Review({ theme, goToStep }: { theme: Theme; goToStep: (s: number) 
 
   const sections = [
     { title: 'School Identity', status: 'complete', step: 1, items: ['Delhi Public School, Ahmedabad', 'CBSE \u00b7 K-12 \u00b7 English Medium', 'Academic Year: April - March'] },
-    { title: 'Academic Structure', status: 'complete', step: 2, items: ['15 classes (Nursery to 12th)', '2-3 sections per class', 'House System: 4 houses', 'Mon-Sat, 8:00 - 14:30'] },
-    { title: 'Plan & Modules', status: 'complete', step: 3, items: ['Power Pack Plan (\u20b92,50,000/yr)', '27 modules enabled with sub-module decisions', '100 GB storage, unlimited users', 'Transport: 8 routes, 300 students'] },
-    { title: 'Roles & Permissions', status: 'complete', step: 4, items: ['10 stakeholder dashboards active', '6 approval workflows configured', 'Multi-authority approvals enabled'] },
+    { title: 'Plan & Modules', status: 'complete', step: 2, items: ['Power Pack Plan (\u20b92,50,000/yr)', '27 modules enabled', '100 GB storage, unlimited users', 'Transport: 8 routes, 300 students'] },
+    { title: 'Roles & Permissions', status: 'complete', step: 3, items: ['10 stakeholder dashboards active', 'Multi-authority approvals configured post-launch'] },
   ];
 
   const completedCount = sections.filter(s => s.status === 'complete').length;
@@ -3385,7 +2333,7 @@ function Step9Review({ theme, goToStep }: { theme: Theme; goToStep: (s: number) 
         <SectionTitle title="Handover Document" subtitle="Auto-generated comprehensive document for the school authority" theme={theme} />
         <div className="space-y-2">
           {[
-            'School configuration summary (all 5 steps)',
+            'School configuration summary (all 4 steps)',
             'Enabled modules & sub-module decisions',
             'Role assignments & approval workflows',
             'SSA login credentials (encrypted)',
@@ -3458,10 +2406,9 @@ export default function OnboardingWizard({ theme, onBack }: { theme: Theme; onBa
   // Track completion status per step: simulated for blueprint (in production, would check actual form data)
   const [stepStatus, setStepStatus] = useState<Record<number, StepCompletionStatus>>({
     1: 'partial',  // Identity: partially filled (has defaults but user hasn't completed all)
-    2: 'partial',  // Academic: has default classes/sections but timing needs review
-    3: 'empty',    // Modules: not yet configured (includes sub-module decisions)
-    4: 'empty',    // Roles: not yet configured
-    5: 'empty',    // Review: not applicable until others are done
+    2: 'empty',    // Modules: not yet configured (includes sub-module decisions)
+    3: 'empty',    // Roles: not yet configured
+    4: 'empty',    // Review: not applicable until others are done
   });
 
   useEffect(() => {
@@ -3482,10 +2429,9 @@ export default function OnboardingWizard({ theme, onBack }: { theme: Theme; onBa
   const renderStep = () => {
     switch (currentStep) {
       case 1: return <Step1Identity theme={theme} onInstitutionTypeChange={setInstitutionType} />;
-      case 2: return <Step2Academic theme={theme} institutionType={institutionType} />;
-      case 3: return <Step3Modules theme={theme} institutionType={institutionType} />;
-      case 4: return <Step4Roles theme={theme} institutionType={institutionType} />;
-      case 5: return <Step9Review theme={theme} goToStep={setCurrentStep} />;
+      case 2: return <Step3Modules theme={theme} institutionType={institutionType} />;
+      case 3: return <Step4Roles theme={theme} institutionType={institutionType} />;
+      case 4: return <Step9Review theme={theme} goToStep={setCurrentStep} />;
       default: return <Step1Identity theme={theme} onInstitutionTypeChange={setInstitutionType} />;
     }
   };
