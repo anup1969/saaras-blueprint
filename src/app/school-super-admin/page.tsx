@@ -609,6 +609,18 @@ function AcademicConfigModule({ theme }: { theme: Theme }) {
     { name: 'Green House', color: 'bg-emerald-500', captain: 'Rohan Kumar', mascot: 'Eagle' },
     { name: 'Yellow House', color: 'bg-amber-500', captain: 'Ananya Singh', mascot: 'Tiger' },
   ]);
+  const houseColorOptions = [
+    { label: 'Red', value: 'bg-red-500' },
+    { label: 'Blue', value: 'bg-blue-500' },
+    { label: 'Green', value: 'bg-emerald-500' },
+    { label: 'Yellow', value: 'bg-amber-500' },
+    { label: 'Purple', value: 'bg-purple-500' },
+    { label: 'Orange', value: 'bg-orange-500' },
+    { label: 'Pink', value: 'bg-pink-500' },
+    { label: 'Teal', value: 'bg-teal-500' },
+    { label: 'Indigo', value: 'bg-indigo-500' },
+    { label: 'Cyan', value: 'bg-cyan-500' },
+  ];
   const [holidays] = useState([
     { date: '26 Jan', name: 'Republic Day', type: 'National' },
     { date: '14 Mar', name: 'Holi', type: 'Festival' },
@@ -676,22 +688,42 @@ function AcademicConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
-      <SectionCard title="Section Configuration" subtitle="Sections per individual grade" theme={theme}>
-        <div className="grid grid-cols-3 lg:grid-cols-5 gap-2">
+      <SectionCard title="Section Configuration" subtitle="Edit section names, add or delete sections per grade — names can be letters or words (e.g. Rose, Lily)" theme={theme}>
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
           {allGrades.map(grade => {
             const secs = sections[grade] || [];
             return (
               <div key={grade} className={`p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <p className={`text-xs font-bold ${theme.highlight} mb-1`}>{grade}</p>
-                <div className="flex flex-wrap gap-1">
-                  {secs.map(s => (
-                    <span key={s} className={`text-[10px] px-1.5 py-0.5 rounded ${theme.accentBg} ${theme.iconColor} font-bold`}>{s}</span>
+                <div className="flex items-center justify-between mb-1.5">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{grade}</p>
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded ${theme.accentBg} ${theme.iconColor} font-bold`}>
+                    {secs.length} {secs.length === 1 ? 'section' : 'sections'}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-1 mb-1.5">
+                  {secs.map((s, si) => (
+                    <span key={si} className={`flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded ${theme.cardBg} border ${theme.border} ${theme.highlight} font-bold`}>
+                      <input
+                        value={s}
+                        onChange={e => setSections(p => {
+                          const arr = [...(p[grade] || [])];
+                          arr[si] = e.target.value;
+                          return { ...p, [grade]: arr };
+                        })}
+                        className={`w-10 bg-transparent text-[10px] font-bold ${theme.highlight} outline-none`}
+                        placeholder="Name" />
+                      <button
+                        onClick={() => setSections(p => ({ ...p, [grade]: (p[grade] || []).filter((_, idx) => idx !== si) }))}
+                        className="text-red-400 hover:text-red-600 ml-0.5">
+                        <X size={8} />
+                      </button>
+                    </span>
                   ))}
                 </div>
                 <button
                   onClick={() => setSections(p => ({ ...p, [grade]: [...(p[grade] || []), String.fromCharCode(65 + (p[grade] || []).length)] }))}
-                  className={`mt-1.5 flex items-center gap-0.5 text-[9px] font-bold ${theme.iconColor} hover:opacity-80`}>
-                  <Plus size={9} /> Add
+                  className={`flex items-center gap-0.5 text-[9px] font-bold ${theme.iconColor} hover:opacity-80`}>
+                  <Plus size={9} /> Add Section
                 </button>
               </div>
             );
@@ -699,26 +731,61 @@ function AcademicConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
-      <SectionCard title="House System" subtitle="School houses for inter-house activities" theme={theme}>
+      <SectionCard title="House System" subtitle="School houses for inter-house activities — add, edit, or delete houses freely" theme={theme}>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
           {houses.map((h, i) => (
-            <div key={h.name} className={`p-3 rounded-xl ${theme.secondaryBg}`}>
-              <div className="flex items-center gap-2 mb-2">
-                <div className={`w-8 h-8 rounded-lg ${h.color} flex items-center justify-center text-white text-xs font-bold shrink-0`}>{h.name[0]}</div>
-                <div>
-                  <p className={`text-xs font-bold ${theme.highlight}`}>{h.name}</p>
-                  <p className={`text-[10px] ${theme.iconColor}`}>Captain: {h.captain}</p>
-                </div>
+            <div key={i} className={`p-3 rounded-xl ${theme.secondaryBg} relative`}>
+              {/* Delete button */}
+              <button
+                onClick={() => setHouses(p => p.filter((_, idx) => idx !== i))}
+                className="absolute top-2 right-2 w-5 h-5 flex items-center justify-center rounded-full bg-red-100 hover:bg-red-200 text-red-500 hover:text-red-700 transition-colors">
+                <X size={10} />
+              </button>
+              {/* Color swatch + name */}
+              <div className="flex items-center gap-2 mb-2 pr-5">
+                <div className={`w-7 h-7 rounded-lg ${h.color} shrink-0`} />
+                <input
+                  value={h.name}
+                  onChange={e => { const n = [...houses]; n[i] = { ...n[i], name: e.target.value }; setHouses(n); }}
+                  className={`flex-1 min-w-0 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`}
+                  placeholder="House name" />
               </div>
-              <div>
+              {/* Color picker */}
+              <div className="mb-2">
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Color</p>
+                <select
+                  value={h.color}
+                  onChange={e => { const n = [...houses]; n[i] = { ...n[i], color: e.target.value }; setHouses(n); }}
+                  className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}>
+                  {houseColorOptions.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                </select>
+              </div>
+              {/* Mascot */}
+              <div className="mb-2">
                 <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Mascot</p>
-                <input value={h.mascot} onChange={e => { const n = [...houses]; n[i] = { ...n[i], mascot: e.target.value }; setHouses(n); }}
+                <input
+                  value={h.mascot}
+                  onChange={e => { const n = [...houses]; n[i] = { ...n[i], mascot: e.target.value }; setHouses(n); }}
                   className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}
                   placeholder="e.g. Phoenix" />
+              </div>
+              {/* Captain */}
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Captain</p>
+                <input
+                  value={h.captain}
+                  onChange={e => { const n = [...houses]; n[i] = { ...n[i], captain: e.target.value }; setHouses(n); }}
+                  className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}
+                  placeholder="Captain name" />
               </div>
             </div>
           ))}
         </div>
+        <button
+          onClick={() => setHouses(p => [...p, { name: 'New House', color: 'bg-indigo-500', captain: '', mascot: '' }])}
+          className={`flex items-center gap-1.5 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl border ${theme.border}`}>
+          <Plus size={12} /> Add House
+        </button>
       </SectionCard>
 
       <SectionCard title="Preschool Groups" subtitle="Age-based group names and capacity (for preschool wings)" theme={theme}>
@@ -1681,25 +1748,122 @@ function LeaveConfigModule({ theme }: { theme: Theme }) {
 }
 
 // ─── VISITOR RULES CONFIG MODULE ───────────────────
+type VisitorTypeRules = {
+  toggles: Record<string, boolean>;
+  allowedFrom: string;
+  allowedTo: string;
+  maxDuration: string;
+};
+
+const defaultVisitorTypeRules: Record<string, VisitorTypeRules> = {
+  'Parent': {
+    toggles: {
+      'Pre-registration required': true,
+      'Photo ID verification': true,
+      'Pickup authorization required': true,
+      'Escort required': false,
+      'Areas allowed: Office': true,
+      'Areas allowed: Classroom': false,
+      'Areas allowed: Campus': true,
+    },
+    allowedFrom: '08:00',
+    allowedTo: '16:00',
+    maxDuration: '60',
+  },
+  'Vendor / Supplier': {
+    toggles: {
+      'Pre-registration MANDATORY': true,
+      'Photo capture at gate': true,
+      'Delivery area only': true,
+      'POC (Point of Contact) required': true,
+      'Valid ID required': true,
+      'Background check status': false,
+    },
+    allowedFrom: '09:00',
+    allowedTo: '15:00',
+    maxDuration: '120',
+  },
+  'General Visitor': {
+    toggles: {
+      'Pre-registration required': false,
+      'Photo capture': true,
+      'Purpose of visit required': true,
+      'Escort mandatory': true,
+      'Restricted areas enforced': true,
+    },
+    allowedFrom: '09:00',
+    allowedTo: '17:00',
+    maxDuration: '45',
+  },
+  'Contractor': {
+    toggles: {
+      'Pre-registration MANDATORY': true,
+      'Safety briefing required': true,
+      'Work permit required': true,
+      'Designated work area enforced': true,
+      'Supervisor contact required': true,
+      'Valid insurance': true,
+    },
+    allowedFrom: '07:00',
+    allowedTo: '18:00',
+    maxDuration: '480',
+  },
+  'Government Official': {
+    toggles: {
+      'Fast-track entry': true,
+      'ID verification': true,
+      'Principal notification auto-trigger': true,
+      'No time limit': true,
+      'Escort assigned': true,
+    },
+    allowedFrom: '08:00',
+    allowedTo: '18:00',
+    maxDuration: '0',
+  },
+  'Alumni': {
+    toggles: {
+      'Pre-registration optional': true,
+      'Alumni ID verification': true,
+      'Event-based access only': false,
+      'Campus tour allowed': true,
+      'Classrooms restricted': true,
+    },
+    allowedFrom: '09:00',
+    allowedTo: '17:00',
+    maxDuration: '120',
+  },
+};
+
 function VisitorConfigModule({ theme }: { theme: Theme }) {
   const [pickupMethod, setPickupMethod] = useState('otp');
-  const [rules, setRules] = useState<Record<string, boolean>>({
-    'Pre-registration required for all visitors': true,
-    'Photo capture at entry gate': true,
-    'Visitor badge printing': true,
-    'Escort required for campus visit': false,
-    'Emergency contact verification on pickup': true,
-    'ID proof mandatory': true,
-    'Temperature check': false,
-  });
-  const [restrictedHours, setRestrictedHours] = useState({ start: '11:00', end: '12:00' });
-  const [maxVisitDuration, setMaxVisitDuration] = useState('60');
+  const [activeVisitorType, setActiveVisitorType] = useState('Parent');
+  const [visitorRules, setVisitorRules] = useState<Record<string, VisitorTypeRules>>(defaultVisitorTypeRules);
   const [cctvParentAccess, setCctvParentAccess] = useState(false);
   const [cctvRetentionDays, setCctvRetentionDays] = useState('30');
 
+  const visitorTypes = Object.keys(defaultVisitorTypeRules);
+  const currentRules = visitorRules[activeVisitorType];
+
+  function setToggle(rule: string, val: boolean) {
+    setVisitorRules(prev => ({
+      ...prev,
+      [activeVisitorType]: {
+        ...prev[activeVisitorType],
+        toggles: { ...prev[activeVisitorType].toggles, [rule]: val },
+      },
+    }));
+  }
+
+  function setTimingField(field: 'allowedFrom' | 'allowedTo' | 'maxDuration', val: string) {
+    setVisitorRules(prev => ({
+      ...prev,
+      [activeVisitorType]: { ...prev[activeVisitorType], [field]: val },
+    }));
+  }
+
   return (
     <div className="space-y-4">
-      <ModuleHeader title="Visitor & Pickup Rules" subtitle="Visitor verification, pickup policies, and security rules" theme={theme} />
+      <ModuleHeader title="Visitor & Pickup Rules" subtitle="Per-visitor-type rules, verification, and security configuration" theme={theme} />
 
       <SectionCard title="Pickup Verification Method" subtitle="How student pickup is verified" theme={theme}>
         <div className="grid grid-cols-3 gap-2">
@@ -1717,35 +1881,67 @@ function VisitorConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
-      <div className="grid grid-cols-2 gap-4">
-        <SectionCard title="Visitor Rules" subtitle="Gate and campus rules" theme={theme}>
-          <div className="space-y-2">
-            {Object.entries(rules).map(([rule, enabled]) => (
-              <div key={rule} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <span className={`text-xs ${theme.highlight}`}>{rule}</span>
-                <SSAToggle on={enabled} onChange={() => setRules(p => ({ ...p, [rule]: !p[rule] }))} theme={theme} />
-              </div>
-            ))}
-          </div>
-        </SectionCard>
+      {/* Visitor Type Rules */}
+      <SectionCard title="Visitor Type Rules" subtitle="Select a visitor type to configure its specific entry rules" theme={theme}>
+        {/* Type tab bar */}
+        <div className="flex flex-wrap gap-1.5 mb-4">
+          {visitorTypes.map(vt => (
+            <button key={vt} onClick={() => setActiveVisitorType(vt)}
+              className={`px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all whitespace-nowrap ${
+                activeVisitorType === vt ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.highlight} border ${theme.border}`
+              }`}>
+              {vt}
+            </button>
+          ))}
+        </div>
 
-        <SectionCard title="Timing Restrictions" subtitle="Restricted visiting hours and limits" theme={theme}>
-          <div className="space-y-3">
-            <div>
-              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Restricted Hours (no visitors allowed)</p>
-              <div className="flex items-center gap-2">
-                <InputField value={restrictedHours.start} onChange={v => setRestrictedHours(p => ({ ...p, start: v }))} theme={theme} type="time" />
-                <span className={`text-xs ${theme.iconColor}`}>to</span>
-                <InputField value={restrictedHours.end} onChange={v => setRestrictedHours(p => ({ ...p, end: v }))} theme={theme} type="time" />
-              </div>
-            </div>
-            <div>
-              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Max Visit Duration (minutes)</p>
-              <InputField value={maxVisitDuration} onChange={setMaxVisitDuration} theme={theme} type="number" />
+        {/* Rules for active type */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Toggle rules */}
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-2 uppercase tracking-wide`}>Rules — {activeVisitorType}</p>
+            <div className="space-y-1.5">
+              {Object.entries(currentRules.toggles).map(([rule, enabled]) => (
+                <div key={rule} className={`flex items-center justify-between p-2 rounded-xl ${theme.secondaryBg}`}>
+                  <span className={`text-xs ${theme.highlight} pr-2`}>{rule}</span>
+                  <SSAToggle on={enabled} onChange={() => setToggle(rule, !enabled)} theme={theme} />
+                </div>
+              ))}
             </div>
           </div>
-        </SectionCard>
-      </div>
+
+          {/* Timing settings */}
+          <div className="space-y-3">
+            <p className={`text-[10px] font-bold ${theme.iconColor} uppercase tracking-wide`}>Timing — {activeVisitorType}</p>
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Allowed From</p>
+              <InputField value={currentRules.allowedFrom} onChange={v => setTimingField('allowedFrom', v)} theme={theme} type="time" />
+            </div>
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Allowed To</p>
+              <InputField value={currentRules.allowedTo} onChange={v => setTimingField('allowedTo', v)} theme={theme} type="time" />
+            </div>
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>
+                Max Visit Duration (minutes)
+                {activeVisitorType === 'Government Official' && <span className="ml-1 text-amber-500">— 0 = no limit</span>}
+              </p>
+              <InputField value={currentRules.maxDuration} onChange={v => setTimingField('maxDuration', v)} theme={theme} type="number" placeholder="minutes (0 = no limit)" />
+            </div>
+
+            {/* Type-specific notes */}
+            <div className={`p-2.5 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Note</p>
+              {activeVisitorType === 'Parent' && <p className={`text-[10px] ${theme.iconColor}`}>Parents picking up students go through the standard pickup verification flow (OTP / photo / RFID above).</p>}
+              {activeVisitorType === 'Vendor / Supplier' && <p className={`text-[10px] ${theme.iconColor}`}>Vendor entry is logged and linked to Purchase Orders when available.</p>}
+              {activeVisitorType === 'General Visitor' && <p className={`text-[10px] ${theme.iconColor}`}>Unregistered visitors must fill a digital form at the gate before entry is approved.</p>}
+              {activeVisitorType === 'Contractor' && <p className={`text-[10px] ${theme.iconColor}`}>Work permits are digitally uploaded and verified before the contractor is allowed on campus.</p>}
+              {activeVisitorType === 'Government Official' && <p className={`text-[10px] ${theme.iconColor}`}>Principal is auto-notified via push + SMS as soon as entry is logged for this type.</p>}
+              {activeVisitorType === 'Alumni' && <p className={`text-[10px] ${theme.iconColor}`}>Alumni can be issued a digital alumni ID card via the app for faster future visits.</p>}
+            </div>
+          </div>
+        </div>
+      </SectionCard>
 
       <SectionCard title="Campus CCTV" subtitle="Parent access and recording settings for campus cameras" theme={theme}>
         <div className="space-y-3">
