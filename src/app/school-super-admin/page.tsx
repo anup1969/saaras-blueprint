@@ -71,6 +71,30 @@ function SectionCard({ title, subtitle, children, theme }: { title: string; subt
   );
 }
 
+// ─── MODULE HEADER (Save Changes bar) ──────────────
+function ModuleHeader({ title, subtitle, theme, onSave }: { title: string; subtitle?: string; theme: Theme; onSave?: () => void }) {
+  const [saved, setSaved] = useState(false);
+  return (
+    <div className="flex items-center justify-between mb-4">
+      <div>
+        <h1 className={`text-xl font-bold ${theme.highlight}`}>{title}</h1>
+        {subtitle && <p className={`text-xs ${theme.iconColor} mt-0.5`}>{subtitle}</p>}
+        <p className={`text-[10px] ${theme.iconColor} flex items-center gap-1 mt-0.5`}>
+          <Edit size={10} /> Click any field to configure
+        </p>
+      </div>
+      <div className="flex items-center gap-2">
+        {saved && <span className="text-green-500 text-xs font-medium animate-pulse">Saved!</span>}
+        <button
+          onClick={() => { setSaved(true); setTimeout(() => setSaved(false), 2000); if (onSave) onSave(); }}
+          className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white ${theme.primary} hover:opacity-90 transition-all`}>
+          <Save size={14} /> Save Changes
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function InputField({ placeholder, value, onChange, theme, type, disabled }: {
   placeholder?: string; value: string; onChange: (v: string) => void; theme: Theme; type?: string; disabled?: boolean;
 }) {
@@ -124,7 +148,7 @@ function SchoolSuperAdminDashboard({ theme }: { theme?: Theme }) {
       </div>
 
       <div className="flex-1 p-6 space-y-4 overflow-x-hidden">
-        {activeModule === 'dashboard' && <SSADashboardHome theme={theme} />}
+        {activeModule === 'dashboard' && <SSADashboardHome theme={theme} onNavigate={setActiveModule} />}
         {activeModule === 'fee-config' && <FeeConfigModule theme={theme} />}
         {activeModule === 'academic-config' && <AcademicConfigModule theme={theme} />}
         {activeModule === 'hr-config' && <HRConfigModule theme={theme} />}
@@ -162,7 +186,7 @@ function SchoolSuperAdminDashboard({ theme }: { theme?: Theme }) {
 }
 
 // ─── DASHBOARD HOME ────────────────────────────────
-function SSADashboardHome({ theme }: { theme: Theme }) {
+function SSADashboardHome({ theme, onNavigate }: { theme: Theme; onNavigate: (moduleId: string) => void }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -190,37 +214,45 @@ function SSADashboardHome({ theme }: { theme: Theme }) {
 
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
         <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Module Configuration Status</h3>
+        <p className={`text-[10px] ${theme.iconColor} mb-3`}>Click any card to open that module's configuration</p>
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
           {[
-            { name: 'Fee Structure', status: 'complete', items: '8 fee heads, 5 class groups', icon: Banknote },
-            { name: 'Academic Calendar', status: 'complete', items: 'Holidays, exam dates set', icon: Calendar },
-            { name: 'HR & Payroll', status: 'partial', items: '11 depts, payroll pending', icon: Briefcase },
-            { name: 'Transport Routes', status: 'pending', items: 'Not yet configured', icon: Bus },
-            { name: 'Attendance Rules', status: 'complete', items: 'Daily marking, bio + app', icon: ClipboardCheck },
-            { name: 'Exam & Report Cards', status: 'partial', items: 'Schedule done, templates pending', icon: FileText },
-            { name: 'Leave Policy', status: 'complete', items: '6 types, approval chain set', icon: Clock },
-            { name: 'Timetable & Bell', status: 'pending', items: 'Not yet configured', icon: Calendar },
-            { name: 'Communication Rules', status: 'complete', items: 'DM rules, groups configured', icon: MessageSquare },
-            { name: 'Visitor Policy', status: 'partial', items: 'Check-in done, pickup pending', icon: Shield },
-            { name: 'Certificates', status: 'pending', items: 'Templates not uploaded', icon: Award },
-            { name: 'Data Migration', status: 'pending', items: 'No data imported yet', icon: Upload },
+            { name: 'Fee Structure', status: 'complete', items: '8 fee heads, 5 class groups', icon: Banknote, moduleId: 'fee-config' },
+            { name: 'Academic Calendar', status: 'complete', items: 'Holidays, exam dates set', icon: Calendar, moduleId: 'academic-config' },
+            { name: 'HR & Payroll', status: 'partial', items: '11 depts, payroll pending', icon: Briefcase, moduleId: 'hr-config' },
+            { name: 'Transport Routes', status: 'pending', items: 'Not yet configured', icon: Bus, moduleId: 'transport-config' },
+            { name: 'Attendance Rules', status: 'complete', items: 'Daily marking, bio + app', icon: ClipboardCheck, moduleId: 'attendance-config' },
+            { name: 'Exam & Report Cards', status: 'partial', items: 'Schedule done, templates pending', icon: FileText, moduleId: 'exam-config' },
+            { name: 'Leave Policy', status: 'complete', items: '6 types, approval chain set', icon: Clock, moduleId: 'leave-config' },
+            { name: 'Timetable & Bell', status: 'pending', items: 'Not yet configured', icon: Calendar, moduleId: 'timetable-config' },
+            { name: 'Communication Rules', status: 'complete', items: 'DM rules, groups configured', icon: MessageSquare, moduleId: 'communication-config' },
+            { name: 'Visitor Policy', status: 'partial', items: 'Check-in done, pickup pending', icon: Shield, moduleId: 'visitor-config' },
+            { name: 'Certificates', status: 'pending', items: 'Templates not uploaded', icon: Award, moduleId: 'certificate-config' },
+            { name: 'Data Migration', status: 'pending', items: 'No data imported yet', icon: Upload, moduleId: 'data-migration' },
           ].map(mod => (
-            <div key={mod.name} className={`p-3 rounded-xl ${theme.secondaryBg} flex items-start gap-2`}>
+            <button key={mod.name} onClick={() => onNavigate(mod.moduleId)}
+              className={`p-3 rounded-xl ${theme.secondaryBg} flex items-start gap-2 text-left w-full hover:ring-2 hover:ring-offset-1 transition-all group ${
+                mod.status === 'complete' ? 'hover:ring-emerald-400' :
+                mod.status === 'partial' ? 'hover:ring-amber-400' : 'hover:ring-slate-300'
+              }`}>
               <mod.icon size={14} className={
-                mod.status === 'complete' ? 'text-emerald-500' :
-                mod.status === 'partial' ? 'text-amber-500' : 'text-slate-400'
+                mod.status === 'complete' ? 'text-emerald-500 mt-0.5 shrink-0' :
+                mod.status === 'partial' ? 'text-amber-500 mt-0.5 shrink-0' : 'text-slate-400 mt-0.5 shrink-0'
               } />
-              <div>
+              <div className="flex-1 min-w-0">
                 <p className={`text-xs font-bold ${theme.highlight}`}>{mod.name}</p>
                 <p className={`text-[10px] ${theme.iconColor}`}>{mod.items}</p>
-                <span className={`text-[9px] px-1.5 py-0.5 rounded mt-1 inline-block font-bold ${
-                  mod.status === 'complete' ? 'bg-emerald-100 text-emerald-700' :
-                  mod.status === 'partial' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'
-                }`}>
-                  {mod.status === 'complete' ? 'COMPLETE' : mod.status === 'partial' ? 'IN PROGRESS' : 'NOT STARTED'}
-                </span>
+                <div className="flex items-center justify-between mt-1">
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded inline-block font-bold ${
+                    mod.status === 'complete' ? 'bg-emerald-100 text-emerald-700' :
+                    mod.status === 'partial' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'
+                  }`}>
+                    {mod.status === 'complete' ? 'COMPLETE' : mod.status === 'partial' ? 'IN PROGRESS' : 'NOT STARTED'}
+                  </span>
+                  <span className={`text-[9px] ${theme.iconColor} opacity-0 group-hover:opacity-100 transition-opacity`}>Configure →</span>
+                </div>
               </div>
-            </div>
+            </button>
           ))}
         </div>
       </div>
@@ -308,8 +340,7 @@ function FeeConfigModule({ theme }: { theme: Theme }) {
 
   return (
     <div className="space-y-4">
-      <h2 className={`text-lg font-bold ${theme.highlight}`}>Fee Configuration</h2>
-      <p className={`text-xs ${theme.iconColor}`}>Configure fee structure, class-wise amounts, payment rules, and concessions</p>
+      <ModuleHeader title="Fee Configuration" subtitle="Configure fee structure, class-wise amounts, payment rules, and concessions" theme={theme} />
 
       {/* Critical Lock Banner for Fee Module */}
       <div className="bg-rose-50 border border-rose-200 rounded-2xl p-3 flex items-center gap-3">
@@ -531,30 +562,41 @@ function FeeConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
-      <div className="flex justify-end gap-3 pt-2">
-        <button className={`px-4 py-2 rounded-xl ${theme.secondaryBg} ${theme.highlight} text-xs font-bold`}>Reset to Defaults</button>
-        <button className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-2`}><Save size={14} /> Save Fee Configuration</button>
-      </div>
     </div>
   );
 }
 
 // ─── ACADEMIC CONFIG MODULE ────────────────────────
 function AcademicConfigModule({ theme }: { theme: Theme }) {
+  const [preschoolEnabled, setPreschoolEnabled] = useState(true);
+  const allGrades = preschoolEnabled
+    ? ['Nursery', 'Jr. KG', 'Sr. KG', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12']
+    : ['Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'];
   const [subjects, setSubjects] = useState<Record<string, string[]>>({
-    'Class 1-5': ['English', 'Hindi', 'Mathematics', 'EVS', 'Computer', 'Art', 'Physical Ed.'],
-    'Class 6-8': ['English', 'Hindi', 'Mathematics', 'Science', 'Social Science', 'Sanskrit', 'Computer', 'Art', 'Physical Ed.'],
-    'Class 9-10': ['English', 'Hindi', 'Mathematics', 'Science', 'Social Science', 'IT', 'Physical Ed.'],
-    'Class 11-12 Science': ['English', 'Physics', 'Chemistry', 'Mathematics', 'Biology/CS', 'Physical Ed.'],
-    'Class 11-12 Commerce': ['English', 'Accountancy', 'Business Studies', 'Economics', 'Mathematics/IP', 'Physical Ed.'],
+    'Nursery': ['English', 'Hindi', 'EVS', 'Art', 'Music', 'Physical Ed.'],
+    'Jr. KG': ['English', 'Hindi', 'Mathematics', 'EVS', 'Art', 'Music', 'Physical Ed.'],
+    'Sr. KG': ['English', 'Hindi', 'Mathematics', 'EVS', 'Art', 'Computer', 'Physical Ed.'],
+    'Grade 1': ['English', 'Hindi', 'Mathematics', 'EVS', 'Computer', 'Art', 'Physical Ed.'],
+    'Grade 2': ['English', 'Hindi', 'Mathematics', 'EVS', 'Computer', 'Art', 'Physical Ed.'],
+    'Grade 3': ['English', 'Hindi', 'Mathematics', 'EVS', 'Computer', 'Art', 'Physical Ed.'],
+    'Grade 4': ['English', 'Hindi', 'Mathematics', 'EVS', 'Computer', 'Art', 'Physical Ed.'],
+    'Grade 5': ['English', 'Hindi', 'Mathematics', 'EVS', 'Computer', 'Art', 'Physical Ed.'],
+    'Grade 6': ['English', 'Hindi', 'Mathematics', 'Science', 'Social Science', 'Sanskrit', 'Computer', 'Art', 'Physical Ed.'],
+    'Grade 7': ['English', 'Hindi', 'Mathematics', 'Science', 'Social Science', 'Sanskrit', 'Computer', 'Art', 'Physical Ed.'],
+    'Grade 8': ['English', 'Hindi', 'Mathematics', 'Science', 'Social Science', 'Sanskrit', 'Computer', 'Art', 'Physical Ed.'],
+    'Grade 9': ['English', 'Hindi', 'Mathematics', 'Science', 'Social Science', 'IT', 'Physical Ed.'],
+    'Grade 10': ['English', 'Hindi', 'Mathematics', 'Science', 'Social Science', 'IT', 'Physical Ed.'],
+    'Grade 11': ['English', 'Physics', 'Chemistry', 'Mathematics', 'Biology/CS', 'Physical Ed.'],
+    'Grade 12': ['English', 'Physics', 'Chemistry', 'Mathematics', 'Biology/CS', 'Physical Ed.'],
   });
   const [newSubject, setNewSubject] = useState('');
-  const [activeGroup, setActiveGroup] = useState('Class 1-5');
-  const [sections] = useState<Record<string, string[]>>({
-    'Class 1': ['A', 'B', 'C'], 'Class 2': ['A', 'B', 'C'], 'Class 3': ['A', 'B'],
-    'Class 4': ['A', 'B'], 'Class 5': ['A', 'B'], 'Class 6': ['A', 'B', 'C'],
-    'Class 7': ['A', 'B', 'C'], 'Class 8': ['A', 'B'], 'Class 9': ['A', 'B', 'C'],
-    'Class 10': ['A', 'B', 'C'], 'Class 11': ['A', 'B'], 'Class 12': ['A', 'B'],
+  const [activeGrade, setActiveGrade] = useState('Grade 1');
+  const [sections, setSections] = useState<Record<string, string[]>>({
+    'Nursery': ['A'], 'Jr. KG': ['A'], 'Sr. KG': ['A'],
+    'Grade 1': ['A', 'B', 'C'], 'Grade 2': ['A', 'B', 'C'], 'Grade 3': ['A', 'B'],
+    'Grade 4': ['A', 'B'], 'Grade 5': ['A', 'B'], 'Grade 6': ['A', 'B', 'C'],
+    'Grade 7': ['A', 'B', 'C'], 'Grade 8': ['A', 'B'], 'Grade 9': ['A', 'B', 'C'],
+    'Grade 10': ['A', 'B', 'C'], 'Grade 11': ['A', 'B'], 'Grade 12': ['A', 'B'],
   });
   const [preschoolGroups, setPreschoolGroups] = useState([
     { ageLevel: 'Nursery (2-3 yrs)', groupName: 'Butterflies', maxChildren: '20' },
@@ -579,8 +621,7 @@ function AcademicConfigModule({ theme }: { theme: Theme }) {
 
   return (
     <div className="space-y-4">
-      <h2 className={`text-lg font-bold ${theme.highlight}`}>Academic Configuration</h2>
-      <p className={`text-xs ${theme.iconColor}`}>Subjects, sections, houses, holidays, and academic calendar</p>
+      <ModuleHeader title="Academic Configuration" subtitle="Subjects, sections, houses, holidays, and academic calendar" theme={theme} />
 
       <SectionCard title="Academic Year" subtitle="Set start and end dates" theme={theme}>
         <div className="grid grid-cols-2 gap-4">
@@ -595,43 +636,66 @@ function AcademicConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
-      <SectionCard title="Subject Master List" subtitle="Add or remove subjects per class group" theme={theme}>
-        <div className="flex gap-2 mb-3 flex-wrap">
-          {Object.keys(subjects).map(g => (
-            <button key={g} onClick={() => setActiveGroup(g)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${activeGroup === g ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.highlight}`}`}>
+      <SectionCard title="Subject Master List" subtitle="Add or remove subjects per individual grade" theme={theme}>
+        {/* Preschool toggle */}
+        <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg} mb-3`}>
+          <div>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Preschool Wing</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>Show Nursery, Jr. KG, Sr. KG grades</p>
+          </div>
+          <SSAToggle on={preschoolEnabled} onChange={() => { setPreschoolEnabled(!preschoolEnabled); if (preschoolEnabled && ['Nursery','Jr. KG','Sr. KG'].includes(activeGrade)) setActiveGrade('Grade 1'); }} theme={theme} />
+        </div>
+        {/* Grade tab bar — scrollable */}
+        <div className="flex gap-1.5 mb-3 flex-wrap">
+          {allGrades.map(g => (
+            <button key={g} onClick={() => setActiveGrade(g)}
+              className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all whitespace-nowrap ${activeGrade === g ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.highlight}`}`}>
               {g}
             </button>
           ))}
         </div>
-        <div className="flex flex-wrap gap-2 mb-3">
-          {(subjects[activeGroup] || []).map(s => (
-            <span key={s} className={`flex items-center gap-1 px-2.5 py-1 rounded-lg ${theme.secondaryBg} text-xs font-medium ${theme.highlight}`}>
-              {s}
-              <button onClick={() => setSubjects(p => ({ ...p, [activeGroup]: p[activeGroup].filter(x => x !== s) }))} className="text-red-400 hover:text-red-600"><X size={10} /></button>
-            </span>
-          ))}
-        </div>
-        <div className="flex gap-2">
-          <input value={newSubject} onChange={e => setNewSubject(e.target.value)} placeholder="Add subject..."
-            className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
-          <button onClick={() => { if (newSubject.trim()) { setSubjects(p => ({ ...p, [activeGroup]: [...(p[activeGroup] || []), newSubject.trim()] })); setNewSubject(''); } }}
-            className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}><Plus size={14} /></button>
+        {/* Subjects for selected grade */}
+        <div className={`p-3 rounded-xl ${theme.secondaryBg} mb-3`}>
+          <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Subjects — {activeGrade}</p>
+          <div className="flex flex-wrap gap-2 mb-2">
+            {(subjects[activeGrade] || []).map(s => (
+              <span key={s} className={`flex items-center gap-1 px-2.5 py-1 rounded-lg ${theme.cardBg} border ${theme.border} text-xs font-medium ${theme.highlight}`}>
+                {s}
+                <button onClick={() => setSubjects(p => ({ ...p, [activeGrade]: (p[activeGrade] || []).filter(x => x !== s) }))} className="text-red-400 hover:text-red-600"><X size={10} /></button>
+              </span>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <input value={newSubject} onChange={e => setNewSubject(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && newSubject.trim()) { setSubjects(p => ({ ...p, [activeGrade]: [...(p[activeGrade] || []), newSubject.trim()] })); setNewSubject(''); } }}
+              placeholder="Add subject and press Enter..."
+              className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+            <button onClick={() => { if (newSubject.trim()) { setSubjects(p => ({ ...p, [activeGrade]: [...(p[activeGrade] || []), newSubject.trim()] })); setNewSubject(''); } }}
+              className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}><Plus size={14} /></button>
+          </div>
         </div>
       </SectionCard>
 
-      <SectionCard title="Section Configuration" subtitle="Sections per class" theme={theme}>
-        <div className="grid grid-cols-3 lg:grid-cols-4 gap-2">
-          {Object.entries(sections).map(([cls, secs]) => (
-            <div key={cls} className={`p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <p className={`text-xs font-bold ${theme.highlight}`}>{cls}</p>
-              <div className="flex gap-1 mt-1">
-                {secs.map(s => (
-                  <span key={s} className={`text-[10px] px-1.5 py-0.5 rounded ${theme.accentBg} ${theme.iconColor} font-bold`}>{s}</span>
-                ))}
+      <SectionCard title="Section Configuration" subtitle="Sections per individual grade" theme={theme}>
+        <div className="grid grid-cols-3 lg:grid-cols-5 gap-2">
+          {allGrades.map(grade => {
+            const secs = sections[grade] || [];
+            return (
+              <div key={grade} className={`p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <p className={`text-xs font-bold ${theme.highlight} mb-1`}>{grade}</p>
+                <div className="flex flex-wrap gap-1">
+                  {secs.map(s => (
+                    <span key={s} className={`text-[10px] px-1.5 py-0.5 rounded ${theme.accentBg} ${theme.iconColor} font-bold`}>{s}</span>
+                  ))}
+                </div>
+                <button
+                  onClick={() => setSections(p => ({ ...p, [grade]: [...(p[grade] || []), String.fromCharCode(65 + (p[grade] || []).length)] }))}
+                  className={`mt-1.5 flex items-center gap-0.5 text-[9px] font-bold ${theme.iconColor} hover:opacity-80`}>
+                  <Plus size={9} /> Add
+                </button>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </SectionCard>
 
@@ -739,8 +803,7 @@ function HRConfigModule({ theme }: { theme: Theme }) {
 
   return (
     <div className="space-y-4">
-      <h2 className={`text-lg font-bold ${theme.highlight}`}>HR &amp; Payroll Configuration</h2>
-      <p className={`text-xs ${theme.iconColor}`}>Departments, salary structure, pay cycle, attendance, and HR processes</p>
+      <ModuleHeader title="HR & Payroll Configuration" subtitle="Departments, salary structure, pay cycle, attendance, and HR processes" theme={theme} />
 
       <div className="grid grid-cols-2 gap-4">
         <SectionCard title="Departments" subtitle="Add or remove departments" theme={theme}>
@@ -888,8 +951,7 @@ function TransportConfigModule({ theme }: { theme: Theme }) {
 
   return (
     <div className="space-y-4">
-      <h2 className={`text-lg font-bold ${theme.highlight}`}>Transport Configuration</h2>
-      <p className={`text-xs ${theme.iconColor}`}>Routes, vehicles, drivers, safety, and fee structure</p>
+      <ModuleHeader title="Transport Configuration" subtitle="Routes, vehicles, drivers, safety, and fee structure" theme={theme} />
 
       <SectionCard title="Routes" subtitle="Bus routes with stops, capacity, and timings" theme={theme}>
         <div className="overflow-x-auto">
@@ -1055,8 +1117,7 @@ function AttendanceConfigModule({ theme }: { theme: Theme }) {
 
   return (
     <div className="space-y-4">
-      <h2 className={`text-lg font-bold ${theme.highlight}`}>Attendance Configuration</h2>
-      <p className={`text-xs ${theme.iconColor}`}>Marking methods, frequency, grace periods, and notification rules</p>
+      <ModuleHeader title="Attendance Configuration" subtitle="Marking methods, frequency, grace periods, and notification rules" theme={theme} />
 
       <div className="grid grid-cols-2 gap-4">
         <SectionCard title="Marking Methods" subtitle="How attendance is recorded" theme={theme}>
@@ -1152,8 +1213,7 @@ function ExamConfigModule({ theme }: { theme: Theme }) {
 
   return (
     <div className="space-y-4">
-      <h2 className={`text-lg font-bold ${theme.highlight}`}>Exams &amp; Grading Configuration</h2>
-      <p className={`text-xs ${theme.iconColor}`}>Grading system, grade boundaries, report cards, and exam schedules</p>
+      <ModuleHeader title="Exams & Grading Configuration" subtitle="Grading system, grade boundaries, report cards, and exam schedules" theme={theme} />
 
       <SectionCard title="Grading System" subtitle="Select the grading methodology" theme={theme}>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
@@ -1304,8 +1364,7 @@ function CommunicationConfigModule({ theme }: { theme: Theme }) {
 
   return (
     <div className="space-y-4">
-      <h2 className={`text-lg font-bold ${theme.highlight}`}>Communication Configuration</h2>
-      <p className={`text-xs ${theme.iconColor}`}>DM permissions, group rules, storage limits, and file sharing</p>
+      <ModuleHeader title="Communication Configuration" subtitle="DM permissions, group rules, storage limits, and file sharing" theme={theme} />
 
       <SectionCard title="DM Permission Matrix" subtitle="Who can send direct messages to whom" theme={theme}>
         <div className="space-y-1.5">
@@ -1409,8 +1468,7 @@ function TimetableConfigModule({ theme }: { theme: Theme }) {
 
   return (
     <div className="space-y-4">
-      <h2 className={`text-lg font-bold ${theme.highlight}`}>Timetable &amp; Bell Schedule</h2>
-      <p className={`text-xs ${theme.iconColor}`}>Bell timings, breaks, Saturday schedule, and special periods</p>
+      <ModuleHeader title="Timetable & Bell Schedule" subtitle="Bell timings, breaks, Saturday schedule, and special periods" theme={theme} />
 
       <SectionCard title="Bell Schedule" subtitle="Period-wise start and end times" theme={theme}>
         <div className="space-y-1.5">
@@ -1527,8 +1585,7 @@ function LeaveConfigModule({ theme }: { theme: Theme }) {
 
   return (
     <div className="space-y-4">
-      <h2 className={`text-lg font-bold ${theme.highlight}`}>Leave Policy Configuration</h2>
-      <p className={`text-xs ${theme.iconColor}`}>Leave types, carry-forward rules, approval chain, and thresholds</p>
+      <ModuleHeader title="Leave Policy Configuration" subtitle="Leave types, carry-forward rules, approval chain, and thresholds" theme={theme} />
 
       <SectionCard title="Leave Types &amp; Annual Allocation" subtitle="Days per year per leave type" theme={theme}>
         <div className="overflow-x-auto">
@@ -1642,8 +1699,7 @@ function VisitorConfigModule({ theme }: { theme: Theme }) {
 
   return (
     <div className="space-y-4">
-      <h2 className={`text-lg font-bold ${theme.highlight}`}>Visitor &amp; Pickup Rules</h2>
-      <p className={`text-xs ${theme.iconColor}`}>Visitor verification, pickup policies, and security rules</p>
+      <ModuleHeader title="Visitor & Pickup Rules" subtitle="Visitor verification, pickup policies, and security rules" theme={theme} />
 
       <SectionCard title="Pickup Verification Method" subtitle="How student pickup is verified" theme={theme}>
         <div className="grid grid-cols-3 gap-2">
@@ -1732,8 +1788,7 @@ function CertificateConfigModule({ theme }: { theme: Theme }) {
 
   return (
     <div className="space-y-4">
-      <h2 className={`text-lg font-bold ${theme.highlight}`}>Certificate Configuration</h2>
-      <p className={`text-xs ${theme.iconColor}`}>Templates, auto-numbering, digital signatures, and approval workflow</p>
+      <ModuleHeader title="Certificate Configuration" subtitle="Templates, auto-numbering, digital signatures, and approval workflow" theme={theme} />
 
       <SectionCard title="Certificate Templates" subtitle="Upload and manage certificate templates" theme={theme}>
         <div className="space-y-2">
@@ -1797,8 +1852,7 @@ function LibraryConfigModule({ theme }: { theme: Theme }) {
 
   return (
     <div className="space-y-4">
-      <h2 className={`text-lg font-bold ${theme.highlight}`}>Library Configuration</h2>
-      <p className={`text-xs ${theme.iconColor}`}>Book limits, loan rules, fines, and digital library settings</p>
+      <ModuleHeader title="Library Configuration" subtitle="Book limits, loan rules, fines, and digital library settings" theme={theme} />
       <div className="grid grid-cols-2 gap-4">
         <SectionCard title="Loan Rules" subtitle="Limits and durations for book lending" theme={theme}>
           <div className="space-y-3">
@@ -1852,8 +1906,7 @@ function CanteenConfigModule({ theme }: { theme: Theme }) {
 
   return (
     <div className="space-y-4">
-      <h2 className={`text-lg font-bold ${theme.highlight}`}>Canteen / Meal Configuration</h2>
-      <p className={`text-xs ${theme.iconColor}`}>Pre-orders, wallet, allergy tracking, and meal scheduling</p>
+      <ModuleHeader title="Canteen / Meal Configuration" subtitle="Pre-orders, wallet, allergy tracking, and meal scheduling" theme={theme} />
       <div className="grid grid-cols-2 gap-4">
         <SectionCard title="Canteen Features" subtitle="Toggle ordering and safety features" theme={theme}>
           <div className="space-y-2">
@@ -1911,8 +1964,7 @@ function HostelConfigModule({ theme }: { theme: Theme }) {
 
   return (
     <div className="space-y-4">
-      <h2 className={`text-lg font-bold ${theme.highlight}`}>Hostel Configuration</h2>
-      <p className={`text-xs ${theme.iconColor}`}>Room types, mess, visitor log, warden, and curfew settings</p>
+      <ModuleHeader title="Hostel Configuration" subtitle="Room types, mess, visitor log, warden, and curfew settings" theme={theme} />
       <div className="grid grid-cols-2 gap-4">
         <SectionCard title="Hostel Features" subtitle="Core hostel management toggles" theme={theme}>
           <div className="space-y-2">
@@ -1952,8 +2004,7 @@ function InventoryConfigModule({ theme }: { theme: Theme }) {
 
   return (
     <div className="space-y-4">
-      <h2 className={`text-lg font-bold ${theme.highlight}`}>Inventory &amp; Asset Configuration</h2>
-      <p className={`text-xs ${theme.iconColor}`}>Asset tagging, stock alerts, purchase workflows, and depreciation</p>
+      <ModuleHeader title="Inventory & Asset Configuration" subtitle="Asset tagging, stock alerts, purchase workflows, and depreciation" theme={theme} />
       <div className="grid grid-cols-2 gap-4">
         <SectionCard title="Inventory Features" subtitle="Toggle tracking and workflow features" theme={theme}>
           <div className="space-y-2">
@@ -2029,8 +2080,7 @@ function ComplianceConfigModule({ theme }: { theme: Theme }) {
 
   return (
     <div className="space-y-4">
-      <h2 className={`text-lg font-bold ${theme.highlight}`}>Compliance &amp; Quality Configuration</h2>
-      <p className={`text-xs ${theme.iconColor}`}>Assessment frameworks, audit schedules, and compliance domains</p>
+      <ModuleHeader title="Compliance & Quality Configuration" subtitle="Assessment frameworks, audit schedules, and compliance domains" theme={theme} />
       <div className="grid grid-cols-2 gap-4">
         <SectionCard title="Framework & Schedule" subtitle="Assessment standard and audit frequency" theme={theme}>
           <div className="space-y-3">
@@ -2077,8 +2127,7 @@ function HomeworkConfigModule({ theme }: { theme: Theme }) {
 
   return (
     <div className="space-y-4">
-      <h2 className={`text-lg font-bold ${theme.highlight}`}>Homework &amp; Assignment Configuration</h2>
-      <p className={`text-xs ${theme.iconColor}`}>Submission modes, late policies, notifications, and plagiarism checks</p>
+      <ModuleHeader title="Homework & Assignment Configuration" subtitle="Submission modes, late policies, notifications, and plagiarism checks" theme={theme} />
       <div className="grid grid-cols-2 gap-4">
         <SectionCard title="Submission Settings" subtitle="Mode, file limits, and late policy" theme={theme}>
           <div className="space-y-3">
@@ -2124,8 +2173,7 @@ function EnquiryAdmissionConfigModule({ theme }: { theme: Theme }) {
 
   return (
     <div className="space-y-4">
-      <h2 className={`text-lg font-bold ${theme.highlight}`}>Enquiry &amp; Admission Configuration</h2>
-      <p className={`text-xs ${theme.iconColor}`}>Lead sources, follow-ups, application forms, and admission settings</p>
+      <ModuleHeader title="Enquiry & Admission Configuration" subtitle="Lead sources, follow-ups, application forms, and admission settings" theme={theme} />
       <div className="grid grid-cols-2 gap-4">
         <SectionCard title="Admission Settings" subtitle="Mode, fees, and automation" theme={theme}>
           <div className="space-y-3">
@@ -2178,8 +2226,7 @@ function OnlinePaymentConfigModule({ theme }: { theme: Theme }) {
 
   return (
     <div className="space-y-4">
-      <h2 className={`text-lg font-bold ${theme.highlight}`}>Online Payment Configuration</h2>
-      <p className={`text-xs ${theme.iconColor}`}>Payment gateway, receipts, partial payments, and refund policy</p>
+      <ModuleHeader title="Online Payment Configuration" subtitle="Payment gateway, receipts, partial payments, and refund policy" theme={theme} />
       <div className="grid grid-cols-2 gap-4">
         <SectionCard title="Gateway & Policy" subtitle="Payment provider and refund settings" theme={theme}>
           <div className="space-y-3">
@@ -2629,8 +2676,7 @@ function ParentPortalConfigModule({ theme }: { theme: Theme }) {
 
   return (
     <div className="space-y-4">
-      <h2 className={`text-lg font-bold ${theme.highlight}`}>Parent Portal Configuration</h2>
-      <p className={`text-xs ${theme.iconColor}`}>Control what parents can access and do through their portal</p>
+      <ModuleHeader title="Parent Portal Configuration" subtitle="Control what parents can access and do through their portal" theme={theme} />
 
       <SectionCard title="Portal Features" subtitle="Toggle features available to parents" theme={theme}>
         <div className="space-y-2">
@@ -2681,10 +2727,6 @@ function ParentPortalConfigModule({ theme }: { theme: Theme }) {
         </p>
       </SectionCard>
 
-      <div className="flex justify-end gap-3 pt-2">
-        <button className={`px-4 py-2 rounded-xl ${theme.secondaryBg} ${theme.highlight} text-xs font-bold`}>Reset to Defaults</button>
-        <button className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-2`}><Save size={14} /> Save Parent Portal Config</button>
-      </div>
     </div>
   );
 }
@@ -2700,8 +2742,7 @@ function StudentPortalConfigModule({ theme }: { theme: Theme }) {
 
   return (
     <div className="space-y-4">
-      <h2 className={`text-lg font-bold ${theme.highlight}`}>Student Portal Configuration</h2>
-      <p className={`text-xs ${theme.iconColor}`}>Control what students can see and do through their portal</p>
+      <ModuleHeader title="Student Portal Configuration" subtitle="Control what students can see and do through their portal" theme={theme} />
 
       <SectionCard title="Portal Features" subtitle="Toggle features visible to students" theme={theme}>
         <div className="space-y-2">
@@ -2726,10 +2767,6 @@ function StudentPortalConfigModule({ theme }: { theme: Theme }) {
         <p className="text-xs text-amber-700">Enabling &quot;Show class rank&quot; may be sensitive. Many schools disable this to reduce peer pressure. Consider your school policy before turning it on.</p>
       </div>
 
-      <div className="flex justify-end gap-3 pt-2">
-        <button className={`px-4 py-2 rounded-xl ${theme.secondaryBg} ${theme.highlight} text-xs font-bold`}>Reset to Defaults</button>
-        <button className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-2`}><Save size={14} /> Save Student Portal Config</button>
-      </div>
     </div>
   );
 }
@@ -2744,8 +2781,7 @@ function AlumniConfigModule({ theme }: { theme: Theme }) {
 
   return (
     <div className="space-y-4">
-      <h2 className={`text-lg font-bold ${theme.highlight}`}>Alumni Configuration</h2>
-      <p className={`text-xs ${theme.iconColor}`}>Manage alumni engagement portal features</p>
+      <ModuleHeader title="Alumni Configuration" subtitle="Manage alumni engagement portal features" theme={theme} />
 
       <SectionCard title="Alumni Portal Features" subtitle="Toggle alumni-facing features" theme={theme}>
         <div className="space-y-2">
@@ -2764,10 +2800,6 @@ function AlumniConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
-      <div className="flex justify-end gap-3 pt-2">
-        <button className={`px-4 py-2 rounded-xl ${theme.secondaryBg} ${theme.highlight} text-xs font-bold`}>Reset to Defaults</button>
-        <button className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-2`}><Save size={14} /> Save Alumni Config</button>
-      </div>
     </div>
   );
 }
@@ -2784,8 +2816,7 @@ function AnalyticsBIConfigModule({ theme }: { theme: Theme }) {
 
   return (
     <div className="space-y-4">
-      <h2 className={`text-lg font-bold ${theme.highlight}`}>Analytics &amp; BI Configuration</h2>
-      <p className={`text-xs ${theme.iconColor}`}>Business intelligence, predictive analytics, and dashboard widgets</p>
+      <ModuleHeader title="Analytics & BI Configuration" subtitle="Business intelligence, predictive analytics, and dashboard widgets" theme={theme} />
 
       <SectionCard title="Core Analytics" subtitle="Enable or disable analytics features" theme={theme}>
         <div className="space-y-2">
@@ -2822,10 +2853,6 @@ function AnalyticsBIConfigModule({ theme }: { theme: Theme }) {
         <SelectField options={['1 year', '3 years', '5 years', '10 years', 'Unlimited']} value={dataRetention} onChange={setDataRetention} theme={theme} />
       </SectionCard>
 
-      <div className="flex justify-end gap-3 pt-2">
-        <button className={`px-4 py-2 rounded-xl ${theme.secondaryBg} ${theme.highlight} text-xs font-bold`}>Reset to Defaults</button>
-        <button className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-2`}><Save size={14} /> Save Analytics Config</button>
-      </div>
     </div>
   );
 }
@@ -2845,8 +2872,7 @@ function ReportEngineConfigModule({ theme }: { theme: Theme }) {
 
   return (
     <div className="space-y-4">
-      <h2 className={`text-lg font-bold ${theme.highlight}`}>Report Engine Configuration</h2>
-      <p className={`text-xs ${theme.iconColor}`}>Scheduled reports, export formats, recipients, and auto-generation</p>
+      <ModuleHeader title="Report Engine Configuration" subtitle="Scheduled reports, export formats, recipients, and auto-generation" theme={theme} />
 
       <SectionCard title="Email Reports" subtitle="Schedule automatic email delivery of reports" theme={theme}>
         <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
@@ -2890,10 +2916,6 @@ function ReportEngineConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
-      <div className="flex justify-end gap-3 pt-2">
-        <button className={`px-4 py-2 rounded-xl ${theme.secondaryBg} ${theme.highlight} text-xs font-bold`}>Reset to Defaults</button>
-        <button className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-2`}><Save size={14} /> Save Report Engine Config</button>
-      </div>
     </div>
   );
 }
@@ -2910,8 +2932,7 @@ function APIIntegrationConfigModule({ theme }: { theme: Theme }) {
 
   return (
     <div className="space-y-4">
-      <h2 className={`text-lg font-bold ${theme.highlight}`}>API &amp; Integration Configuration</h2>
-      <p className={`text-xs ${theme.iconColor}`}>Third-party integrations, webhooks, and API rate limits</p>
+      <ModuleHeader title="API & Integration Configuration" subtitle="Third-party integrations, webhooks, and API rate limits" theme={theme} />
 
       <SectionCard title="Integration Master Switch" subtitle="Enable or disable all external integrations" theme={theme}>
         <div className="space-y-2">
@@ -2951,10 +2972,6 @@ function APIIntegrationConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
-      <div className="flex justify-end gap-3 pt-2">
-        <button className={`px-4 py-2 rounded-xl ${theme.secondaryBg} ${theme.highlight} text-xs font-bold`}>Reset to Defaults</button>
-        <button className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-2`}><Save size={14} /> Save API Config</button>
-      </div>
     </div>
   );
 }
@@ -2971,8 +2988,7 @@ function BrandingWhitelabelConfigModule({ theme }: { theme: Theme }) {
 
   return (
     <div className="space-y-4">
-      <h2 className={`text-lg font-bold ${theme.highlight}`}>Branding &amp; White-label Configuration</h2>
-      <p className={`text-xs ${theme.iconColor}`}>Custom domain, branding, logo, and white-label settings</p>
+      <ModuleHeader title="Branding & White-label Configuration" subtitle="Custom domain, branding, logo, and white-label settings" theme={theme} />
 
       <SectionCard title="Custom Domain" subtitle="Use your own domain for the school portal" theme={theme}>
         <div className="space-y-3">
@@ -3028,10 +3044,6 @@ function BrandingWhitelabelConfigModule({ theme }: { theme: Theme }) {
         </SectionCard>
       </div>
 
-      <div className="flex justify-end gap-3 pt-2">
-        <button className={`px-4 py-2 rounded-xl ${theme.secondaryBg} ${theme.highlight} text-xs font-bold`}>Reset to Defaults</button>
-        <button className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-2`}><Save size={14} /> Save Branding Config</button>
-      </div>
     </div>
   );
 }
@@ -3055,8 +3067,7 @@ function SchoolIdentityConfigModule({ theme }: { theme: Theme }) {
 
   return (
     <div className="space-y-4">
-      <h2 className={`text-lg font-bold ${theme.highlight}`}>School Identity Configuration</h2>
-      <p className={`text-xs ${theme.iconColor}`}>Core school details captured during onboarding &mdash; editable by SSA</p>
+      <ModuleHeader title="School Identity Configuration" subtitle="Core school details captured during onboarding — editable by SSA" theme={theme} />
 
       <SectionCard title="Basic Information" subtitle="School name and classification" theme={theme}>
         <div className="space-y-3">
@@ -3159,10 +3170,6 @@ function SchoolIdentityConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
-      <div className="flex justify-end gap-3 pt-2">
-        <button className={`px-4 py-2 rounded-xl ${theme.secondaryBg} ${theme.highlight} text-xs font-bold`}>Reset to Defaults</button>
-        <button className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-2`}><Save size={14} /> Save School Identity</button>
-      </div>
     </div>
   );
 }
