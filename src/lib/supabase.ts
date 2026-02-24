@@ -19,6 +19,11 @@ export interface FeedbackItem {
   moderated_by?: string | null;
   moderated_at?: string | null;
   original_remark?: string | null;
+  click_x?: number | null;
+  click_y?: number | null;
+  viewport_width?: number | null;
+  viewport_height?: number | null;
+  screenshot_base64?: string | null;
 }
 
 export async function submitFeedback(
@@ -118,6 +123,18 @@ export async function moderateFeedback(
     console.error('Moderation error:', e);
     return false;
   }
+}
+
+// ─── Single Feedback Detail (with screenshot) ────────
+
+export async function getFeedbackDetail(id: string): Promise<FeedbackItem | null> {
+  try {
+    const res = await fetch(`/api/feedback/${id}`);
+    if (res.ok) return await res.json();
+  } catch (e) {
+    console.error('Get feedback detail error:', e);
+  }
+  return null;
 }
 
 // ─── User Management ─────────────────────────────────

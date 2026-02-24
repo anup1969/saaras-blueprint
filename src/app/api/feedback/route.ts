@@ -10,7 +10,9 @@ export async function GET(req: NextRequest) {
   const supabase = getServerSupabase();
   if (!supabase) return NextResponse.json([]);
 
-  let query = supabase.from('feedback').select('*').order('created_at', { ascending: false });
+  // Exclude screenshot_base64 from list queries to save bandwidth (~25-40KB per row)
+  const columns = 'id,page,element_label,element_selector,feedback_type,remark,submitted_by,priority,status,created_at,resolved_at,moderation_status,admin_notes,moderated_by,moderated_at,original_remark,click_x,click_y,viewport_width,viewport_height';
+  let query = supabase.from('feedback').select(columns).order('created_at', { ascending: false });
   if (pendingOnly) {
     query = query.eq('moderation_status', 'pending');
   } else {

@@ -7,11 +7,13 @@ import { type TeamMember } from '@/lib/auth';
 import {
   getUsers, createUser, updateUser, deleteUser,
   getPendingFeedback, getAllFeedbackForAdmin, moderateFeedback,
+  getFeedbackDetail,
   type BlueprintUser, type FeedbackItem
 } from '@/lib/supabase';
 import {
   Users, ShieldAlert, Plus, Pencil, Trash2, Check, X, Eye,
-  Clock, CheckCircle, XCircle, MessageSquare, Filter, ChevronDown
+  Clock, CheckCircle, XCircle, MessageSquare, Filter, ChevronDown,
+  Camera, ExternalLink, MapPin, Crosshair
 } from 'lucide-react';
 
 // All available dashboards for the checklist
@@ -396,6 +398,21 @@ function ModerationTab({ theme, currentUser }: { theme: Theme; currentUser: Team
   const [editedRemarks, setEditedRemarks] = useState<Record<string, string>>({});
   const [showEditFor, setShowEditFor] = useState<string | null>(null);
 
+  // Screenshot modal state
+  const [screenshotModal, setScreenshotModal] = useState<{ id: string; loading: boolean; base64: string | null } | null>(null);
+
+  const openScreenshot = async (id: string) => {
+    setScreenshotModal({ id, loading: true, base64: null });
+    const detail = await getFeedbackDetail(id);
+    setScreenshotModal({ id, loading: false, base64: detail?.screenshot_base64 || null });
+  };
+
+  // Build dashboard URL from page name
+  const getDashboardUrl = (page: string) => {
+    const slug = page.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    return `/${slug}`;
+  };
+
   const loadData = async () => {
     setLoading(true);
     const [p, all] = await Promise.all([getPendingFeedback(), getAllFeedbackForAdmin()]);
@@ -486,12 +503,46 @@ function ModerationTab({ theme, currentUser }: { theme: Theme; currentUser: Team
                   </span>
                 </div>
 
-                {/* Element */}
+                {/* Element + Visual Context */}
                 {item.element_label && (
                   <p className={`text-[10px] ${theme.iconColor} mb-1`}>
                     On: <span className="text-purple-400">{item.element_label.slice(0, 60)}</span>
                   </p>
                 )}
+                {item.element_selector && (
+                  <p className={`text-[9px] font-mono ${theme.iconColor} opacity-60 mb-1 truncate`} title={item.element_selector}>
+                    <Crosshair size={9} className="inline mr-1" />{item.element_selector}
+                  </p>
+                )}
+
+                {/* Position + Actions row */}
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  {item.click_x != null && item.click_y != null && (
+                    <span className={`flex items-center gap-1 text-[9px] font-mono px-1.5 py-0.5 rounded ${theme.secondaryBg} ${theme.iconColor}`}>
+                      <MapPin size={9} />
+                      ({item.click_x}, {item.click_y})
+                      {item.viewport_width && item.viewport_height && (
+                        <span className="opacity-60"> on {item.viewport_width}x{item.viewport_height}</span>
+                      )}
+                    </span>
+                  )}
+                  {item.id && (
+                    <button
+                      onClick={() => openScreenshot(item.id!)}
+                      className={`flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 transition-all`}
+                    >
+                      <Camera size={9} /> Screenshot
+                    </button>
+                  )}
+                  <a
+                    href={getDashboardUrl(item.page)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-all`}
+                  >
+                    <ExternalLink size={9} /> Open Page
+                  </a>
+                </div>
 
                 {/* Remark */}
                 <p className={`text-sm ${theme.highlight} mb-2`}>{item.remark}</p>
@@ -614,6 +665,19 @@ function ModerationTab({ theme, currentUser }: { theme: Theme; currentUser: Team
                         item.moderation_status === 'rejected' ? 'bg-red-500/20 text-red-400' :
                         'bg-blue-500/20 text-blue-400'
                       }`}>{item.moderation_status}</span>
+                      {item.click_x != null && (
+                        <span className={`text-[9px] font-mono ${theme.iconColor} opacity-50`}>
+                          ({item.click_x},{item.click_y})
+                        </span>
+                      )}
+                      {item.id && (
+                        <button onClick={() => openScreenshot(item.id!)} className="text-[9px] text-purple-400 hover:text-purple-300">
+                          <Camera size={10} />
+                        </button>
+                      )}
+                      <a href={getDashboardUrl(item.page)} target="_blank" rel="noopener noreferrer" className="text-[9px] text-blue-400 hover:text-blue-300">
+                        <ExternalLink size={10} />
+                      </a>
                     </div>
                     <p className={`text-xs ${theme.highlight} truncate`}>{item.remark}</p>
                     {item.admin_notes && <p className={`text-[10px] ${theme.iconColor} mt-0.5`}>Note: {item.admin_notes}</p>}
@@ -628,6 +692,38 @@ function ModerationTab({ theme, currentUser }: { theme: Theme; currentUser: Team
           )}
         </div>
       </div>
+
+      {/* Screenshot Modal */}
+      {screenshotModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setScreenshotModal(null)}>
+          <div className={`${theme.cardBg} border ${theme.border} rounded-2xl shadow-2xl w-full max-w-lg p-5`} onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className={`text-sm font-bold ${theme.highlight} flex items-center gap-2`}>
+                <Camera size={16} className="text-purple-400" /> Remark Screenshot
+              </h3>
+              <button onClick={() => setScreenshotModal(null)} className={`${theme.iconColor} hover:text-red-400`}><X size={16} /></button>
+            </div>
+            {screenshotModal.loading ? (
+              <div className="flex items-center justify-center py-12">
+                <span className="w-6 h-6 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
+                <span className={`ml-2 text-sm ${theme.iconColor}`}>Loading screenshot...</span>
+              </div>
+            ) : screenshotModal.base64 ? (
+              <img
+                src={screenshotModal.base64}
+                alt="Remark screenshot"
+                className="w-full rounded-xl border border-slate-700"
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12">
+                <Camera size={32} className={`${theme.iconColor} opacity-30 mb-2`} />
+                <p className={`text-sm ${theme.iconColor}`}>No screenshot available</p>
+                <p className={`text-[10px] ${theme.iconColor} opacity-60 mt-1`}>This remark was submitted before screenshot capture was added.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Toast */}
       {toast && (

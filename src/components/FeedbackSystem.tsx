@@ -9,6 +9,9 @@ interface FeedbackPosition {
   y: number;
   elementLabel: string;
   elementSelector: string;
+  viewportWidth: number;
+  viewportHeight: number;
+  screenshotBase64: string | null;
 }
 
 export default function FeedbackSystem({ currentPage, currentUser, isAdmin = false }: { currentPage: string; currentUser: string; isAdmin?: boolean }) {
@@ -23,6 +26,7 @@ export default function FeedbackSystem({ currentPage, currentUser, isAdmin = fal
   const [toast, setToast] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [interimText, setInterimText] = useState('');
+  const [capturing, setCapturing] = useState(false);
   const recognitionRef = React.useRef<any>(null);
   const shouldRestartRef = React.useRef(false);
   const remarkRef = React.useRef(remark);
@@ -146,8 +150,54 @@ export default function FeedbackSystem({ currentPage, currentUser, isAdmin = fal
 
   const openCount = feedbackItems.filter(f => f.status === 'open').length;
 
+  // Capture cropped screenshot around the clicked element
+  const captureScreenshot = useCallback(async (target: HTMLElement, clickX: number, clickY: number): Promise<string | null> => {
+    try {
+      setCapturing(true);
+      const html2canvas = (await import('html2canvas')).default;
+      // Capture the full page
+      const canvas = await html2canvas(document.body, {
+        logging: false,
+        useCORS: true,
+        scale: 1,
+        windowWidth: document.documentElement.scrollWidth,
+        windowHeight: document.documentElement.scrollHeight,
+      });
+
+      // Crop to ~600x400 region centered on click point
+      const cropW = 600, cropH = 400;
+      const absX = clickX + window.scrollX;
+      const absY = clickY + window.scrollY;
+      const sx = Math.max(0, Math.min(absX - cropW / 2, canvas.width - cropW));
+      const sy = Math.max(0, Math.min(absY - cropH / 2, canvas.height - cropH));
+
+      const cropCanvas = document.createElement('canvas');
+      cropCanvas.width = Math.min(cropW, canvas.width);
+      cropCanvas.height = Math.min(cropH, canvas.height);
+      const ctx = cropCanvas.getContext('2d');
+      if (!ctx) return null;
+      ctx.drawImage(canvas, sx, sy, cropCanvas.width, cropCanvas.height, 0, 0, cropCanvas.width, cropCanvas.height);
+
+      // Resize to 400px wide for smaller payload
+      const resizeCanvas = document.createElement('canvas');
+      const scale = 400 / cropCanvas.width;
+      resizeCanvas.width = 400;
+      resizeCanvas.height = Math.round(cropCanvas.height * scale);
+      const rctx = resizeCanvas.getContext('2d');
+      if (!rctx) return null;
+      rctx.drawImage(cropCanvas, 0, 0, resizeCanvas.width, resizeCanvas.height);
+
+      return resizeCanvas.toDataURL('image/jpeg', 0.5);
+    } catch (err) {
+      console.error('Screenshot capture error:', err);
+      return null;
+    } finally {
+      setCapturing(false);
+    }
+  }, []);
+
   // Shift+Click handler
-  const handleShiftClick = useCallback((e: MouseEvent) => {
+  const handleShiftClick = useCallback(async (e: MouseEvent) => {
     if (!e.shiftKey) return;
     e.preventDefault();
     e.stopPropagation();
@@ -155,13 +205,20 @@ export default function FeedbackSystem({ currentPage, currentUser, isAdmin = fal
     const target = e.target as HTMLElement;
     const label = target.textContent?.slice(0, 80) || target.tagName;
     const selector = getSelector(target);
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
 
-    setPosition({ x: e.clientX, y: e.clientY, elementLabel: label, elementSelector: selector });
+    // Open popup immediately with null screenshot (will fill in async)
+    setPosition({ x: e.clientX, y: e.clientY, elementLabel: label, elementSelector: selector, viewportWidth: vw, viewportHeight: vh, screenshotBase64: null });
     setIsOpen(true);
     setRemark('');
     setFeedbackType('comment');
     setPriority('medium');
-  }, []);
+
+    // Capture screenshot in background
+    const screenshot = await captureScreenshot(target, e.clientX, e.clientY);
+    setPosition(prev => prev ? { ...prev, screenshotBase64: screenshot } : prev);
+  }, [captureScreenshot]);
 
   useEffect(() => {
     document.addEventListener('click', handleShiftClick, true);
@@ -180,6 +237,11 @@ export default function FeedbackSystem({ currentPage, currentUser, isAdmin = fal
         remark: remark.trim(),
         submitted_by: currentUser,
         priority: priority as FeedbackItem['priority'],
+        click_x: position?.x ?? null,
+        click_y: position?.y ?? null,
+        viewport_width: position?.viewportWidth ?? null,
+        viewport_height: position?.viewportHeight ?? null,
+        screenshot_base64: position?.screenshotBase64 ?? null,
       }, isAdmin);
       setIsOpen(false);
       setPosition(null);
@@ -274,9 +336,32 @@ export default function FeedbackSystem({ currentPage, currentUser, isAdmin = fal
               <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-white"><X size={14} /></button>
             </div>
 
-            <p className="text-[10px] text-slate-500 mb-2 truncate">
+            <p className="text-[10px] text-slate-500 mb-1 truncate">
               Element: <span className="text-purple-400">{position.elementLabel.slice(0, 60)}</span>
             </p>
+
+            {/* Screenshot preview */}
+            <div className="mb-2">
+              {capturing ? (
+                <div className="flex items-center gap-1.5 text-[10px] text-slate-500">
+                  <span className="w-3 h-3 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
+                  Capturing screenshot...
+                </div>
+              ) : position.screenshotBase64 ? (
+                <div className="relative">
+                  <img
+                    src={position.screenshotBase64}
+                    alt="Screenshot preview"
+                    className="w-full h-20 object-cover rounded-lg border border-slate-700 opacity-80"
+                  />
+                  <span className="absolute bottom-1 right-1 text-[8px] bg-black/60 text-slate-300 px-1 rounded">
+                    screenshot captured
+                  </span>
+                </div>
+              ) : (
+                <p className="text-[9px] text-slate-600">No screenshot</p>
+              )}
+            </div>
 
             {/* Feedback type */}
             <div className="flex gap-1 mb-3 flex-wrap">
