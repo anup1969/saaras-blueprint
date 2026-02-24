@@ -63,6 +63,11 @@ export function getLoggedInUser(): TeamMember | null {
   if (!stored) return null;
   try {
     const parsed = JSON.parse(stored);
+    // Auto-clear stale sessions that lack the new auth fields
+    if (!('is_admin' in parsed) || !('allowed_dashboards' in parsed)) {
+      localStorage.removeItem('saaras-user');
+      return null;
+    }
     return {
       id: parsed.id || '',
       name: parsed.name || '',
