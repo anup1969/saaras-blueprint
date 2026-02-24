@@ -18,31 +18,19 @@ const FALLBACK_ADMIN: TeamMember = {
 };
 
 export async function authenticate(userId: string, password: string): Promise<TeamMember | null> {
-  // Try Supabase first
+  // Try API route (proxied through Vercel → Supabase)
   try {
-    const { getSupabase } = await import('./supabase');
-    const supabase = getSupabase();
-    if (supabase) {
-      const { data, error } = await supabase
-        .from('blueprint_users')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('password', password)
-        .single();
-
-      if (!error && data) {
-        return {
-          id: data.user_id,
-          name: data.name,
-          role: data.role,
-          password: '',
-          allowed_dashboards: data.allowed_dashboards || [],
-          is_admin: data.is_admin || false,
-        };
-      }
+    const res = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, password }),
+    });
+    const { user } = await res.json();
+    if (user) {
+      return { ...user, password: '' };
     }
   } catch {
-    // DB error — fall through to hardcoded
+    // API error — fall through to hardcoded
   }
 
   // Hardcoded piush fallback
@@ -60,14 +48,11 @@ export async function authenticate(userId: string, password: string): Promise<Te
  */
 export function canAccessDashboard(user: TeamMember | null, dashboardId: string): boolean {
   if (!user) return false;
-  // Home is always accessible
   if (dashboardId === '/' || dashboardId === '') return true;
-  // Admins: empty array = all access; non-empty = restricted
   if (user.is_admin) {
     if (user.allowed_dashboards.length === 0) return true;
     return user.allowed_dashboards.includes(dashboardId);
   }
-  // Non-admins: must have explicit access
   if (user.allowed_dashboards.length === 0) return false;
   return user.allowed_dashboards.includes(dashboardId);
 }
@@ -78,7 +63,6 @@ export function getLoggedInUser(): TeamMember | null {
   if (!stored) return null;
   try {
     const parsed = JSON.parse(stored);
-    // Migrate old sessions that lack new fields
     return {
       id: parsed.id || '',
       name: parsed.name || '',
