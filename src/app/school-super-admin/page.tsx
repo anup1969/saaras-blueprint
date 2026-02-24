@@ -591,6 +591,9 @@ function AcademicConfigModule({ theme }: { theme: Theme }) {
   });
   const [newSubject, setNewSubject] = useState('');
   const [activeGrade, setActiveGrade] = useState('Grade 1');
+  // Global section names defined once, applied per grade
+  const [globalSectionNames, setGlobalSectionNames] = useState(['A', 'B', 'C', 'D', 'E']);
+  const [newSectionName, setNewSectionName] = useState('');
   const [sections, setSections] = useState<Record<string, string[]>>({
     'Nursery': ['A'], 'Jr. KG': ['A'], 'Sr. KG': ['A'],
     'Grade 1': ['A', 'B', 'C'], 'Grade 2': ['A', 'B', 'C'], 'Grade 3': ['A', 'B'],
@@ -598,6 +601,8 @@ function AcademicConfigModule({ theme }: { theme: Theme }) {
     'Grade 7': ['A', 'B', 'C'], 'Grade 8': ['A', 'B'], 'Grade 9': ['A', 'B', 'C'],
     'Grade 10': ['A', 'B', 'C'], 'Grade 11': ['A', 'B'], 'Grade 12': ['A', 'B'],
   });
+  // Compute master subject pool from all grades
+  const allSubjectsPool = Array.from(new Set(Object.values(subjects).flat())).sort();
   const [preschoolGroups, setPreschoolGroups] = useState([
     { ageLevel: 'Nursery (2-3 yrs)', groupName: 'Butterflies', maxChildren: '20' },
     { ageLevel: 'Jr. KG (3-4 yrs)', groupName: 'Sunshine', maxChildren: '22' },
@@ -648,7 +653,7 @@ function AcademicConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
-      <SectionCard title="Subject Master List" subtitle="Add or remove subjects per individual grade" theme={theme}>
+      <SectionCard title="Subject Master List" subtitle="Add subjects per grade — subjects from other grades appear as quick-add suggestions" theme={theme}>
         {/* Preschool toggle */}
         <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg} mb-3`}>
           <div>
@@ -677,54 +682,98 @@ function AcademicConfigModule({ theme }: { theme: Theme }) {
               </span>
             ))}
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 mb-2">
             <input value={newSubject} onChange={e => setNewSubject(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && newSubject.trim()) { setSubjects(p => ({ ...p, [activeGrade]: [...(p[activeGrade] || []), newSubject.trim()] })); setNewSubject(''); } }}
-              placeholder="Add subject and press Enter..."
+              placeholder="Type new subject or click from pool below..."
               className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
             <button onClick={() => { if (newSubject.trim()) { setSubjects(p => ({ ...p, [activeGrade]: [...(p[activeGrade] || []), newSubject.trim()] })); setNewSubject(''); } }}
               className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}><Plus size={14} /></button>
           </div>
+          {/* Subject pool — quick-add from other grades */}
+          {(() => {
+            const currentSubs = subjects[activeGrade] || [];
+            const available = allSubjectsPool.filter(s => !currentSubs.includes(s));
+            if (available.length === 0) return null;
+            return (
+              <div>
+                <p className={`text-[9px] font-bold ${theme.iconColor} mb-1.5 uppercase tracking-wide`}>Quick-add from subject pool (used in other grades)</p>
+                <div className="flex flex-wrap gap-1">
+                  {available.map(s => (
+                    <button key={s} onClick={() => setSubjects(p => ({ ...p, [activeGrade]: [...(p[activeGrade] || []), s] }))}
+                      className={`px-2 py-0.5 rounded-lg border border-dashed ${theme.border} text-[10px] ${theme.iconColor} hover:${theme.primary} hover:text-white transition-all`}>
+                      + {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
         </div>
       </SectionCard>
 
-      <SectionCard title="Section Configuration" subtitle="Edit section names, add or delete sections per grade — names can be letters or words (e.g. Rose, Lily)" theme={theme}>
+      <SectionCard title="Section Configuration" subtitle="Define section names once (school-wide), then assign per grade" theme={theme}>
+        {/* Global section names */}
+        <div className={`p-3 rounded-xl ${theme.accentBg} border ${theme.border} mb-4`}>
+          <p className={`text-[10px] font-bold ${theme.iconColor} mb-2 uppercase tracking-wide`}>School-wide Section Names (defined once, used across all grades)</p>
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {globalSectionNames.map((name, i) => (
+              <span key={i} className={`flex items-center gap-1 px-2.5 py-1 rounded-lg ${theme.cardBg} border ${theme.border} text-xs font-bold ${theme.highlight}`}>
+                <input value={name} onChange={e => { const n = [...globalSectionNames]; n[i] = e.target.value; setGlobalSectionNames(n); }}
+                  className={`w-16 bg-transparent text-xs font-bold ${theme.highlight} outline-none text-center`} placeholder="Name" />
+                <button onClick={() => {
+                  const removed = globalSectionNames[i];
+                  setGlobalSectionNames(p => p.filter((_, j) => j !== i));
+                  setSections(p => {
+                    const updated = { ...p };
+                    for (const grade of Object.keys(updated)) { updated[grade] = updated[grade].filter(s => s !== removed); }
+                    return updated;
+                  });
+                }} className="text-red-400 hover:text-red-600"><X size={10} /></button>
+              </span>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <input value={newSectionName} onChange={e => setNewSectionName(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && newSectionName.trim()) { setGlobalSectionNames(p => [...p, newSectionName.trim()]); setNewSectionName(''); } }}
+              placeholder="Add section name (e.g. F, Rose, Lily)..."
+              className={`flex-1 px-3 py-1.5 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+            <button onClick={() => { if (newSectionName.trim()) { setGlobalSectionNames(p => [...p, newSectionName.trim()]); setNewSectionName(''); } }}
+              className={`px-3 py-1.5 rounded-xl ${theme.primary} text-white text-xs font-bold`}><Plus size={12} /></button>
+          </div>
+        </div>
+
+        {/* Per-grade section assignment */}
+        <p className={`text-[10px] font-bold ${theme.iconColor} mb-2 uppercase tracking-wide`}>Assign sections per grade (toggle which sections are active)</p>
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
           {allGrades.map(grade => {
-            const secs = sections[grade] || [];
+            const gradeSecs = sections[grade] || [];
             return (
               <div key={grade} className={`p-2.5 rounded-xl ${theme.secondaryBg}`}>
                 <div className="flex items-center justify-between mb-1.5">
                   <p className={`text-xs font-bold ${theme.highlight}`}>{grade}</p>
                   <span className={`text-[9px] px-1.5 py-0.5 rounded ${theme.accentBg} ${theme.iconColor} font-bold`}>
-                    {secs.length} {secs.length === 1 ? 'section' : 'sections'}
+                    {gradeSecs.length} {gradeSecs.length === 1 ? 'section' : 'sections'}
                   </span>
                 </div>
-                <div className="flex flex-wrap gap-1 mb-1.5">
-                  {secs.map((s, si) => (
-                    <span key={si} className={`flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded ${theme.cardBg} border ${theme.border} ${theme.highlight} font-bold`}>
-                      <input
-                        value={s}
-                        onChange={e => setSections(p => {
-                          const arr = [...(p[grade] || [])];
-                          arr[si] = e.target.value;
-                          return { ...p, [grade]: arr };
-                        })}
-                        className={`w-10 bg-transparent text-[10px] font-bold ${theme.highlight} outline-none`}
-                        placeholder="Name" />
-                      <button
-                        onClick={() => setSections(p => ({ ...p, [grade]: (p[grade] || []).filter((_, idx) => idx !== si) }))}
-                        className="text-red-400 hover:text-red-600 ml-0.5">
-                        <X size={8} />
+                <div className="flex flex-wrap gap-1">
+                  {globalSectionNames.map(name => {
+                    const isActive = gradeSecs.includes(name);
+                    return (
+                      <button key={name} onClick={() => {
+                        setSections(p => ({
+                          ...p,
+                          [grade]: isActive ? (p[grade] || []).filter(s => s !== name) : [...(p[grade] || []), name],
+                        }));
+                      }}
+                        className={`text-[10px] px-2 py-1 rounded-lg font-bold transition-all ${
+                          isActive ? `${theme.primary} text-white` : `${theme.cardBg} border ${theme.border} ${theme.iconColor}`
+                        }`}>
+                        {name}
                       </button>
-                    </span>
-                  ))}
+                    );
+                  })}
                 </div>
-                <button
-                  onClick={() => setSections(p => ({ ...p, [grade]: [...(p[grade] || []), String.fromCharCode(65 + (p[grade] || []).length)] }))}
-                  className={`flex items-center gap-0.5 text-[9px] font-bold ${theme.iconColor} hover:opacity-80`}>
-                  <Plus size={9} /> Add Section
-                </button>
               </div>
             );
           })}
