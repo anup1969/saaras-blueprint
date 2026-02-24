@@ -22,18 +22,18 @@ import SupportModule from '@/components/SupportModule';
 const teacherProfile = {
   name: 'Ms. Priya Sharma',
   empId: 'EMP042',
-  subject: 'Mathematics',
+  subjects: ['Mathematics', 'Science'],
   department: 'Science & Mathematics',
-  classes: ['10-A', '10-B', '8-A', '8-B', '6-A', '6-B'],
+  classes: ['10-A', '10-B', '9-A', '9-B', '8-A', '6-A'],
 };
 
 const myClasses = [
   { id: 'CLS001', class: '10-A', subject: 'Mathematics', students: 42, classTeacher: true, room: 'Room 301', schedule: 'Mon, Wed, Fri — Period 1' },
   { id: 'CLS002', class: '10-B', subject: 'Mathematics', students: 40, classTeacher: false, room: 'Room 302', schedule: 'Mon, Tue, Thu — Period 2' },
-  { id: 'CLS003', class: '8-A', subject: 'Mathematics', students: 38, classTeacher: false, room: 'Room 204', schedule: 'Tue, Thu, Sat — Period 3' },
-  { id: 'CLS004', class: '8-B', subject: 'Mathematics', students: 36, classTeacher: false, room: 'Room 205', schedule: 'Wed, Fri, Sat — Period 4' },
-  { id: 'CLS005', class: '6-A', subject: 'Mathematics', students: 35, classTeacher: false, room: 'Room 106', schedule: 'Mon, Wed, Fri — Period 5' },
-  { id: 'CLS006', class: '6-B', subject: 'Mathematics', students: 34, classTeacher: false, room: 'Room 107', schedule: 'Tue, Thu, Sat — Period 6' },
+  { id: 'CLS003', class: '9-A', subject: 'Science', students: 38, classTeacher: false, room: 'Lab 1', schedule: 'Tue, Thu, Sat — Period 3' },
+  { id: 'CLS004', class: '9-B', subject: 'Science', students: 36, classTeacher: false, room: 'Lab 2', schedule: 'Wed, Fri, Sat — Period 4' },
+  { id: 'CLS005', class: '8-A', subject: 'Mathematics', students: 35, classTeacher: false, room: 'Room 204', schedule: 'Mon, Wed, Fri — Period 5' },
+  { id: 'CLS006', class: '6-A', subject: 'Mathematics', students: 34, classTeacher: false, room: 'Room 106', schedule: 'Tue, Thu, Sat — Period 6' },
 ];
 
 const studentsOf10A = [
@@ -62,10 +62,10 @@ const studentsOf10A = [
 const homeworkList = [
   { id: 'HW001', title: 'Ch 7 — Coordinate Geometry Exercise', class: '10-A', subject: 'Mathematics', assigned: '08 Feb 2026', due: '12 Feb 2026', status: 'Assigned', submitted: 28, total: 42 },
   { id: 'HW002', title: 'Ch 5 — Quadratic Equations Worksheet', class: '10-B', subject: 'Mathematics', assigned: '06 Feb 2026', due: '10 Feb 2026', status: 'Graded', submitted: 40, total: 40 },
-  { id: 'HW003', title: 'Ch 3 — Linear Equations Practice', class: '8-A', subject: 'Mathematics', assigned: '07 Feb 2026', due: '11 Feb 2026', status: 'Submitted', submitted: 35, total: 38 },
-  { id: 'HW004', title: 'Ch 12 — Areas & Volumes Problems', class: '8-B', subject: 'Mathematics', assigned: '05 Feb 2026', due: '09 Feb 2026', status: 'Graded', submitted: 36, total: 36 },
-  { id: 'HW005', title: 'Ch 2 — Fractions & Decimals', class: '6-A', subject: 'Mathematics', assigned: '09 Feb 2026', due: '13 Feb 2026', status: 'Assigned', submitted: 10, total: 35 },
-  { id: 'HW006', title: 'Ch 1 — Number System Revision', class: '6-B', subject: 'Mathematics', assigned: '04 Feb 2026', due: '08 Feb 2026', status: 'Graded', submitted: 34, total: 34 },
+  { id: 'HW003', title: 'Ch 4 — Light & Reflection Worksheet', class: '9-A', subject: 'Science', assigned: '07 Feb 2026', due: '11 Feb 2026', status: 'Submitted', submitted: 35, total: 38 },
+  { id: 'HW004', title: 'Ch 6 — Chemical Reactions Lab Report', class: '9-B', subject: 'Science', assigned: '05 Feb 2026', due: '09 Feb 2026', status: 'Graded', submitted: 36, total: 36 },
+  { id: 'HW005', title: 'Ch 2 — Fractions & Decimals', class: '6-A', subject: 'Mathematics', assigned: '09 Feb 2026', due: '13 Feb 2026', status: 'Assigned', submitted: 10, total: 34 },
+  { id: 'HW006', title: 'Ch 3 — Linear Equations Practice', class: '8-A', subject: 'Mathematics', assigned: '04 Feb 2026', due: '08 Feb 2026', status: 'Graded', submitted: 34, total: 35 },
   { id: 'HW007', title: 'Ch 8 — Trigonometry Introduction', class: '10-A', subject: 'Mathematics', assigned: '10 Feb 2026', due: '14 Feb 2026', status: 'Assigned', submitted: 5, total: 42 },
 ];
 
@@ -83,12 +83,12 @@ const gradebookStudents = [
 ];
 
 const timetableData: Record<string, string[]> = {
-  Mon: ['10-A Math', '10-B Math', 'Free', '8-A Math', '6-A Math', 'Free', 'Staff Meeting', 'Free'],
-  Tue: ['Free', '10-B Math', '8-A Math', 'Free', 'Free', '6-B Math', '8-B Math', 'Free'],
-  Wed: ['10-A Math', 'Free', 'Free', '8-B Math', '6-A Math', 'Free', 'Lab Duty', 'Free'],
-  Thu: ['Free', '10-B Math', '8-A Math', 'Free', 'Free', '6-B Math', 'Free', 'PTM Slot'],
-  Fri: ['10-A Math', 'Free', 'Free', '8-B Math', '6-A Math', 'Free', 'Free', 'Free'],
-  Sat: ['8-A Math', '8-B Math', '6-B Math', 'Free', '', '', '', ''],
+  Mon: ['10-A Math', '10-B Math', 'Free', '9-A Science', '6-A Math', 'Free', 'Staff Meeting', 'Free'],
+  Tue: ['Free', '10-B Math', '9-A Science', 'Free', 'Free', '8-A Math', '9-B Science', 'Free'],
+  Wed: ['10-A Math', 'Free', 'Free', '9-B Science', '6-A Math', 'Free', 'Lab Duty', 'Free'],
+  Thu: ['Free', '10-B Math', '9-A Science', 'Free', 'Free', '8-A Math', 'Free', 'PTM Slot'],
+  Fri: ['10-A Math', 'Free', 'Free', '9-B Science', '6-A Math', 'Free', 'Free', 'Free'],
+  Sat: ['8-A Math', '9-A Science', '6-A Math', 'Free', '', '', '', ''],
 };
 
 const periodTimings = [
@@ -112,20 +112,20 @@ const leaveHistory = [
 
 const diaryEntries = [
   { id: 'D001', date: '12 Feb 2026', class: '10-A', subject: 'Mathematics', message: 'Completed Ch 7 Coordinate Geometry. Homework assigned — Exercise 7.2, Q1-Q10. Students must bring graph sheets tomorrow.' },
-  { id: 'D002', date: '12 Feb 2026', class: '8-A', subject: 'Mathematics', message: 'Started Ch 4 Practical Geometry. Students need compass and protractor from tomorrow.' },
+  { id: 'D002', date: '12 Feb 2026', class: '9-A', subject: 'Science', message: 'Light & Reflection — completed ray diagrams. Lab practical on mirrors next class. Students must bring lab coats.' },
   { id: 'D003', date: '11 Feb 2026', class: '10-B', subject: 'Mathematics', message: 'Revised Quadratic Equations. Unit Test 3 on 15 Feb — syllabus: Ch 4 & Ch 5.' },
   { id: 'D004', date: '11 Feb 2026', class: '6-A', subject: 'Mathematics', message: 'Fractions & Decimals practice. Weak students to attend extra class on Saturday.' },
-  { id: 'D005', date: '10 Feb 2026', class: '8-B', subject: 'Mathematics', message: 'Areas & Volumes — completed mensuration problems. Worksheets distributed.' },
-  { id: 'D006', date: '10 Feb 2026', class: '6-B', subject: 'Mathematics', message: 'Number system revision complete. Chapter test next Monday.' },
+  { id: 'D005', date: '10 Feb 2026', class: '9-B', subject: 'Science', message: 'Chemical Reactions — completed balancing equations. Lab report due Friday.' },
+  { id: 'D006', date: '10 Feb 2026', class: '8-A', subject: 'Mathematics', message: 'Linear Equations practice complete. Chapter test next Monday.' },
 ];
 
 const classReports = [
-  { class: '10-A', students: 42, avgScore: 72.5, topStudent: 'Isha Reddy', topScore: 92, passPercent: 95.2, trend: 'up' },
-  { class: '10-B', students: 40, avgScore: 68.3, topStudent: 'Kavya Menon', topScore: 88, passPercent: 90.0, trend: 'up' },
-  { class: '8-A', students: 38, avgScore: 74.1, topStudent: 'Aditi Das', topScore: 95, passPercent: 97.4, trend: 'up' },
-  { class: '8-B', students: 36, avgScore: 65.7, topStudent: 'Raj Malhotra', topScore: 82, passPercent: 86.1, trend: 'down' },
-  { class: '6-A', students: 35, avgScore: 78.9, topStudent: 'Anika Sinha', topScore: 96, passPercent: 100, trend: 'up' },
-  { class: '6-B', students: 34, avgScore: 71.2, topStudent: 'Vivaan Choudhary', topScore: 89, passPercent: 94.1, trend: 'down' },
+  { class: '10-A', subject: 'Mathematics', students: 42, avgScore: 72.5, topStudent: 'Isha Reddy', topScore: 92, passPercent: 95.2, trend: 'up' },
+  { class: '10-B', subject: 'Mathematics', students: 40, avgScore: 68.3, topStudent: 'Kavya Menon', topScore: 88, passPercent: 90.0, trend: 'up' },
+  { class: '9-A', subject: 'Science', students: 38, avgScore: 74.1, topStudent: 'Aditi Das', topScore: 95, passPercent: 97.4, trend: 'up' },
+  { class: '9-B', subject: 'Science', students: 36, avgScore: 65.7, topStudent: 'Raj Malhotra', topScore: 82, passPercent: 86.1, trend: 'down' },
+  { class: '8-A', subject: 'Mathematics', students: 35, avgScore: 78.9, topStudent: 'Anika Sinha', topScore: 96, passPercent: 100, trend: 'up' },
+  { class: '6-A', subject: 'Mathematics', students: 34, avgScore: 71.2, topStudent: 'Vivaan Choudhary', topScore: 89, passPercent: 94.1, trend: 'down' },
 ];
 
 // ─── MODULE SIDEBAR ─────────────────────────────────
@@ -233,10 +233,10 @@ const myTasksList = [
 const roomMap: Record<string, string> = {
   '10-A Math': 'Room 301',
   '10-B Math': 'Room 302',
+  '9-A Science': 'Lab 1',
+  '9-B Science': 'Lab 2',
   '8-A Math': 'Room 204',
-  '8-B Math': 'Room 205',
   '6-A Math': 'Room 106',
-  '6-B Math': 'Room 107',
   'Staff Meeting': 'Staff Room',
   'Lab Duty': 'Lab 2',
   'PTM Slot': 'Room 301',
@@ -387,7 +387,8 @@ function DashboardHome({ theme, isPreschool }: { theme: Theme; isPreschool?: boo
               if (entry && entry !== 'Free' && entry.includes(' ')) {
                 const parts = entry.split(' ');
                 displayClass = parts[0]; // e.g., "10-A"
-                displaySubject = parts.length > 1 ? `Mathematics` : entry;
+                const subjectCode = parts.slice(1).join(' '); // e.g., "Math" or "Science"
+                displaySubject = subjectCode === 'Math' ? 'Mathematics' : subjectCode === 'Science' ? 'Science' : subjectCode;
                 if (entry === 'Staff Meeting' || entry === 'Lab Duty' || entry === 'PTM Slot') {
                   displaySubject = entry;
                   displayClass = '';
@@ -708,21 +709,61 @@ function DashboardHome({ theme, isPreschool }: { theme: Theme; isPreschool?: boo
 
 // ─── MY CLASSES MODULE ──────────────────────────────
 function MyClassesModule({ theme }: { theme: Theme }) {
+  const [subjectFilter, setSubjectFilter] = useState<string>('All');
+  const allSubjects = [...new Set(myClasses.map(c => c.subject))];
+  const filteredClasses = subjectFilter === 'All' ? myClasses : myClasses.filter(c => c.subject === subjectFilter);
+  const totalStudents = filteredClasses.reduce((sum, c) => sum + c.students, 0);
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className={`text-2xl font-bold ${theme.highlight}`}>My Classes</h1>
-        <p className={`text-xs ${theme.iconColor}`}>Academic Year 2025-26 | Subject: Mathematics</p>
+        <div className="flex items-center gap-3">
+          <p className={`text-xs ${theme.iconColor}`}>Academic Year 2025-26</p>
+          <div className="flex items-center gap-1.5">
+            <Filter size={12} className={theme.iconColor} />
+            <select
+              value={subjectFilter}
+              onChange={e => setSubjectFilter(e.target.value)}
+              className={`text-xs font-bold px-2.5 py-1.5 rounded-lg border ${theme.border} ${theme.cardBg} ${theme.highlight} outline-none`}
+            >
+              <option value="All">All Subjects ({myClasses.length})</option>
+              {allSubjects.map(s => (
+                <option key={s} value={s}>{s} ({myClasses.filter(c => c.subject === s).length})</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Subject badges */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className={`text-[10px] ${theme.iconColor} font-bold`}>Subjects assigned:</span>
+        {allSubjects.map(s => (
+          <button
+            key={s}
+            onClick={() => setSubjectFilter(subjectFilter === s ? 'All' : s)}
+            className={`text-[10px] px-2.5 py-1 rounded-full font-bold transition-all ${
+              subjectFilter === s
+                ? 'bg-blue-500 text-white'
+                : s === 'Science'
+                ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30'
+                : 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30'
+            }`}
+          >
+            {s} · {myClasses.filter(c => c.subject === s).length} classes
+          </button>
+        ))}
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-        <StatCard icon={BookOpen} label="Total Classes" value="6" color="bg-blue-500" theme={theme} />
-        <StatCard icon={Users} label="Total Students" value="225" color="bg-emerald-500" theme={theme} />
+        <StatCard icon={BookOpen} label="Total Classes" value={String(filteredClasses.length)} color="bg-blue-500" theme={theme} />
+        <StatCard icon={Users} label="Total Students" value={String(totalStudents)} color="bg-emerald-500" theme={theme} />
         <StatCard icon={Star} label="Class Teacher" value="10-A" color="bg-amber-500" theme={theme} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {myClasses.map(c => (
+        {filteredClasses.map(c => (
           <div key={c.id} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 space-y-3`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">

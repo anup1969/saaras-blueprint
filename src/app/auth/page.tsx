@@ -39,20 +39,55 @@ function LoginPreview({ theme }: { theme: Theme }) {
   };
 
   return (
-    <div className="min-h-[600px] bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 rounded-2xl p-6 flex items-center justify-center relative overflow-hidden">
+    <div className="min-h-[600px] bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 rounded-2xl overflow-hidden relative">
       {/* Decorative circles */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full -translate-y-1/2 translate-x-1/2" />
       <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-500/5 rounded-full translate-y-1/2 -translate-x-1/2" />
 
-      <div className="w-full max-w-sm relative z-10">
-        {/* School branding */}
-        <div className="text-center mb-6">
-          <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl">
-            {schoolLogo}
+      <div className="flex min-h-[600px] relative z-10">
+        {/* LEFT SIDE — School Image / Video Placeholder */}
+        <div className="hidden lg:flex w-1/2 flex-col items-center justify-center p-8 relative border-r border-slate-800/50">
+          {/* Placeholder image area */}
+          <div className="w-full max-w-md aspect-[4/3] rounded-2xl bg-slate-800/50 border-2 border-dashed border-slate-700 flex flex-col items-center justify-center mb-6 overflow-hidden relative group">
+            <div className="absolute inset-0 bg-gradient-to-b from-blue-600/10 to-purple-600/10" />
+            <Building2 size={48} className="text-slate-600 mb-3 relative z-10" />
+            <p className="text-sm font-bold text-slate-500 relative z-10">School Image / Video</p>
+            <p className="text-[10px] text-slate-600 mt-1 relative z-10">Upload from Admin Panel</p>
+            <div className="absolute bottom-3 right-3 flex gap-1.5">
+              <span className="text-[9px] px-2 py-0.5 rounded-full bg-slate-700/80 text-slate-400">JPG / PNG</span>
+              <span className="text-[9px] px-2 py-0.5 rounded-full bg-slate-700/80 text-slate-400">MP4</span>
+            </div>
           </div>
-          <h1 className="text-xl font-black text-white">{schoolName}</h1>
-          <p className="text-xs text-slate-400 mt-1">Powered by Saaras.ai</p>
+          {/* School branding below image */}
+          <div className="text-center">
+            <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-3 text-xl">
+              {schoolLogo}
+            </div>
+            <h1 className="text-xl font-black text-white">{schoolName}</h1>
+            <p className="text-xs text-slate-400 mt-1">Powered by Saaras.ai</p>
+          </div>
+          {/* Tagline */}
+          <p className="text-[10px] text-slate-500 text-center mt-4 max-w-xs leading-relaxed">
+            &quot;Empowering education through technology — Welcome to your school&apos;s digital campus&quot;
+          </p>
         </div>
+
+        {/* RIGHT SIDE — Login Form */}
+        <div className="w-full lg:w-1/2 flex items-center justify-center p-6">
+          <div className="w-full max-w-sm">
+            {/* School branding — visible only on mobile (when left panel hidden) */}
+            <div className="text-center mb-6 lg:hidden">
+              <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl">
+                {schoolLogo}
+              </div>
+              <h1 className="text-xl font-black text-white">{schoolName}</h1>
+              <p className="text-xs text-slate-400 mt-1">Powered by Saaras.ai</p>
+            </div>
+            {/* School name header on desktop */}
+            <div className="hidden lg:block text-center mb-6">
+              <h2 className="text-lg font-bold text-white">Welcome Back</h2>
+              <p className="text-xs text-slate-400 mt-1">Sign in to access your dashboard</p>
+            </div>
 
         {/* Auth mode tabs */}
         {view === 'login' && (
@@ -302,6 +337,8 @@ function LoginPreview({ theme }: { theme: Theme }) {
             </button>
           </div>
         )}
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -315,20 +315,22 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
         </nav>
 
         {/* User info */}
-        <div className={`p-3 border-t ${theme.border}`}>
-          <div className={`flex items-center justify-between p-2 rounded-xl ${theme.secondaryBg}`}>
-            <div>
-              <p className={`text-xs font-bold ${theme.highlight}`}>{currentUser.name}</p>
-              <p className={`text-[10px] ${theme.iconColor}`}>{currentUser.role}</p>
+        <div className={`p-3 border-t ${theme.border} space-y-2`}>
+          <div className={`flex items-center gap-2 p-2 rounded-xl ${theme.secondaryBg}`}>
+            <div className={`w-8 h-8 rounded-full ${theme.primary} text-white flex items-center justify-center text-[10px] font-bold shrink-0`}>
+              {currentUser.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
             </div>
-            <button
-              onClick={handleLogout}
-              className={`p-1.5 rounded-lg hover:bg-red-500/20 ${theme.iconColor} hover:text-red-400 transition-all`}
-              title="Sign out"
-            >
-              <LogOut size={14} />
-            </button>
+            <div className="flex-1 min-w-0">
+              <p className={`text-xs font-bold ${theme.highlight} truncate`}>{currentUser.name}</p>
+              <p className={`text-[10px] ${theme.iconColor} truncate`}>{currentUser.role}</p>
+            </div>
           </div>
+          <button
+            onClick={handleLogout}
+            className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-red-400 hover:bg-red-500/20 border border-red-500/20 transition-all`}
+          >
+            <LogOut size={14} /> Sign Out
+          </button>
         </div>
       </aside>
 
