@@ -434,7 +434,20 @@ function FeeConfigModule({ theme }: { theme: Theme }) {
                 {Object.entries(paymentModes).map(([mode, enabled]) => (
                   <div key={mode} className={`flex items-center gap-2 p-2 rounded-lg ${theme.secondaryBg}`}>
                     <SSAToggle on={enabled} onChange={() => setPaymentModes(p => ({ ...p, [mode]: !p[mode] }))} theme={theme} />
-                    <span className={`text-xs ${theme.highlight}`}>{mode}</span>
+                    <div>
+                      <p className={`text-xs font-bold ${theme.highlight}`}>{mode}</p>
+                      <p className={`text-[9px] ${theme.iconColor}`}>{
+                        ({
+                          'UPI': 'Google Pay, PhonePe, Paytm etc.',
+                          'Net Banking': 'Direct bank transfer via internet banking',
+                          'Credit Card': 'Visa, Mastercard credit cards',
+                          'Debit Card': 'Bank debit/ATM cards',
+                          'Cash': 'Cash payment at school counter',
+                          'Cheque': 'Bank cheque/demand draft',
+                          'DD/NEFT': 'Bank wire transfer (NEFT/RTGS/IMPS)',
+                        } as Record<string, string>)[mode]
+                      }</p>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -537,11 +550,21 @@ function FeeConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
-      <SectionCard title="Fee Defaulter Blocking Rules" subtitle="Actions when fees are overdue" theme={theme}>
+      <SectionCard title="Fee Defaulter Blocking Rules" subtitle="Restrict access to services when fees are overdue" theme={theme}>
         <div className="space-y-2">
           {Object.entries(blockRules).map(([rule, enabled]) => (
             <div key={rule} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <span className={`text-xs ${theme.highlight}`}>{rule}</span>
+              <div className="flex-1 mr-3">
+                <p className={`text-xs font-bold ${theme.highlight}`}>{rule}</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>{
+                  ({
+                    'Block report card if fees overdue > 60 days': 'Report card download/view is blocked if any fee is unpaid for more than 60 days',
+                    'Block TC generation if outstanding > 0': 'Transfer Certificate cannot be generated until all outstanding dues are cleared',
+                    'Block exam hall ticket if current term unpaid': 'Student cannot receive hall ticket for exams if current term fees are unpaid',
+                    'Send auto-reminder before blocking': 'System sends an automatic warning to parents before any blocking action takes effect',
+                  } as Record<string, string>)[rule]
+                }</p>
+              </div>
               <SSAToggle on={enabled} onChange={() => setBlockRules(p => ({ ...p, [rule]: !p[rule] }))} theme={theme} />
             </div>
           ))}
@@ -627,12 +650,13 @@ function AcademicConfigModule({ theme }: { theme: Theme }) {
     { label: 'Cyan', value: 'bg-cyan-500' },
   ];
   const [holidays, setHolidays] = useState([
-    { date: '26 Jan', name: 'Republic Day', type: 'National' },
-    { date: '14 Mar', name: 'Holi', type: 'Festival' },
-    { date: '15 Aug', name: 'Independence Day', type: 'National' },
-    { date: '2 Oct', name: 'Gandhi Jayanti', type: 'National' },
-    { date: '12 Nov', name: 'Diwali', type: 'Festival' },
-    { date: '25 Dec', name: 'Christmas', type: 'Festival' },
+    { startDate: '2026-01-26', endDate: '2026-01-26', name: 'Republic Day', type: 'National' },
+    { startDate: '2026-03-14', endDate: '2026-03-14', name: 'Holi', type: 'Festival' },
+    { startDate: '2026-08-15', endDate: '2026-08-15', name: 'Independence Day', type: 'National' },
+    { startDate: '2026-10-02', endDate: '2026-10-02', name: 'Gandhi Jayanti', type: 'National' },
+    { startDate: '2026-10-20', endDate: '2026-10-25', name: 'Diwali Vacation', type: 'Festival' },
+    { startDate: '2026-12-25', endDate: '2027-01-02', name: 'Christmas & New Year Vacation', type: 'Festival' },
+    { startDate: '2026-05-01', endDate: '2026-06-15', name: 'Summer Vacation', type: 'School' },
   ]);
   const [academicYear, setAcademicYear] = useState({ start: '2025-04-01', end: '2026-03-31' });
 
@@ -867,27 +891,39 @@ function AcademicConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
-      <SectionCard title="Holiday Calendar" subtitle="School holidays and observances — click to edit, X to delete" theme={theme}>
+      <SectionCard title="Holiday Calendar" subtitle="School holidays, vacations & observances — supports single-day holidays and multi-day vacation ranges" theme={theme}>
         <div className="space-y-1.5">
-          {holidays.map((h, i) => (
-            <div key={i} className={`flex items-center gap-3 p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <input value={h.date} onChange={e => { const n = [...holidays]; n[i] = { ...n[i], date: e.target.value }; setHolidays(n); }}
-                className={`w-20 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} placeholder="Date" />
+          {holidays.map((h, i) => {
+            const isRange = h.startDate !== h.endDate;
+            return (
+            <div key={i} className={`flex items-center gap-2 p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <div className="flex items-center gap-1">
+                <input type="date" value={h.startDate} onChange={e => { const n = [...holidays]; n[i] = { ...n[i], startDate: e.target.value }; setHolidays(n); }}
+                  className={`w-[120px] px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[11px] font-bold ${theme.highlight} outline-none`} />
+                <span className={`text-[10px] ${theme.iconColor}`}>to</span>
+                <input type="date" value={h.endDate} onChange={e => { const n = [...holidays]; n[i] = { ...n[i], endDate: e.target.value }; setHolidays(n); }}
+                  className={`w-[120px] px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[11px] font-bold ${theme.highlight} outline-none`} />
+              </div>
+              {isRange && <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${theme.primary} text-white`}>
+                {Math.ceil((new Date(h.endDate).getTime() - new Date(h.startDate).getTime()) / 86400000) + 1}d
+              </span>}
               <input value={h.name} onChange={e => { const n = [...holidays]; n[i] = { ...n[i], name: e.target.value }; setHolidays(n); }}
-                className={`flex-1 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} placeholder="Holiday name" />
+                className={`flex-1 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} placeholder="Holiday / Vacation name" />
               <select value={h.type} onChange={e => { const n = [...holidays]; n[i] = { ...n[i], type: e.target.value }; setHolidays(n); }}
                 className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] font-bold ${theme.highlight}`}>
                 <option value="National">National</option>
                 <option value="Festival">Festival</option>
                 <option value="School">School</option>
+                <option value="Vacation">Vacation</option>
                 <option value="Other">Other</option>
               </select>
               <button onClick={() => setHolidays(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={12} /></button>
             </div>
-          ))}
-          <button onClick={() => setHolidays(p => [...p, { date: '', name: '', type: 'School' }])}
+            );
+          })}
+          <button onClick={() => setHolidays(p => [...p, { startDate: '', endDate: '', name: '', type: 'School' }])}
             className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
-            <Plus size={12} /> Add Holiday
+            <Plus size={12} /> Add Holiday / Vacation
           </button>
         </div>
       </SectionCard>
@@ -1009,11 +1045,22 @@ function HRConfigModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
 
-        <SectionCard title="Staff Attendance Methods" subtitle="Toggle marking methods" theme={theme}>
+        <SectionCard title="Staff Attendance Methods" subtitle="How staff check-in/out is recorded daily" theme={theme}>
           <div className="space-y-2">
             {Object.entries(staffAttendance).map(([method, enabled]) => (
               <div key={method} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <span className={`text-xs ${theme.highlight}`}>{method}</span>
+                <div className="flex-1 mr-3">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{method}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{
+                    ({
+                      'Biometric': 'Staff marks attendance via fingerprint or face recognition device at school entrance',
+                      'Mobile App': 'Staff checks in/out using the school mobile app with GPS verification',
+                      'RFID': 'Staff taps RFID card at entry point — auto-records time of arrival/departure',
+                      'Manual Register': 'Traditional sign-in register maintained by admin office',
+                      'Geo-fencing': 'Auto-marks attendance when staff\'s phone enters school campus geo-fence',
+                    } as Record<string, string>)[method]
+                  }</p>
+                </div>
                 <SSAToggle on={enabled} onChange={() => setStaffAttendance(p => ({ ...p, [method]: !p[method] }))} theme={theme} />
               </div>
             ))}
@@ -1098,11 +1145,15 @@ function TransportConfigModule({ theme }: { theme: Theme }) {
     { name: 'Suresh Patel', phone: '98765-43211', license: 'GJ-01-2019-5678', expiry: 'Dec 2026', badge: true },
     { name: 'Mahesh Singh', phone: '98765-43212', license: 'GJ-01-2021-9012', expiry: 'Jun 2028', badge: true },
   ]);
+  const [transportPolicy, setTransportPolicy] = useState<'optional' | 'mandatory'>('optional');
+  const [transportOperation, setTransportOperation] = useState<'in-house' | 'contract'>('in-house');
+  const [contractorName, setContractorName] = useState('');
   const [safetyToggles, setSafetyToggles] = useState<Record<string, boolean>>({
     'GPS Live Tracking': true, 'Parent App Tracking': true, 'RFID Student Tap': false,
-    'Speed Alert (> 40 kmph in school zone)': true, 'SOS Button in Vehicle': true,
+    'Speed Alert': true, 'SOS Button in Vehicle': true,
     'CCTV Recording': false, 'Route Deviation Alert': true, 'Geo-fence Alert': true,
   });
+  const [speedAlertLimit, setSpeedAlertLimit] = useState('40');
   const [feeModel, setFeeModel] = useState('route-wise');
   const [pickupPolicy, setPickupPolicy] = useState<Record<string, boolean>>({
     'Only registered guardians can pick up': true, 'OTP verification for pickup': true,
@@ -1114,6 +1165,49 @@ function TransportConfigModule({ theme }: { theme: Theme }) {
   return (
     <div className="space-y-4">
       <ModuleHeader title="Transport Configuration" subtitle="Routes, vehicles, drivers, safety, and fee structure" theme={theme} />
+
+      <SectionCard title="Transport Policy" subtitle="Define your school's student commute and transport operation policy" theme={theme}>
+        <div className="space-y-4">
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Student Commute Policy</p>
+            <p className={`text-[10px] ${theme.iconColor} mb-2`}>Does your school allow students to walk or use private vehicles, or is school transport mandatory for all?</p>
+            <div className="flex gap-2">
+              {[
+                { id: 'optional' as const, label: 'Walking / Private Allowed', desc: 'Students may walk, use private vehicles, or opt for school transport' },
+                { id: 'mandatory' as const, label: 'School Transport Mandatory', desc: 'All students must use school-provided transport — no walk-ins allowed' },
+              ].map(opt => (
+                <button key={opt.id} onClick={() => setTransportPolicy(opt.id)}
+                  className={`flex-1 text-left p-3 rounded-xl border transition-all ${transportPolicy === opt.id ? `border-2 ${theme.primary} text-white` : `${theme.secondaryBg} ${theme.border}`}`}>
+                  <p className={`text-xs font-bold ${transportPolicy === opt.id ? '' : theme.highlight}`}>{opt.label}</p>
+                  <p className={`text-[10px] ${transportPolicy === opt.id ? 'text-white/80' : theme.iconColor}`}>{opt.desc}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Transport Operation Type</p>
+            <p className={`text-[10px] ${theme.iconColor} mb-2`}>Is transport managed by the school directly, or outsourced to a contractor?</p>
+            <div className="flex gap-2">
+              {[
+                { id: 'in-house' as const, label: 'In-house (School-managed)', desc: 'School owns vehicles and employs drivers directly' },
+                { id: 'contract' as const, label: 'Contracted (Outsourced)', desc: 'Transport is outsourced to a third-party contractor' },
+              ].map(opt => (
+                <button key={opt.id} onClick={() => setTransportOperation(opt.id)}
+                  className={`flex-1 text-left p-3 rounded-xl border transition-all ${transportOperation === opt.id ? `border-2 ${theme.primary} text-white` : `${theme.secondaryBg} ${theme.border}`}`}>
+                  <p className={`text-xs font-bold ${transportOperation === opt.id ? '' : theme.highlight}`}>{opt.label}</p>
+                  <p className={`text-[10px] ${transportOperation === opt.id ? 'text-white/80' : theme.iconColor}`}>{opt.desc}</p>
+                </button>
+              ))}
+            </div>
+            {transportOperation === 'contract' && (
+              <div className="mt-3">
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Contractor Name</p>
+                <InputField value={contractorName} onChange={setContractorName} theme={theme} placeholder="Enter transport contractor name" />
+              </div>
+            )}
+          </div>
+        </div>
+      </SectionCard>
 
       <SectionCard title="Routes" subtitle="Bus routes — click any field to edit, X to delete" theme={theme}>
         <div className="overflow-x-auto">
@@ -1205,11 +1299,33 @@ function TransportConfigModule({ theme }: { theme: Theme }) {
       </SectionCard>
 
       <div className="grid grid-cols-2 gap-4">
-        <SectionCard title="Tracking &amp; Safety" subtitle="Safety features and alerts" theme={theme}>
+        <SectionCard title="Tracking &amp; Safety" subtitle="Safety features and alerts for school transport" theme={theme}>
           <div className="space-y-2">
             {Object.entries(safetyToggles).map(([feature, enabled]) => (
               <div key={feature} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <span className={`text-xs ${theme.highlight}`}>{feature}</span>
+                <div className="flex-1 mr-3">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{feature}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{
+                    ({
+                      'GPS Live Tracking': 'Track real-time location of all school vehicles on a live map',
+                      'Parent App Tracking': 'Parents can see their child\'s bus location and ETA on their mobile app',
+                      'RFID Student Tap': 'Students tap RFID card when boarding/alighting — auto-notifies parents',
+                      'Speed Alert': 'Alert admin when vehicle exceeds the set speed limit in school zones',
+                      'SOS Button in Vehicle': 'Emergency panic button in each vehicle — triggers instant alert to admin & parents',
+                      'CCTV Recording': 'In-vehicle CCTV cameras record footage during all trips',
+                      'Route Deviation Alert': 'Alert when a vehicle deviates from its assigned route',
+                      'Geo-fence Alert': 'Alert when a vehicle enters or exits a defined geo-fence zone (e.g., school campus)',
+                    } as Record<string, string>)[feature]
+                  }</p>
+                  {feature === 'Speed Alert' && enabled && (
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <span className={`text-[10px] font-bold ${theme.iconColor}`}>Limit:</span>
+                      <input value={speedAlertLimit} onChange={e => setSpeedAlertLimit(e.target.value.replace(/\D/g, ''))}
+                        className={`w-16 px-2 py-0.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none text-center`} />
+                      <span className={`text-[10px] ${theme.iconColor}`}>kmph in school zone</span>
+                    </div>
+                  )}
+                </div>
                 <SSAToggle on={enabled} onChange={() => setSafetyToggles(p => ({ ...p, [feature]: !p[feature] }))} theme={theme} />
               </div>
             ))}
@@ -1233,11 +1349,21 @@ function TransportConfigModule({ theme }: { theme: Theme }) {
             </div>
           </SectionCard>
 
-          <SectionCard title="Pickup Policies" subtitle="Student pickup verification rules" theme={theme}>
+          <SectionCard title="Pickup Policies" subtitle="Student pickup verification rules at dismissal" theme={theme}>
             <div className="space-y-2">
               {Object.entries(pickupPolicy).map(([policy, enabled]) => (
                 <div key={policy} className={`flex items-center justify-between p-2 rounded-xl ${theme.secondaryBg}`}>
-                  <span className={`text-[11px] ${theme.highlight}`}>{policy}</span>
+                  <div className="flex-1 mr-3">
+                    <p className={`text-[11px] font-bold ${theme.highlight}`}>{policy}</p>
+                    <p className={`text-[10px] ${theme.iconColor}`}>{
+                      ({
+                        'Only registered guardians can pick up': 'Only guardians listed in the student profile can collect the child',
+                        'OTP verification for pickup': 'Guardian must enter a one-time password at gate before child is released',
+                        'Photo verification at gate': 'Gate staff verifies guardian photo from student profile before releasing child',
+                        'Pre-registration for non-guardian pickup': 'If someone other than registered guardian picks up, parent must pre-register them via app',
+                      } as Record<string, string>)[policy]
+                    }</p>
+                  </div>
                   <SSAToggle on={enabled} onChange={() => setPickupPolicy(p => ({ ...p, [policy]: !p[policy] }))} theme={theme} />
                 </div>
               ))}
@@ -1296,11 +1422,22 @@ function AttendanceConfigModule({ theme }: { theme: Theme }) {
       <ModuleHeader title="Attendance Configuration" subtitle="Marking methods, frequency, grace periods, and notification rules" theme={theme} />
 
       <div className="grid grid-cols-2 gap-4">
-        <SectionCard title="Marking Methods" subtitle="How attendance is recorded" theme={theme}>
+        <SectionCard title="Marking Methods" subtitle="How student attendance is recorded each day" theme={theme}>
           <div className="space-y-2">
             {Object.entries(markingMethods).map(([method, enabled]) => (
               <div key={method} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <span className={`text-xs ${theme.highlight}`}>{method}</span>
+                <div className="flex-1 mr-3">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{method}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{
+                    ({
+                      'Biometric (Fingerprint/Face)': 'Students mark attendance via biometric device at school entrance',
+                      'Mobile App (Teacher)': 'Class teacher marks attendance from their mobile app during first period',
+                      'RFID Card': 'Students tap RFID card at school gate — auto-records entry/exit time',
+                      'Manual Register': 'Traditional paper-based attendance register maintained by class teacher',
+                      'QR Code Scan': 'Students scan a QR code displayed in classroom to mark their presence',
+                    } as Record<string, string>)[method]
+                  }</p>
+                </div>
                 <SSAToggle on={enabled} onChange={() => setMarkingMethods(p => ({ ...p, [method]: !p[method] }))} theme={theme} />
               </div>
             ))}
@@ -1329,22 +1466,47 @@ function AttendanceConfigModule({ theme }: { theme: Theme }) {
         </SectionCard>
       </div>
 
-      <SectionCard title="Auto-Notification Rules" subtitle="Automated alerts for attendance events" theme={theme}>
+      <SectionCard title="Auto-Notification Rules" subtitle="Automated alerts sent to parents and staff based on attendance events" theme={theme}>
         <div className="space-y-2">
           {Object.entries(autoNotify).map(([rule, enabled]) => (
             <div key={rule} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <span className={`text-xs ${theme.highlight}`}>{rule}</span>
+              <div className="flex-1 mr-3">
+                <p className={`text-xs font-bold ${theme.highlight}`}>{rule}</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>{
+                  ({
+                    'Notify parent on absence (immediate)': 'Parents receive instant SMS/app notification when their child is marked absent',
+                    'Notify parent on late arrival': 'Parents are notified when their child arrives after the grace period',
+                    'Weekly attendance summary to parents': 'Parents receive a weekly digest showing their child\'s attendance for the week',
+                    'Alert class teacher if absent > 3 consecutive days': 'Class teacher gets an alert when a student is absent for 3+ consecutive days',
+                    'Alert principal if attendance < 75%': 'Principal is notified when any student\'s attendance drops below 75%',
+                    'Auto-mark absent if not marked by 10 AM': 'System automatically marks students as absent if teacher hasn\'t marked attendance by 10 AM',
+                  } as Record<string, string>)[rule]
+                }</p>
+              </div>
               <SSAToggle on={enabled} onChange={() => setAutoNotify(p => ({ ...p, [rule]: !p[rule] }))} theme={theme} />
             </div>
           ))}
         </div>
       </SectionCard>
 
-      <SectionCard title="Attendance Types" subtitle="Named attendance statuses available to teachers" theme={theme}>
+      <SectionCard title="Attendance Types" subtitle="Named attendance statuses available to teachers when marking attendance" theme={theme}>
         <div className="space-y-2">
           {Object.entries(attendanceTypes).map(([type, enabled]) => (
             <div key={type} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <span className={`text-xs ${theme.highlight}`}>{type}</span>
+              <div className="flex-1 mr-3">
+                <p className={`text-xs font-bold ${theme.highlight}`}>{type}</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>{
+                  ({
+                    'Present': 'Student is present in class for the full day',
+                    'Absent': 'Student did not attend school at all',
+                    'Late': 'Student arrived after the grace period — counts as present but flagged',
+                    'Half-Day': 'Student attended only half the school day (morning or afternoon)',
+                    'Medical Leave': 'Absent due to illness — requires medical certificate for extended leave',
+                    'On-Duty': 'Student is absent from class but on official school duty (sports, events, etc.)',
+                    'Excused': 'Pre-approved absence (family event, religious observance, etc.)',
+                  } as Record<string, string>)[type]
+                }</p>
+              </div>
               <SSAToggle on={enabled} onChange={() => setAttendanceTypes(p => ({ ...p, [type]: !p[type] }))} theme={theme} />
             </div>
           ))}
@@ -1458,11 +1620,22 @@ function ExamConfigModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
 
-        <SectionCard title="Rank Display Options" subtitle="What ranks to show on report cards" theme={theme}>
+        <SectionCard title="Rank Display Options" subtitle="Control what ranking information appears on student report cards" theme={theme}>
           <div className="space-y-2">
             {Object.entries(rankDisplay).map(([opt, enabled]) => (
               <div key={opt} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <span className={`text-xs ${theme.highlight}`}>{opt}</span>
+                <div className="flex-1 mr-3">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{opt}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{
+                    ({
+                      'Show class rank': 'Display student\'s rank among all students in their class (e.g., 5th out of 40)',
+                      'Show section rank': 'Display student\'s rank within their specific section (e.g., 3rd in Section A)',
+                      'Show percentile': 'Show the percentile score indicating performance relative to peers',
+                      'Show subject-wise rank': 'Show individual rank for each subject alongside the overall rank',
+                      'Show grade distribution graph': 'Include a visual bar chart showing how grades are distributed across the class',
+                    } as Record<string, string>)[opt]
+                  }</p>
+                </div>
                 <SSAToggle on={enabled} onChange={() => setRankDisplay(p => ({ ...p, [opt]: !p[opt] }))} theme={theme} />
               </div>
             ))}
@@ -1570,11 +1743,27 @@ function CommunicationConfigModule({ theme }: { theme: Theme }) {
     <div className="space-y-4">
       <ModuleHeader title="Communication Configuration" subtitle="DM permissions, group rules, storage limits, and file sharing" theme={theme} />
 
-      <SectionCard title="DM Permission Matrix" subtitle="Who can send direct messages to whom" theme={theme}>
+      <SectionCard title="DM Permission Matrix" subtitle="Control who can initiate direct messages to whom in the school chat system" theme={theme}>
         <div className="space-y-1.5">
           {Object.entries(dmPermissions).map(([perm, enabled]) => (
             <div key={perm} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <span className={`text-xs ${theme.highlight}`}>{perm}</span>
+              <div className="flex-1 mr-3">
+                <p className={`text-xs font-bold ${theme.highlight}`}>{perm}</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>{
+                  ({
+                    'Parent to Class Teacher': 'Parents can directly message their child\'s class teacher',
+                    'Parent to Subject Teacher': 'Parents can message any subject teacher of their child',
+                    'Parent to Principal': 'Parents can send direct messages to the school principal',
+                    'Parent to Admin': 'Parents can message the school admin office for queries',
+                    'Teacher to Parent': 'Teachers can initiate direct messages to any parent',
+                    'Teacher to Teacher': 'Teachers can message each other for collaboration',
+                    'Teacher to Principal': 'Teachers can directly message the principal',
+                    'Student to Teacher (Sr. Sec only)': 'Senior secondary students can message their teachers (disabled for younger students)',
+                    'Staff to HR': 'Non-teaching staff can message HR department for leave/payroll queries',
+                    'Anyone to Transport Helpdesk': 'Any user can message the transport helpdesk for bus-related queries',
+                  } as Record<string, string>)[perm]
+                }</p>
+              </div>
               <SSAToggle on={enabled} onChange={() => setDmPermissions(p => ({ ...p, [perm]: !p[perm] }))} theme={theme} />
             </div>
           ))}
@@ -1598,11 +1787,23 @@ function CommunicationConfigModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
 
-        <SectionCard title="Group Creation Permissions" subtitle="Who can create chat groups" theme={theme}>
+        <SectionCard title="Group Creation Permissions" subtitle="Control who can create group chats within the school communication system" theme={theme}>
           <div className="space-y-2">
             {Object.entries(groupPerms).map(([perm, enabled]) => (
               <div key={perm} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <span className={`text-xs ${theme.highlight}`}>{perm}</span>
+                <div className="flex-1 mr-3">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{perm}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{
+                    ({
+                      'Admin can create any group': 'School admin can create groups for any purpose (announcements, committees, etc.)',
+                      'Principal can create any group': 'Principal can create groups like staff meetings, parent forums, etc.',
+                      'Teacher can create class groups': 'Teachers can create groups for their own class (e.g., "Class 5A Parents")',
+                      'Teacher can create subject groups': 'Teachers can create subject-specific groups (e.g., "Grade 10 Physics")',
+                      'Parent can create groups': 'Parents can create informal groups (e.g., carpool, study circles)',
+                      'Student can create groups': 'Senior students can create study groups or project groups',
+                    } as Record<string, string>)[perm]
+                  }</p>
+                </div>
                 <SSAToggle on={enabled} onChange={() => setGroupPerms(p => ({ ...p, [perm]: !p[perm] }))} theme={theme} />
               </div>
             ))}
@@ -1640,11 +1841,22 @@ function CommunicationConfigModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
 
-        <SectionCard title="File Sharing" subtitle="What types of files can be shared" theme={theme}>
+        <SectionCard title="File Sharing" subtitle="Control what file types users can share in chat conversations" theme={theme}>
           <div className="space-y-2">
             {Object.entries(fileSharing).map(([opt, enabled]) => (
               <div key={opt} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <span className={`text-xs ${theme.highlight}`}>{opt}</span>
+                <div className="flex-1 mr-3">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{opt}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{
+                    ({
+                      'Allow image sharing': 'Users can share photos and images (JPG, PNG) in chat — useful for homework, notices',
+                      'Allow document sharing': 'Users can share PDFs, Word docs, and spreadsheets in conversations',
+                      'Allow video sharing': 'Users can share video files — useful for recorded lectures or events',
+                      'Allow voice messages': 'Users can record and send voice notes instead of typing messages',
+                      'Allow location sharing': 'Users can share their live location — useful for field trips or transport tracking',
+                    } as Record<string, string>)[opt]
+                  }</p>
+                </div>
                 <SSAToggle on={enabled} onChange={() => setFileSharing(p => ({ ...p, [opt]: !p[opt] }))} theme={theme} />
               </div>
             ))}
@@ -2066,7 +2278,35 @@ function VisitorConfigModule({ theme }: { theme: Theme }) {
             <div className="space-y-1.5">
               {Object.entries(currentRules.toggles).map(([rule, enabled]) => (
                 <div key={rule} className={`flex items-center justify-between p-2 rounded-xl ${theme.secondaryBg}`}>
-                  <span className={`text-xs ${theme.highlight} pr-2`}>{rule}</span>
+                  <div className="flex-1 mr-2">
+                    <p className={`text-xs font-bold ${theme.highlight}`}>{rule}</p>
+                    <p className={`text-[10px] ${theme.iconColor}`}>{
+                      ({
+                        'Pre-registration required': 'Visitor must register in advance via app or website before arriving',
+                        'Photo ID verification': 'Gate staff verifies visitor\'s government-issued photo ID before entry',
+                        'Pickup authorization required': 'Parent must pre-authorize any non-guardian pickup via the app',
+                        'Escort required': 'Visitor must be accompanied by a school staff member on campus',
+                        'Areas allowed: Office': 'Visitor can access the admin office area',
+                        'Areas allowed: Classroom': 'Visitor can access classroom areas (requires teacher permission)',
+                        'Areas allowed: Campus': 'Visitor can move freely across the campus',
+                        'PO/Work order mandatory': 'Vendor must have an active purchase order or work order to enter campus',
+                        'Delivery only at store': 'Vendor delivery is restricted to the school store/receiving area only',
+                        'Contractor badge required': 'Contractor must wear a visible identification badge while on campus',
+                        'Work permit on file': 'Contractor must have a work permit uploaded and approved before campus entry',
+                        'Safety gear check': 'Gate staff verifies contractor is wearing required safety gear (helmet, vest, etc.)',
+                        'Fast-track entry': 'Government officials get expedited entry without standard waiting procedures',
+                        'ID verification': 'Government official\'s credentials are verified and logged',
+                        'Principal notification auto-trigger': 'Principal is immediately notified via push + SMS when a government official enters',
+                        'No time limit': 'No maximum visit duration — visit ends when the official decides to leave',
+                        'Escort assigned': 'A designated staff member escorts the official throughout their visit',
+                        'Pre-registration optional': 'Alumni may optionally register in advance but walk-ins are also accepted',
+                        'Alumni ID verification': 'Alumni must verify identity (batch year, roll number) at the gate',
+                        'Event-based access only': 'Alumni can only visit during school events — no casual visits allowed',
+                        'Campus tour allowed': 'Alumni can take a tour of the campus to revisit old classrooms and facilities',
+                        'Classrooms restricted': 'Alumni cannot enter active classrooms — restricted to common areas only',
+                      } as Record<string, string>)[rule] || 'Rule configuration for this visitor type'
+                    }</p>
+                  </div>
                   <SSAToggle on={enabled} onChange={() => setToggle(rule, !enabled)} theme={theme} />
                 </div>
               ))}
@@ -2177,11 +2417,23 @@ function CertificateConfigModule({ theme }: { theme: Theme }) {
       </SectionCard>
 
       <div className="grid grid-cols-2 gap-4">
-        <SectionCard title="Certificate Features" subtitle="Toggle features for all certificates" theme={theme}>
+        <SectionCard title="Certificate Features" subtitle="Security and workflow features applied to all certificate types" theme={theme}>
           <div className="space-y-2">
             {Object.entries(features).map(([feat, enabled]) => (
               <div key={feat} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <span className={`text-xs ${theme.highlight}`}>{feat}</span>
+                <div className="flex-1 mr-3">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{feat}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{
+                    ({
+                      'Auto-numbering (sequential)': 'Each certificate gets a unique sequential number (e.g., TC-2026-001)',
+                      'Digital signature': 'Principal\'s digital signature is automatically embedded on generated certificates',
+                      'QR code verification': 'A QR code is printed on each certificate for authenticity verification',
+                      'Watermark on PDF': 'School watermark is overlaid on PDF certificates to prevent forgery',
+                      'Approval required before generation': 'Certificates must be approved by designated authority before printing',
+                      'Duplicate certificate tracking': 'System tracks if duplicate certificates are requested and logs the reason',
+                    } as Record<string, string>)[feat]
+                  }</p>
+                </div>
                 <SSAToggle on={enabled} onChange={() => setFeatures(p => ({ ...p, [feat]: !p[feat] }))} theme={theme} />
               </div>
             ))}
@@ -2244,7 +2496,15 @@ function LibraryConfigModule({ theme }: { theme: Theme }) {
           <div className="space-y-2">
             {Object.entries(libToggles).map(([feat, enabled]) => (
               <div key={feat} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <span className={`text-xs ${theme.highlight}`}>{feat}</span>
+                <div className="flex-1 mr-3">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{feat}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{
+                    ({
+                      'Digital Library (eBooks)': 'Enable digital eBook library — students can read books online without physical copies',
+                      'Barcode/QR Scanning': 'Use barcode or QR code scanner for quick book issue/return at the library counter',
+                    } as Record<string, string>)[feat]
+                  }</p>
+                </div>
                 <SSAToggle on={enabled} onChange={() => setLibToggles(p => ({ ...p, [feat]: !p[feat] }))} theme={theme} />
               </div>
             ))}
@@ -2287,11 +2547,20 @@ function CanteenConfigModule({ theme }: { theme: Theme }) {
     <div className="space-y-4">
       <ModuleHeader title="Canteen / Meal Configuration" subtitle="Pre-orders, wallet, allergy tracking, and meal scheduling" theme={theme} />
       <div className="grid grid-cols-2 gap-4">
-        <SectionCard title="Canteen Features" subtitle="Toggle ordering and safety features" theme={theme}>
+        <SectionCard title="Canteen Features" subtitle="Ordering, wallet, and dietary safety features for school canteen" theme={theme}>
           <div className="space-y-2">
             {Object.entries(canteenToggles).map(([feat, enabled]) => (
               <div key={feat} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <span className={`text-xs ${theme.highlight}`}>{feat}</span>
+                <div className="flex-1 mr-3">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{feat}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{
+                    ({
+                      'Pre-order System': 'Parents/students can order meals in advance via app — reduces canteen queues',
+                      'Wallet / Prepaid': 'Students use a prepaid digital wallet to pay at canteen — no cash handling',
+                      'Allergy Tracking': 'Track student allergies and auto-flag menu items that contain allergens',
+                    } as Record<string, string>)[feat]
+                  }</p>
+                </div>
                 <SSAToggle on={enabled} onChange={() => setCanteenToggles(p => ({ ...p, [feat]: !p[feat] }))} theme={theme} />
               </div>
             ))}
@@ -2301,11 +2570,20 @@ function CanteenConfigModule({ theme }: { theme: Theme }) {
             </div>
           </div>
         </SectionCard>
-        <SectionCard title="Meal Types" subtitle="Toggle active meal types" theme={theme}>
+        <SectionCard title="Meal Types" subtitle="Which meals does the school canteen serve?" theme={theme}>
           <div className="space-y-2">
             {Object.entries(mealTypes).map(([meal, enabled]) => (
               <div key={meal} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <span className={`text-xs ${theme.highlight}`}>{meal}</span>
+                <div className="flex-1 mr-3">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{meal}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{
+                    ({
+                      'Breakfast': 'Morning meal served before school hours (typically 7:30–8:30 AM)',
+                      'Lunch': 'Mid-day meal served during lunch break',
+                      'Snack': 'Light snack or tiffin served during short break',
+                    } as Record<string, string>)[meal]
+                  }</p>
+                </div>
                 <SSAToggle on={enabled} onChange={() => setMealTypes(p => ({ ...p, [meal]: !p[meal] }))} theme={theme} />
               </div>
             ))}
@@ -2346,11 +2624,21 @@ function HostelConfigModule({ theme }: { theme: Theme }) {
     <div className="space-y-4">
       <ModuleHeader title="Hostel Configuration" subtitle="Room types, mess, visitor log, warden, and curfew settings" theme={theme} />
       <div className="grid grid-cols-2 gap-4">
-        <SectionCard title="Hostel Features" subtitle="Core hostel management toggles" theme={theme}>
+        <SectionCard title="Hostel Features" subtitle="Core hostel management features for boarding students" theme={theme}>
           <div className="space-y-2">
             {Object.entries(hostelToggles).map(([feat, enabled]) => (
               <div key={feat} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <span className={`text-xs ${theme.highlight}`}>{feat}</span>
+                <div className="flex-1 mr-3">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{feat}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{
+                    ({
+                      'Mess Management': 'Manage daily mess menu, meal schedules, and dietary preferences for hostellers',
+                      'Visitor Log for Hostellers': 'Track all visitors to the hostel — log entry time, purpose, and exit time',
+                      'Fee Integration with Main Fee': 'Hostel fees are combined with school fees in a single invoice to parents',
+                      'Warden Assignment': 'Assign wardens to specific floors or wings — wardens get access to their students\' data',
+                    } as Record<string, string>)[feat]
+                  }</p>
+                </div>
                 <SSAToggle on={enabled} onChange={() => setHostelToggles(p => ({ ...p, [feat]: !p[feat] }))} theme={theme} />
               </div>
             ))}
@@ -2396,11 +2684,20 @@ function InventoryConfigModule({ theme }: { theme: Theme }) {
     <div className="space-y-4">
       <ModuleHeader title="Inventory & Asset Configuration" subtitle="Asset tagging, stock alerts, purchase workflows, and depreciation" theme={theme} />
       <div className="grid grid-cols-2 gap-4">
-        <SectionCard title="Inventory Features" subtitle="Toggle tracking and workflow features" theme={theme}>
+        <SectionCard title="Inventory Features" subtitle="Asset tracking, stock alerts, and depreciation management" theme={theme}>
           <div className="space-y-2">
             {Object.entries(invToggles).map(([feat, enabled]) => (
               <div key={feat} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <span className={`text-xs ${theme.highlight}`}>{feat}</span>
+                <div className="flex-1 mr-3">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{feat}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{
+                    ({
+                      'Barcode/QR Asset Tagging': 'Each asset gets a unique barcode/QR label — scan to view details, location, and condition',
+                      'Low Stock Alerts': 'Auto-alert admin when consumable items (stationery, lab supplies) fall below threshold',
+                      'Depreciation Tracking': 'Automatically calculate asset depreciation over time for accounting and budgeting',
+                    } as Record<string, string>)[feat]
+                  }</p>
+                </div>
                 <SSAToggle on={enabled} onChange={() => setInvToggles(p => ({ ...p, [feat]: !p[feat] }))} theme={theme} />
               </div>
             ))}
@@ -2493,7 +2790,15 @@ function ComplianceConfigModule({ theme }: { theme: Theme }) {
             </div>
             {Object.entries(compToggles).map(([feat, enabled]) => (
               <div key={feat} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <span className={`text-xs ${theme.highlight}`}>{feat}</span>
+                <div className="flex-1 mr-3">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{feat}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{
+                    ({
+                      'Auto-collect Data from Modules': 'Automatically pull compliance data from attendance, fees, academics etc. — no manual entry',
+                      'Document Checklist': 'Maintain a checklist of required documents for each compliance domain (NOCs, licenses, etc.)',
+                    } as Record<string, string>)[feat]
+                  }</p>
+                </div>
                 <SSAToggle on={enabled} onChange={() => setCompToggles(p => ({ ...p, [feat]: !p[feat] }))} theme={theme} />
               </div>
             ))}
@@ -2551,11 +2856,20 @@ function HomeworkConfigModule({ theme }: { theme: Theme }) {
             </div>
           </div>
         </SectionCard>
-        <SectionCard title="Assignment Features" subtitle="Notifications and quality checks" theme={theme}>
+        <SectionCard title="Assignment Features" subtitle="Notifications, late policy, and quality checks for homework" theme={theme}>
           <div className="space-y-2">
             {Object.entries(hwToggles).map(([feat, enabled]) => (
               <div key={feat} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <span className={`text-xs ${theme.highlight}`}>{feat}</span>
+                <div className="flex-1 mr-3">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{feat}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{
+                    ({
+                      'Allow Late Submission': 'Students can submit homework after the deadline within the grace period',
+                      'Parent Notification on Assignment': 'Parents receive a notification when a new assignment is posted for their child',
+                      'Plagiarism Check': 'System checks submitted assignments for copied content from other students',
+                    } as Record<string, string>)[feat]
+                  }</p>
+                </div>
                 <SSAToggle on={enabled} onChange={() => setHwToggles(p => ({ ...p, [feat]: !p[feat] }))} theme={theme} />
               </div>
             ))}
@@ -2594,7 +2908,17 @@ function EnquiryAdmissionConfigModule({ theme }: { theme: Theme }) {
             </div>
             {Object.entries(enqToggles).map(([feat, enabled]) => (
               <div key={feat} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <span className={`text-xs ${theme.highlight}`}>{feat}</span>
+                <div className="flex-1 mr-3">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{feat}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{
+                    ({
+                      'Auto-assign Follow-ups': 'System auto-assigns follow-up tasks to counselors based on enquiry source and age',
+                      'Online Application Form': 'Parents can fill the admission application form online from school website',
+                      'Auto-generate Admission Number': 'System auto-generates unique admission number when a student is admitted',
+                      'Document Upload Required': 'Parents must upload required documents (birth certificate, photos, etc.) during admission',
+                    } as Record<string, string>)[feat]
+                  }</p>
+                </div>
                 <SSAToggle on={enabled} onChange={() => setEnqToggles(p => ({ ...p, [feat]: !p[feat] }))} theme={theme} />
               </div>
             ))}
@@ -2658,11 +2982,20 @@ function OnlinePaymentConfigModule({ theme }: { theme: Theme }) {
             </div>
           </div>
         </SectionCard>
-        <SectionCard title="Payment Features" subtitle="Toggle receipt and payment options" theme={theme}>
+        <SectionCard title="Payment Features" subtitle="Receipt generation, partial payments, and convenience fees" theme={theme}>
           <div className="space-y-2">
             {Object.entries(payToggles).map(([feat, enabled]) => (
               <div key={feat} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <span className={`text-xs ${theme.highlight}`}>{feat}</span>
+                <div className="flex-1 mr-3">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{feat}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{
+                    ({
+                      'Auto-receipt Generation': 'System automatically generates a payment receipt and sends it to parents after successful payment',
+                      'Partial Payment Allowed': 'Parents can pay a portion of the total fee instead of the full amount at once',
+                      'Convenience Fee': 'Add a small processing fee on online payments to cover payment gateway charges',
+                    } as Record<string, string>)[feat]
+                  }</p>
+                </div>
                 <SSAToggle on={enabled} onChange={() => setPayToggles(p => ({ ...p, [feat]: !p[feat] }))} theme={theme} />
               </div>
             ))}
@@ -3158,18 +3491,21 @@ function StudentPortalConfigModule({ theme }: { theme: Theme }) {
     <div className="space-y-4">
       <ModuleHeader title="Student Portal Configuration" subtitle="Control what students can see and do through their portal" theme={theme} />
 
-      <SectionCard title="Portal Features" subtitle="Toggle features visible to students" theme={theme}>
+      <SectionCard title="Portal Features" subtitle="Control what students can see and do when they log in to their portal" theme={theme}>
         <div className="space-y-2">
           {[
-            { label: 'Online homework submission', value: homeworkSubmission, setter: setHomeworkSubmission },
-            { label: 'Show class rank', value: showClassRank, setter: setShowClassRank },
-            { label: 'Show attendance percentage', value: showAttendance, setter: setShowAttendance },
-            { label: 'Digital library access', value: digitalLibrary, setter: setDigitalLibrary },
-            { label: 'Timetable view', value: timetableView, setter: setTimetableView },
-            { label: 'Results view (with PDF download)', value: resultsView, setter: setResultsView },
+            { label: 'Online homework submission', desc: 'Students can upload and submit homework directly through the portal', value: homeworkSubmission, setter: setHomeworkSubmission },
+            { label: 'Show class rank', desc: 'Students can see their rank within their class on the results page', value: showClassRank, setter: setShowClassRank },
+            { label: 'Show attendance percentage', desc: 'Students can view their attendance percentage and day-wise history', value: showAttendance, setter: setShowAttendance },
+            { label: 'Digital library access', desc: 'Students can browse and read eBooks from the digital library', value: digitalLibrary, setter: setDigitalLibrary },
+            { label: 'Timetable view', desc: 'Students can view their daily and weekly class timetable', value: timetableView, setter: setTimetableView },
+            { label: 'Results view (with PDF download)', desc: 'Students can view exam results and download report card as PDF', value: resultsView, setter: setResultsView },
           ].map(item => (
             <div key={item.label} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <span className={`text-xs ${theme.highlight}`}>{item.label}</span>
+              <div className="flex-1 mr-3">
+                <p className={`text-xs font-bold ${theme.highlight}`}>{item.label}</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>{item.desc}</p>
+              </div>
               <SSAToggle on={item.value} onChange={() => item.setter(!item.value)} theme={theme} />
             </div>
           ))}
@@ -3197,17 +3533,20 @@ function AlumniConfigModule({ theme }: { theme: Theme }) {
     <div className="space-y-4">
       <ModuleHeader title="Alumni Configuration" subtitle="Manage alumni engagement portal features" theme={theme} />
 
-      <SectionCard title="Alumni Portal Features" subtitle="Toggle alumni-facing features" theme={theme}>
+      <SectionCard title="Alumni Portal Features" subtitle="Features available to school alumni through the alumni engagement portal" theme={theme}>
         <div className="space-y-2">
           {[
-            { label: 'Self-registration portal (alumni sign up themselves)', value: selfRegistration, setter: setSelfRegistration },
-            { label: 'Donation module (accept contributions)', value: donationModule, setter: setDonationModule },
-            { label: 'Job board (alumni post/view opportunities)', value: jobBoard, setter: setJobBoard },
-            { label: 'Event invitations (reunions, annual days)', value: eventInvitations, setter: setEventInvitations },
-            { label: 'Directory access (browse alumni database)', value: directoryAccess, setter: setDirectoryAccess },
+            { label: 'Self-registration portal', desc: 'Alumni can sign up themselves through a public registration page — no admin action needed', value: selfRegistration, setter: setSelfRegistration },
+            { label: 'Donation module', desc: 'Alumni can make monetary contributions to the school through a secure online form', value: donationModule, setter: setDonationModule },
+            { label: 'Job board', desc: 'Alumni can post job openings and current students/alumni can view and apply', value: jobBoard, setter: setJobBoard },
+            { label: 'Event invitations', desc: 'School can invite alumni to reunions, annual days, and special events via the portal', value: eventInvitations, setter: setEventInvitations },
+            { label: 'Directory access', desc: 'Alumni can browse the alumni directory to reconnect with batchmates and seniors', value: directoryAccess, setter: setDirectoryAccess },
           ].map(item => (
             <div key={item.label} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <span className={`text-xs ${theme.highlight}`}>{item.label}</span>
+              <div className="flex-1 mr-3">
+                <p className={`text-xs font-bold ${theme.highlight}`}>{item.label}</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>{item.desc}</p>
+              </div>
               <SSAToggle on={item.value} onChange={() => item.setter(!item.value)} theme={theme} />
             </div>
           ))}
@@ -3242,21 +3581,37 @@ function AnalyticsBIConfigModule({ theme }: { theme: Theme }) {
             <SSAToggle on={predictiveAI} onChange={() => setPredictiveAI(!predictiveAI)} theme={theme} />
           </div>
           <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-            <span className={`text-xs ${theme.highlight}`}>Comparative analysis (cross-section / cross-year)</span>
+            <div className="flex-1 mr-3">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Comparative analysis (cross-section / cross-year)</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Compare performance across sections (A vs B) or academic years (2025 vs 2026)</p>
+            </div>
             <SSAToggle on={comparativeAnalysis} onChange={() => setComparativeAnalysis(!comparativeAnalysis)} theme={theme} />
           </div>
           <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-            <span className={`text-xs ${theme.highlight}`}>Auto-generated monthly reports</span>
+            <div className="flex-1 mr-3">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Auto-generated monthly reports</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>System automatically generates and emails monthly analytics summary to admin & principal</p>
+            </div>
             <SSAToggle on={autoMonthlyReports} onChange={() => setAutoMonthlyReports(!autoMonthlyReports)} theme={theme} />
           </div>
         </div>
       </SectionCard>
 
-      <SectionCard title="Dashboard Widgets" subtitle="Toggle widgets on the analytics dashboard" theme={theme}>
+      <SectionCard title="Dashboard Widgets" subtitle="Choose which analytics widgets appear on the admin/principal dashboard" theme={theme}>
         <div className="grid grid-cols-2 gap-2">
           {Object.entries(widgets).map(([widget, enabled]) => (
             <div key={widget} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <span className={`text-xs ${theme.highlight}`}>{widget}</span>
+              <div className="flex-1 mr-3">
+                <p className={`text-xs font-bold ${theme.highlight}`}>{widget}</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>{
+                  ({
+                    'Attendance Trends': 'Visual chart showing daily/weekly/monthly attendance patterns across classes',
+                    'Fee Collection': 'Real-time fee collection dashboard with pending vs collected breakdown',
+                    'Exam Performance': 'Grade distribution, pass rates, and topper lists across all exams',
+                    'Staff Metrics': 'Staff attendance, workload distribution, and leave utilization stats',
+                  } as Record<string, string>)[widget]
+                }</p>
+              </div>
               <SSAToggle on={enabled} onChange={() => setWidgets(p => ({ ...p, [widget]: !p[widget] }))} theme={theme} />
             </div>
           ))}
@@ -3290,28 +3645,50 @@ function ReportEngineConfigModule({ theme }: { theme: Theme }) {
 
       <SectionCard title="Email Reports" subtitle="Schedule automatic email delivery of reports" theme={theme}>
         <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-          <span className={`text-xs font-bold ${theme.highlight}`}>Scheduled email reports</span>
+          <div className="flex-1 mr-3">
+            <p className={`text-xs font-bold ${theme.highlight}`}>Scheduled email reports</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>System automatically emails report summaries to recipients on schedule</p>
+          </div>
           <SSAToggle on={scheduledEmail} onChange={() => setScheduledEmail(!scheduledEmail)} theme={theme} />
         </div>
       </SectionCard>
 
       <div className="grid grid-cols-2 gap-4">
-        <SectionCard title="Export Formats" subtitle="Available download formats" theme={theme}>
+        <SectionCard title="Export Formats" subtitle="Which file formats are available when downloading reports" theme={theme}>
           <div className="space-y-2">
             {Object.entries(exportFormats).map(([fmt, enabled]) => (
               <div key={fmt} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <span className={`text-xs ${theme.highlight}`}>{fmt}</span>
+                <div className="flex-1 mr-3">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{fmt}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{
+                    ({
+                      'PDF': 'Download reports as formatted PDF documents — best for printing and sharing',
+                      'Excel': 'Download as Excel spreadsheets — best for further analysis and filtering',
+                      'CSV': 'Download as CSV files — lightweight format for data import/export',
+                      'Google Sheets': 'Export directly to Google Sheets — best for collaborative editing',
+                    } as Record<string, string>)[fmt]
+                  }</p>
+                </div>
                 <SSAToggle on={enabled} onChange={() => setExportFormats(p => ({ ...p, [fmt]: !p[fmt] }))} theme={theme} />
               </div>
             ))}
           </div>
         </SectionCard>
 
-        <SectionCard title="Report Recipients" subtitle="Who receives scheduled reports" theme={theme}>
+        <SectionCard title="Report Recipients" subtitle="Who receives scheduled reports via email" theme={theme}>
           <div className="space-y-2">
             {Object.entries(recipients).map(([role, enabled]) => (
               <div key={role} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <span className={`text-xs ${theme.highlight}`}>{role}</span>
+                <div className="flex-1 mr-3">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{role}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{
+                    ({
+                      'Admin': 'School admin receives operational reports (attendance, fees, inventory)',
+                      'Principal': 'Principal receives academic and performance summary reports',
+                      'Trustee': 'Trustee/management receives financial and compliance overview reports',
+                    } as Record<string, string>)[role]
+                  }</p>
+                </div>
                 <SSAToggle on={enabled} onChange={() => setRecipients(p => ({ ...p, [role]: !p[role] }))} theme={theme} />
               </div>
             ))}
@@ -3319,11 +3696,20 @@ function ReportEngineConfigModule({ theme }: { theme: Theme }) {
         </SectionCard>
       </div>
 
-      <SectionCard title="Auto-Generate Reports" subtitle="Automatic report generation schedule" theme={theme}>
+      <SectionCard title="Auto-Generate Reports" subtitle="System automatically creates reports on a schedule — no manual effort needed" theme={theme}>
         <div className="space-y-2">
           {Object.entries(autoGenerate).map(([period, enabled]) => (
             <div key={period} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <span className={`text-xs ${theme.highlight}`}>{period}</span>
+              <div className="flex-1 mr-3">
+                <p className={`text-xs font-bold ${theme.highlight}`}>{period}</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>{
+                  ({
+                    'Daily summary': 'End-of-day report covering attendance, fee collection, and key events',
+                    'Weekly summary': 'Weekly digest with attendance trends, pending fees, and upcoming deadlines',
+                    'Monthly summary': 'Comprehensive monthly report with analytics across all modules',
+                  } as Record<string, string>)[period]
+                }</p>
+              </div>
               <SSAToggle on={enabled} onChange={() => setAutoGenerate(p => ({ ...p, [period]: !p[period] }))} theme={theme} />
             </div>
           ))}
@@ -3367,11 +3753,22 @@ function APIIntegrationConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
-      <SectionCard title="Available Integrations" subtitle="Toggle individual third-party services" theme={theme}>
+      <SectionCard title="Available Integrations" subtitle="Connect your school ERP with external tools and services" theme={theme}>
         <div className="space-y-2">
           {Object.entries(integrations).map(([name, enabled]) => (
             <div key={name} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg} ${!thirdParty ? 'opacity-50' : ''}`}>
-              <span className={`text-xs ${theme.highlight}`}>{name}</span>
+              <div className="flex-1 mr-3">
+                <p className={`text-xs font-bold ${theme.highlight}`}>{name}</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>{
+                  ({
+                    'Tally (Accounting)': 'Sync fee collection and payroll data directly to Tally accounting software',
+                    'WhatsApp Business': 'Send fee reminders, attendance alerts, and notices via WhatsApp Business API',
+                    'SMS Gateway': 'Send SMS notifications to parents for attendance, fees, and emergencies',
+                    'Google Workspace': 'Integrate with Google Classroom, Drive, and Calendar for academics',
+                    'Microsoft 365': 'Connect with Microsoft Teams, OneDrive, and Outlook for collaboration',
+                  } as Record<string, string>)[name]
+                }</p>
+              </div>
               <SSAToggle on={enabled} onChange={() => { if (thirdParty) setIntegrations(p => ({ ...p, [name]: !p[name] })); }} theme={theme} />
             </div>
           ))}
@@ -3407,7 +3804,10 @@ function BrandingWhitelabelConfigModule({ theme }: { theme: Theme }) {
       <SectionCard title="Custom Domain" subtitle="Use your own domain for the school portal" theme={theme}>
         <div className="space-y-3">
           <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-            <span className={`text-xs font-bold ${theme.highlight}`}>Enable custom domain</span>
+            <div className="flex-1 mr-3">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Enable custom domain</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Use your own domain (e.g., portal.yourschool.edu.in) instead of the default Saaras URL</p>
+            </div>
             <SSAToggle on={customDomain} onChange={() => setCustomDomain(!customDomain)} theme={theme} />
           </div>
           {customDomain && (
@@ -3421,18 +3821,27 @@ function BrandingWhitelabelConfigModule({ theme }: { theme: Theme }) {
       </SectionCard>
 
       <div className="grid grid-cols-2 gap-4">
-        <SectionCard title="White-label &amp; Templates" subtitle="Customize appearance and emails" theme={theme}>
+        <SectionCard title="White-label &amp; Templates" subtitle="Customize appearance and communication templates" theme={theme}>
           <div className="space-y-2">
             <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <span className={`text-xs ${theme.highlight}`}>White-label mobile app</span>
+              <div className="flex-1 mr-3">
+                <p className={`text-xs font-bold ${theme.highlight}`}>White-label mobile app</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>School-branded mobile app with your logo, name, and colors — no Saaras branding visible</p>
+              </div>
               <SSAToggle on={whitelabelApp} onChange={() => setWhitelabelApp(!whitelabelApp)} theme={theme} />
             </div>
             <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <span className={`text-xs ${theme.highlight}`}>Custom email templates</span>
+              <div className="flex-1 mr-3">
+                <p className={`text-xs font-bold ${theme.highlight}`}>Custom email templates</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Customize the email templates sent for fee reminders, reports, and notifications</p>
+              </div>
               <SSAToggle on={customEmailTemplates} onChange={() => setCustomEmailTemplates(!customEmailTemplates)} theme={theme} />
             </div>
             <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <span className={`text-xs ${theme.highlight}`}>Login page customization</span>
+              <div className="flex-1 mr-3">
+                <p className={`text-xs font-bold ${theme.highlight}`}>Login page customization</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Customize the school portal login page with your logo, background, and welcome message</p>
+              </div>
               <SSAToggle on={loginPageCustomization} onChange={() => setLoginPageCustomization(!loginPageCustomization)} theme={theme} />
             </div>
           </div>
