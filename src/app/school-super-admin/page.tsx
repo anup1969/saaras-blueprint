@@ -1170,6 +1170,17 @@ function TransportConfigModule({ theme }: { theme: Theme }) {
   });
   const [commuteTagging, setCommuteTagging] = useState(true);
   const [defaultCommuteMode, setDefaultCommuteMode] = useState('School Bus');
+  const [hasTransportManager, setHasTransportManager] = useState(true);
+  const [tmPermissions, setTmPermissions] = useState<Record<string, boolean>>({
+    'View all routes & stops': true, 'Add/edit routes & stops': true, 'Delete routes': false,
+    'View vehicle fleet': true, 'Add/edit vehicles': true, 'Delete vehicles': false,
+    'View driver details': true, 'Add/edit drivers': true, 'Delete drivers': false,
+    'Assign students to routes': true, 'Change student route/stop': true,
+    'View transport fees': true, 'Modify transport fees': false,
+    'View GPS tracking': true, 'Configure safety alerts': false,
+    'Send notifications to parents': true, 'View attendance reports': true,
+    'Export transport data': true, 'Manage pickup policies': false,
+  });
 
   return (
     <div className="space-y-4">
@@ -1466,6 +1477,31 @@ function TransportConfigModule({ theme }: { theme: Theme }) {
             <div>
               <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Default Commute Mode</p>
               <SelectField options={['Walk-in', 'School Bus', 'Private Vehicle']} value={defaultCommuteMode} onChange={setDefaultCommuteMode} theme={theme} />
+            </div>
+          )}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Transport Manager Permissions" subtitle="Define what the Transport Manager role can access and modify" theme={theme}>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex-1 mr-3">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Transport Manager Role</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Enable a dedicated Transport Manager role with configurable permissions</p>
+            </div>
+            <SSAToggle on={hasTransportManager} onChange={() => setHasTransportManager(!hasTransportManager)} theme={theme} />
+          </div>
+          {hasTransportManager && (
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>CRUD Permissions — toggle what the Transport Manager can do</p>
+              <div className="grid grid-cols-2 gap-1.5">
+                {Object.entries(tmPermissions).map(([perm, enabled]) => (
+                  <div key={perm} className={`flex items-center justify-between p-2 rounded-xl ${theme.secondaryBg}`}>
+                    <span className={`text-[11px] ${theme.highlight}`}>{perm}</span>
+                    <SSAToggle on={enabled} onChange={() => setTmPermissions(p => ({ ...p, [perm]: !p[perm] }))} theme={theme} />
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
