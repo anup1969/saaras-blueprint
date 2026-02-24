@@ -621,7 +621,7 @@ function AcademicConfigModule({ theme }: { theme: Theme }) {
     { label: 'Indigo', value: 'bg-indigo-500' },
     { label: 'Cyan', value: 'bg-cyan-500' },
   ];
-  const [holidays] = useState([
+  const [holidays, setHolidays] = useState([
     { date: '26 Jan', name: 'Republic Day', type: 'National' },
     { date: '14 Mar', name: 'Holi', type: 'Festival' },
     { date: '15 Aug', name: 'Independence Day', type: 'National' },
@@ -792,7 +792,11 @@ function AcademicConfigModule({ theme }: { theme: Theme }) {
         <div className="space-y-2">
           {preschoolGroups.map((g, i) => (
             <div key={i} className={`flex items-center gap-3 p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <span className={`text-xs font-bold ${theme.highlight} w-32 shrink-0`}>{g.ageLevel}</span>
+              <div className="w-32 shrink-0">
+                <p className={`text-[10px] ${theme.iconColor} mb-0.5`}>Age Level</p>
+                <input value={g.ageLevel} onChange={e => { const n = [...preschoolGroups]; n[i] = { ...n[i], ageLevel: e.target.value }; setPreschoolGroups(n); }}
+                  className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} placeholder="e.g. Nursery (2-3 yrs)" />
+              </div>
               <div className="flex-1">
                 <p className={`text-[10px] ${theme.iconColor} mb-0.5`}>Group Name</p>
                 <input value={g.groupName} onChange={e => { const n = [...preschoolGroups]; n[i] = { ...n[i], groupName: e.target.value }; setPreschoolGroups(n); }}
@@ -804,6 +808,7 @@ function AcademicConfigModule({ theme }: { theme: Theme }) {
                 <input type="number" value={g.maxChildren} onChange={e => { const n = [...preschoolGroups]; n[i] = { ...n[i], maxChildren: e.target.value }; setPreschoolGroups(n); }}
                   className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none`} />
               </div>
+              <button onClick={() => setPreschoolGroups(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600 mt-4"><X size={12} /></button>
             </div>
           ))}
           <button onClick={() => setPreschoolGroups(p => [...p, { ageLevel: '', groupName: '', maxChildren: '20' }])}
@@ -813,18 +818,26 @@ function AcademicConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
-      <SectionCard title="Holiday Calendar" subtitle="School holidays and observances" theme={theme}>
+      <SectionCard title="Holiday Calendar" subtitle="School holidays and observances — click to edit, X to delete" theme={theme}>
         <div className="space-y-1.5">
           {holidays.map((h, i) => (
-            <div key={i} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <div className="flex items-center gap-3">
-                <span className={`text-xs font-bold ${theme.highlight} w-16`}>{h.date}</span>
-                <span className={`text-xs ${theme.highlight}`}>{h.name}</span>
-              </div>
-              <span className={`text-[9px] px-2 py-0.5 rounded-lg font-bold ${h.type === 'National' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>{h.type}</span>
+            <div key={i} className={`flex items-center gap-3 p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <input value={h.date} onChange={e => { const n = [...holidays]; n[i] = { ...n[i], date: e.target.value }; setHolidays(n); }}
+                className={`w-20 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} placeholder="Date" />
+              <input value={h.name} onChange={e => { const n = [...holidays]; n[i] = { ...n[i], name: e.target.value }; setHolidays(n); }}
+                className={`flex-1 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} placeholder="Holiday name" />
+              <select value={h.type} onChange={e => { const n = [...holidays]; n[i] = { ...n[i], type: e.target.value }; setHolidays(n); }}
+                className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] font-bold ${theme.highlight}`}>
+                <option value="National">National</option>
+                <option value="Festival">Festival</option>
+                <option value="School">School</option>
+                <option value="Other">Other</option>
+              </select>
+              <button onClick={() => setHolidays(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={12} /></button>
             </div>
           ))}
-          <button className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
+          <button onClick={() => setHolidays(p => [...p, { date: '', name: '', type: 'School' }])}
+            className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
             <Plus size={12} /> Add Holiday
           </button>
         </div>
@@ -839,7 +852,7 @@ function HRConfigModule({ theme }: { theme: Theme }) {
   const [designations, setDesignations] = useState(['Principal', 'Vice Principal', 'HOD', 'PGT', 'TGT', 'PRT', 'Lab Assistant', 'Librarian', 'Accountant', 'Driver', 'Peon', 'Security Guard']);
   const [newDept, setNewDept] = useState('');
   const [newDesig, setNewDesig] = useState('');
-  const [salaryComponents] = useState([
+  const [salaryComponents, setSalaryComponents] = useState([
     { name: 'Basic Salary', type: 'earning', percentage: '40%' },
     { name: 'HRA', type: 'earning', percentage: '20%' },
     { name: 'DA', type: 'earning', percentage: '15%' },
@@ -855,7 +868,7 @@ function HRConfigModule({ theme }: { theme: Theme }) {
   const [staffAttendance, setStaffAttendance] = useState<Record<string, boolean>>({
     'Biometric': true, 'Mobile App': true, 'RFID': false, 'Manual Register': true, 'Geo-fencing': false,
   });
-  const [onboardingChecklist] = useState([
+  const [onboardingChecklist, setOnboardingChecklist] = useState([
     'Document verification (Aadhaar, PAN, Degree certificates)',
     'Police verification submission',
     'Bank account details for salary',
@@ -865,8 +878,10 @@ function HRConfigModule({ theme }: { theme: Theme }) {
     'Assign department & reporting manager',
     'Probation period agreement',
   ]);
-  const [hrLetters] = useState(['Offer Letter', 'Appointment Letter', 'Confirmation Letter', 'Experience Letter', 'Relieving Letter', 'Salary Slip', 'Warning Letter', 'Termination Letter']);
-  const [appraisalStages] = useState(['Self Assessment', 'HOD Review', 'Principal Review', 'Management Approval', 'Letter Generation']);
+  const [newChecklistItem, setNewChecklistItem] = useState('');
+  const [hrLetters, setHrLetters] = useState(['Offer Letter', 'Appointment Letter', 'Confirmation Letter', 'Experience Letter', 'Relieving Letter', 'Salary Slip', 'Warning Letter', 'Termination Letter']);
+  const [newHrLetter, setNewHrLetter] = useState('');
+  const [appraisalStages, setAppraisalStages] = useState(['Self Assessment', 'HOD Review', 'Principal Review', 'Management Approval', 'Letter Generation']);
 
   return (
     <div className="space-y-4">
@@ -908,19 +923,26 @@ function HRConfigModule({ theme }: { theme: Theme }) {
         </SectionCard>
       </div>
 
-      <SectionCard title="Salary Structure" subtitle="Earning and deduction components" theme={theme}>
+      <SectionCard title="Salary Structure" subtitle="Earning and deduction components — edit name, type, and percentage" theme={theme}>
         <div className="space-y-1.5">
           {salaryComponents.map((c, i) => (
-            <div key={i} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <div className="flex items-center gap-2">
-                <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold ${c.type === 'earning' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
-                  {c.type === 'earning' ? 'EARN' : 'DED'}
-                </span>
-                <span className={`text-xs font-medium ${theme.highlight}`}>{c.name}</span>
-              </div>
-              <span className={`text-xs font-bold ${theme.iconColor}`}>{c.percentage}</span>
+            <div key={i} className={`flex items-center gap-2 p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <select value={c.type} onChange={e => { const n = [...salaryComponents]; n[i] = { ...n[i], type: e.target.value }; setSalaryComponents(n); }}
+                className={`text-[9px] px-1.5 py-1 rounded font-bold ${c.type === 'earning' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'} border-0 outline-none`}>
+                <option value="earning">EARN</option>
+                <option value="deduction">DED</option>
+              </select>
+              <input value={c.name} onChange={e => { const n = [...salaryComponents]; n[i] = { ...n[i], name: e.target.value }; setSalaryComponents(n); }}
+                className={`flex-1 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-medium ${theme.highlight} outline-none`} />
+              <input value={c.percentage} onChange={e => { const n = [...salaryComponents]; n[i] = { ...n[i], percentage: e.target.value }; setSalaryComponents(n); }}
+                className={`w-16 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center font-bold ${theme.iconColor} outline-none`} />
+              <button onClick={() => setSalaryComponents(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={10} /></button>
             </div>
           ))}
+          <button onClick={() => setSalaryComponents(p => [...p, { name: '', type: 'earning', percentage: '' }])}
+            className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
+            <Plus size={12} /> Add Component
+          </button>
         </div>
       </SectionCard>
 
@@ -950,34 +972,58 @@ function HRConfigModule({ theme }: { theme: Theme }) {
         </SectionCard>
       </div>
 
-      <SectionCard title="Staff Onboarding Checklist" subtitle="Required steps for new staff" theme={theme}>
+      <SectionCard title="Staff Onboarding Checklist" subtitle="Required steps for new staff — edit or remove items" theme={theme}>
         <div className="space-y-1.5">
           {onboardingChecklist.map((item, i) => (
             <div key={i} className={`flex items-center gap-2 p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <CheckCircle size={14} className="text-emerald-500" />
-              <span className={`text-xs ${theme.highlight}`}>{item}</span>
+              <CheckCircle size={14} className="text-emerald-500 shrink-0" />
+              <input value={item} onChange={e => { const n = [...onboardingChecklist]; n[i] = e.target.value; setOnboardingChecklist(n); }}
+                className={`flex-1 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+              <button onClick={() => setOnboardingChecklist(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={10} /></button>
             </div>
           ))}
+          <div className="flex gap-2">
+            <input value={newChecklistItem} onChange={e => setNewChecklistItem(e.target.value)} placeholder="Add checklist item..."
+              onKeyDown={e => { if (e.key === 'Enter' && newChecklistItem.trim()) { setOnboardingChecklist(p => [...p, newChecklistItem.trim()]); setNewChecklistItem(''); } }}
+              className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+            <button onClick={() => { if (newChecklistItem.trim()) { setOnboardingChecklist(p => [...p, newChecklistItem.trim()]); setNewChecklistItem(''); } }}
+              className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}><Plus size={14} /></button>
+          </div>
         </div>
       </SectionCard>
 
       <div className="grid grid-cols-2 gap-4">
-        <SectionCard title="HR Letter Templates" subtitle="Auto-generated letters" theme={theme}>
-          <div className="flex flex-wrap gap-2">
+        <SectionCard title="HR Letter Templates" subtitle="Add or remove letter types" theme={theme}>
+          <div className="flex flex-wrap gap-1.5 mb-3">
             {hrLetters.map(l => (
-              <span key={l} className={`px-2.5 py-1.5 rounded-lg ${theme.secondaryBg} text-xs font-medium ${theme.highlight}`}>{l}</span>
+              <span key={l} className={`flex items-center gap-1 px-2.5 py-1 rounded-lg ${theme.secondaryBg} text-xs font-medium ${theme.highlight}`}>
+                {l}
+                <button onClick={() => setHrLetters(p => p.filter(x => x !== l))} className="text-red-400 hover:text-red-600"><X size={10} /></button>
+              </span>
             ))}
+          </div>
+          <div className="flex gap-2">
+            <input value={newHrLetter} onChange={e => setNewHrLetter(e.target.value)} placeholder="Add letter type..."
+              className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+            <button onClick={() => { if (newHrLetter.trim()) { setHrLetters(p => [...p, newHrLetter.trim()]); setNewHrLetter(''); } }}
+              className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}><Plus size={14} /></button>
           </div>
         </SectionCard>
 
-        <SectionCard title="Performance Appraisal Stages" subtitle="Multi-level review process" theme={theme}>
+        <SectionCard title="Performance Appraisal Stages" subtitle="Multi-level review — edit, reorder, or remove" theme={theme}>
           <div className="space-y-1.5">
             {appraisalStages.map((s, i) => (
               <div key={i} className={`flex items-center gap-2 p-2 rounded-xl ${theme.secondaryBg}`}>
-                <span className={`text-[10px] w-5 h-5 rounded-full ${theme.primary} text-white flex items-center justify-center font-bold`}>{i + 1}</span>
-                <span className={`text-xs ${theme.highlight}`}>{s}</span>
+                <span className={`text-[10px] w-5 h-5 rounded-full ${theme.primary} text-white flex items-center justify-center font-bold shrink-0`}>{i + 1}</span>
+                <input value={s} onChange={e => { const n = [...appraisalStages]; n[i] = e.target.value; setAppraisalStages(n); }}
+                  className={`flex-1 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                <button onClick={() => setAppraisalStages(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={10} /></button>
               </div>
             ))}
+            <button onClick={() => setAppraisalStages(p => [...p, ''])}
+              className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
+              <Plus size={12} /> Add Stage
+            </button>
           </div>
         </SectionCard>
       </div>
@@ -987,18 +1033,18 @@ function HRConfigModule({ theme }: { theme: Theme }) {
 
 // ─── TRANSPORT CONFIG MODULE ───────────────────────
 function TransportConfigModule({ theme }: { theme: Theme }) {
-  const [routes] = useState([
-    { name: 'Route A', stops: 8, capacity: 40, morning: '7:00 AM', evening: '3:30 PM', driver: 'Ramesh Kumar', vehicle: 'GJ-01-AB-1234' },
-    { name: 'Route B', stops: 12, capacity: 50, morning: '6:45 AM', evening: '3:45 PM', driver: 'Suresh Patel', vehicle: 'GJ-01-CD-5678' },
-    { name: 'Route C', stops: 6, capacity: 30, morning: '7:15 AM', evening: '3:15 PM', driver: 'Mahesh Singh', vehicle: 'GJ-01-EF-9012' },
+  const [routes, setRoutes] = useState([
+    { name: 'Route A', stops: '8', capacity: '40', morning: '7:00 AM', evening: '3:30 PM', driver: 'Ramesh Kumar', vehicle: 'GJ-01-AB-1234' },
+    { name: 'Route B', stops: '12', capacity: '50', morning: '6:45 AM', evening: '3:45 PM', driver: 'Suresh Patel', vehicle: 'GJ-01-CD-5678' },
+    { name: 'Route C', stops: '6', capacity: '30', morning: '7:15 AM', evening: '3:15 PM', driver: 'Mahesh Singh', vehicle: 'GJ-01-EF-9012' },
   ]);
-  const [vehicles] = useState([
-    { reg: 'GJ-01-AB-1234', type: 'Bus', capacity: 40, year: '2022', insurance: 'Valid till Dec 2025', gps: true },
-    { reg: 'GJ-01-CD-5678', type: 'Bus', capacity: 50, year: '2021', insurance: 'Valid till Mar 2025', gps: true },
-    { reg: 'GJ-01-EF-9012', type: 'Mini Bus', capacity: 30, year: '2023', insurance: 'Valid till Jun 2026', gps: true },
-    { reg: 'GJ-01-GH-3456', type: 'Van', capacity: 15, year: '2023', insurance: 'Valid till Sep 2025', gps: false },
+  const [vehicles, setVehicles] = useState([
+    { reg: 'GJ-01-AB-1234', type: 'Bus', capacity: '40', year: '2022', insurance: 'Valid till Dec 2025', gps: true },
+    { reg: 'GJ-01-CD-5678', type: 'Bus', capacity: '50', year: '2021', insurance: 'Valid till Mar 2025', gps: true },
+    { reg: 'GJ-01-EF-9012', type: 'Mini Bus', capacity: '30', year: '2023', insurance: 'Valid till Jun 2026', gps: true },
+    { reg: 'GJ-01-GH-3456', type: 'Van', capacity: '15', year: '2023', insurance: 'Valid till Sep 2025', gps: false },
   ]);
-  const [drivers] = useState([
+  const [drivers, setDrivers] = useState([
     { name: 'Ramesh Kumar', phone: '98765-43210', license: 'GJ-01-2020-1234', expiry: 'Mar 2027', badge: true },
     { name: 'Suresh Patel', phone: '98765-43211', license: 'GJ-01-2019-5678', expiry: 'Dec 2026', badge: true },
     { name: 'Mahesh Singh', phone: '98765-43212', license: 'GJ-01-2021-9012', expiry: 'Jun 2028', badge: true },
@@ -1020,79 +1066,93 @@ function TransportConfigModule({ theme }: { theme: Theme }) {
     <div className="space-y-4">
       <ModuleHeader title="Transport Configuration" subtitle="Routes, vehicles, drivers, safety, and fee structure" theme={theme} />
 
-      <SectionCard title="Routes" subtitle="Bus routes with stops, capacity, and timings" theme={theme}>
+      <SectionCard title="Routes" subtitle="Bus routes — click any field to edit, X to delete" theme={theme}>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead><tr className={theme.secondaryBg}>
-              {['Route', 'Stops', 'Capacity', 'Morning', 'Evening', 'Driver', 'Vehicle'].map(h => (
-                <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
+              {['Route', 'Stops', 'Capacity', 'Morning', 'Evening', 'Driver', 'Vehicle', ''].map(h => (
+                <th key={h} className={`text-left px-2 py-2 font-bold ${theme.iconColor}`}>{h}</th>
               ))}
             </tr></thead>
             <tbody>
               {routes.map((r, i) => (
                 <tr key={i} className={`border-t ${theme.border}`}>
-                  <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{r.name}</td>
-                  <td className={`px-3 py-2 ${theme.highlight}`}>{r.stops}</td>
-                  <td className={`px-3 py-2 ${theme.highlight}`}>{r.capacity}</td>
-                  <td className={`px-3 py-2 ${theme.highlight}`}>{r.morning}</td>
-                  <td className={`px-3 py-2 ${theme.highlight}`}>{r.evening}</td>
-                  <td className={`px-3 py-2 ${theme.highlight}`}>{r.driver}</td>
-                  <td className={`px-3 py-2 ${theme.iconColor} font-mono text-[10px]`}>{r.vehicle}</td>
+                  {(['name', 'stops', 'capacity', 'morning', 'evening', 'driver', 'vehicle'] as const).map(field => (
+                    <td key={field} className="px-1 py-1.5">
+                      <input value={r[field]} onChange={e => { const n = [...routes]; n[i] = { ...n[i], [field]: e.target.value }; setRoutes(n); }}
+                        className={`w-full px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${field === 'name' ? `font-bold ${theme.highlight}` : theme.highlight} outline-none`} />
+                    </td>
+                  ))}
+                  <td className="px-1 py-1.5"><button onClick={() => setRoutes(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={12} /></button></td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <button className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl mt-2`}>
+        <button onClick={() => setRoutes(p => [...p, { name: '', stops: '', capacity: '', morning: '', evening: '', driver: '', vehicle: '' }])}
+          className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl mt-2`}>
           <Plus size={12} /> Add Route
         </button>
       </SectionCard>
 
-      <SectionCard title="Vehicle Fleet" subtitle="Registered vehicles with insurance and GPS status" theme={theme}>
+      <SectionCard title="Vehicle Fleet" subtitle="Click any field to edit, toggle GPS, X to delete" theme={theme}>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead><tr className={theme.secondaryBg}>
-              {['Registration', 'Type', 'Capacity', 'Year', 'Insurance', 'GPS'].map(h => (
-                <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
+              {['Registration', 'Type', 'Capacity', 'Year', 'Insurance', 'GPS', ''].map(h => (
+                <th key={h} className={`text-left px-2 py-2 font-bold ${theme.iconColor}`}>{h}</th>
               ))}
             </tr></thead>
             <tbody>
               {vehicles.map((v, i) => (
                 <tr key={i} className={`border-t ${theme.border}`}>
-                  <td className={`px-3 py-2 font-mono font-bold ${theme.highlight}`}>{v.reg}</td>
-                  <td className={`px-3 py-2 ${theme.highlight}`}>{v.type}</td>
-                  <td className={`px-3 py-2 ${theme.highlight}`}>{v.capacity}</td>
-                  <td className={`px-3 py-2 ${theme.highlight}`}>{v.year}</td>
-                  <td className={`px-3 py-2 ${theme.iconColor} text-[10px]`}>{v.insurance}</td>
-                  <td className="px-3 py-2"><span className={`w-2 h-2 rounded-full inline-block ${v.gps ? 'bg-emerald-500' : 'bg-slate-300'}`} /></td>
+                  {(['reg', 'type', 'capacity', 'year', 'insurance'] as const).map(field => (
+                    <td key={field} className="px-1 py-1.5">
+                      <input value={v[field]} onChange={e => { const n = [...vehicles]; n[i] = { ...n[i], [field]: e.target.value }; setVehicles(n); }}
+                        className={`w-full px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                    </td>
+                  ))}
+                  <td className="px-2 py-1.5"><SSAToggle on={v.gps} onChange={() => { const n = [...vehicles]; n[i] = { ...n[i], gps: !n[i].gps }; setVehicles(n); }} theme={theme} /></td>
+                  <td className="px-1 py-1.5"><button onClick={() => setVehicles(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={12} /></button></td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+        <button onClick={() => setVehicles(p => [...p, { reg: '', type: 'Bus', capacity: '', year: '', insurance: '', gps: true }])}
+          className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl mt-2`}>
+          <Plus size={12} /> Add Vehicle
+        </button>
       </SectionCard>
 
-      <SectionCard title="Driver Details" subtitle="Registered drivers with license info" theme={theme}>
+      <SectionCard title="Driver Details" subtitle="Click any field to edit, toggle badge, X to delete" theme={theme}>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead><tr className={theme.secondaryBg}>
-              {['Name', 'Phone', 'License No.', 'License Expiry', 'Badge'].map(h => (
-                <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
+              {['Name', 'Phone', 'License No.', 'License Expiry', 'Badge', ''].map(h => (
+                <th key={h} className={`text-left px-2 py-2 font-bold ${theme.iconColor}`}>{h}</th>
               ))}
             </tr></thead>
             <tbody>
               {drivers.map((d, i) => (
                 <tr key={i} className={`border-t ${theme.border}`}>
-                  <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{d.name}</td>
-                  <td className={`px-3 py-2 ${theme.highlight}`}>{d.phone}</td>
-                  <td className={`px-3 py-2 font-mono ${theme.iconColor}`}>{d.license}</td>
-                  <td className={`px-3 py-2 ${theme.highlight}`}>{d.expiry}</td>
-                  <td className="px-3 py-2"><span className={`w-2 h-2 rounded-full inline-block ${d.badge ? 'bg-emerald-500' : 'bg-slate-300'}`} /></td>
+                  {(['name', 'phone', 'license', 'expiry'] as const).map(field => (
+                    <td key={field} className="px-1 py-1.5">
+                      <input value={d[field]} onChange={e => { const n = [...drivers]; n[i] = { ...n[i], [field]: e.target.value }; setDrivers(n); }}
+                        className={`w-full px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                    </td>
+                  ))}
+                  <td className="px-2 py-1.5"><SSAToggle on={d.badge} onChange={() => { const n = [...drivers]; n[i] = { ...n[i], badge: !n[i].badge }; setDrivers(n); }} theme={theme} /></td>
+                  <td className="px-1 py-1.5"><button onClick={() => setDrivers(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={12} /></button></td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+        <button onClick={() => setDrivers(p => [...p, { name: '', phone: '', license: '', expiry: '', badge: true }])}
+          className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl mt-2`}>
+          <Plus size={12} /> Add Driver
+        </button>
       </SectionCard>
 
       <div className="grid grid-cols-2 gap-4">
@@ -1266,7 +1326,7 @@ function ExamConfigModule({ theme }: { theme: Theme }) {
     { grade: 'E (Fail)', min: '0', max: '32', gp: '0' },
   ]);
   const [reportTemplate, setReportTemplate] = useState('cbse-standard');
-  const [examSchedule] = useState([
+  const [examSchedule, setExamSchedule] = useState([
     { exam: 'Unit Test 1', startDate: '15 Jun', endDate: '20 Jun', classes: 'All', status: 'Completed' },
     { exam: 'Unit Test 2', startDate: '25 Aug', endDate: '30 Aug', classes: 'All', status: 'Completed' },
     { exam: 'Half Yearly', startDate: '01 Oct', endDate: '15 Oct', classes: 'All', status: 'Upcoming' },
@@ -1298,35 +1358,43 @@ function ExamConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
-      <SectionCard title="Grade Boundaries" subtitle="Grade mapping with marks range and grade points" theme={theme}>
+      <SectionCard title="Grade Boundaries" subtitle="Edit grade name, marks, and grade points — add or delete grades" theme={theme}>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead><tr className={theme.secondaryBg}>
-              {['Grade', 'Min Marks', 'Max Marks', 'Grade Points'].map(h => (
+              {['Grade', 'Min Marks', 'Max Marks', 'Grade Points', ''].map(h => (
                 <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
               ))}
             </tr></thead>
             <tbody>
               {gradeBoundaries.map((g, i) => (
                 <tr key={i} className={`border-t ${theme.border}`}>
-                  <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{g.grade}</td>
-                  <td className="px-3 py-1.5">
+                  <td className="px-2 py-1.5">
+                    <input value={g.grade} onChange={e => { const n = [...gradeBoundaries]; n[i] = { ...n[i], grade: e.target.value }; setGradeBoundaries(n); }}
+                      className={`w-20 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} />
+                  </td>
+                  <td className="px-2 py-1.5">
                     <input value={g.min} onChange={e => { const n = [...gradeBoundaries]; n[i] = { ...n[i], min: e.target.value }; setGradeBoundaries(n); }}
                       className={`w-16 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none`} />
                   </td>
-                  <td className="px-3 py-1.5">
+                  <td className="px-2 py-1.5">
                     <input value={g.max} onChange={e => { const n = [...gradeBoundaries]; n[i] = { ...n[i], max: e.target.value }; setGradeBoundaries(n); }}
                       className={`w-16 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none`} />
                   </td>
-                  <td className="px-3 py-1.5">
+                  <td className="px-2 py-1.5">
                     <input value={g.gp} onChange={e => { const n = [...gradeBoundaries]; n[i] = { ...n[i], gp: e.target.value }; setGradeBoundaries(n); }}
                       className={`w-16 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none`} />
                   </td>
+                  <td className="px-2 py-1.5"><button onClick={() => setGradeBoundaries(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={12} /></button></td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+        <button onClick={() => setGradeBoundaries(p => [...p, { grade: '', min: '', max: '', gp: '' }])}
+          className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl mt-2`}>
+          <Plus size={12} /> Add Grade
+        </button>
       </SectionCard>
 
       <div className="grid grid-cols-2 gap-4">
@@ -1353,32 +1421,51 @@ function ExamConfigModule({ theme }: { theme: Theme }) {
         </SectionCard>
       </div>
 
-      <SectionCard title="Exam Schedule" subtitle="Planned exams for the academic year" theme={theme}>
+      <SectionCard title="Exam Schedule" subtitle="Click to edit exam details, X to delete" theme={theme}>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead><tr className={theme.secondaryBg}>
-              {['Exam', 'Start', 'End', 'Classes', 'Status'].map(h => (
-                <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
+              {['Exam', 'Start', 'End', 'Classes', 'Status', ''].map(h => (
+                <th key={h} className={`text-left px-2 py-2 font-bold ${theme.iconColor}`}>{h}</th>
               ))}
             </tr></thead>
             <tbody>
-              {examSchedule.map((e, i) => (
+              {examSchedule.map((ex, i) => (
                 <tr key={i} className={`border-t ${theme.border}`}>
-                  <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{e.exam}</td>
-                  <td className={`px-3 py-2 ${theme.highlight}`}>{e.startDate}</td>
-                  <td className={`px-3 py-2 ${theme.highlight}`}>{e.endDate}</td>
-                  <td className={`px-3 py-2 ${theme.highlight}`}>{e.classes}</td>
-                  <td className="px-3 py-2">
-                    <span className={`text-[9px] px-2 py-0.5 rounded-lg font-bold ${
-                      e.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' :
-                      e.status === 'Upcoming' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'
-                    }`}>{e.status}</span>
+                  <td className="px-1 py-1.5">
+                    <input value={ex.exam} onChange={e => { const n = [...examSchedule]; n[i] = { ...n[i], exam: e.target.value }; setExamSchedule(n); }}
+                      className={`w-full px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} />
                   </td>
+                  <td className="px-1 py-1.5">
+                    <input value={ex.startDate} onChange={e => { const n = [...examSchedule]; n[i] = { ...n[i], startDate: e.target.value }; setExamSchedule(n); }}
+                      className={`w-20 px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                  </td>
+                  <td className="px-1 py-1.5">
+                    <input value={ex.endDate} onChange={e => { const n = [...examSchedule]; n[i] = { ...n[i], endDate: e.target.value }; setExamSchedule(n); }}
+                      className={`w-20 px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                  </td>
+                  <td className="px-1 py-1.5">
+                    <input value={ex.classes} onChange={e => { const n = [...examSchedule]; n[i] = { ...n[i], classes: e.target.value }; setExamSchedule(n); }}
+                      className={`w-16 px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                  </td>
+                  <td className="px-1 py-1.5">
+                    <select value={ex.status} onChange={e => { const n = [...examSchedule]; n[i] = { ...n[i], status: e.target.value }; setExamSchedule(n); }}
+                      className={`px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] font-bold ${theme.highlight}`}>
+                      <option value="Scheduled">Scheduled</option>
+                      <option value="Upcoming">Upcoming</option>
+                      <option value="Completed">Completed</option>
+                    </select>
+                  </td>
+                  <td className="px-1 py-1.5"><button onClick={() => setExamSchedule(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={12} /></button></td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+        <button onClick={() => setExamSchedule(p => [...p, { exam: '', startDate: '', endDate: '', classes: 'All', status: 'Scheduled' }])}
+          className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl mt-2`}>
+          <Plus size={12} /> Add Exam
+        </button>
       </SectionCard>
     </div>
   );
@@ -1407,7 +1494,7 @@ function CommunicationConfigModule({ theme }: { theme: Theme }) {
     'Parent can create groups': false,
     'Student can create groups': false,
   });
-  const [autoGroups] = useState([
+  const [autoGroups, setAutoGroups] = useState([
     'Class-wise Parent Groups (auto per section)',
     'Subject Teacher Groups',
     'Staff Announcements',
@@ -1415,6 +1502,7 @@ function CommunicationConfigModule({ theme }: { theme: Theme }) {
     'PTA Group',
     'Management Group',
   ]);
+  const [newAutoGroup, setNewAutoGroup] = useState('');
   const [chatStorage, setChatStorage] = useState<Record<string, string>>({
     'Message retention': '1 year',
     'File storage per user': '500 MB',
@@ -1473,23 +1561,31 @@ function CommunicationConfigModule({ theme }: { theme: Theme }) {
         </SectionCard>
       </div>
 
-      <SectionCard title="Default Auto-created Groups" subtitle="Groups automatically created by the system" theme={theme}>
-        <div className="flex flex-wrap gap-2">
+      <SectionCard title="Default Auto-created Groups" subtitle="Groups auto-created by the system — add or remove" theme={theme}>
+        <div className="flex flex-wrap gap-1.5 mb-3">
           {autoGroups.map(g => (
-            <span key={g} className={`px-2.5 py-1.5 rounded-lg ${theme.secondaryBg} text-xs font-medium ${theme.highlight} flex items-center gap-1`}>
+            <span key={g} className={`flex items-center gap-1 px-2.5 py-1 rounded-lg ${theme.secondaryBg} text-xs font-medium ${theme.highlight}`}>
               <CheckCircle size={10} className="text-emerald-500" /> {g}
+              <button onClick={() => setAutoGroups(p => p.filter(x => x !== g))} className="text-red-400 hover:text-red-600 ml-1"><X size={10} /></button>
             </span>
           ))}
+        </div>
+        <div className="flex gap-2">
+          <input value={newAutoGroup} onChange={e => setNewAutoGroup(e.target.value)} placeholder="Add auto-group..."
+            className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+          <button onClick={() => { if (newAutoGroup.trim()) { setAutoGroups(p => [...p, newAutoGroup.trim()]); setNewAutoGroup(''); } }}
+            className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}><Plus size={14} /></button>
         </div>
       </SectionCard>
 
       <div className="grid grid-cols-2 gap-4">
-        <SectionCard title="Chat Storage &amp; Retention" subtitle="Storage limits and retention policies" theme={theme}>
+        <SectionCard title="Chat Storage &amp; Retention" subtitle="Click values to edit storage limits" theme={theme}>
           <div className="space-y-2">
             {Object.entries(chatStorage).map(([key, val]) => (
               <div key={key} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
                 <span className={`text-xs ${theme.highlight}`}>{key}</span>
-                <span className={`text-xs font-bold ${theme.iconColor}`}>{val}</span>
+                <input value={val} onChange={e => setChatStorage(p => ({ ...p, [key]: e.target.value }))}
+                  className={`w-32 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-right font-bold ${theme.iconColor} outline-none`} />
               </div>
             ))}
           </div>
@@ -1638,12 +1734,12 @@ function LeaveConfigModule({ theme }: { theme: Theme }) {
   ]);
   const [sandwichRule, setSandwichRule] = useState(true);
   const [halfDayLeave, setHalfDayLeave] = useState(true);
-  const [approvalChain] = useState([
+  const [approvalChain, setApprovalChain] = useState([
     { level: 1, approver: 'HOD / Coordinator', timeLimit: '24 hours' },
     { level: 2, approver: 'Vice Principal', timeLimit: '48 hours' },
     { level: 3, approver: 'Principal', timeLimit: '72 hours' },
   ]);
-  const [nonTeachingApprovalChain] = useState([
+  const [nonTeachingApprovalChain, setNonTeachingApprovalChain] = useState([
     { level: 1, approver: 'Department Head / Supervisor', timeLimit: '24 hours' },
     { level: 2, approver: 'Admin Officer', timeLimit: '48 hours' },
   ]);
@@ -1654,35 +1750,43 @@ function LeaveConfigModule({ theme }: { theme: Theme }) {
     <div className="space-y-4">
       <ModuleHeader title="Leave Policy Configuration" subtitle="Leave types, carry-forward rules, approval chain, and thresholds" theme={theme} />
 
-      <SectionCard title="Leave Types &amp; Annual Allocation" subtitle="Days per year per leave type" theme={theme}>
+      <SectionCard title="Leave Types &amp; Annual Allocation" subtitle="Edit leave type names, days, carry-forward — add or delete" theme={theme}>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead><tr className={theme.secondaryBg}>
-              {['Leave Type', 'Days/Year', 'Carry Forward', 'Max Carry'].map(h => (
+              {['Leave Type', 'Days/Year', 'Carry Forward', 'Max Carry', ''].map(h => (
                 <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
               ))}
             </tr></thead>
             <tbody>
               {leaveTypes.map((lt, i) => (
                 <tr key={i} className={`border-t ${theme.border}`}>
-                  <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{lt.type}</td>
-                  <td className="px-3 py-1.5">
+                  <td className="px-2 py-1.5">
+                    <input value={lt.type} onChange={e => { const n = [...leaveTypes]; n[i] = { ...n[i], type: e.target.value }; setLeaveTypes(n); }}
+                      className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} />
+                  </td>
+                  <td className="px-2 py-1.5">
                     <input value={lt.days} onChange={e => { const n = [...leaveTypes]; n[i] = { ...n[i], days: e.target.value }; setLeaveTypes(n); }}
                       className={`w-16 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none`} />
                   </td>
                   <td className="px-3 py-2">
                     <SSAToggle on={lt.carryForward} onChange={() => { const n = [...leaveTypes]; n[i] = { ...n[i], carryForward: !n[i].carryForward }; setLeaveTypes(n); }} theme={theme} />
                   </td>
-                  <td className="px-3 py-1.5">
+                  <td className="px-2 py-1.5">
                     <input value={lt.maxCarry} onChange={e => { const n = [...leaveTypes]; n[i] = { ...n[i], maxCarry: e.target.value }; setLeaveTypes(n); }}
                       disabled={!lt.carryForward}
                       className={`w-16 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none ${!lt.carryForward ? 'opacity-30' : ''}`} />
                   </td>
+                  <td className="px-2 py-1.5"><button onClick={() => setLeaveTypes(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={12} /></button></td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+        <button onClick={() => setLeaveTypes(p => [...p, { type: '', days: '0', carryForward: false, maxCarry: '0' }])}
+          className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl mt-2`}>
+          <Plus size={12} /> Add Leave Type
+        </button>
       </SectionCard>
 
       <div className="grid grid-cols-2 gap-4">
@@ -1714,31 +1818,41 @@ function LeaveConfigModule({ theme }: { theme: Theme }) {
         </SectionCard>
 
         <div className="space-y-4">
-          <SectionCard title="Teaching Staff Approval Chain" subtitle="Leave approval workflow for teaching staff" theme={theme}>
+          <SectionCard title="Teaching Staff Approval Chain" subtitle="Edit approver name and time limit — add or remove steps" theme={theme}>
             <div className="space-y-2">
               {approvalChain.map((a, i) => (
-                <div key={i} className={`flex items-center gap-3 p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                  <span className={`text-[10px] w-6 h-6 rounded-full ${theme.primary} text-white flex items-center justify-center font-bold`}>{a.level}</span>
-                  <div className="flex-1">
-                    <p className={`text-xs font-bold ${theme.highlight}`}>{a.approver}</p>
-                    <p className={`text-[10px] ${theme.iconColor}`}>Must respond within {a.timeLimit}</p>
-                  </div>
+                <div key={i} className={`flex items-center gap-2 p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                  <span className={`text-[10px] w-6 h-6 rounded-full ${theme.primary} text-white flex items-center justify-center font-bold shrink-0`}>{i + 1}</span>
+                  <input value={a.approver} onChange={e => { const n = [...approvalChain]; n[i] = { ...n[i], approver: e.target.value }; setApprovalChain(n); }}
+                    className={`flex-1 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} placeholder="Approver role" />
+                  <input value={a.timeLimit} onChange={e => { const n = [...approvalChain]; n[i] = { ...n[i], timeLimit: e.target.value }; setApprovalChain(n); }}
+                    className={`w-24 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.iconColor} outline-none`} placeholder="e.g. 24 hours" />
+                  <button onClick={() => setApprovalChain(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={10} /></button>
                 </div>
               ))}
+              <button onClick={() => setApprovalChain(p => [...p, { level: p.length + 1, approver: '', timeLimit: '24 hours' }])}
+                className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
+                <Plus size={12} /> Add Step
+              </button>
             </div>
           </SectionCard>
 
-          <SectionCard title="Non-Teaching Staff Approval Chain" subtitle="Leave approval workflow for non-teaching staff" theme={theme}>
+          <SectionCard title="Non-Teaching Staff Approval Chain" subtitle="Edit approver name and time limit — add or remove steps" theme={theme}>
             <div className="space-y-2">
               {nonTeachingApprovalChain.map((a, i) => (
-                <div key={i} className={`flex items-center gap-3 p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                  <span className={`text-[10px] w-6 h-6 rounded-full ${theme.primary} text-white flex items-center justify-center font-bold`}>{a.level}</span>
-                  <div className="flex-1">
-                    <p className={`text-xs font-bold ${theme.highlight}`}>{a.approver}</p>
-                    <p className={`text-[10px] ${theme.iconColor}`}>Must respond within {a.timeLimit}</p>
-                  </div>
+                <div key={i} className={`flex items-center gap-2 p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                  <span className={`text-[10px] w-6 h-6 rounded-full ${theme.primary} text-white flex items-center justify-center font-bold shrink-0`}>{i + 1}</span>
+                  <input value={a.approver} onChange={e => { const n = [...nonTeachingApprovalChain]; n[i] = { ...n[i], approver: e.target.value }; setNonTeachingApprovalChain(n); }}
+                    className={`flex-1 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} placeholder="Approver role" />
+                  <input value={a.timeLimit} onChange={e => { const n = [...nonTeachingApprovalChain]; n[i] = { ...n[i], timeLimit: e.target.value }; setNonTeachingApprovalChain(n); }}
+                    className={`w-24 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.iconColor} outline-none`} placeholder="e.g. 24 hours" />
+                  <button onClick={() => setNonTeachingApprovalChain(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={10} /></button>
                 </div>
               ))}
+              <button onClick={() => setNonTeachingApprovalChain(p => [...p, { level: p.length + 1, approver: '', timeLimit: '24 hours' }])}
+                className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
+                <Plus size={12} /> Add Step
+              </button>
             </div>
           </SectionCard>
         </div>
@@ -1964,7 +2078,7 @@ function VisitorConfigModule({ theme }: { theme: Theme }) {
 
 // ─── CERTIFICATE CONFIG MODULE ─────────────────────
 function CertificateConfigModule({ theme }: { theme: Theme }) {
-  const [templates] = useState([
+  const [templates, setTemplates] = useState([
     { name: 'Transfer Certificate (TC)', status: 'uploaded', lastModified: '15 Jan 2025' },
     { name: 'Character Certificate', status: 'uploaded', lastModified: '15 Jan 2025' },
     { name: 'Bonafide Certificate', status: 'uploaded', lastModified: '10 Feb 2025' },
@@ -1980,32 +2094,36 @@ function CertificateConfigModule({ theme }: { theme: Theme }) {
     'Approval required before generation': true,
     'Duplicate certificate tracking': true,
   });
-  const [approvalWorkflow] = useState(['Class Teacher Initiates', 'Admin Verifies Details', 'Principal Approves', 'Certificate Generated']);
+  const [approvalWorkflow, setApprovalWorkflow] = useState(['Class Teacher Initiates', 'Admin Verifies Details', 'Principal Approves', 'Certificate Generated']);
 
   return (
     <div className="space-y-4">
       <ModuleHeader title="Certificate Configuration" subtitle="Templates, auto-numbering, digital signatures, and approval workflow" theme={theme} />
 
-      <SectionCard title="Certificate Templates" subtitle="Upload and manage certificate templates" theme={theme}>
+      <SectionCard title="Certificate Templates" subtitle="Edit name, upload template, or delete — add new certificate types" theme={theme}>
         <div className="space-y-2">
           {templates.map((t, i) => (
             <div key={i} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <div className="flex items-center gap-2">
-                <Award size={14} className={t.status === 'uploaded' ? 'text-emerald-500' : 'text-slate-400'} />
-                <div>
-                  <p className={`text-xs font-bold ${theme.highlight}`}>{t.name}</p>
-                  {t.lastModified !== '-' && <p className={`text-[10px] ${theme.iconColor}`}>Last modified: {t.lastModified}</p>}
-                </div>
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <Award size={14} className={`${t.status === 'uploaded' ? 'text-emerald-500' : 'text-slate-400'} shrink-0`} />
+                <input value={t.name} onChange={e => { const n = [...templates]; n[i] = { ...n[i], name: e.target.value }; setTemplates(n); }}
+                  className={`flex-1 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} />
               </div>
-              <div className="flex items-center gap-2">
-                <span className={`text-[9px] px-2 py-0.5 rounded-lg font-bold ${t.status === 'uploaded' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
-                  {t.status === 'uploaded' ? 'UPLOADED' : 'PENDING'}
-                </span>
+              <div className="flex items-center gap-2 ml-2">
+                <select value={t.status} onChange={e => { const n = [...templates]; n[i] = { ...n[i], status: e.target.value }; setTemplates(n); }}
+                  className={`text-[9px] px-1.5 py-0.5 rounded-lg font-bold ${t.status === 'uploaded' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'} border-0 outline-none`}>
+                  <option value="uploaded">UPLOADED</option>
+                  <option value="pending">PENDING</option>
+                </select>
                 <button className={`p-1 rounded-lg ${theme.buttonHover}`}><Upload size={12} className={theme.iconColor} /></button>
-                {t.status === 'uploaded' && <button className={`p-1 rounded-lg ${theme.buttonHover}`}><Eye size={12} className={theme.iconColor} /></button>}
+                <button onClick={() => setTemplates(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={12} /></button>
               </div>
             </div>
           ))}
+          <button onClick={() => setTemplates(p => [...p, { name: '', status: 'pending', lastModified: '-' }])}
+            className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
+            <Plus size={12} /> Add Certificate Type
+          </button>
         </div>
       </SectionCard>
 
@@ -2021,14 +2139,20 @@ function CertificateConfigModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
 
-        <SectionCard title="Approval Workflow" subtitle="Steps before a certificate is generated" theme={theme}>
+        <SectionCard title="Approval Workflow" subtitle="Edit, reorder, or remove approval steps" theme={theme}>
           <div className="space-y-2">
             {approvalWorkflow.map((step, i) => (
-              <div key={i} className={`flex items-center gap-3 p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <span className={`text-[10px] w-6 h-6 rounded-full ${theme.primary} text-white flex items-center justify-center font-bold`}>{i + 1}</span>
-                <span className={`text-xs font-bold ${theme.highlight}`}>{step}</span>
+              <div key={i} className={`flex items-center gap-2 p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <span className={`text-[10px] w-6 h-6 rounded-full ${theme.primary} text-white flex items-center justify-center font-bold shrink-0`}>{i + 1}</span>
+                <input value={step} onChange={e => { const n = [...approvalWorkflow]; n[i] = e.target.value; setApprovalWorkflow(n); }}
+                  className={`flex-1 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} />
+                <button onClick={() => setApprovalWorkflow(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={10} /></button>
               </div>
             ))}
+            <button onClick={() => setApprovalWorkflow(p => [...p, ''])}
+              className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
+              <Plus size={12} /> Add Step
+            </button>
           </div>
         </SectionCard>
       </div>
@@ -2044,7 +2168,8 @@ function LibraryConfigModule({ theme }: { theme: Theme }) {
   const [libToggles, setLibToggles] = useState<Record<string, boolean>>({
     'Digital Library (eBooks)': false, 'Barcode/QR Scanning': true,
   });
-  const [categories] = useState(['Textbook', 'Reference', 'Fiction', 'Non-fiction', 'Periodical']);
+  const [categories, setCategories] = useState(['Textbook', 'Reference', 'Fiction', 'Non-fiction', 'Periodical']);
+  const [newCategory, setNewCategory] = useState('');
 
   return (
     <div className="space-y-4">
@@ -2077,11 +2202,20 @@ function LibraryConfigModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
       </div>
-      <SectionCard title="Book Categories" subtitle="Classification system for library catalogue" theme={theme}>
-        <div className="flex flex-wrap gap-2">
+      <SectionCard title="Book Categories" subtitle="Add or remove catalogue categories" theme={theme}>
+        <div className="flex flex-wrap gap-1.5 mb-3">
           {categories.map(c => (
-            <span key={c} className={`px-2.5 py-1.5 rounded-lg ${theme.secondaryBg} text-xs font-medium ${theme.highlight}`}>{c}</span>
+            <span key={c} className={`flex items-center gap-1 px-2.5 py-1 rounded-lg ${theme.secondaryBg} text-xs font-medium ${theme.highlight}`}>
+              {c}
+              <button onClick={() => setCategories(p => p.filter(x => x !== c))} className="text-red-400 hover:text-red-600"><X size={10} /></button>
+            </span>
           ))}
+        </div>
+        <div className="flex gap-2">
+          <input value={newCategory} onChange={e => setNewCategory(e.target.value)} placeholder="Add category..."
+            className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+          <button onClick={() => { if (newCategory.trim()) { setCategories(p => [...p, newCategory.trim()]); setNewCategory(''); } }}
+            className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}><Plus size={14} /></button>
         </div>
       </SectionCard>
     </div>
@@ -2156,7 +2290,8 @@ function HostelConfigModule({ theme }: { theme: Theme }) {
     'Mess Management': true, 'Visitor Log for Hostellers': true,
     'Fee Integration with Main Fee': true, 'Warden Assignment': true,
   });
-  const [roomTypes] = useState(['Single', 'Double', 'Dormitory']);
+  const [roomTypes, setRoomTypes] = useState(['Single', 'Double', 'Dormitory']);
+  const [newRoomType, setNewRoomType] = useState('');
 
   return (
     <div className="space-y-4">
@@ -2176,11 +2311,20 @@ function HostelConfigModule({ theme }: { theme: Theme }) {
             </div>
           </div>
         </SectionCard>
-        <SectionCard title="Room Types" subtitle="Available accommodation categories" theme={theme}>
-          <div className="flex flex-wrap gap-2">
+        <SectionCard title="Room Types" subtitle="Add or remove accommodation categories" theme={theme}>
+          <div className="flex flex-wrap gap-1.5 mb-3">
             {roomTypes.map(r => (
-              <span key={r} className={`px-3 py-2 rounded-xl ${theme.secondaryBg} text-xs font-bold ${theme.highlight}`}>{r}</span>
+              <span key={r} className={`flex items-center gap-1 px-3 py-1.5 rounded-xl ${theme.secondaryBg} text-xs font-bold ${theme.highlight}`}>
+                {r}
+                <button onClick={() => setRoomTypes(p => p.filter(x => x !== r))} className="text-red-400 hover:text-red-600"><X size={10} /></button>
+              </span>
             ))}
+          </div>
+          <div className="flex gap-2">
+            <input value={newRoomType} onChange={e => setNewRoomType(e.target.value)} placeholder="Add room type..."
+              className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+            <button onClick={() => { if (newRoomType.trim()) { setRoomTypes(p => [...p, newRoomType.trim()]); setNewRoomType(''); } }}
+              className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}><Plus size={14} /></button>
           </div>
         </SectionCard>
       </div>
@@ -2195,7 +2339,8 @@ function InventoryConfigModule({ theme }: { theme: Theme }) {
     'Barcode/QR Asset Tagging': true, 'Low Stock Alerts': true,
     'Depreciation Tracking': false,
   });
-  const [assetCategories] = useState(['Furniture', 'Electronics', 'Lab Equipment', 'Sports', 'Books', 'Vehicles']);
+  const [assetCategories, setAssetCategories] = useState(['Furniture', 'Electronics', 'Lab Equipment', 'Sports', 'Books', 'Vehicles']);
+  const [newAssetCat, setNewAssetCat] = useState('');
   const [autoApproveThreshold, setAutoApproveThreshold] = useState('5000');
 
   return (
@@ -2216,11 +2361,20 @@ function InventoryConfigModule({ theme }: { theme: Theme }) {
             </div>
           </div>
         </SectionCard>
-        <SectionCard title="Asset Categories" subtitle="Classification for inventory items" theme={theme}>
-          <div className="flex flex-wrap gap-2">
+        <SectionCard title="Asset Categories" subtitle="Add or remove inventory categories" theme={theme}>
+          <div className="flex flex-wrap gap-1.5 mb-3">
             {assetCategories.map(c => (
-              <span key={c} className={`px-2.5 py-1.5 rounded-lg ${theme.secondaryBg} text-xs font-medium ${theme.highlight}`}>{c}</span>
+              <span key={c} className={`flex items-center gap-1 px-2.5 py-1 rounded-lg ${theme.secondaryBg} text-xs font-medium ${theme.highlight}`}>
+                {c}
+                <button onClick={() => setAssetCategories(p => p.filter(x => x !== c))} className="text-red-400 hover:text-red-600"><X size={10} /></button>
+              </span>
             ))}
+          </div>
+          <div className="flex gap-2">
+            <input value={newAssetCat} onChange={e => setNewAssetCat(e.target.value)} placeholder="Add category..."
+              className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+            <button onClick={() => { if (newAssetCat.trim()) { setAssetCategories(p => [...p, newAssetCat.trim()]); setNewAssetCat(''); } }}
+              className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}><Plus size={14} /></button>
           </div>
         </SectionCard>
       </div>
@@ -2266,7 +2420,7 @@ function ComplianceConfigModule({ theme }: { theme: Theme }) {
   const [compToggles, setCompToggles] = useState<Record<string, boolean>>({
     'Auto-collect Data from Modules': true, 'Document Checklist': true,
   });
-  const [domains] = useState([
+  const [domains, setDomains] = useState([
     { name: 'Curricular Aspects', score: '3.5/4' },
     { name: 'Teaching-Learning', score: '3.2/4' },
     { name: 'Infrastructure', score: '3.0/4' },
@@ -2296,14 +2450,21 @@ function ComplianceConfigModule({ theme }: { theme: Theme }) {
             ))}
           </div>
         </SectionCard>
-        <SectionCard title="Compliance Domains" subtitle="Domain-wise quality scores" theme={theme}>
+        <SectionCard title="Compliance Domains" subtitle="Edit domain names and scores — add or remove" theme={theme}>
           <div className="space-y-2">
             {domains.map((d, i) => (
-              <div key={i} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <span className={`text-xs font-medium ${theme.highlight}`}>{d.name}</span>
-                <span className={`text-xs font-bold ${theme.iconColor}`}>{d.score}</span>
+              <div key={i} className={`flex items-center gap-2 p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <input value={d.name} onChange={e => { const n = [...domains]; n[i] = { ...n[i], name: e.target.value }; setDomains(n); }}
+                  className={`flex-1 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-medium ${theme.highlight} outline-none`} />
+                <input value={d.score} onChange={e => { const n = [...domains]; n[i] = { ...n[i], score: e.target.value }; setDomains(n); }}
+                  className={`w-20 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center font-bold ${theme.iconColor} outline-none`} />
+                <button onClick={() => setDomains(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={10} /></button>
               </div>
             ))}
+            <button onClick={() => setDomains(p => [...p, { name: '', score: '' }])}
+              className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
+              <Plus size={12} /> Add Domain
+            </button>
           </div>
         </SectionCard>
       </div>
@@ -2365,7 +2526,8 @@ function EnquiryAdmissionConfigModule({ theme }: { theme: Theme }) {
     'Auto-generate Admission Number': true, 'Document Upload Required': true,
   });
   const [photoMandatory, setPhotoMandatory] = useState(true);
-  const [leadSources] = useState(['Website', 'Walk-in', 'Phone', 'Social Media', 'Referral', 'Fair']);
+  const [leadSources, setLeadSources] = useState(['Website', 'Walk-in', 'Phone', 'Social Media', 'Referral', 'Fair']);
+  const [newLeadSource, setNewLeadSource] = useState('');
 
   return (
     <div className="space-y-4">
@@ -2396,13 +2558,20 @@ function EnquiryAdmissionConfigModule({ theme }: { theme: Theme }) {
             </div>
           </div>
         </SectionCard>
-        <SectionCard title="Lead Sources" subtitle="Where enquiries come from (multi-select)" theme={theme}>
-          <div className="flex flex-wrap gap-2">
+        <SectionCard title="Lead Sources" subtitle="Add or remove enquiry sources" theme={theme}>
+          <div className="flex flex-wrap gap-1.5 mb-3">
             {leadSources.map(s => (
-              <span key={s} className={`px-2.5 py-1.5 rounded-lg ${theme.secondaryBg} text-xs font-medium ${theme.highlight} flex items-center gap-1`}>
+              <span key={s} className={`flex items-center gap-1 px-2.5 py-1 rounded-lg ${theme.secondaryBg} text-xs font-medium ${theme.highlight}`}>
                 <CheckCircle size={10} className="text-emerald-500" /> {s}
+                <button onClick={() => setLeadSources(p => p.filter(x => x !== s))} className="text-red-400 hover:text-red-600 ml-1"><X size={10} /></button>
               </span>
             ))}
+          </div>
+          <div className="flex gap-2">
+            <input value={newLeadSource} onChange={e => setNewLeadSource(e.target.value)} placeholder="Add source..."
+              className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+            <button onClick={() => { if (newLeadSource.trim()) { setLeadSources(p => [...p, newLeadSource.trim()]); setNewLeadSource(''); } }}
+              className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}><Plus size={14} /></button>
           </div>
         </SectionCard>
       </div>
