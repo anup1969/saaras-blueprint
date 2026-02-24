@@ -9,6 +9,7 @@ import {
   ArrowRight, CheckCircle, Clock, Hammer, Heart, Calendar
 } from 'lucide-react';
 import { type Theme } from '@/lib/themes';
+import { canAccessDashboard, type TeamMember } from '@/lib/auth';
 
 const iconMap: Record<string, any> = {
   Building2, GraduationCap, BookOpen, User, Users, Shield, Eye,
@@ -26,7 +27,7 @@ const preschoolExtraStakeholders = [
 // IDs to hide in preschool mode
 const preschoolHiddenIds = ['student'];
 
-function HomePage({ theme, isPreschool }: { theme?: Theme; isPreschool?: boolean }) {
+function HomePage({ theme, isPreschool, currentUser }: { theme?: Theme; isPreschool?: boolean; currentUser?: TeamMember }) {
   if (!theme) return null;
 
   // Preschool mode: rename some, hide Student, add 3 new roles
@@ -35,7 +36,7 @@ function HomePage({ theme, isPreschool }: { theme?: Theme; isPreschool?: boolean
     'vice-principal': 'Vice Principal / Coordinator',
   };
 
-  const displayStakeholders = isPreschool
+  const allStakeholders = isPreschool
     ? [
         ...stakeholders
           .filter(s => !preschoolHiddenIds.includes(s.id))
@@ -43,6 +44,11 @@ function HomePage({ theme, isPreschool }: { theme?: Theme; isPreschool?: boolean
         ...preschoolExtraStakeholders,
       ]
     : stakeholders;
+
+  // Filter by user access — admins see all, non-admins see only allowed
+  const displayStakeholders = currentUser
+    ? allStakeholders.filter(s => canAccessDashboard(currentUser, s.id))
+    : allStakeholders;
 
   return (
     <div className="space-y-8">

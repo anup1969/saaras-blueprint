@@ -2,27 +2,34 @@
 
 import { useState } from 'react';
 import { authenticate, loginUser, type TeamMember } from '@/lib/auth';
-import { LogIn, Eye, EyeOff, Shield, User, Lock } from 'lucide-react';
+import { LogIn, Eye, EyeOff, Shield, User, Lock, Loader2 } from 'lucide-react';
 
 export default function LoginPage({ onLogin }: { onLogin: (user: TeamMember) => void }) {
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     setError('');
     if (!userId.trim() || !password.trim()) {
       setError('Please enter both User ID and Password.');
       return;
     }
-    const member = authenticate(userId.trim().toLowerCase(), password);
-    if (member) {
-      loginUser(member);
-      onLogin(member);
-    } else {
-      setError('Invalid User ID or Password.');
+    setLoading(true);
+    try {
+      const member = await authenticate(userId.trim().toLowerCase(), password);
+      if (member) {
+        loginUser(member);
+        onLogin(member);
+      } else {
+        setError('Invalid User ID or Password.');
+      }
+    } catch {
+      setError('Login failed. Please try again.');
     }
+    setLoading(false);
   };
 
   return (
@@ -53,6 +60,7 @@ export default function LoginPage({ onLogin }: { onLogin: (user: TeamMember) => 
               placeholder="Enter your user ID"
               className="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl pl-10 pr-4 py-3 outline-none focus:border-purple-500 transition-colors"
               autoFocus
+              disabled={loading}
             />
           </div>
 
@@ -68,6 +76,7 @@ export default function LoginPage({ onLogin }: { onLogin: (user: TeamMember) => 
               onKeyDown={e => e.key === 'Enter' && handleLogin()}
               placeholder="Enter your password"
               className="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl pl-10 pr-10 py-3 outline-none focus:border-purple-500 transition-colors"
+              disabled={loading}
             />
             <button
               onClick={() => setShowPassword(!showPassword)}
@@ -81,10 +90,11 @@ export default function LoginPage({ onLogin }: { onLogin: (user: TeamMember) => 
 
           <button
             onClick={handleLogin}
-            disabled={!userId.trim() || !password.trim()}
+            disabled={!userId.trim() || !password.trim() || loading}
             className="w-full py-3 bg-purple-600 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
-            <LogIn size={16} /> Sign In
+            {loading ? <Loader2 size={16} className="animate-spin" /> : <LogIn size={16} />}
+            {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </div>
 

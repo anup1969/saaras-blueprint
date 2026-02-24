@@ -11,7 +11,7 @@ interface FeedbackPosition {
   elementSelector: string;
 }
 
-export default function FeedbackSystem({ currentPage, currentUser }: { currentPage: string; currentUser: string }) {
+export default function FeedbackSystem({ currentPage, currentUser, isAdmin = false }: { currentPage: string; currentUser: string; isAdmin?: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
   const [position, setPosition] = useState<FeedbackPosition | null>(null);
   const [feedbackType, setFeedbackType] = useState<string>('comment');
@@ -141,8 +141,8 @@ export default function FeedbackSystem({ currentPage, currentUser }: { currentPa
 
   // Load feedback for current page
   useEffect(() => {
-    getFeedback(currentPage).then(setFeedbackItems).catch(console.error);
-  }, [currentPage]);
+    getFeedback(currentPage, isAdmin).then(setFeedbackItems).catch(console.error);
+  }, [currentPage, isAdmin]);
 
   const openCount = feedbackItems.filter(f => f.status === 'open').length;
 
@@ -180,13 +180,13 @@ export default function FeedbackSystem({ currentPage, currentUser }: { currentPa
         remark: remark.trim(),
         submitted_by: currentUser,
         priority: priority as FeedbackItem['priority'],
-      });
+      }, isAdmin);
       setIsOpen(false);
       setPosition(null);
-      setToast('Feedback submitted!');
+      setToast(isAdmin ? 'Feedback submitted!' : 'Submitted for review');
       setTimeout(() => setToast(''), 2500);
       // Refresh
-      const items = await getFeedback(currentPage);
+      const items = await getFeedback(currentPage, isAdmin);
       setFeedbackItems(items);
     } catch (err) {
       console.error(err);
@@ -234,6 +234,13 @@ export default function FeedbackSystem({ currentPage, currentUser }: { currentPa
                       'bg-slate-700 text-slate-400'
                     }`}>{item.priority}</span>
                     <span className="text-purple-400 font-bold">{item.feedback_type}</span>
+                    {item.moderation_status && item.moderation_status !== 'approved' && (
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                        item.moderation_status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
+                        item.moderation_status === 'rejected' ? 'bg-red-500/20 text-red-400' :
+                        'bg-blue-500/20 text-blue-400'
+                      }`}>{item.moderation_status === 'modified' ? 'edited' : item.moderation_status}</span>
+                    )}
                   </div>
                   <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
                     item.status === 'open' ? 'bg-amber-500/20 text-amber-400' :

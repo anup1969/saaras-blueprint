@@ -9,10 +9,10 @@ import {
   Home, ChevronLeft, Menu, LogOut, MessageSquare, Bell,
   FileText, CheckCircle, Calendar, AlertTriangle, ClipboardCheck,
   Palette, Maximize2, Minimize2, MessageCircle, X, Send, Search, Heart, ToggleLeft, ToggleRight, Settings,
-  Handshake
+  Handshake, ShieldAlert, Lock as LockIcon
 } from 'lucide-react';
 import { themes, VIVID_VARIANTS, type Theme } from '@/lib/themes';
-import { getLoggedInUser, logoutUser, type TeamMember } from '@/lib/auth';
+import { getLoggedInUser, logoutUser, canAccessDashboard, type TeamMember } from '@/lib/auth';
 import FeedbackSystem from './FeedbackSystem';
 import LoginPage from './LoginPage';
 import TaskTrackerPopup from './TaskTrackerPopup';
@@ -168,7 +168,17 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
     });
   };
 
-  const navItems = isPreschool ? preschoolNavItems : regularNavItems;
+  const allNavItems = isPreschool ? preschoolNavItems : regularNavItems;
+
+  // Filter nav items by user access — Home is always visible
+  const navItems = allNavItems.filter(item =>
+    item.href === '/' || canAccessDashboard(currentUser, item.href.replace(/^\//, ''))
+  );
+
+  // Check if current route is unauthorized
+  const currentDashId = pathname === '/' ? '/' : pathname.replace(/^\//, '');
+  const isAdminRoute = pathname === '/blueprint-admin';
+  const isUnauthorized = !isAdminRoute && pathname !== '/' && !canAccessDashboard(currentUser, currentDashId);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -285,6 +295,23 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
               </Link>
             );
           })}
+          {/* Admin Panel — only for admins */}
+          {currentUser?.is_admin && (
+            <>
+              <div className={`my-2 border-t ${theme.border}`} />
+              <Link
+                href="/blueprint-admin"
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                  pathname === '/blueprint-admin'
+                    ? `bg-amber-600 text-white`
+                    : `text-amber-500 ${theme.buttonHover}`
+                }`}
+              >
+                <ShieldAlert size={14} />
+                Admin Panel
+              </Link>
+            </>
+          )}
         </nav>
 
         {/* User info */}
@@ -314,7 +341,7 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
               {sidebarOpen ? <ChevronLeft size={14} className={theme.iconColor} /> : <Menu size={14} className={theme.iconColor} />}
             </button>
             <span className={`text-xs ${theme.iconColor}`}>
-              {pathname === '/' ? 'All Dashboards' : navItems.find(n => pathname.startsWith(n.href) && n.href !== '/')?.label || pathname}
+              {pathname === '/' ? 'All Dashboards' : pathname === '/blueprint-admin' ? 'Admin Panel' : navItems.find(n => pathname.startsWith(n.href) && n.href !== '/')?.label || pathname}
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -455,12 +482,27 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
 
         {/* Page content */}
         <div className="p-6">
-          {React.Children.map(children, child => {
-            if (React.isValidElement(child)) {
-              return React.cloneElement(child as React.ReactElement<{ theme: Theme; themeIdx: number; onThemeChange: (idx: number) => void; isPreschool: boolean }>, { theme, themeIdx, onThemeChange: setThemeIdx, isPreschool });
-            }
-            return child;
-          })}
+          {isUnauthorized ? (
+            <div className="flex flex-col items-center justify-center py-32 text-center">
+              <div className={`w-16 h-16 rounded-2xl ${theme.secondaryBg} flex items-center justify-center mb-4`}>
+                <LockIcon size={28} className="text-red-400" />
+              </div>
+              <h2 className={`text-xl font-bold ${theme.highlight} mb-2`}>Access Denied</h2>
+              <p className={`text-sm ${theme.iconColor} max-w-md`}>
+                You don&apos;t have permission to view this dashboard. Contact your admin to request access.
+              </p>
+              <Link href="/" className={`mt-6 px-4 py-2 rounded-xl text-sm font-bold ${theme.primary} text-white hover:opacity-90 transition-all`}>
+                Back to Home
+              </Link>
+            </div>
+          ) : (
+            React.Children.map(children, child => {
+              if (React.isValidElement(child)) {
+                return React.cloneElement(child as React.ReactElement<{ theme: Theme; themeIdx: number; onThemeChange: (idx: number) => void; isPreschool: boolean; currentUser: TeamMember }>, { theme, themeIdx, onThemeChange: setThemeIdx, isPreschool, currentUser });
+              }
+              return child;
+            })
+          )}
         </div>
       </main>
 
@@ -553,7 +595,7 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
       />
 
       {/* Feedback system */}
-      <FeedbackSystem currentPage={pathname} currentUser={currentUser.name} />
+      <FeedbackSystem currentPage={pathname} currentUser={currentUser.name} isAdmin={currentUser.is_admin} />
     </div>
   );
 }
