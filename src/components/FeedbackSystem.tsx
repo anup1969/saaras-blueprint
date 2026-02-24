@@ -198,8 +198,8 @@ export default function FeedbackSystem({ currentPage, currentUser, isAdmin = fal
 
   return (
     <>
-      {/* Shift+Click hint */}
-      <div className="fixed bottom-4 left-4 z-40 flex items-center gap-2">
+      {/* Shift+Click hint — offset to avoid overlapping sidebar logout */}
+      <div className="fixed bottom-4 left-60 z-40 flex items-center gap-2">
         <button
           onClick={() => setShowPanel(!showPanel)}
           className="flex items-center gap-2 px-3 py-2 bg-purple-600 text-white rounded-xl text-xs font-bold shadow-lg hover:bg-purple-700 transition-all"
@@ -214,7 +214,7 @@ export default function FeedbackSystem({ currentPage, currentUser, isAdmin = fal
 
       {/* Feedback panel (all remarks for this page) */}
       {showPanel && (
-        <div className="fixed bottom-14 left-4 z-50 w-96 max-h-[60vh] bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden">
+        <div className="fixed bottom-14 left-60 z-50 w-96 max-h-[60vh] bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700">
             <h3 className="text-sm font-bold text-white">Feedback — {currentPage}</h3>
             <button onClick={() => setShowPanel(false)} className="text-slate-400 hover:text-white"><X size={16} /></button>
