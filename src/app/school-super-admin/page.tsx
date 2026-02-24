@@ -1411,9 +1411,10 @@ function TransportConfigModule({ theme }: { theme: Theme }) {
           <SectionCard title="Transport Fee Model" subtitle="How transport fees are calculated" theme={theme}>
             <div className="space-y-2">
               {[
-                { id: 'flat', name: 'Flat Rate', desc: 'Same fee for all routes' },
-                { id: 'route-wise', name: 'Route-wise', desc: 'Different fee per route' },
-                { id: 'distance-based', name: 'Distance-based', desc: 'Fee based on km from school' },
+                { id: 'flat', name: 'Flat Rate', desc: 'Same fee for all routes — simplest to manage' },
+                { id: 'route-wise', name: 'Route-wise', desc: 'Different fee per route based on route length/area' },
+                { id: 'route-stop-wise', name: 'Route + Stop-wise', desc: 'Fee varies per stop on each route — closer stops pay less, farther stops pay more' },
+                { id: 'distance-based', name: 'Distance-based', desc: 'Fee calculated by km distance of student\'s stop from school' },
               ].map(m => (
                 <button key={m.id} onClick={() => setFeeModel(m.id)}
                   className={`w-full text-left p-2.5 rounded-xl border transition-all ${feeModel === m.id ? `border-2 ${theme.primary} text-white` : `${theme.secondaryBg} ${theme.border}`}`}>
