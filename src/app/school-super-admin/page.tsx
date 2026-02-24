@@ -1148,8 +1148,17 @@ function TransportConfigModule({ theme }: { theme: Theme }) {
   const [transportPolicy, setTransportPolicy] = useState<'optional' | 'mandatory'>('optional');
   const [transportOperation, setTransportOperation] = useState<'in-house' | 'contract'>('in-house');
   const [contractorName, setContractorName] = useState('');
+  const [feeCollectedBy, setFeeCollectedBy] = useState<'school' | 'contractor'>('school');
+  const [ladyAttendant, setLadyAttendant] = useState(false);
+  const [driverAssistant, setDriverAssistant] = useState(false);
+  const [parentGpsTracking, setParentGpsTracking] = useState<'none' | 'normal' | 'premium'>('normal');
+  const [premiumAlerts, setPremiumAlerts] = useState<Record<string, boolean>>({
+    'Trip Start Alert': true, 'Proximity Alert (nearing stop)': true,
+    'Reach School Confirmation': true, 'Student Board/Alight Alert': true,
+    'Delay Alert (> 10 min late)': true, 'Route Deviation Alert': false,
+  });
   const [safetyToggles, setSafetyToggles] = useState<Record<string, boolean>>({
-    'GPS Live Tracking': true, 'Parent App Tracking': true, 'RFID Student Tap': false,
+    'GPS Live Tracking': true, 'RFID Student Tap': false,
     'Speed Alert': true, 'SOS Button in Vehicle': true,
     'CCTV Recording': false, 'Route Deviation Alert': true, 'Geo-fence Alert': true,
   });
@@ -1203,6 +1212,72 @@ function TransportConfigModule({ theme }: { theme: Theme }) {
               <div className="mt-3">
                 <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Contractor Name</p>
                 <InputField value={contractorName} onChange={setContractorName} theme={theme} placeholder="Enter transport contractor name" />
+              </div>
+            )}
+          </div>
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Transport Fee Collection</p>
+            <p className={`text-[10px] ${theme.iconColor} mb-2`}>Who collects the transport fees from parents?</p>
+            <div className="flex gap-2">
+              {[
+                { id: 'school' as const, label: 'School Collects', desc: 'School collects transport fees as part of the school fee invoice' },
+                { id: 'contractor' as const, label: 'Contractor / Transporter Collects', desc: 'Transport provider collects fees directly from parents' },
+              ].map(opt => (
+                <button key={opt.id} onClick={() => setFeeCollectedBy(opt.id)}
+                  className={`flex-1 text-left p-2.5 rounded-xl border transition-all ${feeCollectedBy === opt.id ? `border-2 ${theme.primary} text-white` : `${theme.secondaryBg} ${theme.border}`}`}>
+                  <p className={`text-xs font-bold ${feeCollectedBy === opt.id ? '' : theme.highlight}`}>{opt.label}</p>
+                  <p className={`text-[10px] ${feeCollectedBy === opt.id ? 'text-white/80' : theme.iconColor}`}>{opt.desc}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Vehicle Attendant Policy</p>
+            <p className={`text-[10px] ${theme.iconColor} mb-2`}>Does your school provide attendants along with the driver in school vehicles?</p>
+            <div className="space-y-2">
+              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <div className="flex-1 mr-3">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>Lady Attendant</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>A female attendant accompanies students on the bus for safety (recommended for younger students)</p>
+                </div>
+                <SSAToggle on={ladyAttendant} onChange={() => setLadyAttendant(!ladyAttendant)} theme={theme} />
+              </div>
+              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <div className="flex-1 mr-3">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>Driver Assistant</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>A helper/assistant accompanies the driver to manage boarding, alighting, and discipline</p>
+                </div>
+                <SSAToggle on={driverAssistant} onChange={() => setDriverAssistant(!driverAssistant)} theme={theme} />
+              </div>
+            </div>
+          </div>
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Parent GPS Tracking Level</p>
+            <p className={`text-[10px] ${theme.iconColor} mb-2`}>What level of GPS tracking do you provide to parents via the app?</p>
+            <div className="flex gap-2">
+              {[
+                { id: 'none' as const, label: 'No Tracking', desc: 'Parents do not get GPS tracking access' },
+                { id: 'normal' as const, label: 'Normal Tracking', desc: 'Parents see live bus location on map' },
+                { id: 'premium' as const, label: 'Premium Tracking', desc: 'Live location + alerts (trip start, proximity, attendance)' },
+              ].map(opt => (
+                <button key={opt.id} onClick={() => setParentGpsTracking(opt.id)}
+                  className={`flex-1 text-left p-2.5 rounded-xl border transition-all ${parentGpsTracking === opt.id ? `border-2 ${theme.primary} text-white` : `${theme.secondaryBg} ${theme.border}`}`}>
+                  <p className={`text-xs font-bold ${parentGpsTracking === opt.id ? '' : theme.highlight}`}>{opt.label}</p>
+                  <p className={`text-[10px] ${parentGpsTracking === opt.id ? 'text-white/80' : theme.iconColor}`}>{opt.desc}</p>
+                </button>
+              ))}
+            </div>
+            {parentGpsTracking === 'premium' && (
+              <div className="mt-3">
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Premium Alert Types — select which alerts parents receive</p>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {Object.entries(premiumAlerts).map(([alert, enabled]) => (
+                    <div key={alert} className={`flex items-center justify-between p-2 rounded-xl ${theme.secondaryBg}`}>
+                      <span className={`text-[11px] ${theme.highlight}`}>{alert}</span>
+                      <SSAToggle on={enabled} onChange={() => setPremiumAlerts(p => ({ ...p, [alert]: !p[alert] }))} theme={theme} />
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
