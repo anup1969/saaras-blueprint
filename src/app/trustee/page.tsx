@@ -105,8 +105,8 @@ function DashboardView({ theme, setActiveModule }: { theme: Theme; setActiveModu
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className={`text-xl font-bold ${theme.highlight}`}>Governance Dashboard</h2>
-          <p className={`text-xs ${theme.iconColor} mt-1`}>Trust-level overview — Academic Year 2025-26</p>
+          <h2 className={`text-xl font-bold ${theme.highlight}`}>Hello, Mr. Jayanti</h2>
+          <p className={`text-xs ${theme.iconColor} mt-1`}>Governance Dashboard — Trust-level overview — Academic Year 2025-26</p>
         </div>
         <button onClick={() => setActiveModule('profile')} title="My Profile" className={`w-9 h-9 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold hover:opacity-90 transition-opacity`}>JS</button>
       </div>
