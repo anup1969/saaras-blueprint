@@ -13,7 +13,7 @@ import {
   Eye, Edit, Trash2, Phone, Clock, Shield, AlertTriangle, CheckCircle, Navigation,
   Fuel, Calendar, FileText, IndianRupee, User, MapPinned, CircleDot, Timer,
   Gauge, Bell, TrendingUp, ChevronDown, BarChart3, MessageSquare,
-  PanelLeftClose, PanelLeftOpen, Headphones, UserCheck, UserPlus, X
+  PanelLeftClose, PanelLeftOpen, Headphones, UserCheck, UserPlus, X, GraduationCap
 } from 'lucide-react';
 
 // ─── MODULE SIDEBAR ────────────────────────────────
@@ -25,6 +25,7 @@ const modules = [
   { id: 'drivers', label: 'Drivers', icon: Users },
   { id: 'lady-attendant', label: 'Lady Attendants', icon: UserCheck },
   { id: 'driver-assistant', label: 'Driver Assistants', icon: UserPlus },
+  { id: 'students', label: 'Students', icon: GraduationCap },
   { id: 'gps-tracking', label: 'GPS Tracking', icon: Navigation },
   { id: 'maintenance', label: 'Maintenance', icon: Wrench },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
@@ -117,16 +118,16 @@ const mockMaintenance = [
 ];
 
 const mockStops = [
-  { id: 'STP-001', name: 'Jodhpur Cross Roads', area: 'Satellite', routes: ['Route A'], landmark: 'Near BRTS Stop', students: 8 },
-  { id: 'STP-002', name: 'Satellite Circle', area: 'Satellite', routes: ['Route A'], landmark: 'Opposite Rajpath Club', students: 6 },
-  { id: 'STP-003', name: 'Prahlad Nagar Garden', area: 'Prahlad Nagar', routes: ['Route B'], landmark: 'Garden main gate', students: 7 },
-  { id: 'STP-004', name: 'Thaltej Cross Roads', area: 'Thaltej', routes: ['Route B'], landmark: 'Near D-Mart', students: 5 },
-  { id: 'STP-005', name: 'Bodakdev Circle', area: 'Bodakdev', routes: ['Route C'], landmark: 'Circle main road', students: 6 },
-  { id: 'STP-006', name: 'Isanpur Circle', area: 'Isanpur', routes: ['Route D'], landmark: 'Near petrol pump', students: 8 },
-  { id: 'STP-007', name: 'Paldi Cross Roads', area: 'Paldi', routes: ['Route E'], landmark: 'Paldi bus stop', students: 5 },
-  { id: 'STP-008', name: 'Motera Stadium', area: 'Motera', routes: ['Route F'], landmark: 'Gate 3 entrance', students: 9 },
-  { id: 'STP-009', name: 'Chandkheda BRTS', area: 'Chandkheda', routes: ['Route F'], landmark: 'BRTS platform', students: 7 },
-  { id: 'STP-010', name: 'Navrangpura BRTS', area: 'Navrangpura', routes: ['Route E'], landmark: 'Main BRTS stop', students: 4 },
+  { id: 'STP-001', name: 'Jodhpur Cross Roads', area: 'Satellite', routes: ['Route A'], landmark: 'Near BRTS Stop', students: 8, fee: 2500 },
+  { id: 'STP-002', name: 'Satellite Circle', area: 'Satellite', routes: ['Route A'], landmark: 'Opposite Rajpath Club', students: 6, fee: 2200 },
+  { id: 'STP-003', name: 'Prahlad Nagar Garden', area: 'Prahlad Nagar', routes: ['Route B'], landmark: 'Garden main gate', students: 7, fee: 2800 },
+  { id: 'STP-004', name: 'Thaltej Cross Roads', area: 'Thaltej', routes: ['Route B'], landmark: 'Near D-Mart', students: 5, fee: 3000 },
+  { id: 'STP-005', name: 'Bodakdev Circle', area: 'Bodakdev', routes: ['Route C'], landmark: 'Circle main road', students: 6, fee: 2000 },
+  { id: 'STP-006', name: 'Isanpur Circle', area: 'Isanpur', routes: ['Route D'], landmark: 'Near petrol pump', students: 8, fee: 3200 },
+  { id: 'STP-007', name: 'Paldi Cross Roads', area: 'Paldi', routes: ['Route E'], landmark: 'Paldi bus stop', students: 5, fee: 1800 },
+  { id: 'STP-008', name: 'Motera Stadium', area: 'Motera', routes: ['Route F'], landmark: 'Gate 3 entrance', students: 9, fee: 3500 },
+  { id: 'STP-009', name: 'Chandkheda BRTS', area: 'Chandkheda', routes: ['Route F'], landmark: 'BRTS platform', students: 7, fee: 3000 },
+  { id: 'STP-010', name: 'Navrangpura BRTS', area: 'Navrangpura', routes: ['Route E'], landmark: 'Main BRTS stop', students: 4, fee: 1500 },
 ];
 
 const mockLadyAttendants = [
@@ -188,6 +189,7 @@ function TransportHeadDashboard({ theme, themeIdx, onThemeChange }: { theme?: Th
         {activeModule === 'stops' && <StopsModule theme={theme} />}
         {activeModule === 'lady-attendant' && <LadyAttendantModule theme={theme} />}
         {activeModule === 'driver-assistant' && <DriverAssistantModule theme={theme} />}
+        {activeModule === 'students' && <TransportStudentsModule theme={theme} />}
         {activeModule === 'maintenance' && <MaintenanceModule theme={theme} />}
         {activeModule === 'communication' && <CommunicationModule theme={theme} />}
         {activeModule === 'support' && <SupportModule theme={theme} role="transport-head" />}
@@ -308,7 +310,7 @@ function RoutesModule({ theme }: { theme: Theme }) {
   const [formData, setFormData] = useState({
     name: '', area: '', type: 'both' as 'pickup' | 'drop' | 'both',
     vehicle: '', driver: '', ladyAttendant: '', driverAssistant: '',
-    startTime: '07:00', scheduleTime: '15:30', stops: [] as string[],
+    startTime: '07:00', scheduleTime: '15:30', stops: [] as string[], stopSearch: '',
   });
   const routeStudents = mockStudentsByRoute.find(r => r.route === selectedRouteStudents);
 
@@ -471,19 +473,24 @@ function RoutesModule({ theme }: { theme: Theme }) {
             </div>
             <div className="mt-4">
               <label className={`text-xs font-bold ${theme.iconColor} mb-2 block`}>Select Stops</label>
-              <div className="grid grid-cols-2 gap-2">
-                {mockStops.map(s => (
+              <input value={formData.stopSearch || ''} onChange={e => setFormData({...formData, stopSearch: e.target.value})} placeholder="Search stops by name, area, landmark..." className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight} mb-2`} />
+              <div className="grid grid-cols-2 gap-2 max-h-52 overflow-y-auto">
+                {mockStops.filter(s => {
+                  const q = (formData.stopSearch || '').toLowerCase();
+                  return !q || s.name.toLowerCase().includes(q) || s.area.toLowerCase().includes(q) || s.landmark.toLowerCase().includes(q);
+                }).map(s => (
                   <label key={s.id} className={`flex items-center gap-2 p-2 rounded-lg ${theme.accentBg} border ${theme.border} cursor-pointer`}>
                     <input type="checkbox" checked={formData.stops.includes(s.id)} onChange={e => {
                       setFormData({...formData, stops: e.target.checked ? [...formData.stops, s.id] : formData.stops.filter(id => id !== s.id)});
                     }} className="rounded" />
-                    <div>
+                    <div className="flex-1 min-w-0">
                       <p className={`text-xs font-bold ${theme.highlight}`}>{s.name}</p>
-                      <p className={`text-[10px] ${theme.iconColor}`}>{s.area} &bull; {s.landmark}</p>
+                      <p className={`text-[10px] ${theme.iconColor}`}>{s.area} &bull; {s.landmark} &bull; <span className="font-bold">{'\u20B9'}{s.fee}/mo</span></p>
                     </div>
                   </label>
                 ))}
               </div>
+              {formData.stops.length > 0 && <p className={`text-[10px] ${theme.primaryText} mt-1 font-bold`}>{formData.stops.length} stop(s) selected</p>}
             </div>
             <div className="flex justify-end gap-2 mt-6">
               <button onClick={() => setShowAddRoute(false)} className={`px-4 py-2 rounded-xl border ${theme.border} text-xs font-bold ${theme.iconColor}`}>Cancel</button>
@@ -828,7 +835,7 @@ function StopsModule({ theme }: { theme: Theme }) {
         <button className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold ${theme.iconColor} flex items-center gap-1`}><Filter size={12} /> Filter</button>
       </div>
       <DataTable
-        headers={['Stop ID', 'Stop Name', 'Area', 'Landmark', 'Routes', 'Students', '']}
+        headers={['Stop ID', 'Stop Name', 'Area', 'Landmark', 'Routes', 'Students', 'Fee/mo', '']}
         rows={mockStops.map(s => [
           <span key="id" className={`font-mono text-xs ${theme.primaryText}`}>{s.id}</span>,
           <span key="name" className={`font-bold ${theme.highlight}`}>{s.name}</span>,
@@ -836,6 +843,7 @@ function StopsModule({ theme }: { theme: Theme }) {
           <span key="landmark" className={`text-xs ${theme.iconColor}`}>{s.landmark}</span>,
           <span key="routes" className={`text-xs font-bold ${theme.primaryText}`}>{s.routes.join(', ')}</span>,
           <span key="students" className={`font-bold ${theme.highlight}`}>{s.students}</span>,
+          <span key="fee" className={`font-bold ${theme.primaryText}`}>{'\u20B9'}{s.fee.toLocaleString()}</span>,
           <div key="actions" className="flex gap-1">
             <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Edit size={12} className={theme.iconColor} /></button>
             <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Trash2 size={12} className={theme.iconColor} /></button>
@@ -860,6 +868,7 @@ function StopsModule({ theme }: { theme: Theme }) {
                   {mockRoutes.map(r => <option key={r.id} value={r.name}>{r.name} — {r.area}</option>)}
                 </select>
               </div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Monthly Transport Fee ({'\u20B9'})</label><input type="number" placeholder="e.g. 2500" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
             </div>
             <div className="flex justify-end gap-2 mt-4">
               <button onClick={() => setShowAddStop(false)} className={`px-4 py-2 rounded-xl border ${theme.border} text-xs font-bold ${theme.iconColor}`}>Cancel</button>
@@ -1006,6 +1015,102 @@ function DriverAssistantModule({ theme }: { theme: Theme }) {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── TRANSPORT STUDENTS MODULE ──────────────────────
+
+function TransportStudentsModule({ theme }: { theme: Theme }) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedRoute, setSelectedRoute] = useState('All');
+  const allStudents = mockStudentsByRoute.flatMap(r => r.students.map(s => {
+    const stop = mockStops.find(st => st.name === s.stop);
+    return { ...s, route: r.route, fee: stop?.fee || 0, stopId: stop?.id || '' };
+  }));
+  const filtered = allStudents.filter(s => {
+    const matchesRoute = selectedRoute === 'All' || s.route === selectedRoute;
+    const q = searchQuery.toLowerCase();
+    const matchesSearch = !q || s.name.toLowerCase().includes(q) || s.class.toLowerCase().includes(q) || s.stop.toLowerCase().includes(q) || s.id.toLowerCase().includes(q);
+    return matchesRoute && matchesSearch;
+  });
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className={`text-2xl font-bold ${theme.highlight}`}>Transport Students</h1>
+        <button className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}><Plus size={14} /> Enroll Student</button>
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard icon={GraduationCap} label="Total Enrolled" value={allStudents.length} color="bg-indigo-500" theme={theme} />
+        <StatCard icon={Route} label="Across Routes" value={mockStudentsByRoute.length} color="bg-emerald-500" theme={theme} />
+        <StatCard icon={IndianRupee} label="Total Monthly Fee" value={`\u20B9${(allStudents.reduce((s, st) => s + st.fee, 0) / 1000).toFixed(1)}K`} color="bg-amber-500" theme={theme} />
+        <StatCard icon={MapPinned} label="Stops Covered" value={new Set(allStudents.map(s => s.stop)).size} color="bg-purple-500" theme={theme} />
+      </div>
+
+      <div className={`flex gap-1 p-1 ${theme.secondaryBg} rounded-xl overflow-x-auto`}>
+        {['All', ...mockStudentsByRoute.map(r => r.route)].map(r => (
+          <button key={r} onClick={() => setSelectedRoute(r)}
+            className={`px-4 py-2 text-xs font-bold rounded-lg whitespace-nowrap transition-all ${
+              selectedRoute === r ? `${theme.cardBg} ${theme.highlight} shadow-sm` : theme.iconColor
+            }`}>{r} {r !== 'All' ? `(${mockStudentsByRoute.find(rt => rt.route === r)?.students.length || 0})` : `(${allStudents.length})`}</button>
+        ))}
+      </div>
+
+      <div className="flex gap-3">
+        <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} flex-1`}><Search size={12} className={theme.iconColor} /><input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search by name, class, stop, ID..." className={`bg-transparent text-xs ${theme.highlight} outline-none flex-1`} /></div>
+        <button className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold ${theme.iconColor} flex items-center gap-1`}><Filter size={12} /> Filter</button>
+        <button className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold ${theme.iconColor} flex items-center gap-1`}><Download size={12} /> Export</button>
+      </div>
+
+      <DataTable
+        headers={['Student ID', 'Name', 'Class', 'Route', 'Pickup Stop', 'Pickup Time', 'Fee/mo', 'Parent Phone', '']}
+        rows={filtered.map(s => [
+          <span key="id" className={`font-mono text-xs ${theme.primaryText}`}>{s.id}</span>,
+          <span key="name" className={`font-bold ${theme.highlight}`}>{s.name}</span>,
+          <span key="class" className={theme.iconColor}>{s.class}</span>,
+          <span key="route" className={`text-xs font-bold ${theme.primaryText}`}>{s.route}</span>,
+          <div key="stop" className="flex items-center gap-1"><MapPin size={10} className={theme.iconColor} /><span className={theme.iconColor}>{s.stop}</span></div>,
+          <span key="time" className={`font-bold ${theme.primaryText}`}>{s.pickup}</span>,
+          <span key="fee" className={`font-bold ${theme.highlight}`}>{s.fee > 0 ? `\u20B9${s.fee.toLocaleString()}` : <span className={`text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700`}>Not set</span>}</span>,
+          <span key="phone" className={theme.iconColor}>{s.phone}</span>,
+          <div key="actions" className="flex gap-1">
+            <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`} title="View details"><Eye size={12} className={theme.iconColor} /></button>
+            <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`} title="Edit fee"><Edit size={12} className={theme.iconColor} /></button>
+            <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`} title="Call parent"><Phone size={12} className={theme.iconColor} /></button>
+          </div>
+        ])}
+        theme={theme}
+      />
+
+      {/* Fee Summary Card */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Route-wise Fee Summary</h3>
+        <p className={`text-[10px] ${theme.iconColor} mb-3`}>Fees are assigned per stop (configured in SSA). Transport Head can override for special cases.</p>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {mockStudentsByRoute.map(r => {
+            const routeStudents = r.students.map(s => ({ ...s, fee: mockStops.find(st => st.name === s.stop)?.fee || 0 }));
+            const totalFee = routeStudents.reduce((sum, s) => sum + s.fee, 0);
+            return (
+              <div key={r.route} className={`p-3 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+                <p className={`text-xs font-bold ${theme.highlight}`}>{r.route}</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>{r.students.length} students</p>
+                <p className={`text-sm font-bold ${theme.primaryText} mt-1`}>{'\u20B9'}{totalFee.toLocaleString()}/mo</p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className={`flex items-center justify-between text-xs ${theme.iconColor} px-2`}>
+        <span>Showing {filtered.length} of {allStudents.length} students</span>
+        <div className="flex gap-1">
+          <button className={`px-3 py-1.5 rounded-lg ${theme.secondaryBg}`}>Previous</button>
+          <button className={`px-3 py-1.5 rounded-lg ${theme.primary} text-white`}>1</button>
+          <button className={`px-3 py-1.5 rounded-lg ${theme.secondaryBg}`}>Next</button>
+        </div>
+      </div>
     </div>
   );
 }
