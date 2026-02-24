@@ -13,17 +13,19 @@ import {
   Eye, Edit, Trash2, Phone, Clock, Shield, AlertTriangle, CheckCircle, Navigation,
   Fuel, Calendar, FileText, IndianRupee, User, MapPinned, CircleDot, Timer,
   Gauge, Bell, TrendingUp, ChevronDown, BarChart3, MessageSquare,
-  PanelLeftClose, PanelLeftOpen, Headphones
+  PanelLeftClose, PanelLeftOpen, Headphones, UserCheck, UserPlus, X
 } from 'lucide-react';
 
 // ─── MODULE SIDEBAR ────────────────────────────────
 const modules = [
   { id: 'dashboard', label: 'Dashboard', icon: Home },
   { id: 'routes', label: 'Routes', icon: Route },
+  { id: 'stops', label: 'Stops', icon: MapPinned },
   { id: 'vehicles', label: 'Vehicles', icon: Car },
   { id: 'drivers', label: 'Drivers', icon: Users },
+  { id: 'lady-attendant', label: 'Lady Attendants', icon: UserCheck },
+  { id: 'driver-assistant', label: 'Driver Assistants', icon: UserPlus },
   { id: 'gps-tracking', label: 'GPS Tracking', icon: Navigation },
-  { id: 'students-by-route', label: 'Students by Route', icon: MapPin },
   { id: 'maintenance', label: 'Maintenance', icon: Wrench },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
   { id: 'support', label: 'Support', icon: Headphones },
@@ -114,6 +116,37 @@ const mockMaintenance = [
   { id: 'MNT-006', vehicle: 'GJ-01-IJ-7890', type: 'GPS Device Repair', date: '2026-01-05', cost: '₹3,800', nextDue: 'N/A', vendor: 'TechTrack Solutions, CG Road', status: 'Completed' },
 ];
 
+const mockStops = [
+  { id: 'STP-001', name: 'Jodhpur Cross Roads', area: 'Satellite', routes: ['Route A'], landmark: 'Near BRTS Stop', students: 8 },
+  { id: 'STP-002', name: 'Satellite Circle', area: 'Satellite', routes: ['Route A'], landmark: 'Opposite Rajpath Club', students: 6 },
+  { id: 'STP-003', name: 'Prahlad Nagar Garden', area: 'Prahlad Nagar', routes: ['Route B'], landmark: 'Garden main gate', students: 7 },
+  { id: 'STP-004', name: 'Thaltej Cross Roads', area: 'Thaltej', routes: ['Route B'], landmark: 'Near D-Mart', students: 5 },
+  { id: 'STP-005', name: 'Bodakdev Circle', area: 'Bodakdev', routes: ['Route C'], landmark: 'Circle main road', students: 6 },
+  { id: 'STP-006', name: 'Isanpur Circle', area: 'Isanpur', routes: ['Route D'], landmark: 'Near petrol pump', students: 8 },
+  { id: 'STP-007', name: 'Paldi Cross Roads', area: 'Paldi', routes: ['Route E'], landmark: 'Paldi bus stop', students: 5 },
+  { id: 'STP-008', name: 'Motera Stadium', area: 'Motera', routes: ['Route F'], landmark: 'Gate 3 entrance', students: 9 },
+  { id: 'STP-009', name: 'Chandkheda BRTS', area: 'Chandkheda', routes: ['Route F'], landmark: 'BRTS platform', students: 7 },
+  { id: 'STP-010', name: 'Navrangpura BRTS', area: 'Navrangpura', routes: ['Route E'], landmark: 'Main BRTS stop', students: 4 },
+];
+
+const mockLadyAttendants = [
+  { id: 'LA-001', name: 'Sunita Devi', phone: '98250 77771', route: 'Route A', vehicle: 'GJ-01-AB-1234', experience: '5 yrs', aadhar: 'Verified', status: 'Active' },
+  { id: 'LA-002', name: 'Meena Sharma', phone: '98250 77772', route: 'Route B', vehicle: 'GJ-01-CD-5678', experience: '3 yrs', aadhar: 'Verified', status: 'Active' },
+  { id: 'LA-003', name: 'Kavita Patel', phone: '98250 77773', route: 'Route C', vehicle: 'GJ-01-EF-9012', experience: '7 yrs', aadhar: 'Verified', status: 'Active' },
+  { id: 'LA-004', name: 'Geeta Raval', phone: '98250 77774', route: 'Route D', vehicle: 'GJ-01-GH-3456', experience: '2 yrs', aadhar: 'Pending', status: 'Active' },
+  { id: 'LA-005', name: 'Priya Thakor', phone: '98250 77775', route: 'Route E', vehicle: 'GJ-01-IJ-7890', experience: '4 yrs', aadhar: 'Verified', status: 'On Leave' },
+  { id: 'LA-006', name: 'Bhavna Chauhan', phone: '98250 77776', route: 'Route F', vehicle: 'GJ-01-KL-2345', experience: '6 yrs', aadhar: 'Verified', status: 'Active' },
+];
+
+const mockDriverAssistants = [
+  { id: 'DA-001', name: 'Kishan Patel', phone: '98250 88881', route: 'Route A', vehicle: 'GJ-01-AB-1234', experience: '3 yrs', aadhar: 'Verified', status: 'Active' },
+  { id: 'DA-002', name: 'Raju Singh', phone: '98250 88882', route: 'Route B', vehicle: 'GJ-01-CD-5678', experience: '2 yrs', aadhar: 'Verified', status: 'Active' },
+  { id: 'DA-003', name: 'Mohan Raval', phone: '98250 88883', route: 'Route C', vehicle: 'GJ-01-EF-9012', experience: '5 yrs', aadhar: 'Verified', status: 'Active' },
+  { id: 'DA-004', name: 'Sunil Bhatt', phone: '98250 88884', route: 'Route D', vehicle: 'GJ-01-GH-3456', experience: '1 yr', aadhar: 'Pending', status: 'Active' },
+  { id: 'DA-005', name: 'Amit Joshi', phone: '98250 88885', route: 'Route E', vehicle: 'GJ-01-IJ-7890', experience: '4 yrs', aadhar: 'Verified', status: 'On Leave' },
+  { id: 'DA-006', name: 'Vijay Solanki', phone: '98250 88886', route: 'Route F', vehicle: 'GJ-01-KL-2345', experience: '6 yrs', aadhar: 'Verified', status: 'Active' },
+];
+
 // ─── MAIN COMPONENT ─────────────────────────────────
 
 function TransportHeadDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
@@ -152,7 +185,9 @@ function TransportHeadDashboard({ theme, themeIdx, onThemeChange }: { theme?: Th
         {activeModule === 'vehicles' && <VehiclesModule theme={theme} />}
         {activeModule === 'drivers' && <DriversModule theme={theme} />}
         {activeModule === 'gps-tracking' && <GPSTrackingModule theme={theme} />}
-        {activeModule === 'students-by-route' && <StudentsByRouteModule theme={theme} />}
+        {activeModule === 'stops' && <StopsModule theme={theme} />}
+        {activeModule === 'lady-attendant' && <LadyAttendantModule theme={theme} />}
+        {activeModule === 'driver-assistant' && <DriverAssistantModule theme={theme} />}
         {activeModule === 'maintenance' && <MaintenanceModule theme={theme} />}
         {activeModule === 'communication' && <CommunicationModule theme={theme} />}
         {activeModule === 'support' && <SupportModule theme={theme} role="transport-head" />}
@@ -268,61 +303,195 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
 
 function RoutesModule({ theme }: { theme: Theme }) {
   const [tab, setTab] = useState('All Routes');
+  const [showAddRoute, setShowAddRoute] = useState(false);
+  const [selectedRouteStudents, setSelectedRouteStudents] = useState('Route A');
+  const [formData, setFormData] = useState({
+    name: '', area: '', type: 'both' as 'pickup' | 'drop' | 'both',
+    vehicle: '', driver: '', ladyAttendant: '', driverAssistant: '',
+    startTime: '07:00', scheduleTime: '15:30', stops: [] as string[],
+  });
+  const routeStudents = mockStudentsByRoute.find(r => r.route === selectedRouteStudents);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className={`text-2xl font-bold ${theme.highlight}`}>Route Management</h1>
-        <button className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}><Plus size={14} /> Add Route</button>
+        <button onClick={() => setShowAddRoute(true)} className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}><Plus size={14} /> Add Route</button>
       </div>
-      <TabBar tabs={['All Routes', 'Active', 'Under Maintenance']} active={tab} onChange={setTab} theme={theme} />
-      <div className="flex gap-3">
-        <SearchBar placeholder="Search by route name, area, driver..." theme={theme} icon={Search} />
-        <button className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold ${theme.iconColor} flex items-center gap-1`}><Filter size={12} /> Filter</button>
-        <button className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold ${theme.iconColor} flex items-center gap-1`}><Download size={12} /> Export</button>
-      </div>
+      <TabBar tabs={['All Routes', 'Active', 'Under Maintenance', 'Students by Route']} active={tab} onChange={setTab} theme={theme} />
 
-      <DataTable
-        headers={['Route ID', 'Route Name', 'Area Coverage', 'Stops', 'Students', 'Driver', 'Vehicle', 'Timing', 'Status', '']}
-        rows={mockRoutes
-          .filter(r => tab === 'All Routes' || (tab === 'Active' && r.status === 'Active') || (tab === 'Under Maintenance' && r.status === 'Maintenance'))
-          .map(r => [
-            <span key="id" className={`font-mono text-xs ${theme.primaryText}`}>{r.id}</span>,
-            <span key="name" className={`font-bold ${theme.highlight}`}>{r.name}</span>,
-            <span key="area" className={theme.iconColor}>{r.area}</span>,
-            <span key="stops" className={theme.iconColor}>{r.stops}</span>,
-            <span key="students" className={`font-bold ${theme.highlight}`}>{r.students}</span>,
-            <span key="driver" className={theme.iconColor}>{r.driver}</span>,
-            <span key="vehicle" className={`font-mono text-xs ${theme.iconColor}`}>{r.vehicle}</span>,
-            <span key="timing" className={`text-xs ${theme.iconColor}`}>{r.timing}</span>,
-            <StatusBadge key="status" status={r.status} theme={theme} />,
-            <div key="actions" className="flex gap-1">
-              <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Eye size={12} className={theme.iconColor} /></button>
-              <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Edit size={12} className={theme.iconColor} /></button>
+      {tab === 'Students by Route' ? (
+        <div className="space-y-4">
+          <div className={`flex gap-1 p-1 ${theme.secondaryBg} rounded-xl overflow-x-auto`}>
+            {mockStudentsByRoute.map(r => (
+              <button key={r.route} onClick={() => setSelectedRouteStudents(r.route)}
+                className={`px-4 py-2 text-xs font-bold rounded-lg whitespace-nowrap transition-all ${
+                  selectedRouteStudents === r.route ? `${theme.cardBg} ${theme.highlight} shadow-sm` : theme.iconColor
+                }`}>{r.route} ({r.students.length})</button>
+            ))}
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard icon={MapPin} label="Route" value={selectedRouteStudents} color="bg-blue-500" theme={theme} />
+            <StatCard icon={Users} label="Students" value={routeStudents?.students.length || 0} color="bg-emerald-500" theme={theme} />
+            <StatCard icon={MapPinned} label="Stops" value={mockRoutes.find(r => r.name === selectedRouteStudents)?.stops || 0} color="bg-purple-500" theme={theme} />
+            <StatCard icon={Clock} label="Timing" value={mockRoutes.find(r => r.name === selectedRouteStudents)?.timing || '-'} color="bg-amber-500" theme={theme} />
+          </div>
+          {routeStudents && (
+            <DataTable
+              headers={['Student ID', 'Name', 'Class', 'Pickup Stop', 'Pickup Time', 'Parent Phone', '']}
+              rows={routeStudents.students.map(s => [
+                <span key="id" className={`font-mono text-xs ${theme.primaryText}`}>{s.id}</span>,
+                <span key="name" className={`font-bold ${theme.highlight}`}>{s.name}</span>,
+                <span key="class" className={theme.iconColor}>{s.class}</span>,
+                <div key="stop" className="flex items-center gap-1"><MapPin size={10} className={theme.iconColor} /><span className={theme.iconColor}>{s.stop}</span></div>,
+                <span key="time" className={`font-bold ${theme.primaryText}`}>{s.pickup}</span>,
+                <span key="phone" className={theme.iconColor}>{s.phone}</span>,
+                <div key="actions" className="flex gap-1">
+                  <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Eye size={12} className={theme.iconColor} /></button>
+                  <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Phone size={12} className={theme.iconColor} /></button>
+                </div>
+              ])}
+              theme={theme}
+            />
+          )}
+        </div>
+      ) : (
+        <>
+          <div className="flex gap-3">
+            <SearchBar placeholder="Search by route name, area, driver..." theme={theme} icon={Search} />
+            <button className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold ${theme.iconColor} flex items-center gap-1`}><Filter size={12} /> Filter</button>
+            <button className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold ${theme.iconColor} flex items-center gap-1`}><Download size={12} /> Export</button>
+          </div>
+          <DataTable
+            headers={['Route ID', 'Route Name', 'Area Coverage', 'Stops', 'Students', 'Driver', 'Vehicle', 'Timing', 'Status', '']}
+            rows={mockRoutes
+              .filter(r => tab === 'All Routes' || (tab === 'Active' && r.status === 'Active') || (tab === 'Under Maintenance' && r.status === 'Maintenance'))
+              .map(r => [
+                <span key="id" className={`font-mono text-xs ${theme.primaryText}`}>{r.id}</span>,
+                <span key="name" className={`font-bold ${theme.highlight}`}>{r.name}</span>,
+                <span key="area" className={theme.iconColor}>{r.area}</span>,
+                <span key="stops" className={theme.iconColor}>{r.stops}</span>,
+                <span key="students" className={`font-bold ${theme.highlight}`}>{r.students}</span>,
+                <span key="driver" className={theme.iconColor}>{r.driver}</span>,
+                <span key="vehicle" className={`font-mono text-xs ${theme.iconColor}`}>{r.vehicle}</span>,
+                <span key="timing" className={`text-xs ${theme.iconColor}`}>{r.timing}</span>,
+                <StatusBadge key="status" status={r.status} theme={theme} />,
+                <div key="actions" className="flex gap-1">
+                  <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Eye size={12} className={theme.iconColor} /></button>
+                  <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Edit size={12} className={theme.iconColor} /></button>
+                </div>
+              ])}
+            theme={theme}
+          />
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+            <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Route Map Overview</h3>
+            <div className={`w-full h-64 rounded-xl ${theme.secondaryBg} border ${theme.border} flex items-center justify-center`}>
+              <div className="text-center">
+                <MapPin size={32} className={theme.iconColor} />
+                <p className={`text-sm ${theme.iconColor} mt-2`}>Interactive Route Map</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Google Maps integration will display all {mockRoutes.length} routes with stops</p>
+              </div>
             </div>
-          ])}
-        theme={theme}
-      />
+          </div>
+          <div className={`flex items-center justify-between text-xs ${theme.iconColor} px-2`}>
+            <span>Showing {mockRoutes.filter(r => tab === 'All Routes' || (tab === 'Active' && r.status === 'Active') || (tab === 'Under Maintenance' && r.status === 'Maintenance')).length} of {mockRoutes.length} routes</span>
+            <div className="flex gap-1">
+              <button className={`px-3 py-1.5 rounded-lg ${theme.secondaryBg}`}>Previous</button>
+              <button className={`px-3 py-1.5 rounded-lg ${theme.primary} text-white`}>1</button>
+              <button className={`px-3 py-1.5 rounded-lg ${theme.secondaryBg}`}>Next</button>
+            </div>
+          </div>
+        </>
+      )}
 
-      {/* Route Map Placeholder */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Route Map Overview</h3>
-        <div className={`w-full h-64 rounded-xl ${theme.secondaryBg} border ${theme.border} flex items-center justify-center`}>
-          <div className="text-center">
-            <MapPin size={32} className={theme.iconColor} />
-            <p className={`text-sm ${theme.iconColor} mt-2`}>Interactive Route Map</p>
-            <p className={`text-[10px] ${theme.iconColor}`}>Google Maps integration will display all {mockRoutes.length} routes with stops</p>
+      {/* ─── ADD ROUTE FORM (OVERLAY) ─── */}
+      {showAddRoute && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto`}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className={`text-lg font-bold ${theme.highlight}`}>Add New Route</h2>
+              <button onClick={() => setShowAddRoute(false)} className={`p-2 rounded-lg ${theme.buttonHover}`}><X size={16} className={theme.iconColor} /></button>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Route Name</label>
+                <input value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="e.g. Route G" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} />
+              </div>
+              <div>
+                <label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Area Coverage</label>
+                <input value={formData.area} onChange={e => setFormData({...formData, area: e.target.value})} placeholder="e.g. Vastrapur - Ambawadi" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} />
+              </div>
+              <div>
+                <label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Route Type</label>
+                <div className="flex gap-2">
+                  {(['pickup', 'drop', 'both'] as const).map(t => (
+                    <button key={t} onClick={() => setFormData({...formData, type: t})}
+                      className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${formData.type === t ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.iconColor}`}`}>
+                      {t.charAt(0).toUpperCase() + t.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Vehicle</label>
+                <select value={formData.vehicle} onChange={e => setFormData({...formData, vehicle: e.target.value})} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`}>
+                  <option value="">Select vehicle...</option>
+                  {mockVehicles.map(v => <option key={v.id} value={v.id}>{v.id} ({v.type}, {v.capacity} seats)</option>)}
+                </select>
+              </div>
+              <div>
+                <label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Driver</label>
+                <select value={formData.driver} onChange={e => setFormData({...formData, driver: e.target.value})} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`}>
+                  <option value="">Select driver...</option>
+                  {mockDrivers.map(d => <option key={d.id} value={d.name}>{d.name} ({d.experience})</option>)}
+                </select>
+              </div>
+              <div>
+                <label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Lady Attendant</label>
+                <select value={formData.ladyAttendant} onChange={e => setFormData({...formData, ladyAttendant: e.target.value})} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`}>
+                  <option value="">Select attendant...</option>
+                  {mockLadyAttendants.map(la => <option key={la.id} value={la.name}>{la.name} ({la.experience})</option>)}
+                </select>
+              </div>
+              <div>
+                <label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Driver Assistant</label>
+                <select value={formData.driverAssistant} onChange={e => setFormData({...formData, driverAssistant: e.target.value})} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`}>
+                  <option value="">Select assistant...</option>
+                  {mockDriverAssistants.map(da => <option key={da.id} value={da.name}>{da.name} ({da.experience})</option>)}
+                </select>
+              </div>
+              <div>
+                <label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Starting Time</label>
+                <input type="time" value={formData.startTime} onChange={e => setFormData({...formData, startTime: e.target.value})} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} />
+              </div>
+              <div>
+                <label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Schedule / Return Time</label>
+                <input type="time" value={formData.scheduleTime} onChange={e => setFormData({...formData, scheduleTime: e.target.value})} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} />
+              </div>
+            </div>
+            <div className="mt-4">
+              <label className={`text-xs font-bold ${theme.iconColor} mb-2 block`}>Select Stops</label>
+              <div className="grid grid-cols-2 gap-2">
+                {mockStops.map(s => (
+                  <label key={s.id} className={`flex items-center gap-2 p-2 rounded-lg ${theme.accentBg} border ${theme.border} cursor-pointer`}>
+                    <input type="checkbox" checked={formData.stops.includes(s.id)} onChange={e => {
+                      setFormData({...formData, stops: e.target.checked ? [...formData.stops, s.id] : formData.stops.filter(id => id !== s.id)});
+                    }} className="rounded" />
+                    <div>
+                      <p className={`text-xs font-bold ${theme.highlight}`}>{s.name}</p>
+                      <p className={`text-[10px] ${theme.iconColor}`}>{s.area} &bull; {s.landmark}</p>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 mt-6">
+              <button onClick={() => setShowAddRoute(false)} className={`px-4 py-2 rounded-xl border ${theme.border} text-xs font-bold ${theme.iconColor}`}>Cancel</button>
+              <button onClick={() => { setShowAddRoute(false); window.alert('Route created successfully! (Blueprint demo)'); }} className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}>Create Route</button>
+            </div>
           </div>
         </div>
-      </div>
-
-      <div className={`flex items-center justify-between text-xs ${theme.iconColor} px-2`}>
-        <span>Showing {mockRoutes.filter(r => tab === 'All Routes' || (tab === 'Active' && r.status === 'Active') || (tab === 'Under Maintenance' && r.status === 'Maintenance')).length} of {mockRoutes.length} routes</span>
-        <div className="flex gap-1">
-          <button className={`px-3 py-1.5 rounded-lg ${theme.secondaryBg}`}>Previous</button>
-          <button className={`px-3 py-1.5 rounded-lg ${theme.primary} text-white`}>1</button>
-          <button className={`px-3 py-1.5 rounded-lg ${theme.secondaryBg}`}>Next</button>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -554,102 +723,6 @@ function GPSTrackingModule({ theme }: { theme: Theme }) {
   );
 }
 
-// ─── STUDENTS BY ROUTE MODULE ───────────────────────
-
-function StudentsByRouteModule({ theme }: { theme: Theme }) {
-  const [selectedRoute, setSelectedRoute] = useState('Route A');
-  const routeData = mockStudentsByRoute.find(r => r.route === selectedRoute);
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className={`text-2xl font-bold ${theme.highlight}`}>Students by Route</h1>
-        <button className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}><Plus size={14} /> Assign Student</button>
-      </div>
-
-      {/* Route Selector */}
-      <div className={`flex gap-1 p-1 ${theme.secondaryBg} rounded-xl overflow-x-auto`}>
-        {mockStudentsByRoute.map(r => (
-          <button
-            key={r.route}
-            onClick={() => setSelectedRoute(r.route)}
-            className={`px-4 py-2 text-xs font-bold rounded-lg whitespace-nowrap transition-all ${
-              selectedRoute === r.route ? `${theme.cardBg} ${theme.highlight} shadow-sm` : theme.iconColor
-            }`}
-          >
-            {r.route} ({r.students.length})
-          </button>
-        ))}
-      </div>
-
-      {/* Route Summary */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={MapPin} label="Route" value={selectedRoute} color="bg-blue-500" theme={theme} />
-        <StatCard icon={Users} label="Students" value={routeData?.students.length || 0} color="bg-emerald-500" theme={theme} />
-        <StatCard icon={MapPinned} label="Stops" value={mockRoutes.find(r => r.name === selectedRoute)?.stops || 0} color="bg-purple-500" theme={theme} />
-        <StatCard icon={Clock} label="Timing" value={mockRoutes.find(r => r.name === selectedRoute)?.timing || '-'} color="bg-amber-500" theme={theme} />
-      </div>
-
-      <div className="flex gap-3">
-        <SearchBar placeholder="Search student by name, class, stop..." theme={theme} icon={Search} />
-        <button className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold ${theme.iconColor} flex items-center gap-1`}><Filter size={12} /> Filter</button>
-        <button className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold ${theme.iconColor} flex items-center gap-1`}><Download size={12} /> Export</button>
-      </div>
-
-      {routeData && (
-        <DataTable
-          headers={['Student ID', 'Name', 'Class', 'Pickup Stop', 'Pickup Time', 'Parent Phone', '']}
-          rows={routeData.students.map(s => [
-            <span key="id" className={`font-mono text-xs ${theme.primaryText}`}>{s.id}</span>,
-            <span key="name" className={`font-bold ${theme.highlight}`}>{s.name}</span>,
-            <span key="class" className={theme.iconColor}>{s.class}</span>,
-            <div key="stop" className="flex items-center gap-1">
-              <MapPin size={10} className={theme.iconColor} />
-              <span className={theme.iconColor}>{s.stop}</span>
-            </div>,
-            <span key="time" className={`font-bold ${theme.primaryText}`}>{s.pickup}</span>,
-            <span key="phone" className={theme.iconColor}>{s.phone}</span>,
-            <div key="actions" className="flex gap-1">
-              <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Eye size={12} className={theme.iconColor} /></button>
-              <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Edit size={12} className={theme.iconColor} /></button>
-              <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Phone size={12} className={theme.iconColor} /></button>
-            </div>
-          ])}
-          theme={theme}
-        />
-      )}
-
-      {/* Route Driver Info */}
-      {routeData && (
-        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-          <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Route Driver & Vehicle</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className={`p-3 rounded-xl ${theme.accentBg} border ${theme.border}`}>
-              <p className={`text-[10px] ${theme.iconColor} uppercase font-bold mb-1`}>Driver</p>
-              <p className={`text-sm font-bold ${theme.highlight}`}>{mockRoutes.find(r => r.name === selectedRoute)?.driver}</p>
-              <p className={`text-xs ${theme.iconColor}`}>Phone: {mockDrivers.find(d => d.name === mockRoutes.find(r => r.name === selectedRoute)?.driver)?.phone || 'N/A'}</p>
-            </div>
-            <div className={`p-3 rounded-xl ${theme.accentBg} border ${theme.border}`}>
-              <p className={`text-[10px] ${theme.iconColor} uppercase font-bold mb-1`}>Vehicle</p>
-              <p className={`text-sm font-bold ${theme.highlight}`}>{mockRoutes.find(r => r.name === selectedRoute)?.vehicle}</p>
-              <p className={`text-xs ${theme.iconColor}`}>Capacity: {mockVehicles.find(v => v.id === mockRoutes.find(r => r.name === selectedRoute)?.vehicle)?.capacity || 'N/A'} seats</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className={`flex items-center justify-between text-xs ${theme.iconColor} px-2`}>
-        <span>Showing {routeData?.students.length || 0} students on {selectedRoute} route</span>
-        <div className="flex gap-1">
-          <button className={`px-3 py-1.5 rounded-lg ${theme.secondaryBg}`}>Previous</button>
-          <button className={`px-3 py-1.5 rounded-lg ${theme.primary} text-white`}>1</button>
-          <button className={`px-3 py-1.5 rounded-lg ${theme.secondaryBg}`}>Next</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ─── MAINTENANCE MODULE ─────────────────────────────
 
 function MaintenanceModule({ theme }: { theme: Theme }) {
@@ -730,6 +803,209 @@ function MaintenanceModule({ theme }: { theme: Theme }) {
           <button className={`px-3 py-1.5 rounded-lg ${theme.secondaryBg}`}>Next</button>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ─── STOPS MODULE ───────────────────────────────────
+
+function StopsModule({ theme }: { theme: Theme }) {
+  const [showAddStop, setShowAddStop] = useState(false);
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className={`text-2xl font-bold ${theme.highlight}`}>Stop Management</h1>
+        <button onClick={() => setShowAddStop(true)} className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}><Plus size={14} /> Add Stop</button>
+      </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard icon={MapPinned} label="Total Stops" value={mockStops.length} color="bg-blue-500" theme={theme} />
+        <StatCard icon={Route} label="Routes Covered" value={6} color="bg-emerald-500" theme={theme} />
+        <StatCard icon={Users} label="Total Students" value={mockStops.reduce((s, st) => s + st.students, 0)} color="bg-indigo-500" theme={theme} />
+        <StatCard icon={MapPin} label="Areas" value={new Set(mockStops.map(s => s.area)).size} color="bg-purple-500" theme={theme} />
+      </div>
+      <div className="flex gap-3">
+        <SearchBar placeholder="Search by stop name, area, landmark..." theme={theme} icon={Search} />
+        <button className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold ${theme.iconColor} flex items-center gap-1`}><Filter size={12} /> Filter</button>
+      </div>
+      <DataTable
+        headers={['Stop ID', 'Stop Name', 'Area', 'Landmark', 'Routes', 'Students', '']}
+        rows={mockStops.map(s => [
+          <span key="id" className={`font-mono text-xs ${theme.primaryText}`}>{s.id}</span>,
+          <span key="name" className={`font-bold ${theme.highlight}`}>{s.name}</span>,
+          <span key="area" className={theme.iconColor}>{s.area}</span>,
+          <span key="landmark" className={`text-xs ${theme.iconColor}`}>{s.landmark}</span>,
+          <span key="routes" className={`text-xs font-bold ${theme.primaryText}`}>{s.routes.join(', ')}</span>,
+          <span key="students" className={`font-bold ${theme.highlight}`}>{s.students}</span>,
+          <div key="actions" className="flex gap-1">
+            <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Edit size={12} className={theme.iconColor} /></button>
+            <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Trash2 size={12} className={theme.iconColor} /></button>
+          </div>
+        ])}
+        theme={theme}
+      />
+      {showAddStop && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-6 w-full max-w-md`}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className={`text-lg font-bold ${theme.highlight}`}>Add New Stop</h2>
+              <button onClick={() => setShowAddStop(false)} className={`p-2 rounded-lg ${theme.buttonHover}`}><X size={16} className={theme.iconColor} /></button>
+            </div>
+            <div className="space-y-3">
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Stop Name</label><input placeholder="e.g. Vastrapur Lake" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Area</label><input placeholder="e.g. Vastrapur" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Landmark</label><input placeholder="e.g. Near lake entrance" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Assign to Route</label>
+                <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`}>
+                  <option value="">Select route...</option>
+                  {mockRoutes.map(r => <option key={r.id} value={r.name}>{r.name} — {r.area}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 mt-4">
+              <button onClick={() => setShowAddStop(false)} className={`px-4 py-2 rounded-xl border ${theme.border} text-xs font-bold ${theme.iconColor}`}>Cancel</button>
+              <button onClick={() => { setShowAddStop(false); window.alert('Stop added! (Blueprint demo)'); }} className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}>Add Stop</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── LADY ATTENDANT MODULE ──────────────────────────
+
+function LadyAttendantModule({ theme }: { theme: Theme }) {
+  const [showAdd, setShowAdd] = useState(false);
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className={`text-2xl font-bold ${theme.highlight}`}>Lady Attendants</h1>
+        <button onClick={() => setShowAdd(true)} className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}><Plus size={14} /> Add Attendant</button>
+      </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard icon={UserCheck} label="Total Attendants" value={mockLadyAttendants.length} color="bg-pink-500" theme={theme} />
+        <StatCard icon={CheckCircle} label="Active" value={mockLadyAttendants.filter(a => a.status === 'Active').length} color="bg-emerald-500" theme={theme} />
+        <StatCard icon={AlertTriangle} label="On Leave" value={mockLadyAttendants.filter(a => a.status === 'On Leave').length} color="bg-amber-500" theme={theme} />
+        <StatCard icon={FileText} label="Docs Pending" value={mockLadyAttendants.filter(a => a.aadhar === 'Pending').length} color="bg-red-500" theme={theme} />
+      </div>
+      <div className="flex gap-3">
+        <SearchBar placeholder="Search by name, phone, route..." theme={theme} icon={Search} />
+        <button className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold ${theme.iconColor} flex items-center gap-1`}><Download size={12} /> Export</button>
+      </div>
+      <DataTable
+        headers={['ID', 'Name', 'Phone', 'Route', 'Vehicle', 'Experience', 'Aadhar', 'Status', '']}
+        rows={mockLadyAttendants.map(la => [
+          <span key="id" className={`font-mono text-xs ${theme.primaryText}`}>{la.id}</span>,
+          <span key="name" className={`font-bold ${theme.highlight}`}>{la.name}</span>,
+          <span key="phone" className={theme.iconColor}>{la.phone}</span>,
+          <span key="route" className={`font-bold ${theme.primaryText}`}>{la.route}</span>,
+          <span key="vehicle" className={`font-mono text-xs ${theme.iconColor}`}>{la.vehicle}</span>,
+          <span key="exp" className={theme.iconColor}>{la.experience}</span>,
+          <StatusBadge key="aadhar" status={la.aadhar === 'Verified' ? 'Active' : 'Pending'} theme={theme} />,
+          <StatusBadge key="status" status={la.status === 'Active' ? 'Active' : 'Pending'} theme={theme} />,
+          <div key="actions" className="flex gap-1">
+            <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Eye size={12} className={theme.iconColor} /></button>
+            <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Edit size={12} className={theme.iconColor} /></button>
+            <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Phone size={12} className={theme.iconColor} /></button>
+          </div>
+        ])}
+        theme={theme}
+      />
+      {showAdd && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-6 w-full max-w-md`}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className={`text-lg font-bold ${theme.highlight}`}>Add Lady Attendant</h2>
+              <button onClick={() => setShowAdd(false)} className={`p-2 rounded-lg ${theme.buttonHover}`}><X size={16} className={theme.iconColor} /></button>
+            </div>
+            <div className="space-y-3">
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Full Name</label><input placeholder="e.g. Sunita Devi" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Phone Number</label><input placeholder="e.g. 98250 77777" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Assign to Route</label>
+                <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`}>
+                  <option value="">Select route...</option>
+                  {mockRoutes.map(r => <option key={r.id} value={r.name}>{r.name}</option>)}
+                </select>
+              </div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Experience</label><input placeholder="e.g. 3 yrs" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Aadhar Number</label><input placeholder="XXXX XXXX XXXX" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+            </div>
+            <div className="flex justify-end gap-2 mt-4">
+              <button onClick={() => setShowAdd(false)} className={`px-4 py-2 rounded-xl border ${theme.border} text-xs font-bold ${theme.iconColor}`}>Cancel</button>
+              <button onClick={() => { setShowAdd(false); window.alert('Attendant added! (Blueprint demo)'); }} className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}>Add Attendant</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── DRIVER ASSISTANT MODULE ────────────────────────
+
+function DriverAssistantModule({ theme }: { theme: Theme }) {
+  const [showAdd, setShowAdd] = useState(false);
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className={`text-2xl font-bold ${theme.highlight}`}>Driver Assistants</h1>
+        <button onClick={() => setShowAdd(true)} className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}><Plus size={14} /> Add Assistant</button>
+      </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard icon={UserPlus} label="Total Assistants" value={mockDriverAssistants.length} color="bg-cyan-500" theme={theme} />
+        <StatCard icon={CheckCircle} label="Active" value={mockDriverAssistants.filter(a => a.status === 'Active').length} color="bg-emerald-500" theme={theme} />
+        <StatCard icon={AlertTriangle} label="On Leave" value={mockDriverAssistants.filter(a => a.status === 'On Leave').length} color="bg-amber-500" theme={theme} />
+        <StatCard icon={FileText} label="Docs Pending" value={mockDriverAssistants.filter(a => a.aadhar === 'Pending').length} color="bg-red-500" theme={theme} />
+      </div>
+      <div className="flex gap-3">
+        <SearchBar placeholder="Search by name, phone, route..." theme={theme} icon={Search} />
+        <button className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold ${theme.iconColor} flex items-center gap-1`}><Download size={12} /> Export</button>
+      </div>
+      <DataTable
+        headers={['ID', 'Name', 'Phone', 'Route', 'Vehicle', 'Experience', 'Aadhar', 'Status', '']}
+        rows={mockDriverAssistants.map(da => [
+          <span key="id" className={`font-mono text-xs ${theme.primaryText}`}>{da.id}</span>,
+          <span key="name" className={`font-bold ${theme.highlight}`}>{da.name}</span>,
+          <span key="phone" className={theme.iconColor}>{da.phone}</span>,
+          <span key="route" className={`font-bold ${theme.primaryText}`}>{da.route}</span>,
+          <span key="vehicle" className={`font-mono text-xs ${theme.iconColor}`}>{da.vehicle}</span>,
+          <span key="exp" className={theme.iconColor}>{da.experience}</span>,
+          <StatusBadge key="aadhar" status={da.aadhar === 'Verified' ? 'Active' : 'Pending'} theme={theme} />,
+          <StatusBadge key="status" status={da.status === 'Active' ? 'Active' : 'Pending'} theme={theme} />,
+          <div key="actions" className="flex gap-1">
+            <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Eye size={12} className={theme.iconColor} /></button>
+            <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Edit size={12} className={theme.iconColor} /></button>
+            <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Phone size={12} className={theme.iconColor} /></button>
+          </div>
+        ])}
+        theme={theme}
+      />
+      {showAdd && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-6 w-full max-w-md`}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className={`text-lg font-bold ${theme.highlight}`}>Add Driver Assistant</h2>
+              <button onClick={() => setShowAdd(false)} className={`p-2 rounded-lg ${theme.buttonHover}`}><X size={16} className={theme.iconColor} /></button>
+            </div>
+            <div className="space-y-3">
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Full Name</label><input placeholder="e.g. Kishan Patel" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Phone Number</label><input placeholder="e.g. 98250 88887" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Assign to Route</label>
+                <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`}>
+                  <option value="">Select route...</option>
+                  {mockRoutes.map(r => <option key={r.id} value={r.name}>{r.name}</option>)}
+                </select>
+              </div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Experience</label><input placeholder="e.g. 2 yrs" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Aadhar Number</label><input placeholder="XXXX XXXX XXXX" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+            </div>
+            <div className="flex justify-end gap-2 mt-4">
+              <button onClick={() => setShowAdd(false)} className={`px-4 py-2 rounded-xl border ${theme.border} text-xs font-bold ${theme.iconColor}`}>Cancel</button>
+              <button onClick={() => { setShowAdd(false); window.alert('Assistant added! (Blueprint demo)'); }} className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}>Add Assistant</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
