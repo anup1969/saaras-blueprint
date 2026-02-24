@@ -1267,19 +1267,24 @@ function TransportConfigModule({ theme }: { theme: Theme }) {
                 </button>
               ))}
             </div>
-            {parentGpsTracking === 'premium' && (
-              <div className="mt-3">
-                <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Premium Alert Types — select which alerts parents receive</p>
-                <div className="grid grid-cols-2 gap-1.5">
-                  {Object.entries(premiumAlerts).map(([alert, enabled]) => (
-                    <div key={alert} className={`flex items-center justify-between p-2 rounded-xl ${theme.secondaryBg}`}>
-                      <span className={`text-[11px] ${theme.highlight}`}>{alert}</span>
-                      <SSAToggle on={enabled} onChange={() => setPremiumAlerts(p => ({ ...p, [alert]: !p[alert] }))} theme={theme} />
-                    </div>
-                  ))}
-                </div>
+            <div className="mt-3">
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Premium Alert Types {parentGpsTracking !== 'premium' && <span className="text-amber-500">(Premium feature)</span>}</p>
+              <div className={`grid grid-cols-2 gap-1.5 ${parentGpsTracking !== 'premium' ? 'opacity-60' : ''}`}>
+                {Object.entries(premiumAlerts).map(([alert, enabled]) => (
+                  <div key={alert} className={`flex items-center justify-between p-2 rounded-xl ${theme.secondaryBg} cursor-pointer`}
+                    onClick={() => { if (parentGpsTracking !== 'premium') alert !== '' && window.alert('This is a premium feature. Please contact saaras.in or your account manager for more details.'); }}>
+                    <span className={`text-[11px] ${theme.highlight}`}>{alert}</span>
+                    <SSAToggle on={parentGpsTracking === 'premium' ? enabled : false}
+                      onChange={() => { if (parentGpsTracking === 'premium') { setPremiumAlerts(p => ({ ...p, [alert]: !p[alert] })); } else { window.alert('This is a premium feature. Please contact saaras.in or your account manager for more details.'); } }} theme={theme} />
+                  </div>
+                ))}
               </div>
-            )}
+              {parentGpsTracking !== 'premium' && (
+                <p className={`text-[10px] text-amber-600 mt-2 flex items-center gap-1`}>
+                  <AlertTriangle size={10} /> Select &quot;Premium Tracking&quot; above to enable these alerts, or contact saaras.in for details.
+                </p>
+              )}
+            </div>
           </div>
         </div>
       </SectionCard>
