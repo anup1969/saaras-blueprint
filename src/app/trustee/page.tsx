@@ -15,7 +15,8 @@ import {
   Award, Star, Building2, Banknote, ArrowRight, Download, PieChart,
   Briefcase, Clock, Target, ChevronRight, User,
   PanelLeftClose, PanelLeftOpen, Headphones,
-  MessageSquare, Megaphone, Plus, X, Send, Bell, Edit, Paperclip, Radio, Sparkles, ShieldCheck
+  MessageSquare, Megaphone, Plus, X, Send, Bell, Edit, Paperclip, Radio, Sparkles, ShieldCheck,
+  BookOpen, ClipboardList
 } from 'lucide-react';
 
 // ─── MOCK DATA ────────────────────────────────────────
@@ -94,6 +95,8 @@ const modules = [
   { id: 'staff', label: 'Staff Overview', icon: Users },
   { id: 'hr', label: 'HR Management', icon: Briefcase },
   { id: 'compliance', label: 'Compliance & Audit', icon: Shield },
+  { id: 'enrollment', label: 'Enrollment Trends', icon: TrendingUp },
+  { id: 'board-meetings', label: 'Board Meetings', icon: ClipboardList },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
   { id: 'approvals', label: 'Approvals', icon: CheckCircle },
   { id: 'support', label: 'Support', icon: Headphones },
@@ -938,6 +941,304 @@ function CommunicationView({ theme }: { theme: Theme }) {
   );
 }
 
+// ─── ENROLLMENT TRENDS VIEW ───────────────────────────
+function EnrollmentTrendsView({ theme }: { theme: Theme }) {
+  const yearlyData = [
+    { year: '2022-23', totalStudents: 1080, newAdmissions: 185, withdrawals: 42, boys: 562, girls: 518 },
+    { year: '2023-24', totalStudents: 1148, newAdmissions: 210, withdrawals: 52, boys: 598, girls: 550 },
+    { year: '2024-25', totalStudents: 1195, newAdmissions: 198, withdrawals: 48, boys: 615, girls: 580 },
+    { year: '2025-26', totalStudents: 1247, newAdmissions: 225, withdrawals: 38, boys: 645, girls: 602 },
+  ];
+
+  const gradeDistribution = [
+    { grade: 'Nursery-KG', students: 145, capacity: 160, trend: 'up' },
+    { grade: 'Class 1-3', students: 248, capacity: 270, trend: 'up' },
+    { grade: 'Class 4-5', students: 195, capacity: 210, trend: 'stable' },
+    { grade: 'Class 6-8', students: 310, capacity: 330, trend: 'up' },
+    { grade: 'Class 9-10', students: 218, capacity: 240, trend: 'down' },
+    { grade: 'Class 11-12', students: 131, capacity: 150, trend: 'stable' },
+  ];
+
+  const maxStudents = Math.max(...yearlyData.map(y => y.totalStudents));
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <h2 className={`text-lg font-bold ${theme.highlight}`}>Enrollment Trends</h2>
+        <p className={`text-xs ${theme.iconColor}`}>Multi-year enrollment analysis for trust governance</p>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <StatCard icon={GraduationCap} label="Current Strength" value="1,247" color="bg-blue-500" sub="AY 2025-26" theme={theme} />
+        <StatCard icon={Plus} label="New Admissions" value="225" color="bg-emerald-500" sub="+13.6% vs last year" theme={theme} />
+        <StatCard icon={TrendingDown} label="Withdrawals" value="38" color="bg-red-500" sub="-20.8% vs last year" theme={theme} />
+        <StatCard icon={TrendingUp} label="Net Growth" value="+4.4%" color="bg-purple-500" sub="year over year" theme={theme} />
+      </div>
+
+      {/* Yearly Bar Chart (CSS-based) */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-4`}>Student Enrollment — 4-Year Trend</h3>
+        <div className="space-y-3">
+          {yearlyData.map(y => {
+            const pct = Math.round((y.totalStudents / maxStudents) * 100);
+            const growth = yearlyData.indexOf(y) > 0
+              ? ((y.totalStudents - yearlyData[yearlyData.indexOf(y) - 1].totalStudents) / yearlyData[yearlyData.indexOf(y) - 1].totalStudents * 100).toFixed(1)
+              : null;
+            return (
+              <div key={y.year} className="flex items-center gap-4">
+                <span className={`text-xs font-bold ${theme.highlight} w-16`}>{y.year}</span>
+                <div className="flex-1 h-8 rounded-lg bg-slate-100 overflow-hidden relative">
+                  <div className="h-full rounded-lg bg-blue-500 transition-all" style={{ width: `${pct}%` }} />
+                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-600">
+                    {y.totalStudents.toLocaleString()} students
+                  </span>
+                </div>
+                {growth !== null && (
+                  <span className={`text-[10px] font-bold w-12 text-right ${parseFloat(growth) >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                    {parseFloat(growth) >= 0 ? '+' : ''}{growth}%
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Admissions vs Withdrawals */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Admissions vs Withdrawals</h3>
+        <DataTable
+          headers={['Year', 'New Admissions', 'Withdrawals', 'Net Change', 'Boys', 'Girls', 'Gender Ratio']}
+          rows={yearlyData.map(y => [
+            <span key="year" className={`text-xs font-bold ${theme.highlight}`}>{y.year}</span>,
+            <span key="adm" className="text-xs font-bold text-emerald-600">+{y.newAdmissions}</span>,
+            <span key="wd" className="text-xs font-bold text-red-500">-{y.withdrawals}</span>,
+            <span key="net" className={`text-xs font-bold ${y.newAdmissions - y.withdrawals >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+              {y.newAdmissions - y.withdrawals >= 0 ? '+' : ''}{y.newAdmissions - y.withdrawals}
+            </span>,
+            <span key="boys" className={`text-xs ${theme.highlight}`}>{y.boys}</span>,
+            <span key="girls" className={`text-xs ${theme.highlight}`}>{y.girls}</span>,
+            <span key="ratio" className={`text-xs font-bold ${theme.primaryText}`}>
+              {(y.boys / y.girls).toFixed(2)} : 1
+            </span>,
+          ])}
+          theme={theme}
+        />
+      </div>
+
+      {/* Grade-wise Distribution */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Grade-wise Distribution — AY 2025-26</h3>
+        <div className="space-y-3">
+          {gradeDistribution.map(g => {
+            const fillPct = Math.round((g.students / g.capacity) * 100);
+            return (
+              <div key={g.grade} className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className={`text-xs font-bold ${theme.highlight}`}>{g.grade}</span>
+                    {g.trend === 'up' && <TrendingUp size={12} className="text-emerald-500" />}
+                    {g.trend === 'down' && <TrendingDown size={12} className="text-red-500" />}
+                    {g.trend === 'stable' && <ArrowRight size={12} className={theme.iconColor} />}
+                  </div>
+                  <span className={`text-xs ${theme.iconColor}`}>
+                    <span className={`font-bold ${theme.highlight}`}>{g.students}</span> / {g.capacity} capacity
+                  </span>
+                </div>
+                <div className="h-2 rounded-full bg-slate-200 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full ${fillPct >= 90 ? 'bg-red-500' : fillPct >= 75 ? 'bg-amber-500' : 'bg-emerald-500'}`}
+                    style={{ width: `${fillPct}%` }}
+                  />
+                </div>
+                <p className={`text-[10px] mt-1 ${fillPct >= 90 ? 'text-red-500' : fillPct >= 75 ? 'text-amber-600' : 'text-emerald-600'} font-bold`}>
+                  {fillPct}% filled {fillPct >= 90 ? '— Near capacity' : ''}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── BOARD MEETINGS VIEW ──────────────────────────────
+function BoardMeetingsView({ theme }: { theme: Theme }) {
+  const [tab, setTab] = useState('Upcoming');
+  const [showSchedule, setShowSchedule] = useState(false);
+
+  const upcomingMeetings = [
+    { id: 'BM001', title: 'Annual Budget Review FY 2026-27', date: '28 Feb 2026', time: '10:00 AM - 1:00 PM', venue: 'Trust Boardroom', chairperson: 'Mr. Jayanti Shah', attendees: 8, agenda: 'FY 2026-27 budget approval, Capital expenditure proposals, Staff increment review', status: 'Confirmed' },
+    { id: 'BM002', title: 'Infrastructure Upgrade Discussion', date: '15 Mar 2026', time: '11:00 AM - 12:30 PM', venue: 'Conference Room A', chairperson: 'Mr. Jayanti Shah', attendees: 6, agenda: 'Classroom renovation Block B, New science lab, Smart board installation', status: 'Tentative' },
+    { id: 'BM003', title: 'Quarterly Academic Review — Q3', date: '28 Mar 2026', time: '10:00 AM - 12:00 PM', venue: 'Trust Boardroom', chairperson: 'Mr. Jayanti Shah', attendees: 8, agenda: 'Board exam results, SQAAF score update, Teacher performance review', status: 'Confirmed' },
+  ];
+
+  const completedMeetings = [
+    { id: 'BM-C01', title: 'Trust Meeting — January Review', date: '28 Jan 2026', venue: 'Trust Boardroom', attendees: 7, decisions: ['Approved ₹12.5L for science lab equipment', 'Deferred classroom renovation to Q2', 'Approved 3 new teaching positions'], minutes: true },
+    { id: 'BM-C02', title: 'Emergency Meeting — Fee Revision', date: '15 Jan 2026', venue: 'Conference Room A', attendees: 5, decisions: ['5% fee increase for AY 2026-27 approved', 'EWS seat allocation maintained at 25%', 'Late fee waiver policy revised'], minutes: true },
+    { id: 'BM-C03', title: 'Quarterly Review — Q2 2025-26', date: '28 Dec 2025', venue: 'Trust Boardroom', attendees: 8, decisions: ['Sports Day budget of ₹4.5L approved', 'Annual Day chief guest confirmed', 'Transport route optimisation approved'], minutes: true },
+    { id: 'BM-C04', title: 'CBSE Affiliation Review', date: '10 Dec 2025', venue: 'Principal Office', attendees: 4, decisions: ['Affiliation renewal docs submitted', 'Building safety audit scheduled for Apr 2026', 'Fire safety certificate renewed'], minutes: true },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className={`text-lg font-bold ${theme.highlight}`}>Board Meeting Management</h2>
+          <p className={`text-xs ${theme.iconColor}`}>Schedule, track and manage trust board meetings</p>
+        </div>
+        <button onClick={() => setShowSchedule(!showSchedule)} className={`flex items-center gap-2 px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>
+          <Plus size={14} /> Schedule Meeting
+        </button>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <StatCard icon={Calendar} label="Upcoming Meetings" value={upcomingMeetings.length} color="bg-blue-500" theme={theme} />
+        <StatCard icon={CheckCircle} label="Completed (FY)" value={completedMeetings.length} color="bg-emerald-500" theme={theme} />
+        <StatCard icon={FileText} label="Minutes Filed" value={completedMeetings.filter(m => m.minutes).length} color="bg-purple-500" theme={theme} />
+        <StatCard icon={Users} label="Avg Attendance" value="6.5" color="bg-amber-500" sub="members per meeting" theme={theme} />
+      </div>
+
+      {/* Schedule Meeting Form */}
+      {showSchedule && (
+        <div className={`${theme.cardBg} rounded-2xl border-2 border-blue-300 p-5 space-y-4`}>
+          <div className="flex items-center justify-between">
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>Schedule New Meeting</h3>
+            <button onClick={() => setShowSchedule(false)} className={`p-1.5 rounded-lg ${theme.buttonHover} ${theme.iconColor}`}><X size={16} /></button>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Meeting Title</label>
+              <input type="text" placeholder="e.g. Quarterly Trust Review" className={`w-full px-3 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm ${theme.highlight} outline-none focus:ring-2 focus:ring-blue-300`} />
+            </div>
+            <div>
+              <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Chairperson</label>
+              <select className={`w-full px-3 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm ${theme.highlight} outline-none`}>
+                <option>Mr. Jayanti Shah (Chairman)</option>
+                <option>Mrs. Parul Shah (Vice Chair)</option>
+                <option>Mr. Rajesh Mehta (Secretary)</option>
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Date</label>
+              <input type="date" className={`w-full px-3 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm ${theme.highlight} outline-none focus:ring-2 focus:ring-blue-300`} />
+            </div>
+            <div>
+              <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Time</label>
+              <input type="time" className={`w-full px-3 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm ${theme.highlight} outline-none focus:ring-2 focus:ring-blue-300`} />
+            </div>
+            <div>
+              <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Venue</label>
+              <select className={`w-full px-3 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm ${theme.highlight} outline-none`}>
+                <option>Trust Boardroom</option>
+                <option>Conference Room A</option>
+                <option>Principal Office</option>
+                <option>Virtual (Google Meet)</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Agenda Items</label>
+            <textarea placeholder="Enter agenda items (one per line)..." rows={3} className={`w-full px-3 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm ${theme.highlight} outline-none focus:ring-2 focus:ring-blue-300 resize-none`} />
+          </div>
+          <div className="flex justify-end gap-3">
+            <button onClick={() => setShowSchedule(false)} className={`px-4 py-2 rounded-xl text-xs font-bold ${theme.secondaryBg} ${theme.highlight}`}>Cancel</button>
+            <button onClick={() => { setShowSchedule(false); window.alert('Meeting scheduled successfully! (Blueprint demo)'); }} className={`flex items-center gap-2 px-5 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>
+              <Calendar size={14} /> Schedule Meeting
+            </button>
+          </div>
+        </div>
+      )}
+
+      <TabBar tabs={['Upcoming', 'Completed']} active={tab} onChange={setTab} theme={theme} />
+
+      {tab === 'Upcoming' && (
+        <div className="space-y-3">
+          {upcomingMeetings.map(m => (
+            <div key={m.id} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`text-[10px] font-mono ${theme.iconColor}`}>{m.id}</span>
+                    <StatusBadge status={m.status === 'Confirmed' ? 'Active' : 'Pending'} theme={theme} />
+                  </div>
+                  <h4 className={`text-sm font-bold ${theme.highlight}`}>{m.title}</h4>
+                  <p className={`text-[10px] ${theme.iconColor} mt-1`}>
+                    {m.date} &middot; {m.time} &middot; {m.venue}
+                  </p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>Chair: {m.chairperson} &middot; {m.attendees} members</p>
+                </div>
+              </div>
+              <div className={`mt-3 p-3 rounded-xl ${theme.secondaryBg}`}>
+                <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1`}>Agenda</p>
+                <div className="space-y-0.5">
+                  {m.agenda.split(', ').map((item, i) => (
+                    <p key={i} className={`text-xs ${theme.highlight}`}>{i + 1}. {item}</p>
+                  ))}
+                </div>
+              </div>
+              <div className="flex gap-2 mt-3">
+                <button className={`flex items-center gap-1 px-3 py-2 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.highlight} ${theme.buttonHover}`}>
+                  <Edit size={12} /> Edit
+                </button>
+                <button className={`flex items-center gap-1 px-3 py-2 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.highlight} ${theme.buttonHover}`}>
+                  <Send size={12} /> Send Invite
+                </button>
+                <button className={`flex items-center gap-1 px-3 py-2 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.highlight} ${theme.buttonHover}`}>
+                  <Download size={12} /> Agenda PDF
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {tab === 'Completed' && (
+        <div className="space-y-3">
+          {completedMeetings.map(m => (
+            <div key={m.id} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`text-[10px] font-mono ${theme.iconColor}`}>{m.id}</span>
+                    <StatusBadge status="Cleared" theme={theme} />
+                    {m.minutes && <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold">Minutes Filed</span>}
+                  </div>
+                  <h4 className={`text-sm font-bold ${theme.highlight}`}>{m.title}</h4>
+                  <p className={`text-[10px] ${theme.iconColor} mt-1`}>{m.date} &middot; {m.venue} &middot; {m.attendees} attendees</p>
+                </div>
+              </div>
+              <div className={`mt-3 p-3 rounded-xl ${theme.secondaryBg}`}>
+                <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1`}>Key Decisions / Action Items</p>
+                <div className="space-y-1">
+                  {m.decisions.map((d, i) => (
+                    <div key={i} className="flex items-start gap-2">
+                      <CheckCircle size={12} className="text-emerald-500 mt-0.5 shrink-0" />
+                      <p className={`text-xs ${theme.highlight}`}>{d}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="flex gap-2 mt-3">
+                <button className={`flex items-center gap-1 px-3 py-2 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.highlight} ${theme.buttonHover}`}>
+                  <Eye size={12} /> View Minutes
+                </button>
+                <button className={`flex items-center gap-1 px-3 py-2 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.highlight} ${theme.buttonHover}`}>
+                  <Download size={12} /> Download PDF
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── APPROVALS VIEW ────────────────────────────────────
 function ApprovalsView({ theme }: { theme: Theme }) {
   const [tab, setTab] = useState('Pending');
@@ -1001,6 +1302,8 @@ function TrusteeDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; t
       case 'staff': return <StaffView theme={theme} />;
       case 'hr': return <HRManagementView theme={theme} />;
       case 'compliance': return <ComplianceView theme={theme} />;
+      case 'enrollment': return <EnrollmentTrendsView theme={theme} />;
+      case 'board-meetings': return <BoardMeetingsView theme={theme} />;
       case 'communication': return <CommunicationView theme={theme} />;
       case 'approvals': return <ApprovalsView theme={theme} />;
       case 'support': return <SupportModule theme={theme} role="trustee" />;

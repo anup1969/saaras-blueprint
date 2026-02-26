@@ -14,7 +14,8 @@ import {
   Globe, Server, Shield, Bell, Clock, Activity, Zap, TrendingUp, AlertTriangle,
   Mail, Phone, Calendar, Star, Award, ArrowRight, RefreshCw, Database, Lock,
   ChevronRight, CheckCircle, XCircle, Briefcase, DollarSign, Hash, MapPin, User, MessageSquare,
-  PanelLeftClose, PanelLeftOpen, Handshake, Percent, IndianRupee
+  PanelLeftClose, PanelLeftOpen, Handshake, Percent, IndianRupee,
+  UserCog, HardDrive, Upload, ArrowDownToLine, Table2
 } from 'lucide-react';
 
 // ─── MOCK DATA ────────────────────────────────────────
@@ -101,6 +102,8 @@ const modules = [
   { id: 'analytics', label: 'Analytics', icon: BarChart3 },
   { id: 'config', label: 'System Config', icon: Settings },
   { id: 'resellers', label: 'Reseller Management', icon: Handshake },
+  { id: 'am-assignment', label: 'AM Assignment', icon: UserCog },
+  { id: 'data-migration', label: 'Data Migration', icon: HardDrive },
   { id: 'audit', label: 'Audit Logs', icon: FileText },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
 ];
@@ -1064,6 +1067,109 @@ function AnalyticsView({ theme }: { theme: Theme }) {
         <StatCard icon={AlertTriangle} label="Critical Alerts" value={analyticsSchools.reduce((sum, sc) => sum + sc.alarms.filter(a => a.severity === 'red').length, 0).toString()} color="bg-red-500" theme={theme} />
       </div>
 
+      {/* DAU / MAU + Per-Module Usage */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* DAU / MAU */}
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Platform Engagement</h3>
+          <div className="grid grid-cols-2 gap-3">
+            <div className={`p-3 rounded-xl ${theme.secondaryBg} text-center`}>
+              <p className={`text-lg font-bold ${theme.highlight}`}>3,420</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Daily Active Users (DAU)</p>
+              <p className="text-[10px] font-bold text-emerald-600 mt-0.5">+8.2% vs last week</p>
+            </div>
+            <div className={`p-3 rounded-xl ${theme.secondaryBg} text-center`}>
+              <p className={`text-lg font-bold ${theme.highlight}`}>5,960</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Monthly Active Users (MAU)</p>
+              <p className="text-[10px] font-bold text-emerald-600 mt-0.5">+5.4% vs last month</p>
+            </div>
+            <div className={`p-3 rounded-xl ${theme.secondaryBg} text-center`}>
+              <p className={`text-lg font-bold ${theme.primaryText}`}>57.4%</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>DAU/MAU Ratio</p>
+              <p className={`text-[10px] ${theme.iconColor} mt-0.5`}>Good stickiness</p>
+            </div>
+            <div className={`p-3 rounded-xl ${theme.secondaryBg} text-center`}>
+              <p className={`text-lg font-bold ${theme.highlight}`}>12.4 min</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Avg Session Duration</p>
+              <p className="text-[10px] font-bold text-emerald-600 mt-0.5">+1.2 min vs last month</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Per-Module Usage */}
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Per-Module Usage (Platform-wide)</h3>
+          <div className="space-y-2.5">
+            {[
+              { module: 'Attendance', actions: 165900, pct: 100 },
+              { module: 'Fees & Payments', actions: 161700, pct: 97 },
+              { module: 'Communication', actions: 117800, pct: 71 },
+              { module: 'Timetable', actions: 80200, pct: 48 },
+              { module: 'Homework', actions: 63700, pct: 38 },
+              { module: 'Examination', actions: 35800, pct: 22 },
+              { module: 'Transport', actions: 28500, pct: 17 },
+              { module: 'Library', actions: 18200, pct: 11 },
+            ].map(m => (
+              <div key={m.module} className="flex items-center gap-3">
+                <span className={`text-[10px] font-bold ${theme.highlight} w-24 truncate`}>{m.module}</span>
+                <div className="flex-1 h-5 rounded-lg bg-slate-100 overflow-hidden relative">
+                  <div className="h-full rounded-lg bg-blue-500/80 transition-all" style={{ width: `${m.pct}%` }} />
+                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-bold text-slate-600">
+                    {m.actions.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Most Active vs Least Active Schools */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <h3 className={`text-sm font-bold ${theme.highlight} mb-3 flex items-center gap-2`}>
+            <TrendingUp size={14} className="text-emerald-500" /> Most Active Schools
+          </h3>
+          <div className="space-y-2">
+            {analyticsSchools
+              .filter(s => s.healthScore >= 80)
+              .sort((a, b) => b.healthScore - a.healthScore)
+              .slice(0, 3)
+              .map((s, i) => (
+                <div key={s.id} className={`flex items-center gap-3 p-3 rounded-xl ${theme.secondaryBg}`}>
+                  <span className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold">{i + 1}</span>
+                  <div className="flex-1">
+                    <p className={`text-xs font-bold ${theme.highlight}`}>{s.name}</p>
+                    <p className={`text-[10px] ${theme.iconColor}`}>{s.activeUsers.toLocaleString()} active users</p>
+                  </div>
+                  <span className="text-xs font-bold text-emerald-600">{s.healthScore}%</span>
+                </div>
+              ))}
+          </div>
+        </div>
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <h3 className={`text-sm font-bold ${theme.highlight} mb-3 flex items-center gap-2`}>
+            <AlertTriangle size={14} className="text-red-500" /> Least Active Schools
+          </h3>
+          <div className="space-y-2">
+            {analyticsSchools
+              .filter(s => s.healthScore < 80)
+              .sort((a, b) => a.healthScore - b.healthScore)
+              .slice(0, 3)
+              .map((s, i) => (
+                <div key={s.id} className={`flex items-center gap-3 p-3 rounded-xl ${s.healthScore < 60 ? 'bg-red-50 border border-red-200' : 'bg-amber-50 border border-amber-200'}`}>
+                  <span className={`w-5 h-5 rounded-full ${s.healthScore < 60 ? 'bg-red-500' : 'bg-amber-500'} text-white flex items-center justify-center text-[10px] font-bold`}>{i + 1}</span>
+                  <div className="flex-1">
+                    <p className={`text-xs font-bold ${s.healthScore < 60 ? 'text-red-800' : 'text-amber-800'}`}>{s.name}</p>
+                    <p className={`text-[10px] ${s.healthScore < 60 ? 'text-red-500' : 'text-amber-500'}`}>{s.activeUsers.toLocaleString()} active users</p>
+                  </div>
+                  <span className={`text-xs font-bold ${s.healthScore < 60 ? 'text-red-600' : 'text-amber-600'}`}>{s.healthScore}%</span>
+                </div>
+              ))}
+          </div>
+        </div>
+      </div>
+
       {/* School List */}
       <div className="space-y-3">
         {analyticsSchools.map(s => {
@@ -1504,6 +1610,403 @@ function ResellerManagementModule({ theme }: { theme: Theme }) {
   );
 }
 
+// ─── AM ASSIGNMENT VIEW ──────────────────────────────
+const accountManagers = [
+  { id: 'AM01', name: 'Farheen Shaikh', email: 'farheen@saaras.ai', schools: ['Delhi Public School', 'Navrachana Vidyani', 'Udgam School'], totalSchools: 3, capacity: 5, avgHealthScore: 85, lastActive: '30 min ago' },
+  { id: 'AM02', name: 'Kunjal Patel', email: 'kunjal@saaras.ai', schools: ['Anand Niketan', 'Zydus School'], totalSchools: 2, capacity: 5, avgHealthScore: 82, lastActive: '4 hours ago' },
+  { id: 'AM03', name: 'Riya Desai', email: 'riya@saaras.ai', schools: ['SAL International'], totalSchools: 1, capacity: 5, avgHealthScore: 0, lastActive: '1 day ago' },
+  { id: 'AM04', name: 'Varun Mehta', email: 'varun@saaras.ai', schools: [], totalSchools: 0, capacity: 5, avgHealthScore: 0, lastActive: '2 days ago' },
+];
+
+const unassignedSchools = [
+  { name: 'Calorx Olive, Ahmedabad', plan: 'Starter', status: 'Churned', students: 450 },
+  { name: 'Bright Future Academy', plan: 'Professional', status: 'Onboarding', students: 0 },
+  { name: 'Greenfield International', plan: 'Enterprise', status: 'Onboarding', students: 0 },
+];
+
+function AMAssignmentView({ theme }: { theme: Theme }) {
+  const [showAssign, setShowAssign] = useState(false);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className={`text-lg font-bold ${theme.highlight}`}>Account Manager Assignment</h2>
+          <p className={`text-xs ${theme.iconColor}`}>Assign and manage account managers for each school</p>
+        </div>
+        <button onClick={() => setShowAssign(!showAssign)} className={`flex items-center gap-2 px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>
+          <Plus size={14} /> Assign AM
+        </button>
+      </div>
+
+      {/* KPIs */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <StatCard icon={UserCog} label="Total AMs" value={accountManagers.length} color="bg-blue-500" theme={theme} />
+        <StatCard icon={Building2} label="Assigned Schools" value={accountManagers.reduce((s, a) => s + a.totalSchools, 0)} color="bg-emerald-500" theme={theme} />
+        <StatCard icon={AlertTriangle} label="Unassigned Schools" value={unassignedSchools.length} color="bg-amber-500" theme={theme} />
+        <StatCard icon={TrendingUp} label="Avg Health Score" value="84%" color="bg-purple-500" sub="across managed schools" theme={theme} />
+      </div>
+
+      {/* Assign AM Modal */}
+      {showAssign && (
+        <div className={`${theme.cardBg} rounded-2xl border-2 border-blue-300 p-5 space-y-4`}>
+          <div className="flex items-center justify-between">
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>Assign Account Manager</h3>
+            <button onClick={() => setShowAssign(false)} className={`p-1.5 rounded-lg ${theme.buttonHover} ${theme.iconColor}`}><X size={16} /></button>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Select School</label>
+              <select className={`w-full px-3 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm ${theme.highlight} outline-none`}>
+                <option value="">Choose school...</option>
+                {unassignedSchools.map(s => <option key={s.name} value={s.name}>{s.name} ({s.status})</option>)}
+                {schools.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Assign To</label>
+              <select className={`w-full px-3 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm ${theme.highlight} outline-none`}>
+                <option value="">Choose AM...</option>
+                {accountManagers.map(am => (
+                  <option key={am.id} value={am.id}>{am.name} ({am.totalSchools}/{am.capacity} schools)</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="flex justify-end gap-3">
+            <button onClick={() => setShowAssign(false)} className={`px-4 py-2 rounded-xl text-xs font-bold ${theme.secondaryBg} ${theme.highlight}`}>Cancel</button>
+            <button onClick={() => { setShowAssign(false); window.alert('AM assigned successfully! (Blueprint demo)'); }} className={`flex items-center gap-2 px-5 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>
+              <Check size={14} /> Assign
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* AM List with Workload */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Account Managers — Workload</h3>
+        <div className="space-y-3">
+          {accountManagers.map(am => {
+            const loadPct = Math.round((am.totalSchools / am.capacity) * 100);
+            return (
+              <div key={am.id} className={`p-4 rounded-xl ${theme.secondaryBg}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-9 h-9 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold`}>
+                      {am.name.split(' ').map(n => n[0]).join('')}
+                    </div>
+                    <div>
+                      <p className={`text-xs font-bold ${theme.highlight}`}>{am.name}</p>
+                      <p className={`text-[10px] ${theme.iconColor}`}>{am.email} &middot; Last active: {am.lastActive}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className={`text-xs font-bold ${theme.highlight}`}>{am.totalSchools}/{am.capacity} schools</p>
+                    {am.avgHealthScore > 0 && (
+                      <p className={`text-[10px] font-bold ${am.avgHealthScore >= 80 ? 'text-emerald-600' : am.avgHealthScore >= 60 ? 'text-amber-600' : 'text-red-500'}`}>
+                        Avg Health: {am.avgHealthScore}%
+                      </p>
+                    )}
+                  </div>
+                </div>
+                {/* Workload Bar */}
+                <div className="h-2 rounded-full bg-slate-200 overflow-hidden mb-2">
+                  <div
+                    className={`h-full rounded-full ${loadPct >= 80 ? 'bg-red-500' : loadPct >= 60 ? 'bg-amber-500' : 'bg-emerald-500'}`}
+                    style={{ width: `${loadPct}%` }}
+                  />
+                </div>
+                {/* Schools list */}
+                {am.schools.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {am.schools.map(s => (
+                      <span key={s} className={`text-[10px] px-2 py-0.5 rounded-full ${theme.cardBg} border ${theme.border} ${theme.iconColor} font-medium`}>{s}</span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className={`text-[10px] ${theme.iconColor}`}>No schools assigned yet</p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Unassigned Schools */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3 flex items-center gap-2`}>
+          <AlertTriangle size={14} className="text-amber-500" /> Unassigned Schools
+        </h3>
+        <DataTable
+          headers={['School', 'Plan', 'Status', 'Students', '']}
+          rows={unassignedSchools.map(s => [
+            <span key="name" className={`text-xs font-bold ${theme.highlight}`}>{s.name}</span>,
+            <span key="plan" className={`text-xs font-bold ${theme.primaryText}`}>{s.plan}</span>,
+            <StatusBadge key="status" status={s.status} theme={theme} />,
+            <span key="stu" className={`text-xs ${theme.iconColor}`}>{s.students > 0 ? s.students.toLocaleString() : '—'}</span>,
+            <button key="assign" onClick={() => setShowAssign(true)} className={`text-xs ${theme.primaryText} font-bold`}>Assign →</button>,
+          ])}
+          theme={theme}
+        />
+      </div>
+    </div>
+  );
+}
+
+// ─── DATA MIGRATION VIEW ─────────────────────────────
+function DataMigrationView({ theme }: { theme: Theme }) {
+  const [step, setStep] = useState(1);
+  const totalSteps = 5;
+  const stepLabels = ['Source', 'Upload', 'Field Mapping', 'Validation', 'Import'];
+
+  const recentMigrations = [
+    { id: 'MIG001', school: 'Delhi Public School', source: 'Fedena ERP', date: '10 Jan 2026', records: '4,250', tables: 12, status: 'Completed', duration: '2h 15m' },
+    { id: 'MIG002', school: 'Navrachana Vidyani', source: 'Excel Sheets', date: '08 Jan 2026', records: '3,100', tables: 8, status: 'Completed', duration: '1h 40m' },
+    { id: 'MIG003', school: 'Udgam School', source: 'Tally + Excel', date: '05 Jan 2026', records: '2,800', tables: 6, status: 'Completed', duration: '1h 20m' },
+    { id: 'MIG004', school: 'SAL International', source: 'Manual Entry', date: '15 Feb 2026', records: '—', tables: 0, status: 'Pending', duration: '—' },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className={`text-lg font-bold ${theme.highlight}`}>Data Migration Tools</h2>
+          <p className={`text-xs ${theme.iconColor}`}>Migrate school data from legacy systems to Saaras</p>
+        </div>
+        <button onClick={() => setStep(1)} className={`flex items-center gap-2 px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>
+          <Plus size={14} /> New Migration
+        </button>
+      </div>
+
+      {/* KPIs */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <StatCard icon={Database} label="Total Migrations" value={recentMigrations.length} color="bg-blue-500" theme={theme} />
+        <StatCard icon={CheckCircle} label="Completed" value={recentMigrations.filter(m => m.status === 'Completed').length} color="bg-emerald-500" theme={theme} />
+        <StatCard icon={Clock} label="Pending" value={recentMigrations.filter(m => m.status === 'Pending').length} color="bg-amber-500" theme={theme} />
+        <StatCard icon={Table2} label="Total Records Migrated" value="10,150" color="bg-purple-500" theme={theme} />
+      </div>
+
+      {/* Migration Wizard */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-4`}>Migration Wizard</h3>
+
+        {/* Step Indicator */}
+        <div className="flex items-center gap-2 mb-6">
+          {stepLabels.map((label, i) => (
+            <React.Fragment key={label}>
+              <div className="flex items-center gap-1.5">
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                  i + 1 < step ? 'bg-emerald-500 text-white' :
+                  i + 1 === step ? `${theme.primary} text-white` :
+                  `${theme.secondaryBg} ${theme.iconColor}`
+                }`}>
+                  {i + 1 < step ? <Check size={12} /> : i + 1}
+                </div>
+                <span className={`text-[10px] font-bold ${i + 1 <= step ? theme.highlight : theme.iconColor}`}>{label}</span>
+              </div>
+              {i < totalSteps - 1 && (
+                <div className={`flex-1 h-0.5 rounded ${i + 1 < step ? 'bg-emerald-500' : `${theme.secondaryBg}`}`} />
+              )}
+            </React.Fragment>
+          ))}
+        </div>
+
+        {/* Step Content */}
+        {step === 1 && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Target School</label>
+                <select className={`w-full px-3 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm ${theme.highlight} outline-none`}>
+                  <option value="">Select school...</option>
+                  {schools.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Source System</label>
+                <select className={`w-full px-3 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm ${theme.highlight} outline-none`}>
+                  <option value="">Select source...</option>
+                  <option>Excel / CSV Sheets</option>
+                  <option>Fedena ERP</option>
+                  <option>Entab CampusCare</option>
+                  <option>MyClassboard</option>
+                  <option>Tally (Fee Data)</option>
+                  <option>Custom SQL Database</option>
+                  <option>Other</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Data Categories to Migrate</label>
+              <div className="flex flex-wrap gap-2">
+                {['Students', 'Staff', 'Fee Records', 'Attendance', 'Exam Results', 'Transport', 'Library', 'Parent Contacts', 'Timetable', 'Inventory'].map(cat => (
+                  <button key={cat} className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border ${theme.border} ${theme.cardBg} ${theme.iconColor} ${theme.buttonHover} transition-all`}>{cat}</button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {step === 2 && (
+          <div className="space-y-4">
+            <div className={`p-8 rounded-xl border-2 border-dashed ${theme.border} text-center`}>
+              <Upload size={32} className={`${theme.iconColor} mx-auto mb-3`} />
+              <p className={`text-sm font-bold ${theme.highlight}`}>Drag & drop files here</p>
+              <p className={`text-xs ${theme.iconColor} mt-1`}>Supports .xlsx, .csv, .json, .sql files (max 100MB each)</p>
+              <button className={`mt-3 px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>Browse Files</button>
+            </div>
+            <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+              <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1`}>Uploaded Files</p>
+              <div className="space-y-1.5">
+                {['students_master.xlsx (2.4 MB)', 'fee_records_2024-25.csv (1.8 MB)', 'staff_data.xlsx (0.9 MB)'].map((f, i) => (
+                  <div key={i} className={`flex items-center justify-between p-2 rounded-lg ${theme.cardBg} border ${theme.border}`}>
+                    <span className={`text-xs ${theme.highlight}`}>{f}</span>
+                    <CheckCircle size={14} className="text-emerald-500" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div className="space-y-4">
+            <p className={`text-xs ${theme.iconColor}`}>Map source columns to Saaras fields. Auto-detected mappings shown below.</p>
+            <DataTable
+              headers={['Source Column', 'Saaras Field', 'Status', '']}
+              rows={[
+                ['Student Name', 'students.full_name', 'Mapped'],
+                ['Roll Number', 'students.roll_number', 'Mapped'],
+                ['Father Name', 'parents.father_name', 'Mapped'],
+                ['Mother Name', 'parents.mother_name', 'Mapped'],
+                ['Class', 'students.class_id', 'Mapped'],
+                ['Section', 'students.section', 'Mapped'],
+                ['DOB', 'students.date_of_birth', 'Mapped'],
+                ['Fee Amount', 'fee_records.amount', 'Mapped'],
+                ['Custom Field 1', '—', 'Unmapped'],
+                ['Custom Field 2', '—', 'Unmapped'],
+              ].map(([src, dst, status]) => [
+                <span key="src" className={`text-xs font-bold ${theme.highlight}`}>{src}</span>,
+                <span key="dst" className={`text-xs ${status === 'Mapped' ? theme.primaryText : 'text-red-500'} font-mono`}>{dst}</span>,
+                <StatusBadge key="status" status={status === 'Mapped' ? 'Active' : 'Pending'} theme={theme} />,
+                <button key="action" className={`text-xs ${theme.primaryText} font-bold`}>{status === 'Mapped' ? 'Change' : 'Map'}</button>,
+              ])}
+              theme={theme}
+            />
+          </div>
+        )}
+
+        {step === 4 && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className={`p-3 rounded-xl ${theme.secondaryBg} text-center`}>
+                <p className={`text-lg font-bold text-emerald-600`}>4,250</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Valid Records</p>
+              </div>
+              <div className={`p-3 rounded-xl ${theme.secondaryBg} text-center`}>
+                <p className={`text-lg font-bold text-amber-600`}>23</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Warnings</p>
+              </div>
+              <div className={`p-3 rounded-xl ${theme.secondaryBg} text-center`}>
+                <p className={`text-lg font-bold text-red-500`}>8</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Errors</p>
+              </div>
+              <div className={`p-3 rounded-xl ${theme.secondaryBg} text-center`}>
+                <p className={`text-lg font-bold ${theme.highlight}`}>12</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Tables</p>
+              </div>
+            </div>
+            <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+              <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-2`}>Validation Issues</p>
+              <div className="space-y-1.5">
+                {[
+                  { type: 'Error', msg: 'Missing DOB for 5 student records (rows 45, 128, 302, 567, 812)' },
+                  { type: 'Error', msg: 'Duplicate roll numbers found: 3 records in Class 10-A' },
+                  { type: 'Warning', msg: '15 phone numbers in invalid format — will be imported as-is' },
+                  { type: 'Warning', msg: '8 fee records have no corresponding student — skipping' },
+                ].map((issue, i) => (
+                  <div key={i} className={`flex items-start gap-2 p-2 rounded-lg ${issue.type === 'Error' ? 'bg-red-50 border border-red-200' : 'bg-amber-50 border border-amber-200'}`}>
+                    <AlertTriangle size={12} className={`mt-0.5 shrink-0 ${issue.type === 'Error' ? 'text-red-500' : 'text-amber-500'}`} />
+                    <p className={`text-xs ${issue.type === 'Error' ? 'text-red-700' : 'text-amber-700'}`}>{issue.msg}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {step === 5 && (
+          <div className="space-y-4">
+            <div className="text-center py-6">
+              <div className={`w-16 h-16 rounded-2xl bg-emerald-500 text-white flex items-center justify-center mx-auto mb-4`}>
+                <ArrowDownToLine size={28} />
+              </div>
+              <p className={`text-sm font-bold ${theme.highlight}`}>Ready to Import</p>
+              <p className={`text-xs ${theme.iconColor} mt-1`}>4,250 records across 12 tables will be imported into Delhi Public School</p>
+            </div>
+            {/* Progress Bar (mock at 0%) */}
+            <div>
+              <div className="flex justify-between mb-1">
+                <span className={`text-xs font-bold ${theme.highlight}`}>Import Progress</span>
+                <span className={`text-xs font-bold ${theme.iconColor}`}>0%</span>
+              </div>
+              <div className="h-3 rounded-full bg-slate-200 overflow-hidden">
+                <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: '0%' }} />
+              </div>
+              <p className={`text-[10px] ${theme.iconColor} mt-1`}>Click &quot;Start Import&quot; to begin. This may take 15-30 minutes.</p>
+            </div>
+          </div>
+        )}
+
+        {/* Navigation Buttons */}
+        <div className="flex justify-between mt-6 pt-4 border-t" style={{ borderColor: 'rgba(0,0,0,0.1)' }}>
+          <button
+            onClick={() => setStep(Math.max(1, step - 1))}
+            disabled={step === 1}
+            className={`px-4 py-2 rounded-xl text-xs font-bold ${step === 1 ? 'opacity-30 cursor-not-allowed' : ''} ${theme.secondaryBg} ${theme.highlight}`}
+          >
+            ← Previous
+          </button>
+          {step < totalSteps ? (
+            <button
+              onClick={() => setStep(step + 1)}
+              className={`px-5 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}
+            >
+              Next →
+            </button>
+          ) : (
+            <button
+              onClick={() => window.alert('Data import started! This will take approximately 20 minutes. (Blueprint demo)')}
+              className="px-5 py-2 bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center gap-2"
+            >
+              <ArrowDownToLine size={14} /> Start Import
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Recent Migrations Table */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Recent Migrations</h3>
+        <DataTable
+          headers={['ID', 'School', 'Source', 'Date', 'Records', 'Tables', 'Duration', 'Status']}
+          rows={recentMigrations.map(m => [
+            <span key="id" className={`text-xs font-mono ${theme.primaryText}`}>{m.id}</span>,
+            <span key="school" className={`text-xs font-bold ${theme.highlight}`}>{m.school}</span>,
+            <span key="src" className={`text-xs ${theme.iconColor}`}>{m.source}</span>,
+            <span key="date" className={`text-xs ${theme.iconColor}`}>{m.date}</span>,
+            <span key="records" className={`text-xs font-bold ${theme.highlight}`}>{m.records}</span>,
+            <span key="tables" className={`text-xs ${theme.iconColor}`}>{m.tables}</span>,
+            <span key="duration" className={`text-xs ${theme.iconColor}`}>{m.duration}</span>,
+            <StatusBadge key="status" status={m.status === 'Completed' ? 'Active' : 'Pending'} theme={theme} />,
+          ])}
+          theme={theme}
+        />
+      </div>
+    </div>
+  );
+}
+
 // ─── MAIN PAGE ─────────────────────────────────────────
 function SuperAdminDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
   const [activeModule, setActiveModule] = useState('dashboard');
@@ -1533,6 +2036,8 @@ function SuperAdminDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme
       case 'analytics': return <AnalyticsView theme={theme} />;
       case 'config': return <SystemConfigView theme={theme} />;
       case 'resellers': return <ResellerManagementModule theme={theme} />;
+      case 'am-assignment': return <AMAssignmentView theme={theme} />;
+      case 'data-migration': return <DataMigrationView theme={theme} />;
       case 'audit': return <AuditLogsView theme={theme} />;
       case 'communication': return <CommunicationModule theme={theme} />;
       case 'profile': return <StakeholderProfile role="super-admin" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />;

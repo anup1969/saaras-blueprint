@@ -10,7 +10,8 @@ import {
   Download, ChevronDown, ChevronUp, Eye, Upload, Star, TrendingUp,
   BarChart3, Timer, Library, BookOpenCheck, IndianRupee, Receipt, CreditCard,
   GraduationCap, User, ArrowRight, MessageSquare,
-  PanelLeftClose, PanelLeftOpen, Headphones
+  PanelLeftClose, PanelLeftOpen, Headphones,
+  CalendarOff, FileBadge, LayoutGrid, X, Send, Copy
 } from 'lucide-react';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
@@ -219,6 +220,31 @@ const notices = [
   { id: 7, title: 'Republic Day Celebration Photos', date: '27 Jan 2026', category: 'Event', content: 'Photos from the Republic Day celebration held on 26th January are now available on the school website. Students who participated in the march past and cultural program can collect certificates from the Admin office during lunch break. Special mention: Aarav Patel (10-A) for the winning patriotic speech.', isNew: false },
 ];
 
+// ─── MOCK: LEAVE RECORDS ──────────────────────────
+const leaveRecords = [
+  { id: 1, type: 'Sick Leave', from: '15 Jan 2026', to: '16 Jan 2026', reason: 'Fever and cold', status: 'Approved', appliedOn: '14 Jan 2026' },
+  { id: 2, type: 'Family Emergency', from: '28 Nov 2025', to: '29 Nov 2025', reason: 'Family function — grandmother\'s birthday', status: 'Approved', appliedOn: '25 Nov 2025' },
+  { id: 3, type: 'Casual Leave', from: '18 Feb 2026', to: '18 Feb 2026', reason: 'Personal work — passport appointment', status: 'Pending', appliedOn: '12 Feb 2026' },
+  { id: 4, type: 'Sick Leave', from: '05 Oct 2025', to: '07 Oct 2025', reason: 'Stomach infection', status: 'Rejected', appliedOn: '04 Oct 2025' },
+];
+
+const leaveBalance = { total: 12, used: 4, remaining: 8 };
+
+// ─── MOCK: CERTIFICATES & DOCUMENTS ──────────────
+const certificatesList = [
+  { id: 1, name: 'Bonafide Certificate', status: 'Ready to Download', action: 'download' },
+  { id: 2, name: 'Character Certificate', status: 'Ready to Download', action: 'download' },
+  { id: 3, name: 'Transfer Certificate', status: 'Not Requested', action: 'request-tc' },
+  { id: 4, name: 'Duplicate Marksheet', status: 'Not Available', action: 'request' },
+  { id: 5, name: 'Student ID Card', status: 'Ready', action: 'download' },
+];
+
+const recentDocRequests = [
+  { certificate: 'Bonafide Certificate', requestedOn: '20 Jan 2026', status: 'Completed', remarks: 'Collected from office' },
+  { certificate: 'Character Certificate', requestedOn: '25 Jan 2026', status: 'Completed', remarks: 'Ready for collection' },
+  { certificate: 'Transfer Certificate', requestedOn: '10 Feb 2026', status: 'Processing', remarks: 'Under principal review' },
+];
+
 // ─── MODULE SIDEBAR ────────────────────────────────
 const modules = [
   { id: 'dashboard', label: 'Dashboard', icon: Home },
@@ -228,6 +254,8 @@ const modules = [
   { id: 'attendance', label: 'Attendance', icon: ClipboardCheck },
   { id: 'fees', label: 'Fees', icon: Banknote },
   { id: 'library', label: 'Library', icon: BookMarked },
+  { id: 'leave', label: 'Leave', icon: CalendarOff },
+  { id: 'documents', label: 'Documents', icon: FileBadge },
   { id: 'notices', label: 'Notices', icon: Megaphone },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
   { id: 'support', label: 'Support', icon: Headphones },
@@ -272,6 +300,8 @@ function StudentDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; t
         {activeModule === 'attendance' && <AttendanceModule theme={theme} />}
         {activeModule === 'fees' && <FeesModule theme={theme} />}
         {activeModule === 'library' && <LibraryModule theme={theme} />}
+        {activeModule === 'leave' && <LeaveModule theme={theme} />}
+        {activeModule === 'documents' && <DocumentsModule theme={theme} />}
         {activeModule === 'notices' && <NoticesModule theme={theme} />}
         {activeModule === 'communication' && <CommunicationModule theme={theme} />}
         {activeModule === 'support' && <SupportModule theme={theme} role="student" />}
@@ -283,6 +313,12 @@ function StudentDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; t
 
 // ─── DASHBOARD HOME ─────────────────────────────────
 function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick: () => void }) {
+  const [showCustomize, setShowCustomize] = useState(false);
+  const [widgetConfig, setWidgetConfig] = useState<Record<string, boolean>>({
+    'Attendance': true, 'Timetable': true, 'Homework': true, 'Fee Status': true,
+    'Results': true, 'Notices': true, 'Events Calendar': false, 'Library Books': false,
+  });
+
   return (
     <div className="space-y-4">
       {/* Profile header */}
@@ -301,8 +337,43 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
           <p className={`text-xs ${theme.iconColor}`}>Academic Year</p>
           <p className={`text-sm font-bold ${theme.highlight}`}>2025-26</p>
         </div>
+        <button onClick={() => setShowCustomize(true)} title="Customize Dashboard" className={`w-9 h-9 rounded-full ${theme.secondaryBg} ${theme.iconColor} flex items-center justify-center ${theme.buttonHover} transition-all`}>
+          <LayoutGrid size={16} />
+        </button>
         <button onClick={onProfileClick} title="My Profile" className={`w-9 h-9 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold hover:opacity-90 transition-opacity`}>AM</button>
       </div>
+
+      {/* Widget Customization Modal */}
+      {showCustomize && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => setShowCustomize(false)}>
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-6 w-full max-w-md shadow-xl`} onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className={`text-lg font-bold ${theme.highlight}`}>Customize Dashboard Widgets</h3>
+              <button onClick={() => setShowCustomize(false)} className={`p-1.5 rounded-lg ${theme.buttonHover} ${theme.iconColor}`}><X size={16} /></button>
+            </div>
+            <p className={`text-xs ${theme.iconColor} mb-4`}>Select which widgets to display on your dashboard home.</p>
+            <div className="space-y-2.5">
+              {Object.entries(widgetConfig).map(([name, checked]) => (
+                <label key={name} className={`flex items-center gap-3 p-2.5 rounded-xl ${theme.accentBg} cursor-pointer ${theme.buttonHover} transition-all`}>
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => setWidgetConfig(prev => ({ ...prev, [name]: !prev[name] }))}
+                    className="w-4 h-4 rounded accent-blue-600"
+                  />
+                  <span className={`text-xs font-bold ${theme.highlight}`}>{name}</span>
+                </label>
+              ))}
+            </div>
+            <button
+              onClick={() => { window.alert('Dashboard layout saved! (Blueprint demo)'); setShowCustomize(false); }}
+              className={`w-full mt-5 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl ${theme.primary} text-white text-xs font-bold`}
+            >
+              <CheckCircle size={14} /> Save Layout
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -956,6 +1027,255 @@ function LibraryModule({ theme }: { theme: Theme }) {
             ))}
           </div>
         </div>
+      )}
+    </div>
+  );
+}
+
+// ─── LEAVE MODULE ──────────────────────────────────
+function LeaveModule({ theme }: { theme: Theme }) {
+  const [showApplyForm, setShowApplyForm] = useState(false);
+  const [leaveType, setLeaveType] = useState('Sick Leave');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [reason, setReason] = useState('');
+  const [parentAck, setParentAck] = useState(false);
+
+  const leaveStatusColors: Record<string, string> = {
+    Approved: 'bg-emerald-100 text-emerald-700',
+    Pending: 'bg-amber-100 text-amber-700',
+    Rejected: 'bg-red-100 text-red-700',
+  };
+
+  const handleSubmitLeave = () => {
+    if (!fromDate || !toDate || !reason) { window.alert('Please fill all required fields.'); return; }
+    if (!parentAck) { window.alert('Please confirm parent/guardian acknowledgment.'); return; }
+    window.alert('Leave application submitted for approval! (Blueprint demo)');
+    setShowApplyForm(false);
+    setLeaveType('Sick Leave'); setFromDate(''); setToDate(''); setReason(''); setParentAck(false);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className={`text-2xl font-bold ${theme.highlight}`}>Leave Management</h1>
+        <button onClick={() => setShowApplyForm(true)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl ${theme.primary} text-white text-xs font-bold`}>
+          <Send size={12} /> Apply Leave
+        </button>
+      </div>
+
+      {/* Leave Balance */}
+      <div className="grid grid-cols-3 gap-4">
+        <StatCard icon={CalendarOff} label="Total Allowed" value={leaveBalance.total} color="bg-blue-500" theme={theme} />
+        <StatCard icon={XCircle} label="Used" value={leaveBalance.used} color="bg-amber-500" theme={theme} />
+        <StatCard icon={CheckCircle} label="Remaining" value={leaveBalance.remaining} color="bg-emerald-500" theme={theme} />
+      </div>
+
+      {/* Apply Leave Modal */}
+      {showApplyForm && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => setShowApplyForm(false)}>
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-6 w-full max-w-lg shadow-xl`} onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className={`text-lg font-bold ${theme.highlight}`}>Apply for Leave</h3>
+              <button onClick={() => setShowApplyForm(false)} className={`p-1.5 rounded-lg ${theme.buttonHover} ${theme.iconColor}`}><X size={16} /></button>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Leave Type</label>
+                <select value={leaveType} onChange={e => setLeaveType(e.target.value)} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`}>
+                  <option>Sick Leave</option>
+                  <option>Casual Leave</option>
+                  <option>Family Emergency</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>From Date</label>
+                  <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`} />
+                </div>
+                <div>
+                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>To Date</label>
+                  <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`} />
+                </div>
+              </div>
+              <div>
+                <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Reason</label>
+                <textarea value={reason} onChange={e => setReason(e.target.value)} rows={3} placeholder="Explain your reason for leave..." className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} resize-none`} />
+              </div>
+              <label className={`flex items-center gap-2.5 p-3 rounded-xl ${theme.accentBg} cursor-pointer`}>
+                <input type="checkbox" checked={parentAck} onChange={() => setParentAck(!parentAck)} className="w-4 h-4 rounded accent-blue-600" />
+                <span className={`text-xs ${theme.highlight}`}>My parent/guardian is aware of this leave</span>
+              </label>
+              <button onClick={handleSubmitLeave} className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl ${theme.primary} text-white text-xs font-bold`}>
+                <Send size={14} /> Submit Leave Application
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Leave History */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Leave History</h3>
+        <DataTable
+          headers={['Type', 'Date Range', 'Reason', 'Status', 'Applied On']}
+          rows={leaveRecords.map(lr => [
+            <span key="type" className={`text-xs font-bold ${theme.highlight}`}>{lr.type}</span>,
+            <span key="range" className={`text-xs ${theme.iconColor}`}>{lr.from} — {lr.to}</span>,
+            <span key="reason" className={`text-xs ${theme.iconColor}`}>{lr.reason}</span>,
+            <span key="status" className={`text-xs px-2 py-0.5 rounded-full font-bold ${leaveStatusColors[lr.status]}`}>{lr.status}</span>,
+            <span key="applied" className={`text-xs ${theme.iconColor}`}>{lr.appliedOn}</span>,
+          ])}
+          theme={theme}
+        />
+      </div>
+    </div>
+  );
+}
+
+// ─── DOCUMENTS MODULE ──────────────────────────────
+function DocumentsModule({ theme }: { theme: Theme }) {
+  const [activeTab, setActiveTab] = useState('Certificates');
+  const [showRequestForm, setShowRequestForm] = useState(false);
+  const [docType, setDocType] = useState('Bonafide');
+  const [purpose, setPurpose] = useState('Higher Studies');
+  const [copies, setCopies] = useState(1);
+  const [urgency, setUrgency] = useState('Normal');
+  const [notes, setNotes] = useState('');
+
+  const certStatusColors: Record<string, string> = {
+    'Ready to Download': 'bg-emerald-100 text-emerald-700',
+    'Ready': 'bg-emerald-100 text-emerald-700',
+    'Not Requested': 'bg-slate-100 text-slate-600',
+    'Not Available': 'bg-red-100 text-red-700',
+    'Processing': 'bg-amber-100 text-amber-700',
+    'Completed': 'bg-emerald-100 text-emerald-700',
+    'Requested': 'bg-blue-100 text-blue-700',
+  };
+
+  const handleCertAction = (cert: typeof certificatesList[0]) => {
+    if (cert.action === 'download') {
+      window.alert(`${cert.name} downloaded! (Blueprint demo)`);
+    } else {
+      window.alert('Request submitted! Admin will process within 3-5 working days. (Blueprint demo)');
+    }
+  };
+
+  const handleSubmitRequest = () => {
+    window.alert('Document request submitted! Admin will process your request. (Blueprint demo)');
+    setShowRequestForm(false);
+    setDocType('Bonafide'); setPurpose('Higher Studies'); setCopies(1); setUrgency('Normal'); setNotes('');
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className={`text-2xl font-bold ${theme.highlight}`}>Certificates & Documents</h1>
+        <button onClick={() => setShowRequestForm(true)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl ${theme.primary} text-white text-xs font-bold`}>
+          <FileText size={12} /> Request Document
+        </button>
+      </div>
+
+      <TabBar tabs={['Certificates', 'Recent Requests']} active={activeTab} onChange={setActiveTab} theme={theme} />
+
+      {/* Request Document Modal */}
+      {showRequestForm && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => setShowRequestForm(false)}>
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-6 w-full max-w-lg shadow-xl`} onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className={`text-lg font-bold ${theme.highlight}`}>Request Document</h3>
+              <button onClick={() => setShowRequestForm(false)} className={`p-1.5 rounded-lg ${theme.buttonHover} ${theme.iconColor}`}><X size={16} /></button>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Document Type</label>
+                <select value={docType} onChange={e => setDocType(e.target.value)} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`}>
+                  <option>Bonafide</option>
+                  <option>Transfer Certificate</option>
+                  <option>Marksheet</option>
+                  <option>Character Certificate</option>
+                  <option>Custom</option>
+                </select>
+              </div>
+              <div>
+                <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Purpose</label>
+                <select value={purpose} onChange={e => setPurpose(e.target.value)} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`}>
+                  <option>Higher Studies</option>
+                  <option>Bank</option>
+                  <option>Passport</option>
+                  <option>Scholarship</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Number of Copies</label>
+                  <select value={copies} onChange={e => setCopies(Number(e.target.value))} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`}>
+                    {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Urgency</label>
+                  <select value={urgency} onChange={e => setUrgency(e.target.value)} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`}>
+                    <option>Normal (5 days)</option>
+                    <option>Urgent (2 days)</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Additional Notes</label>
+                <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} placeholder="Any special instructions..." className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} resize-none`} />
+              </div>
+              <button onClick={handleSubmitRequest} className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl ${theme.primary} text-white text-xs font-bold`}>
+                <Send size={14} /> Submit Request
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'Certificates' && (
+        <div className="space-y-3">
+          {certificatesList.map(cert => (
+            <div key={cert.id} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 flex items-center justify-between`}>
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-xl ${cert.action === 'download' ? 'bg-emerald-500' : 'bg-slate-400'} flex items-center justify-center text-white`}>
+                  <FileBadge size={16} />
+                </div>
+                <div>
+                  <p className={`text-sm font-bold ${theme.highlight}`}>{cert.name}</p>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${certStatusColors[cert.status]}`}>{cert.status}</span>
+                </div>
+              </div>
+              <button
+                onClick={() => handleCertAction(cert)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold ${
+                  cert.action === 'download'
+                    ? `${theme.primary} text-white`
+                    : `${theme.secondaryBg} ${theme.highlight} ${theme.buttonHover}`
+                }`}
+              >
+                {cert.action === 'download' ? <><Download size={12} /> Download</> :
+                 cert.action === 'request-tc' ? <><FileText size={12} /> Request TC</> :
+                 <><FileText size={12} /> Request</>}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {activeTab === 'Recent Requests' && (
+        <DataTable
+          headers={['Certificate', 'Requested On', 'Status', 'Remarks']}
+          rows={recentDocRequests.map((r, i) => [
+            <span key="cert" className={`text-xs font-bold ${theme.highlight}`}>{r.certificate}</span>,
+            <span key="date" className={`text-xs ${theme.iconColor}`}>{r.requestedOn}</span>,
+            <span key="status" className={`text-xs px-2 py-0.5 rounded-full font-bold ${certStatusColors[r.status]}`}>{r.status}</span>,
+            <span key="rem" className={`text-xs ${theme.iconColor}`}>{r.remarks}</span>,
+          ])}
+          theme={theme}
+        />
       )}
     </div>
   );

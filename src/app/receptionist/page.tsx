@@ -13,7 +13,7 @@ import {
   Filter, Download, CheckCircle, AlertTriangle, ArrowRight, PhoneCall, PhoneIncoming,
   PhoneOutgoing, Package, BookOpen, Shield, UserCheck, Briefcase, Building2,
   MapPin, Bell, MessageSquare, LogIn, LogOut, BadgeCheck, Hash, FileText, Send, User,
-  PanelLeftClose, PanelLeftOpen, Headphones
+  PanelLeftClose, PanelLeftOpen, Headphones, Banknote, CreditCard, X, IndianRupee
 } from 'lucide-react';
 
 // ─── MODULE SIDEBAR ────────────────────────────────
@@ -22,9 +22,11 @@ const modules = [
   { id: 'visitors', label: 'Visitors', icon: Shield },
   { id: 'enquiries', label: 'Enquiries', icon: UserPlus },
   { id: 'calls', label: 'Calls', icon: Phone },
+  { id: 'fee-counter', label: 'Fee Counter', icon: Banknote },
   { id: 'courier', label: 'Courier/Mail', icon: Package },
   { id: 'appointments', label: 'Appointments', icon: Calendar },
-  { id: 'directory', label: 'Directory', icon: BookOpen },
+  { id: 'search-dir', label: 'Search Directory', icon: Search },
+  { id: 'directory', label: 'Staff Directory', icon: BookOpen },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
   { id: 'support', label: 'Support', icon: Headphones },
 ];
@@ -128,7 +130,9 @@ function ReceptionistDashboard({ theme, themeIdx, onThemeChange }: { theme?: The
         {activeModule === 'visitors' && <VisitorsModule theme={theme} />}
         {activeModule === 'enquiries' && <EnquiriesModule theme={theme} />}
         {activeModule === 'calls' && <CallsModule theme={theme} />}
+        {activeModule === 'fee-counter' && <FeeCounterModule theme={theme} />}
         {activeModule === 'courier' && <CourierModule theme={theme} />}
+        {activeModule === 'search-dir' && <StudentParentSearch theme={theme} />}
         {activeModule === 'appointments' && <AppointmentsModule theme={theme} />}
         {activeModule === 'directory' && <DirectoryModule theme={theme} />}
         {activeModule === 'communication' && <CommunicationModule theme={theme} />}
@@ -574,6 +578,146 @@ function DirectoryModule({ theme }: { theme: Theme }) {
           <button className={`px-3 py-1.5 rounded-lg ${theme.secondaryBg}`}>Next</button>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ─── FEE COUNTER MODULE ─────────────────────────────
+function FeeCounterModule({ theme }: { theme: Theme }) {
+  const [showForm, setShowForm] = useState(false);
+  const transactions = [
+    { receipt: 'RCP-2601', student: 'Aarav Patel (3-A)', amount: '₹8,500', mode: 'Cash', time: '09:12 AM' },
+    { receipt: 'RCP-2602', student: 'Siya Sharma (5-B)', amount: '₹12,000', mode: 'Cheque', time: '09:28 AM' },
+    { receipt: 'RCP-2603', student: 'Rohan Deshmukh (8-C)', amount: '₹6,200', mode: 'Online', time: '09:45 AM' },
+    { receipt: 'RCP-2604', student: 'Ishita Gupta (1-A)', amount: '₹15,000', mode: 'Cash', time: '10:05 AM' },
+    { receipt: 'RCP-2605', student: 'Arjun Reddy (10-A)', amount: '₹9,800', mode: 'Online', time: '10:22 AM' },
+    { receipt: 'RCP-2606', student: 'Ananya Desai (6-B)', amount: '₹7,500', mode: 'Cash', time: '10:40 AM' },
+    { receipt: 'RCP-2607', student: 'Dhruv Singhania (1-C)', amount: '₹5,200', mode: 'DD', time: '11:05 AM' },
+    { receipt: 'RCP-2608', student: 'Myra Kapoor (UKG)', amount: '₹11,500', mode: 'Online', time: '11:30 AM' },
+    { receipt: 'RCP-2609', student: 'Reyansh Gupta (3-B)', amount: '₹4,800', mode: 'Cash', time: '11:50 AM' },
+    { receipt: 'RCP-2610', student: 'Priya Nair (4-B)', amount: '₹5,200', mode: 'Cash', time: '12:10 PM' },
+  ];
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className={`text-2xl font-bold ${theme.highlight}`}>Fee Collection Counter</h1>
+        <button onClick={() => setShowForm(true)} className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}><Plus size={14} /> Record Payment</button>
+      </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard icon={Banknote} label="Cash" value="₹45,200" color="bg-emerald-500" sub="today" theme={theme} />
+        <StatCard icon={FileText} label="Cheque" value="₹12,000" color="bg-blue-500" sub="today" theme={theme} />
+        <StatCard icon={CreditCard} label="Online" value="₹28,500" color="bg-purple-500" sub="today" theme={theme} />
+        <StatCard icon={IndianRupee} label="Total" value="₹85,700" color="bg-amber-500" sub="today" theme={theme} />
+      </div>
+      <DataTable
+        headers={['Receipt No', 'Student', 'Amount', 'Mode', 'Time']}
+        rows={transactions.map(t => [
+          <span key="r" className={`font-mono text-xs font-bold ${theme.primaryText}`}>{t.receipt}</span>,
+          <span key="s" className={`font-bold ${theme.highlight}`}>{t.student}</span>,
+          <span key="a" className={`text-xs font-bold ${theme.highlight}`}>{t.amount}</span>,
+          <span key="m" className={`text-xs px-2 py-0.5 rounded-full font-bold ${t.mode === 'Cash' ? 'bg-emerald-100 text-emerald-700' : t.mode === 'Online' ? 'bg-purple-100 text-purple-700' : t.mode === 'Cheque' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>{t.mode}</span>,
+          <span key="t" className={`text-xs font-mono ${theme.iconColor}`}>{t.time}</span>,
+        ])}
+        theme={theme}
+      />
+      {showForm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowForm(false)}>
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-6 w-full max-w-md space-y-4`} onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between"><h3 className={`text-sm font-bold ${theme.highlight}`}>Record Payment</h3><button onClick={() => setShowForm(false)} className={theme.iconColor}><X size={18} /></button></div>
+            <div className="space-y-3">
+              <div><label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>Student Name / ID *</label><input placeholder="Search student..." className={`w-full px-3 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>Class</label><input placeholder="Auto-fill after search" readOnly className={`w-full px-3 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>Fee Head *</label><select className={`w-full px-3 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm`}><option>Tuition Fee</option><option>Transport Fee</option><option>Lab Fee</option><option>Activity Fee</option><option>Exam Fee</option><option>Late Fee</option></select></div>
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>Amount *</label><input type="number" placeholder="₹" className={`w-full px-3 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm`} /></div>
+                <div><label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>Payment Mode *</label><select className={`w-full px-3 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm`}><option>Cash</option><option>Cheque</option><option>Online</option><option>DD</option></select></div>
+              </div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>Receipt Number</label><input defaultValue="RCP-2611 (auto)" readOnly className={`w-full px-3 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>Collected By</label><input defaultValue="Receptionist — Ms. Anita" readOnly className={`w-full px-3 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm`} /></div>
+            </div>
+            <div className="flex gap-2"><button onClick={() => setShowForm(false)} className={`flex-1 py-2.5 rounded-xl ${theme.secondaryBg} text-xs font-bold ${theme.highlight}`}>Cancel</button><button onClick={() => { setShowForm(false); window.alert('Payment recorded. Receipt RCP-2611 generated (Blueprint demo)'); }} className={`flex-1 py-2.5 rounded-xl ${theme.primary} text-white text-xs font-bold`}>Record & Print Receipt</button></div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── STUDENT/PARENT SEARCH ──────────────────────────
+function StudentParentSearch({ theme }: { theme: Theme }) {
+  const [searchType, setSearchType] = useState('Student');
+  const [selectedPerson, setSelectedPerson] = useState<typeof searchResults[0] | null>(null);
+  const searchResults = [
+    { name: 'Aarav Patel', id: 'STU-1001', classSection: '3-A', phone: '98765-43210', parent: 'Rajesh Patel', status: 'Active', email: 'rajesh.patel@gmail.com', address: '12 Satellite Road, Ahmedabad', feeStatus: 'Paid' },
+    { name: 'Siya Sharma', id: 'STU-1002', classSection: '5-B', phone: '87654-32109', parent: 'Pooja Sharma', status: 'Active', email: 'pooja.sharma@gmail.com', address: '45 SG Highway, Ahmedabad', feeStatus: 'Pending' },
+    { name: 'Rohan Deshmukh', id: 'STU-1003', classSection: '8-C', phone: '76543-21098', parent: 'Anil Deshmukh', status: 'Active', email: 'anil.d@gmail.com', address: '78 Paldi, Ahmedabad', feeStatus: 'Paid' },
+    { name: 'Ishita Gupta', id: 'STU-1004', classSection: '1-A', phone: '99887-76655', parent: 'Ramesh Gupta', status: 'Active', email: 'ramesh.gupta@yahoo.com', address: '23 Vastrapur, Ahmedabad', feeStatus: 'Overdue' },
+    { name: 'Arjun Reddy', id: 'STU-1005', classSection: '10-A', phone: '88776-65544', parent: 'Suresh Reddy', status: 'Active', email: 'suresh.r@gmail.com', address: '56 Navrangpura, Ahmedabad', feeStatus: 'Paid' },
+    { name: 'Ananya Desai', id: 'STU-1006', classSection: '6-B', phone: '97654-44556', parent: 'Ravi Desai', status: 'Active', email: 'ravi.desai@gmail.com', address: '89 Bodakdev, Ahmedabad', feeStatus: 'Paid' },
+    { name: 'Dhruv Singhania', id: 'STU-1007', classSection: '1-C', phone: '90123-55667', parent: 'Pooja Singhania', status: 'Active', email: 'pooja.s@gmail.com', address: '34 Thaltej, Ahmedabad', feeStatus: 'Pending' },
+    { name: 'Myra Kapoor', id: 'STU-1008', classSection: 'UKG', phone: '91234-66778', parent: 'Ashish Kapoor', status: 'Active', email: 'ashish.k@gmail.com', address: '67 Prahlad Nagar, Ahmedabad', feeStatus: 'Paid' },
+    { name: 'Reyansh Gupta', id: 'STU-1009', classSection: '3-B', phone: '99887-33445', parent: 'Sanjay Gupta', status: 'Active', email: 'sanjay.g@gmail.com', address: '12 Maninagar, Ahmedabad', feeStatus: 'Paid' },
+    { name: 'Priya Nair', id: 'STU-1010', classSection: '4-B', phone: '98765-11223', parent: 'Mrs. Priya Nair', status: 'Active', email: 'priya.n@gmail.com', address: '45 Ambawadi, Ahmedabad', feeStatus: 'Paid' },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <h1 className={`text-2xl font-bold ${theme.highlight}`}>Student / Parent / Staff Search</h1>
+      <div className="flex gap-3">
+        <div className="flex gap-1">
+          {['Student', 'Parent', 'Staff'].map(t => (
+            <button key={t} onClick={() => setSearchType(t)} className={`px-3 py-2 rounded-xl text-xs font-bold ${searchType === t ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.iconColor}`}`}>{t}</button>
+          ))}
+        </div>
+        <SearchBar placeholder={`Search ${searchType.toLowerCase()} by name, ID, phone...`} theme={theme} icon={Search} />
+        <button className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold ${theme.iconColor} flex items-center gap-1`}><Filter size={12} /> Class</button>
+        <button className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold ${theme.iconColor} flex items-center gap-1`}><Filter size={12} /> Section</button>
+      </div>
+      <DataTable
+        headers={['Name', 'ID', 'Class/Section', 'Phone', 'Parent Name', 'Status', '']}
+        rows={searchResults.map(r => [
+          <span key="name" className={`font-bold ${theme.highlight} cursor-pointer`} onClick={() => setSelectedPerson(r)}>{r.name}</span>,
+          <span key="id" className={`font-mono text-xs ${theme.primaryText}`}>{r.id}</span>,
+          <span key="class" className={theme.iconColor}>{r.classSection}</span>,
+          <span key="phone" className={theme.iconColor}>{r.phone}</span>,
+          <span key="parent" className={theme.iconColor}>{r.parent}</span>,
+          <StatusBadge key="status" status={r.status} theme={theme} />,
+          <button key="view" onClick={() => setSelectedPerson(r)} className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Eye size={12} className={theme.iconColor} /></button>,
+        ])}
+        theme={theme}
+      />
+
+      {/* Mini Profile Card */}
+      {selectedPerson && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setSelectedPerson(null)}>
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-6 w-full max-w-sm space-y-4`} onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>Student Profile</h3>
+              <button onClick={() => setSelectedPerson(null)} className={theme.iconColor}><X size={18} /></button>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className={`w-16 h-16 rounded-2xl ${theme.secondaryBg} flex items-center justify-center`}>
+                <User size={28} className={theme.iconColor} />
+              </div>
+              <div>
+                <p className={`text-sm font-bold ${theme.highlight}`}>{selectedPerson.name}</p>
+                <p className={`text-xs ${theme.iconColor}`}>{selectedPerson.id} &bull; Class {selectedPerson.classSection}</p>
+              </div>
+            </div>
+            <div className={`p-4 rounded-xl ${theme.secondaryBg} space-y-2`}>
+              <div className="flex justify-between"><span className={`text-xs ${theme.iconColor}`}>Parent:</span><span className={`text-xs font-bold ${theme.highlight}`}>{selectedPerson.parent}</span></div>
+              <div className="flex justify-between"><span className={`text-xs ${theme.iconColor}`}>Phone:</span><span className={`text-xs font-mono ${theme.highlight}`}>{selectedPerson.phone}</span></div>
+              <div className="flex justify-between"><span className={`text-xs ${theme.iconColor}`}>Email:</span><span className={`text-xs ${theme.highlight}`}>{selectedPerson.email}</span></div>
+              <div className="flex justify-between"><span className={`text-xs ${theme.iconColor}`}>Address:</span><span className={`text-xs ${theme.highlight} text-right max-w-[180px]`}>{selectedPerson.address}</span></div>
+              <div className="flex justify-between"><span className={`text-xs ${theme.iconColor}`}>Fee Status:</span><span className={`text-xs px-2 py-0.5 rounded-full font-bold ${selectedPerson.feeStatus === 'Paid' ? 'bg-emerald-100 text-emerald-700' : selectedPerson.feeStatus === 'Pending' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>{selectedPerson.feeStatus}</span></div>
+            </div>
+            <div className="flex gap-2">
+              <button className={`flex-1 py-2 rounded-xl ${theme.secondaryBg} text-xs font-bold ${theme.iconColor} flex items-center justify-center gap-1`}><Phone size={12} /> Call</button>
+              <button className={`flex-1 py-2 rounded-xl ${theme.secondaryBg} text-xs font-bold ${theme.iconColor} flex items-center justify-center gap-1`}><Mail size={12} /> Email</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

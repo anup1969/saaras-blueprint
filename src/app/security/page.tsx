@@ -14,7 +14,7 @@ import {
   Users, Clock, Bell, Phone, MapPin, Camera, CreditCard,
   CheckCircle, XCircle, LogIn, LogOut, Car, Truck,
   ShieldAlert, Siren, Heart, Flame, Building2, Radio, MessageSquare,
-  BadgeCheck, Printer, Hash, User, Baby, ArrowRight, FileText,
+  BadgeCheck, Printer, Hash, User, Baby, ArrowRight, FileText, X,
   PanelLeftClose, PanelLeftOpen, Headphones
 } from 'lucide-react';
 
@@ -89,6 +89,7 @@ const modules = [
   { id: 'gate-log', label: 'Gate Log', icon: ClipboardList },
   { id: 'emergency', label: 'Emergency', icon: AlertTriangle },
   { id: 'patrol-log', label: 'Patrol Log', icon: Footprints },
+  { id: 'gate-pass', label: 'Gate Pass', icon: FileText },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
   { id: 'support', label: 'Support', icon: Headphones },
 ];
@@ -130,6 +131,7 @@ function SecurityDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; 
         {activeModule === 'gate-log' && <GateLogModule theme={theme} />}
         {activeModule === 'emergency' && <EmergencyModule theme={theme} />}
         {activeModule === 'patrol-log' && <PatrolLogModule theme={theme} />}
+        {activeModule === 'gate-pass' && <GatePassModule theme={theme} />}
         {activeModule === 'communication' && <CommunicationModule theme={theme} />}
         {activeModule === 'support' && <SupportModule theme={theme} role="security" />}
         {activeModule === 'profile' && <StakeholderProfile role="security" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
@@ -1067,6 +1069,108 @@ function PatrolLogModule({ theme }: { theme: Theme }) {
             theme={theme}
           />
         </>
+      )}
+    </div>
+  );
+}
+
+// ─── GATE PASS MODULE ────────────────────────────────
+function GatePassModule({ theme }: { theme: Theme }) {
+  const [showForm, setShowForm] = useState(false);
+  const passes = [
+    { id: 'GP-001', name: 'Aarav Patel', type: 'Student', purpose: 'Medical', exit: '10:30 AM', expected: '12:00 PM', auth: 'Mrs. Sunita Rao', status: 'Active' },
+    { id: 'GP-002', name: 'Mr. Arvind Joshi', type: 'Staff', purpose: 'Official', exit: '11:00 AM', expected: '02:00 PM', auth: 'Principal', status: 'Active' },
+    { id: 'GP-003', name: 'Ramesh Gupta', type: 'Visitor', purpose: 'Personal', exit: '09:45 AM', expected: '10:30 AM', auth: 'Admin Officer', status: 'Returned' },
+    { id: 'GP-004', name: 'Siya Sharma', type: 'Student', purpose: 'Emergency', exit: '09:15 AM', expected: '11:00 AM', auth: 'VP', status: 'Returned' },
+    { id: 'GP-005', name: 'Mrs. Kavitha Nair', type: 'Staff', purpose: 'Personal', exit: '10:00 AM', expected: '11:30 AM', auth: 'HOD', status: 'Active' },
+    { id: 'GP-006', name: 'Rohan Deshmukh', type: 'Student', purpose: 'Medical', exit: '08:30 AM', expected: '10:00 AM', auth: 'Class Teacher', status: 'Overdue' },
+  ];
+  const sc: Record<string, string> = { Active: 'bg-blue-500/20 text-blue-400', Returned: 'bg-emerald-500/20 text-emerald-400', Overdue: 'bg-red-500/20 text-red-400' };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className={`text-2xl font-bold ${theme.highlight}`}>Gate Pass Management</h1>
+        <button onClick={() => setShowForm(true)} className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}>
+          <Plus size={14} /> Issue Gate Pass
+        </button>
+      </div>
+
+      {/* Summary */}
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+        <StatCard icon={FileText} label="Active Passes" value={passes.filter(p => p.status === 'Active').length} color="bg-blue-500" theme={theme} />
+        <StatCard icon={CheckCircle} label="Returned Today" value={passes.filter(p => p.status === 'Returned').length} color="bg-emerald-500" theme={theme} />
+        <StatCard icon={AlertTriangle} label="Overdue" value={passes.filter(p => p.status === 'Overdue').length} color="bg-red-500" sub="needs attention" theme={theme} />
+      </div>
+
+      {/* Passes Table */}
+      <DataTable
+        headers={['Pass No', 'Name', 'Type', 'Purpose', 'Exit Time', 'Expected Return', 'Authorized By', 'Status', '']}
+        rows={passes.map(p => [
+          <span key="id" className={`font-mono text-xs font-bold ${theme.primaryText}`}>{p.id}</span>,
+          <span key="name" className={`font-bold ${theme.highlight}`}>{p.name}</span>,
+          <span key="type" className={`text-xs px-2 py-0.5 rounded-full font-bold ${p.type === 'Student' ? 'bg-blue-100 text-blue-700' : p.type === 'Staff' ? 'bg-purple-100 text-purple-700' : 'bg-amber-100 text-amber-700'}`}>{p.type}</span>,
+          <span key="purpose" className={theme.iconColor}>{p.purpose}</span>,
+          <span key="exit" className={`text-xs font-mono ${theme.iconColor}`}>{p.exit}</span>,
+          <span key="expected" className={`text-xs font-mono ${theme.iconColor}`}>{p.expected}</span>,
+          <span key="auth" className={`text-xs ${theme.iconColor}`}>{p.auth}</span>,
+          <span key="status" className={`text-xs px-2 py-0.5 rounded-full font-bold ${sc[p.status]}`}>{p.status}</span>,
+          <div key="actions" className="flex gap-1">
+            {p.status === 'Active' && <button onClick={() => window.alert('Marked as returned (Blueprint demo)')} className="px-2 py-1 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-700">Mark Return</button>}
+            {p.status === 'Overdue' && <button onClick={() => window.alert('Marked as returned (Blueprint demo)')} className="px-2 py-1 rounded-lg text-xs font-bold bg-red-100 text-red-600 animate-pulse">Mark Return</button>}
+          </div>,
+        ])}
+        theme={theme}
+      />
+
+      {/* Issue Gate Pass Modal */}
+      {showForm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowForm(false)}>
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-6 w-full max-w-md space-y-4`} onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>Issue Gate Pass</h3>
+              <button onClick={() => setShowForm(false)} className={theme.iconColor}><X size={18} /></button>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>Person Type *</label>
+                <select className={`w-full px-3 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm`}>
+                  <option>Student</option><option>Staff</option><option>Visitor</option>
+                </select>
+              </div>
+              <div>
+                <label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>Name *</label>
+                <input placeholder="Full name" className={`w-full px-3 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm`} />
+              </div>
+              <div>
+                <label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>Purpose *</label>
+                <select className={`w-full px-3 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm`}>
+                  <option>Medical</option><option>Personal</option><option>Official</option><option>Emergency</option>
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>Exit Time *</label>
+                  <input type="time" className={`w-full px-3 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm`} />
+                </div>
+                <div>
+                  <label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>Expected Return *</label>
+                  <input type="time" className={`w-full px-3 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm`} />
+                </div>
+              </div>
+              <div>
+                <label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>Authorized By *</label>
+                <select className={`w-full px-3 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm`}>
+                  <option>Principal</option><option>Vice Principal</option><option>HOD</option><option>Class Teacher</option><option>Admin Officer</option>
+                </select>
+              </div>
+            </div>
+            <div className="flex gap-2 pt-2">
+              <button onClick={() => setShowForm(false)} className={`flex-1 py-2.5 rounded-xl ${theme.secondaryBg} text-xs font-bold ${theme.highlight}`}>Cancel</button>
+              <button onClick={() => { setShowForm(false); window.alert('Gate pass GP-007 issued successfully (Blueprint demo)'); }} className={`flex-1 py-2.5 rounded-xl ${theme.primary} text-white text-xs font-bold`}>Issue Pass</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

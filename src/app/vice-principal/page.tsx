@@ -25,6 +25,7 @@ const modules = [
   { id: 'examinations', label: 'Examinations', icon: BookOpen },
   { id: 'staff-duties', label: 'Staff Duties', icon: ClipboardCheck },
   { id: 'circulars', label: 'Circulars', icon: Megaphone },
+  { id: 'approvals', label: 'Approvals', icon: CheckCircle },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
   { id: 'support', label: 'Support', icon: Headphones },
 ];
@@ -143,6 +144,7 @@ function VicePrincipalDashboard({ theme, themeIdx, onThemeChange }: { theme?: Th
         {activeModule === 'examinations' && <ExaminationsModule theme={theme} />}
         {activeModule === 'staff-duties' && <StaffDutiesModule theme={theme} />}
         {activeModule === 'circulars' && <CircularsModule theme={theme} />}
+        {activeModule === 'approvals' && <ApprovalsModule theme={theme} />}
         {activeModule === 'communication' && <CommunicationModule theme={theme} />}
         {activeModule === 'support' && <SupportModule theme={theme} role="vice-principal" />}
         {activeModule === 'profile' && <StakeholderProfile role="vice-principal" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
@@ -719,6 +721,139 @@ function CircularsModule({ theme }: { theme: Theme }) {
 
       <div className={`flex items-center justify-between text-xs ${theme.iconColor} px-2`}>
         <span>Showing 1-{mockCirculars.length} of {mockCirculars.length} circulars</span>
+        <div className="flex gap-1">
+          <button className={`px-3 py-1.5 rounded-lg ${theme.secondaryBg}`}>Previous</button>
+          <button className={`px-3 py-1.5 rounded-lg ${theme.primary} text-white`}>1</button>
+          <button className={`px-3 py-1.5 rounded-lg ${theme.secondaryBg}`}>Next</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── APPROVALS MODULE ────────────────────────────────
+
+const mockApprovals = [
+  { id: 'APR001', type: 'Leave', requestedBy: 'Mrs. Sunita Sharma', date: '12 Feb 2026', details: 'Casual Leave — 14-15 Feb (2 days)', priority: 'Normal', status: 'Pending' },
+  { id: 'APR002', type: 'Event', requestedBy: 'Mr. Vikram Singh', date: '11 Feb 2026', details: 'Inter-house Cricket Tournament — 22 Feb', priority: 'High', status: 'Pending' },
+  { id: 'APR003', type: 'Timetable Change', requestedBy: 'HOD Science — Mr. Patel', date: '11 Feb 2026', details: 'Swap P3 & P5 for Class 10-A on Wednesdays', priority: 'Normal', status: 'Pending' },
+  { id: 'APR004', type: 'Student TC', requestedBy: 'Class Teacher — Ms. Gupta', date: '10 Feb 2026', details: 'Transfer Certificate for Riya Mehra (Class 9-B) — family relocating', priority: 'Urgent', status: 'Pending' },
+  { id: 'APR005', type: 'Field Trip', requestedBy: 'Ms. Kavita Desai', date: '09 Feb 2026', details: 'Science Museum visit for Class 8 — 25 Feb, 40 students', priority: 'High', status: 'Pending' },
+  { id: 'APR006', type: 'Leave', requestedBy: 'Mr. Manoj Tiwari', date: '08 Feb 2026', details: 'Medical Leave — 10-11 Feb (2 days)', priority: 'Normal', status: 'Pending' },
+];
+
+const mockApprovalHistory = [
+  { id: 'APR-H01', type: 'Leave', requestedBy: 'Ms. Priya Mehta', date: '05 Feb 2026', details: 'Training Workshop Leave — 7 Feb', priority: 'Normal', status: 'Approved', actionDate: '06 Feb 2026', comment: 'Substitute arranged' },
+  { id: 'APR-H02', type: 'Event', requestedBy: 'Mr. Vikram Singh', date: '03 Feb 2026', details: 'Sports Day Rehearsal — Cancellation of P7-P8', priority: 'High', status: 'Approved', actionDate: '04 Feb 2026', comment: 'Approved for 28 Feb only' },
+  { id: 'APR-H03', type: 'Student TC', requestedBy: 'Class Teacher — Mr. Nair', date: '01 Feb 2026', details: 'TC for Amit Verma (Class 11-A)', priority: 'Normal', status: 'Approved', actionDate: '02 Feb 2026', comment: 'No dues verified' },
+  { id: 'APR-H04', type: 'Timetable Change', requestedBy: 'HOD Maths — Mrs. Sharma', date: '28 Jan 2026', details: 'Extra class for Class 10 — Saturday mornings', priority: 'Normal', status: 'Rejected', actionDate: '29 Jan 2026', comment: 'Conflict with remedial sessions' },
+];
+
+function ApprovalsModule({ theme }: { theme: Theme }) {
+  const [tab, setTab] = useState('Pending');
+  const [showComment, setShowComment] = useState<string | null>(null);
+  const [comment, setComment] = useState('');
+
+  const handleAction = (id: string, action: 'Approve' | 'Reject') => {
+    window.alert(`${action} request ${id}${comment ? ` — Comment: ${comment}` : ''} (Blueprint demo)`);
+    setShowComment(null);
+    setComment('');
+  };
+
+  const priorityColor = (p: string) =>
+    p === 'Urgent' ? 'bg-red-100 text-red-700' : p === 'High' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700';
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className={`text-2xl font-bold ${theme.highlight}`}>VP Approvals</h1>
+        <div className="flex gap-2">
+          <button className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold ${theme.iconColor} flex items-center gap-1`}><Filter size={12} /> Filter</button>
+          <button className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold ${theme.iconColor} flex items-center gap-1`}><Download size={12} /> Export</button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard icon={Clock} label="Pending Approvals" value={mockApprovals.length} color="bg-amber-500" theme={theme} />
+        <StatCard icon={CheckCircle} label="Approved (This Month)" value={3} color="bg-emerald-500" theme={theme} />
+        <StatCard icon={XCircle} label="Rejected (This Month)" value={1} color="bg-red-500" theme={theme} />
+        <StatCard icon={AlertTriangle} label="Urgent" value={mockApprovals.filter(a => a.priority === 'Urgent').length} color="bg-red-500" sub="needs attention" theme={theme} />
+      </div>
+
+      <TabBar tabs={['Pending', 'History']} active={tab} onChange={setTab} theme={theme} />
+
+      {tab === 'Pending' && (
+        <div className="space-y-3">
+          {mockApprovals.map(a => (
+            <div key={a.id} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${theme.secondaryBg} ${theme.primaryText}`}>{a.type}</span>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${priorityColor(a.priority)}`}>{a.priority}</span>
+                    <span className={`text-[10px] font-mono ${theme.iconColor}`}>{a.id}</span>
+                  </div>
+                  <p className={`text-sm font-bold ${theme.highlight}`}>{a.details}</p>
+                  <p className={`text-[10px] ${theme.iconColor} mt-1`}>Requested by {a.requestedBy} &middot; {a.date}</p>
+                </div>
+              </div>
+
+              {showComment === a.id ? (
+                <div className="mt-3 space-y-2">
+                  <input
+                    type="text"
+                    value={comment}
+                    onChange={e => setComment(e.target.value)}
+                    placeholder="Add a comment (optional)..."
+                    className={`w-full px-3 py-2 rounded-xl text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight} outline-none focus:ring-2 focus:ring-blue-300`}
+                  />
+                  <div className="flex gap-2">
+                    <button onClick={() => handleAction(a.id, 'Approve')} className="flex items-center gap-1 px-4 py-2 bg-emerald-500 text-white rounded-xl text-xs font-bold">
+                      <CheckCircle size={12} /> Approve
+                    </button>
+                    <button onClick={() => handleAction(a.id, 'Reject')} className="flex items-center gap-1 px-4 py-2 bg-red-100 text-red-600 rounded-xl text-xs font-bold">
+                      <XCircle size={12} /> Reject
+                    </button>
+                    <button onClick={() => { setShowComment(null); setComment(''); }} className={`px-3 py-2 rounded-xl text-xs font-bold ${theme.secondaryBg} ${theme.iconColor}`}>Cancel</button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex gap-2 mt-3">
+                  <button onClick={() => setShowComment(a.id)} className="flex items-center gap-1 px-4 py-2 bg-emerald-500 text-white rounded-xl text-xs font-bold">
+                    <CheckCircle size={12} /> Approve
+                  </button>
+                  <button onClick={() => setShowComment(a.id)} className="flex items-center gap-1 px-4 py-2 bg-red-100 text-red-600 rounded-xl text-xs font-bold">
+                    <XCircle size={12} /> Reject
+                  </button>
+                  <button className={`flex items-center gap-1 px-3 py-2 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.highlight}`}>
+                    <Eye size={12} /> Details
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {tab === 'History' && (
+        <DataTable
+          headers={['ID', 'Type', 'Requested By', 'Details', 'Date', 'Status', 'Action Date', 'Comment']}
+          rows={mockApprovalHistory.map(a => [
+            <span key="id" className={`font-mono text-xs ${theme.primaryText}`}>{a.id}</span>,
+            <span key="type" className={`text-xs font-bold ${theme.highlight}`}>{a.type}</span>,
+            <span key="by" className={`text-xs ${theme.highlight}`}>{a.requestedBy}</span>,
+            <span key="detail" className={`text-xs ${theme.iconColor} max-w-[200px] truncate block`}>{a.details}</span>,
+            <span key="date" className={`text-xs ${theme.iconColor}`}>{a.date}</span>,
+            <StatusBadge key="status" status={a.status === 'Approved' ? 'Active' : 'Urgent'} theme={theme} />,
+            <span key="actionDate" className={`text-xs ${theme.iconColor}`}>{a.actionDate}</span>,
+            <span key="comment" className={`text-xs ${theme.iconColor} max-w-[160px] truncate block`}>{a.comment}</span>,
+          ])}
+          theme={theme}
+        />
+      )}
+
+      <div className={`flex items-center justify-between text-xs ${theme.iconColor} px-2`}>
+        <span>Showing {tab === 'Pending' ? mockApprovals.length : mockApprovalHistory.length} items</span>
         <div className="flex gap-1">
           <button className={`px-3 py-1.5 rounded-lg ${theme.secondaryBg}`}>Previous</button>
           <button className={`px-3 py-1.5 rounded-lg ${theme.primary} text-white`}>1</button>

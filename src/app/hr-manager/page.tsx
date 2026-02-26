@@ -36,6 +36,8 @@ const modules = [
   { id: 'payroll', label: 'Payroll', icon: Banknote },
   { id: 'performance', label: 'Performance', icon: Star },
   { id: 'letters', label: 'HR Letters', icon: FileText },
+  { id: 'lifecycle', label: 'Lifecycle', icon: GitBranch },
+  { id: 'documents', label: 'Documents', icon: FileText },
   { id: 'offboarding', label: 'Offboarding', icon: UserMinus },
   { id: 'reports', label: 'Reports', icon: BarChart3 },
   { id: 'settings', label: 'Settings', icon: Settings },
@@ -418,6 +420,66 @@ function SettingsModule({ theme }: { theme: Theme }) {
   );
 }
 
+// ─── EMPLOYEE LIFECYCLE ───────────────────────────────
+function LifecycleModule({ theme }: { theme: Theme }) {
+  const [showModal, setShowModal] = useState(false);
+  const events = [
+    { emp: 'Priya Sharma', type: 'Joining', date: '15-Jun-2019', details: 'Joined as PGT Mathematics', by: 'HR Manager' },
+    { emp: 'Kavitha Nair', type: 'Probation Confirmed', date: '20-May-2025', details: 'Probation completed — confirmed as PRT English', by: 'Principal' },
+    { emp: 'Rajesh Kumar', type: 'Promoted', date: '01-Apr-2024', details: 'Promoted from TGT to Senior TGT Science', by: 'VP' },
+    { emp: 'Sunita Patel', type: 'Role Change', date: '10-Jan-2025', details: 'Moved from Office Assistant to Admin Coordinator', by: 'HR Manager' },
+    { emp: 'Mohammed Irfan', type: 'Contract Renewed', date: '05-Jan-2026', details: 'Annual contract renewed for 2026-27', by: 'HR Manager' },
+    { emp: 'Deepak Verma', type: 'Transferred', date: '01-Mar-2024', details: 'Transferred from Night Shift to Day Shift — Main Gate', by: 'Security Head' },
+    { emp: 'Amit Shah', type: 'Resigned', date: '15-Jan-2026', details: 'Resigned for personal reasons — last working day 15-Feb', by: 'Self' },
+  ];
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center"><h1 className={`text-xl font-bold ${theme.highlight}`}>Employee Lifecycle</h1><button onClick={() => setShowModal(true)} className={`px-3 py-2 ${theme.primary} text-white rounded-lg text-sm flex items-center gap-2`}><Plus size={14} />Record Event</button></div>
+      <div className={`${theme.cardBg} rounded-xl border ${theme.border} overflow-hidden`}>
+        <table className="w-full text-sm"><thead><tr className={theme.secondaryBg}><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Employee</th><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Event Type</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Date</th><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Details</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Processed By</th></tr></thead>
+        <tbody>{events.map((e, i) => {
+          const tc: Record<string, string> = { Joining: 'bg-emerald-500/20 text-emerald-400', 'Probation Confirmed': 'bg-blue-500/20 text-blue-400', Promoted: 'bg-purple-500/20 text-purple-400', Transferred: 'bg-amber-500/20 text-amber-400', 'Role Change': 'bg-indigo-500/20 text-indigo-400', 'Contract Renewed': 'bg-teal-500/20 text-teal-400', Resigned: 'bg-red-500/20 text-red-400', Terminated: 'bg-red-600/20 text-red-500' };
+          return <tr key={i} className={`border-t ${theme.border}`}><td className={`p-3 font-medium ${theme.highlight}`}>{e.emp}</td><td className="p-3"><span className={`px-2 py-1 text-xs rounded-full font-bold ${tc[e.type] || `${theme.secondaryBg} ${theme.iconColor}`}`}>{e.type}</span></td><td className={`p-3 text-center ${theme.highlight}`}>{e.date}</td><td className={`p-3 ${theme.iconColor} text-xs`}>{e.details}</td><td className={`p-3 text-center ${theme.iconColor}`}>{e.by}</td></tr>;
+        })}</tbody></table>
+      </div>
+      {showModal && <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className={`${theme.cardBg} rounded-2xl p-6 w-[28rem] border ${theme.border}`}><div className="flex justify-between mb-4"><h3 className={`font-semibold ${theme.highlight}`}>Record Lifecycle Event</h3><button onClick={() => setShowModal(false)} className={theme.iconColor}><X size={18} /></button></div><div className="space-y-3"><div><label className={`block text-sm mb-1 ${theme.iconColor}`}>Employee *</label><select className={`w-full px-3 py-2 border ${theme.border} rounded-lg text-sm ${theme.inputBg} ${theme.highlight}`}>{employees.map(e => <option key={e.id}>{e.name}</option>)}</select></div><div><label className={`block text-sm mb-1 ${theme.iconColor}`}>Event Type *</label><select className={`w-full px-3 py-2 border ${theme.border} rounded-lg text-sm ${theme.inputBg} ${theme.highlight}`}>{['Joining', 'Probation Confirmed', 'Promoted', 'Transferred', 'Role Change', 'Contract Renewed', 'Resigned', 'Terminated'].map(t => <option key={t}>{t}</option>)}</select></div><div><label className={`block text-sm mb-1 ${theme.iconColor}`}>Effective Date *</label><input type="date" className={`w-full px-3 py-2 border ${theme.border} rounded-lg text-sm ${theme.inputBg} ${theme.highlight}`} /></div><div><label className={`block text-sm mb-1 ${theme.iconColor}`}>Details</label><textarea rows={2} className={`w-full px-3 py-2 border ${theme.border} rounded-lg text-sm ${theme.inputBg} ${theme.highlight}`} /></div><div><label className={`block text-sm mb-1 ${theme.iconColor}`}>Document Upload</label><div className={`border-2 border-dashed ${theme.border} rounded-lg p-3 text-center ${theme.buttonHover} cursor-pointer`}><Upload size={16} className={`mx-auto ${theme.iconColor}`} /><p className={`text-xs ${theme.iconColor} mt-1`}>Click to upload supporting document</p></div></div></div><div className="flex justify-end gap-2 mt-4"><button onClick={() => setShowModal(false)} className={`px-4 py-2 border ${theme.border} rounded-lg text-sm ${theme.highlight}`}>Cancel</button><button onClick={() => { setShowModal(false); window.alert('Lifecycle event recorded successfully (Blueprint demo)'); }} className={`px-4 py-2 ${theme.primary} text-white rounded-lg text-sm`}>Submit</button></div></div></div>}
+    </div>
+  );
+}
+
+// ─── EMPLOYEE DOCUMENTS ──────────────────────────────
+function DocumentsModule({ theme }: { theme: Theme }) {
+  const [showModal, setShowModal] = useState(false);
+  const docs = [
+    { emp: 'Priya Sharma', type: 'Aadhaar', uploaded: '15-Jun-2019', expiry: '—', status: 'Valid' },
+    { emp: 'Priya Sharma', type: 'PAN', uploaded: '15-Jun-2019', expiry: '—', status: 'Valid' },
+    { emp: 'Rajesh Kumar', type: 'Resume', uploaded: '01-Apr-2020', expiry: '—', status: 'Valid' },
+    { emp: 'Rajesh Kumar', type: 'Offer Letter', uploaded: '01-Apr-2020', expiry: '—', status: 'Valid' },
+    { emp: 'Sunita Patel', type: 'ID Proof', uploaded: '10-Aug-2018', expiry: '10-Aug-2026', status: 'Expiring Soon' },
+    { emp: 'Mohammed Irfan', type: 'NDA', uploaded: '05-Jan-2021', expiry: '—', status: 'Valid' },
+    { emp: 'Mohammed Irfan', type: 'Certificates', uploaded: '05-Jan-2021', expiry: '—', status: 'Valid' },
+    { emp: 'Kavitha Nair', type: 'Aadhaar', uploaded: '20-Nov-2024', expiry: '—', status: 'Valid' },
+    { emp: 'Kavitha Nair', type: 'PAN', uploaded: '—', expiry: '—', status: 'Missing' },
+    { emp: 'Deepak Verma', type: 'ID Proof', uploaded: '15-Mar-2019', expiry: '01-Feb-2026', status: 'Expired' },
+  ];
+  const sc: Record<string, string> = { Valid: 'bg-emerald-500/20 text-emerald-400', 'Expiring Soon': 'bg-amber-500/20 text-amber-400', Expired: 'bg-red-500/20 text-red-400', Missing: 'bg-slate-500/20 text-slate-400' };
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center"><h1 className={`text-xl font-bold ${theme.highlight}`}>Employee Documents</h1><button onClick={() => setShowModal(true)} className={`px-3 py-2 ${theme.primary} text-white rounded-lg text-sm flex items-center gap-2`}><Upload size={14} />Upload Document</button></div>
+      <div className="grid grid-cols-3 gap-3">
+        <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-3 flex items-center gap-3`}><div className="w-9 h-9 rounded-lg bg-indigo-600 flex items-center justify-center"><FileText size={18} className="text-white" /></div><div><p className={`text-lg font-bold ${theme.highlight}`}>342</p><p className={`text-xs ${theme.iconColor}`}>Total Documents</p></div></div>
+        <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-3 flex items-center gap-3`}><div className="w-9 h-9 rounded-lg bg-amber-500 flex items-center justify-center"><Clock size={18} className="text-white" /></div><div><p className={`text-lg font-bold ${theme.highlight}`}>8</p><p className={`text-xs ${theme.iconColor}`}>Expiring This Month</p></div></div>
+        <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-3 flex items-center gap-3`}><div className="w-9 h-9 rounded-lg bg-red-500 flex items-center justify-center"><XCircle size={18} className="text-white" /></div><div><p className={`text-lg font-bold ${theme.highlight}`}>15</p><p className={`text-xs ${theme.iconColor}`}>Missing/Incomplete</p></div></div>
+      </div>
+      <div className={`${theme.cardBg} rounded-xl border ${theme.border} overflow-hidden`}>
+        <table className="w-full text-sm"><thead><tr className={theme.secondaryBg}><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Employee</th><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Document Type</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Upload Date</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Expiry Date</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Status</th></tr></thead>
+        <tbody>{docs.map((d, i) => <tr key={i} className={`border-t ${theme.border}`}><td className={`p-3 font-medium ${theme.highlight}`}>{d.emp}</td><td className={`p-3 ${theme.iconColor}`}>{d.type}</td><td className={`p-3 text-center ${theme.highlight}`}>{d.uploaded}</td><td className={`p-3 text-center ${theme.highlight}`}>{d.expiry}</td><td className="p-3 text-center"><span className={`px-2 py-1 text-xs rounded-full font-bold ${sc[d.status]}`}>{d.status}</span></td></tr>)}</tbody></table>
+      </div>
+      {showModal && <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className={`${theme.cardBg} rounded-2xl p-6 w-96 border ${theme.border}`}><div className="flex justify-between mb-4"><h3 className={`font-semibold ${theme.highlight}`}>Upload Document</h3><button onClick={() => setShowModal(false)} className={theme.iconColor}><X size={18} /></button></div><div className="space-y-3"><div><label className={`block text-sm mb-1 ${theme.iconColor}`}>Employee *</label><select className={`w-full px-3 py-2 border ${theme.border} rounded-lg text-sm ${theme.inputBg} ${theme.highlight}`}>{employees.map(e => <option key={e.id}>{e.name}</option>)}</select></div><div><label className={`block text-sm mb-1 ${theme.iconColor}`}>Document Type *</label><select className={`w-full px-3 py-2 border ${theme.border} rounded-lg text-sm ${theme.inputBg} ${theme.highlight}`}>{['Aadhaar', 'PAN', 'Resume', 'Offer Letter', 'NDA', 'ID Proof', 'Certificates'].map(t => <option key={t}>{t}</option>)}</select></div><div><label className={`block text-sm mb-1 ${theme.iconColor}`}>File</label><div className={`border-2 border-dashed ${theme.border} rounded-lg p-3 text-center ${theme.buttonHover} cursor-pointer`}><Upload size={16} className={`mx-auto ${theme.iconColor}`} /><p className={`text-xs ${theme.iconColor} mt-1`}>Click or drag file here</p></div></div><div><label className={`block text-sm mb-1 ${theme.iconColor}`}>Expiry Date (optional)</label><input type="date" className={`w-full px-3 py-2 border ${theme.border} rounded-lg text-sm ${theme.inputBg} ${theme.highlight}`} /></div></div><div className="flex justify-end gap-2 mt-4"><button onClick={() => setShowModal(false)} className={`px-4 py-2 border ${theme.border} rounded-lg text-sm ${theme.highlight}`}>Cancel</button><button onClick={() => { setShowModal(false); window.alert('Document uploaded successfully (Blueprint demo)'); }} className={`px-4 py-2 ${theme.primary} text-white rounded-lg text-sm`}>Upload</button></div></div></div>}
+    </div>
+  );
+}
+
 // ─── MAIN COMPONENT ───────────────────────────────────
 function HRManagerDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
   const [activeModule, setActiveModule] = useState('dashboard');
@@ -451,6 +513,8 @@ function HRManagerDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme;
         {activeModule === 'payroll' && <PayrollModule theme={theme} />}
         {activeModule === 'performance' && <PerformanceModule theme={theme} />}
         {activeModule === 'letters' && <LettersModule theme={theme} />}
+        {activeModule === 'lifecycle' && <LifecycleModule theme={theme} />}
+        {activeModule === 'documents' && <DocumentsModule theme={theme} />}
         {activeModule === 'offboarding' && <OffboardingModule theme={theme} />}
         {activeModule === 'reports' && <ReportsModule theme={theme} />}
         {activeModule === 'settings' && <SettingsModule theme={theme} />}

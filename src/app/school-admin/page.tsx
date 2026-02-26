@@ -12,7 +12,7 @@ import {
   Banknote, DollarSign, TrendingUp, AlertTriangle, FileText, Send, Megaphone, MapPin, Phone,
   Mail, Star, Award, BookOpen, ArrowRight, CreditCard, ArrowLeft, Save,
   Upload, ClipboardCheck, Receipt, Printer, Hash, Heart, Building, Landmark, User,
-  PanelLeftClose, PanelLeftOpen, Headphones, Radio, Sparkles, ShieldCheck
+  PanelLeftClose, PanelLeftOpen, Headphones, Radio, Sparkles, ShieldCheck, Link2, ThumbsUp, ThumbsDown
 } from 'lucide-react';
 import { ChatsView } from '@/components/ChatModule';
 import StakeholderProfile from '@/components/StakeholderProfile';
@@ -928,53 +928,365 @@ function BulkUploadTab({ theme }: { theme: Theme }) {
   );
 }
 
+// ─── STUDENT PROFILE VIEW ────────────────────────────
+function StudentProfileView({ theme, student, onBack }: { theme: Theme; student: typeof mockStudents[0]; onBack: () => void }) {
+  const [profileTab, setProfileTab] = useState('Personal');
+  const mockFeeHistory = [
+    { month: 'Jan 2026', amount: '₹5,800', status: 'Paid', receipt: 'REC-2026-0412' },
+    { month: 'Dec 2025', amount: '₹5,800', status: 'Paid', receipt: 'REC-2025-1198' },
+    { month: 'Nov 2025', amount: '₹5,800', status: 'Paid', receipt: 'REC-2025-1045' },
+    { month: 'Oct 2025', amount: '₹5,800', status: 'Overdue', receipt: '—' },
+    { month: 'Sep 2025', amount: '₹5,800', status: 'Paid', receipt: 'REC-2025-0801' },
+  ];
+  const mockDocuments = [
+    { name: 'Birth Certificate', uploaded: true },
+    { name: 'Aadhaar Card', uploaded: true },
+    { name: 'Transfer Certificate', uploaded: false },
+    { name: 'Previous Marksheet', uploaded: true },
+    { name: 'Passport Photo', uploaded: true },
+    { name: 'Caste Certificate', uploaded: false },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <button onClick={onBack} className={`p-2 rounded-xl ${theme.secondaryBg} ${theme.buttonHover}`}><ArrowLeft size={16} className={theme.iconColor} /></button>
+        <div className="flex-1">
+          <h1 className={`text-2xl font-bold ${theme.highlight}`}>{student.name}</h1>
+          <p className={`text-xs ${theme.iconColor}`}>{student.id} &bull; {student.class} &bull; Roll #{student.roll}</p>
+        </div>
+        <StatusBadge status={student.fee} theme={theme} />
+      </div>
+
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 flex items-center gap-5`}>
+        <div className={`w-20 h-24 rounded-xl ${theme.accentBg} flex items-center justify-center`}>
+          <User size={32} className={theme.iconColor} />
+        </div>
+        <div className="grid grid-cols-4 gap-x-8 gap-y-2 flex-1">
+          <div><p className={`text-[10px] ${theme.iconColor}`}>Class & Section</p><p className={`text-sm font-bold ${theme.highlight}`}>{student.class}</p></div>
+          <div><p className={`text-[10px] ${theme.iconColor}`}>Admission No</p><p className={`text-sm font-bold ${theme.highlight}`}>{student.id}</p></div>
+          <div><p className={`text-[10px] ${theme.iconColor}`}>Parent</p><p className={`text-sm font-bold ${theme.highlight}`}>{student.parent}</p></div>
+          <div><p className={`text-[10px] ${theme.iconColor}`}>Phone</p><p className={`text-sm font-bold ${theme.highlight}`}>{student.phone}</p></div>
+        </div>
+      </div>
+
+      <TabBar tabs={['Personal', 'Academic', 'Medical', 'Documents', 'Fee History']} active={profileTab} onChange={setProfileTab} theme={theme} />
+
+      {profileTab === 'Personal' && (
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5`}>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {[
+              { label: 'Full Name', value: student.name },
+              { label: 'Date of Birth', value: '15-Mar-2012' },
+              { label: 'Gender', value: student.gender === 'M' ? 'Male' : 'Female' },
+              { label: 'Blood Group', value: 'B+' },
+              { label: 'Religion', value: 'Hindu' },
+              { label: 'Category', value: 'General' },
+              { label: 'Mother Tongue', value: 'Gujarati' },
+              { label: 'Father Name', value: student.parent },
+              { label: 'Mother Name', value: 'Sunita ' + student.name.split(' ')[1] },
+              { label: 'Primary Contact', value: student.phone },
+              { label: 'Email', value: student.name.split(' ')[0].toLowerCase() + '@email.com' },
+              { label: 'Address', value: 'Satellite Road, Ahmedabad' },
+            ].map(item => (
+              <div key={item.label}>
+                <p className={`text-[10px] ${theme.iconColor} mb-0.5`}>{item.label}</p>
+                <p className={`text-xs font-bold ${theme.highlight}`}>{item.value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {profileTab === 'Academic' && (
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5`}>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {[
+              { label: 'Class', value: student.class.split('-')[0] },
+              { label: 'Section', value: student.class.split('-')[1] || 'A' },
+              { label: 'Roll Number', value: String(student.roll) },
+              { label: 'House', value: 'Blue House' },
+              { label: 'Admission Date', value: '01-Apr-2020' },
+              { label: 'Previous School', value: 'DPS Ahmedabad' },
+              { label: 'Board', value: 'CBSE' },
+              { label: 'Stream', value: student.class.startsWith('1') ? 'Science' : 'N/A' },
+              { label: 'Academic Year', value: '2025-26' },
+            ].map(item => (
+              <div key={item.label}>
+                <p className={`text-[10px] ${theme.iconColor} mb-0.5`}>{item.label}</p>
+                <p className={`text-xs font-bold ${theme.highlight}`}>{item.value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {profileTab === 'Medical' && (
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5`}>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {[
+              { label: 'Blood Group', value: 'B+' },
+              { label: 'Allergies', value: 'None reported' },
+              { label: 'Medical Conditions', value: 'None' },
+              { label: 'Regular Medications', value: 'None' },
+              { label: 'Family Doctor', value: 'Dr. R. Mehta' },
+              { label: 'Doctor Contact', value: '98765 11223' },
+              { label: 'Emergency Contact', value: student.phone },
+              { label: 'Insurance', value: 'Star Health — Policy #SH20250134' },
+              { label: 'Last Health Check', value: '10-Oct-2025' },
+            ].map(item => (
+              <div key={item.label}>
+                <p className={`text-[10px] ${theme.iconColor} mb-0.5`}>{item.label}</p>
+                <p className={`text-xs font-bold ${theme.highlight}`}>{item.value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {profileTab === 'Documents' && (
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5`}>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {mockDocuments.map(doc => (
+              <div key={doc.name} className={`flex items-center gap-3 p-3 rounded-xl ${theme.secondaryBg}`}>
+                <div className={`w-8 h-8 rounded-lg ${doc.uploaded ? 'bg-emerald-100' : 'bg-red-100'} flex items-center justify-center`}>
+                  {doc.uploaded ? <CheckCircle size={14} className="text-emerald-600" /> : <XCircle size={14} className="text-red-500" />}
+                </div>
+                <div className="flex-1">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{doc.name}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{doc.uploaded ? 'Uploaded' : 'Not uploaded'}</p>
+                </div>
+                {doc.uploaded && <button className={`p-1 rounded-lg ${theme.buttonHover}`}><Download size={12} className={theme.iconColor} /></button>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {profileTab === 'Fee History' && (
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5`}>
+          <DataTable
+            headers={['Month', 'Amount', 'Status', 'Receipt']}
+            rows={mockFeeHistory.map(f => [
+              <span key="m" className={`font-bold ${theme.highlight}`}>{f.month}</span>,
+              <span key="a" className={theme.iconColor}>{f.amount}</span>,
+              <StatusBadge key="s" status={f.status} theme={theme} />,
+              <span key="r" className={`font-mono text-xs ${f.receipt === '—' ? theme.iconColor : theme.primaryText}`}>{f.receipt}</span>,
+            ])}
+            theme={theme}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── STUDENT PROMOTION WIZARD ────────────────────────
+function PromotionWizard({ theme, onClose }: { theme: Theme; onClose: () => void }) {
+  const [step, setStep] = useState(1);
+  const [sourceClass, setSourceClass] = useState('');
+  const classOptions = ['Nursery', 'LKG', 'UKG', '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th', '10th', '11th', '12th'];
+  const nextClassMap: Record<string, string> = { 'Nursery': 'LKG', 'LKG': 'UKG', 'UKG': '1st', '1st': '2nd', '2nd': '3rd', '3rd': '4th', '4th': '5th', '5th': '6th', '6th': '7th', '7th': '8th', '8th': '9th', '9th': '10th', '10th': '11th', '11th': '12th', '12th': 'Passed Out' };
+  const classStudentCount: Record<string, number> = { 'Nursery': 30, 'LKG': 35, 'UKG': 32, '1st': 40, '2nd': 38, '3rd': 42, '4th': 40, '5th': 45, '6th': 44, '7th': 42, '8th': 40, '9th': 38, '10th': 36, '11th': 30, '12th': 28 };
+
+  const mockClassStudents = [
+    { name: 'Aarav Patel', roll: 1, action: 'Promote' as string },
+    { name: 'Priya Sharma', roll: 2, action: 'Promote' as string },
+    { name: 'Rohan Gupta', roll: 3, action: 'Promote' as string },
+    { name: 'Ananya Desai', roll: 4, action: 'Promote' as string },
+    { name: 'Kabir Singh', roll: 5, action: 'Detain' as string },
+    { name: 'Meera Nair', roll: 6, action: 'Promote' as string },
+    { name: 'Arjun Mehta', roll: 7, action: 'Promote' as string },
+    { name: 'Sanya Iyer', roll: 8, action: 'TC Issued' as string },
+  ];
+  const [students, setStudents] = useState(mockClassStudents);
+  const [checked, setChecked] = useState<boolean[]>(mockClassStudents.map(() => true));
+
+  const promoted = students.filter((s, i) => checked[i] && s.action === 'Promote').length;
+  const detained = students.filter((s, i) => checked[i] && s.action === 'Detain').length;
+  const tcIssued = students.filter((s, i) => checked[i] && s.action === 'TC Issued').length;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} shadow-2xl w-full max-w-xl p-6 space-y-4 max-h-[85vh] overflow-y-auto`} onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between">
+          <h2 className={`text-lg font-bold ${theme.highlight}`}>Promote Students — Step {step}/4</h2>
+          <button onClick={onClose} className={`p-1.5 rounded-lg ${theme.buttonHover}`}><X size={16} className={theme.iconColor} /></button>
+        </div>
+
+        {/* Progress bar */}
+        <div className="flex gap-1">
+          {[1,2,3,4].map(s => (
+            <div key={s} className={`flex-1 h-1.5 rounded-full ${s <= step ? theme.primary : theme.secondaryBg}`} />
+          ))}
+        </div>
+
+        {step === 1 && (
+          <div className="space-y-4">
+            <p className={`text-xs ${theme.iconColor}`}>Select the source class to promote students from:</p>
+            <SelectField options={classOptions} value={sourceClass} onChange={setSourceClass} theme={theme} placeholder="Select source class" />
+            {sourceClass && (
+              <div className={`p-3 rounded-xl ${theme.secondaryBg} flex items-center justify-between`}>
+                <span className={`text-xs ${theme.highlight}`}>Students in {sourceClass}</span>
+                <span className={`text-sm font-bold ${theme.primaryText}`}>{classStudentCount[sourceClass] || 0}</span>
+              </div>
+            )}
+            <button disabled={!sourceClass} onClick={() => setStep(2)} className={`w-full py-2.5 rounded-xl ${theme.primary} text-white text-sm font-bold disabled:opacity-40`}>Next — Review Students</button>
+          </div>
+        )}
+
+        {step === 2 && (
+          <div className="space-y-3">
+            <p className={`text-xs ${theme.iconColor}`}>Review students from <strong>{sourceClass}</strong>. Uncheck to exclude. Set action per student.</p>
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {students.map((s, i) => (
+                <div key={i} className={`flex items-center gap-3 p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                  <input type="checkbox" checked={checked[i]} onChange={() => { const c = [...checked]; c[i] = !c[i]; setChecked(c); }} className="rounded" />
+                  <span className={`text-xs font-bold ${theme.highlight} flex-1`}>#{s.roll} {s.name}</span>
+                  <select value={s.action} onChange={e => { const u = [...students]; u[i] = { ...u[i], action: e.target.value }; setStudents(u); }} className={`px-2 py-1 rounded-lg text-[10px] font-bold border ${theme.border} ${theme.inputBg} ${theme.highlight}`}>
+                    <option>Promote</option><option>Detain</option><option>TC Issued</option>
+                  </select>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => setStep(1)} className={`flex-1 py-2 rounded-xl ${theme.secondaryBg} text-xs font-bold ${theme.highlight}`}>Back</button>
+              <button onClick={() => setStep(3)} className={`flex-1 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}>Next — Target Class</button>
+            </div>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div className="space-y-4">
+            <p className={`text-xs ${theme.iconColor}`}>Target class for promoted students:</p>
+            <div className={`p-4 rounded-xl ${theme.secondaryBg} space-y-2`}>
+              <div className="flex justify-between"><span className={`text-xs ${theme.iconColor}`}>Source Class</span><span className={`text-sm font-bold ${theme.highlight}`}>{sourceClass}</span></div>
+              <div className="flex justify-between"><span className={`text-xs ${theme.iconColor}`}>Target Class</span><span className={`text-sm font-bold ${theme.primaryText}`}>{nextClassMap[sourceClass] || 'N/A'}</span></div>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => setStep(2)} className={`flex-1 py-2 rounded-xl ${theme.secondaryBg} text-xs font-bold ${theme.highlight}`}>Back</button>
+              <button onClick={() => setStep(4)} className={`flex-1 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}>Next — Confirm</button>
+            </div>
+          </div>
+        )}
+
+        {step === 4 && (
+          <div className="space-y-4">
+            <p className={`text-xs ${theme.iconColor}`}>Review and confirm the promotion batch:</p>
+            <div className={`p-4 rounded-xl ${theme.secondaryBg} space-y-2`}>
+              <div className="flex justify-between"><span className={`text-xs ${theme.iconColor}`}>Promoted</span><span className="text-sm font-bold text-emerald-600">{promoted} students → {nextClassMap[sourceClass]}</span></div>
+              <div className="flex justify-between"><span className={`text-xs ${theme.iconColor}`}>Detained</span><span className="text-sm font-bold text-amber-600">{detained} students (remain in {sourceClass})</span></div>
+              <div className="flex justify-between"><span className={`text-xs ${theme.iconColor}`}>TC Issued</span><span className="text-sm font-bold text-red-500">{tcIssued} students</span></div>
+              <div className={`flex justify-between pt-2 border-t ${theme.border}`}><span className={`text-xs font-bold ${theme.highlight}`}>Total Processed</span><span className={`text-sm font-bold ${theme.highlight}`}>{promoted + detained + tcIssued}</span></div>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => setStep(3)} className={`flex-1 py-2 rounded-xl ${theme.secondaryBg} text-xs font-bold ${theme.highlight}`}>Back</button>
+              <button onClick={() => { window.alert(`Promotion processed! ${promoted} promoted to ${nextClassMap[sourceClass]}, ${detained} detained, ${tcIssued} TC issued. (Blueprint demo)`); onClose(); }} className={`flex-1 py-2.5 rounded-xl ${theme.primary} text-white text-sm font-bold`}>Process Promotion</button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── STUDENTS MODULE ─────────────────────────────────
 function StudentsModule({ theme }: { theme: Theme }) {
   const [tab, setTab] = useState('All Students');
   const [showAddStudent, setShowAddStudent] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<typeof mockStudents[0] | null>(null);
+  const [showPromotionWizard, setShowPromotionWizard] = useState(false);
+
+  // TC Requests mock data
+  const [tcRequests, setTcRequests] = useState([
+    { id: 'TC001', student: 'Arjun Singh', class: '10-A', requestDate: '15-Feb-2026', requestedBy: 'Parent', status: 'Pending' },
+    { id: 'TC002', student: 'Prachi Mehta', class: '6-B', requestDate: '12-Feb-2026', requestedBy: 'School', status: 'Approved' },
+    { id: 'TC003', student: 'Kabir Joshi', class: '8-A', requestDate: '10-Feb-2026', requestedBy: 'Parent', status: 'Generated' },
+    { id: 'TC004', student: 'Sanya Iyer', class: '3-C', requestDate: '08-Feb-2026', requestedBy: 'Parent', status: 'Pending' },
+  ]);
 
   if (showAddStudent) {
     return <StudentAddForm theme={theme} onBack={() => setShowAddStudent(false)} />;
+  }
+
+  if (selectedStudent) {
+    return <StudentProfileView theme={theme} student={selectedStudent} onBack={() => setSelectedStudent(null)} />;
   }
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className={`text-2xl font-bold ${theme.highlight}`}>Student Management</h1>
-        <button onClick={() => setShowAddStudent(true)} className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}><Plus size={14} /> Add Student</button>
-      </div>
-      <TabBar tabs={['All Students', 'Class-wise', 'Fee Status', 'TC/Inactive']} active={tab} onChange={setTab} theme={theme} />
-      <div className="flex gap-3">
-        <SearchBar placeholder="Search by name, ID, class..." theme={theme} icon={Search} />
-        <button className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold ${theme.iconColor} flex items-center gap-1`}><Filter size={12} /> Filter</button>
-        <button className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold ${theme.iconColor} flex items-center gap-1`}><Download size={12} /> Export</button>
-      </div>
-      <DataTable
-        headers={['ID', 'Name', 'Class', 'Roll', 'Gender', 'Fee Status', 'Parent', 'Phone', '']}
-        rows={mockStudents.map(s => [
-          <span key="id" className={`font-mono text-xs ${theme.primaryText}`}>{s.id}</span>,
-          <span key="name" className={`font-bold ${theme.highlight}`}>{s.name}</span>,
-          <span key="class" className={theme.iconColor}>{s.class}</span>,
-          <span key="roll" className={theme.iconColor}>{s.roll}</span>,
-          <span key="gender" className={theme.iconColor}>{s.gender}</span>,
-          <StatusBadge key="fee" status={s.fee} theme={theme} />,
-          <span key="parent" className={theme.iconColor}>{s.parent}</span>,
-          <span key="phone" className={theme.iconColor}>{s.phone}</span>,
-          <div key="actions" className="flex gap-1">
-            <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Eye size={12} className={theme.iconColor} /></button>
-            <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Edit size={12} className={theme.iconColor} /></button>
-          </div>
-        ])}
-        theme={theme}
-      />
-      <div className={`flex items-center justify-between text-xs ${theme.iconColor} px-2`}>
-        <span>Showing 1-8 of {mockStudents.length} students</span>
-        <div className="flex gap-1">
-          <button className={`px-3 py-1.5 rounded-lg ${theme.secondaryBg}`}>Previous</button>
-          <button className={`px-3 py-1.5 rounded-lg ${theme.primary} text-white`}>1</button>
-          <button className={`px-3 py-1.5 rounded-lg ${theme.secondaryBg}`}>Next</button>
+        <div className="flex gap-2">
+          <button onClick={() => setShowPromotionWizard(true)} className={`px-4 py-2.5 rounded-xl border ${theme.border} text-sm font-bold ${theme.highlight} ${theme.buttonHover} flex items-center gap-1`}><GraduationCap size={14} /> Promote Students</button>
+          <button onClick={() => setShowAddStudent(true)} className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}><Plus size={14} /> Add Student</button>
         </div>
       </div>
+      <TabBar tabs={['All Students', 'Class-wise', 'Fee Status', 'TC Requests']} active={tab} onChange={setTab} theme={theme} />
+
+      {(tab === 'All Students' || tab === 'Class-wise' || tab === 'Fee Status') && (
+        <>
+          <div className="flex gap-3">
+            <SearchBar placeholder="Search by name, ID, class..." theme={theme} icon={Search} />
+            <button className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold ${theme.iconColor} flex items-center gap-1`}><Filter size={12} /> Filter</button>
+            <button className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold ${theme.iconColor} flex items-center gap-1`}><Download size={12} /> Export</button>
+          </div>
+          <DataTable
+            headers={['ID', 'Name', 'Class', 'Roll', 'Gender', 'Fee Status', 'Parent', 'Phone', '']}
+            rows={mockStudents.map(s => [
+              <span key="id" className={`font-mono text-xs ${theme.primaryText}`}>{s.id}</span>,
+              <button key="name" onClick={() => setSelectedStudent(s)} className={`font-bold ${theme.highlight} hover:underline text-left`}>{s.name}</button>,
+              <span key="class" className={theme.iconColor}>{s.class}</span>,
+              <span key="roll" className={theme.iconColor}>{s.roll}</span>,
+              <span key="gender" className={theme.iconColor}>{s.gender}</span>,
+              <StatusBadge key="fee" status={s.fee} theme={theme} />,
+              <span key="parent" className={theme.iconColor}>{s.parent}</span>,
+              <span key="phone" className={theme.iconColor}>{s.phone}</span>,
+              <div key="actions" className="flex gap-1">
+                <button onClick={() => setSelectedStudent(s)} className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Eye size={12} className={theme.iconColor} /></button>
+                <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Edit size={12} className={theme.iconColor} /></button>
+              </div>
+            ])}
+            theme={theme}
+          />
+          <div className={`flex items-center justify-between text-xs ${theme.iconColor} px-2`}>
+            <span>Showing 1-8 of {mockStudents.length} students</span>
+            <div className="flex gap-1">
+              <button className={`px-3 py-1.5 rounded-lg ${theme.secondaryBg}`}>Previous</button>
+              <button className={`px-3 py-1.5 rounded-lg ${theme.primary} text-white`}>1</button>
+              <button className={`px-3 py-1.5 rounded-lg ${theme.secondaryBg}`}>Next</button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {tab === 'TC Requests' && (
+        <DataTable
+          headers={['ID', 'Student', 'Class', 'Request Date', 'Requested By', 'Status', 'Actions']}
+          rows={tcRequests.map((tc, idx) => [
+            <span key="id" className={`font-mono text-xs ${theme.primaryText}`}>{tc.id}</span>,
+            <span key="s" className={`font-bold ${theme.highlight}`}>{tc.student}</span>,
+            <span key="c" className={theme.iconColor}>{tc.class}</span>,
+            <span key="d" className={theme.iconColor}>{tc.requestDate}</span>,
+            <span key="by" className={theme.iconColor}>{tc.requestedBy}</span>,
+            <StatusBadge key="st" status={tc.status === 'Pending' ? 'Pending' : tc.status === 'Approved' ? 'Active' : 'Paid'} theme={theme} />,
+            <div key="actions" className="flex gap-1">
+              {tc.status === 'Pending' && (
+                <button onClick={() => { const u = [...tcRequests]; u[idx] = { ...u[idx], status: 'Approved' }; setTcRequests(u); }} className="px-2 py-1 rounded-lg bg-emerald-100 text-emerald-700 text-[10px] font-bold">Approve</button>
+              )}
+              {(tc.status === 'Pending' || tc.status === 'Approved') && (
+                <button onClick={() => { const u = [...tcRequests]; u[idx] = { ...u[idx], status: 'Generated' }; setTcRequests(u); window.alert('TC generated for ' + tc.student + '! (Blueprint demo)'); }} className="px-2 py-1 rounded-lg bg-blue-100 text-blue-700 text-[10px] font-bold">Generate TC</button>
+              )}
+              {tc.status === 'Generated' && (
+                <button className={`px-2 py-1 rounded-lg ${theme.secondaryBg} text-[10px] font-bold ${theme.iconColor} flex items-center gap-1`}><Download size={10} /> Download</button>
+              )}
+            </div>,
+          ])}
+          theme={theme}
+        />
+      )}
+
+      {showPromotionWizard && <PromotionWizard theme={theme} onClose={() => setShowPromotionWizard(false)} />}
     </div>
   );
 }
@@ -982,11 +1294,17 @@ function StudentsModule({ theme }: { theme: Theme }) {
 // ─── ENQUIRIES MODULE ────────────────────────────────
 function EnquiriesModule({ theme }: { theme: Theme }) {
   const [tab, setTab] = useState('All Enquiries');
+  const [showNewEnquiry, setShowNewEnquiry] = useState(false);
+  const [convertEnquiry, setConvertEnquiry] = useState<typeof mockEnquiries[0] | null>(null);
+
+  // New enquiry form state
+  const [enqForm, setEnqForm] = useState({ studentName: '', dob: '', gender: '', classSeeking: '', parentName: '', phone: '', email: '', source: '', notes: '' });
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className={`text-2xl font-bold ${theme.highlight}`}>Enquiry Management</h1>
-        <button className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}><Plus size={14} /> New Enquiry</button>
+        <button onClick={() => setShowNewEnquiry(true)} className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}><Plus size={14} /> New Enquiry</button>
       </div>
       <TabBar tabs={['All Enquiries', 'New', 'Follow-up', 'Converted', 'Lost']} active={tab} onChange={setTab} theme={theme} />
       <div className="grid grid-cols-4 gap-4">
@@ -1006,10 +1324,108 @@ function EnquiriesModule({ theme }: { theme: Theme }) {
           <span key="date" className={theme.iconColor}>{e.date}</span>,
           <StatusBadge key="status" status={e.status} theme={theme} />,
           <span key="phone" className={theme.iconColor}>{e.phone}</span>,
-          <button key="action" className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Eye size={12} className={theme.iconColor} /></button>
+          <div key="action" className="flex gap-1">
+            <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Eye size={12} className={theme.iconColor} /></button>
+            {(e.status === 'New' || e.status === 'Follow-up') && (
+              <button onClick={() => setConvertEnquiry(e)} className="px-2 py-1 rounded-lg bg-emerald-100 text-emerald-700 text-[10px] font-bold">Convert</button>
+            )}
+          </div>
         ])}
         theme={theme}
       />
+
+      {/* New Enquiry Modal */}
+      {showNewEnquiry && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowNewEnquiry(false)}>
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} shadow-2xl w-full max-w-lg p-6 space-y-4 max-h-[85vh] overflow-y-auto`} onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <h2 className={`text-lg font-bold ${theme.highlight}`}>New Enquiry</h2>
+              <button onClick={() => setShowNewEnquiry(false)} className={`p-1.5 rounded-lg ${theme.buttonHover}`}><X size={16} className={theme.iconColor} /></button>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <FormField label="Student Name" required theme={theme}>
+                <InputField placeholder="Full name" value={enqForm.studentName} onChange={v => setEnqForm(p => ({ ...p, studentName: v }))} theme={theme} />
+              </FormField>
+              <FormField label="Date of Birth" theme={theme}>
+                <InputField type="date" value={enqForm.dob} onChange={v => setEnqForm(p => ({ ...p, dob: v }))} theme={theme} />
+              </FormField>
+              <FormField label="Gender" theme={theme}>
+                <SelectField options={['Male', 'Female', 'Other']} value={enqForm.gender} onChange={v => setEnqForm(p => ({ ...p, gender: v }))} theme={theme} placeholder="Select" />
+              </FormField>
+              <FormField label="Class Seeking" required theme={theme}>
+                <SelectField options={['Nursery', 'LKG', 'UKG', '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th', '10th', '11th', '12th']} value={enqForm.classSeeking} onChange={v => setEnqForm(p => ({ ...p, classSeeking: v }))} theme={theme} placeholder="Select class" />
+              </FormField>
+              <FormField label="Parent Name" required theme={theme}>
+                <InputField placeholder="Father/Mother/Guardian name" value={enqForm.parentName} onChange={v => setEnqForm(p => ({ ...p, parentName: v }))} theme={theme} />
+              </FormField>
+              <FormField label="Phone" required theme={theme}>
+                <InputField placeholder="10-digit mobile" value={enqForm.phone} onChange={v => setEnqForm(p => ({ ...p, phone: v }))} theme={theme} />
+              </FormField>
+              <FormField label="Email" theme={theme}>
+                <InputField placeholder="email@example.com" type="email" value={enqForm.email} onChange={v => setEnqForm(p => ({ ...p, email: v }))} theme={theme} />
+              </FormField>
+              <FormField label="Source" required theme={theme}>
+                <SelectField options={['Walk-in', 'Phone', 'Website', 'Referral']} value={enqForm.source} onChange={v => setEnqForm(p => ({ ...p, source: v }))} theme={theme} placeholder="Select source" />
+              </FormField>
+            </div>
+            <FormField label="Notes" theme={theme}>
+              <TextAreaField placeholder="Any additional notes about the enquiry..." value={enqForm.notes} onChange={v => setEnqForm(p => ({ ...p, notes: v }))} theme={theme} rows={3} />
+            </FormField>
+            <div className="flex gap-2">
+              <button onClick={() => setShowNewEnquiry(false)} className={`flex-1 py-2.5 rounded-xl ${theme.secondaryBg} text-xs font-bold ${theme.highlight} ${theme.buttonHover}`}>Cancel</button>
+              <button onClick={() => { window.alert('Enquiry created for ' + (enqForm.studentName || 'student') + '! (Blueprint demo)'); setShowNewEnquiry(false); setEnqForm({ studentName: '', dob: '', gender: '', classSeeking: '', parentName: '', phone: '', email: '', source: '', notes: '' }); }} className={`flex-1 py-2.5 rounded-xl ${theme.primary} text-white text-sm font-bold`}>Create Enquiry</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Convert Enquiry to Admission Modal */}
+      {convertEnquiry && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setConvertEnquiry(null)}>
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} shadow-2xl w-full max-w-lg p-6 space-y-4`} onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className={`w-9 h-9 rounded-xl bg-emerald-500 flex items-center justify-center text-white`}><UserCheck size={18} /></div>
+                <h2 className={`text-lg font-bold ${theme.highlight}`}>Convert to Admission</h2>
+              </div>
+              <button onClick={() => setConvertEnquiry(null)} className={`p-1.5 rounded-lg ${theme.buttonHover}`}><X size={16} className={theme.iconColor} /></button>
+            </div>
+            <div className={`p-3 rounded-xl ${theme.secondaryBg} text-xs ${theme.iconColor}`}>
+              Converting enquiry <strong className={theme.primaryText}>{convertEnquiry.id}</strong> to a confirmed admission.
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <FormField label="Student Name" theme={theme}>
+                <InputField value={convertEnquiry.child} onChange={() => {}} theme={theme} readOnly />
+              </FormField>
+              <FormField label="Class" theme={theme}>
+                <InputField value={convertEnquiry.class} onChange={() => {}} theme={theme} readOnly />
+              </FormField>
+              <FormField label="Parent Name" theme={theme}>
+                <InputField value={convertEnquiry.parent} onChange={() => {}} theme={theme} readOnly />
+              </FormField>
+              <FormField label="Phone" theme={theme}>
+                <InputField value={convertEnquiry.phone} onChange={() => {}} theme={theme} readOnly />
+              </FormField>
+              <FormField label="Admission Number" theme={theme}>
+                <InputField value={'ADM-2026-' + String(Math.floor(Math.random() * 9000) + 1000)} onChange={() => {}} theme={theme} readOnly />
+              </FormField>
+              <FormField label="Section" theme={theme}>
+                <SelectField options={['A', 'B', 'C', 'D']} value="" onChange={() => {}} theme={theme} placeholder="Select section" />
+              </FormField>
+              <FormField label="Fee Plan" theme={theme}>
+                <SelectField options={['Standard', 'Sibling Discount', 'Merit Scholarship', 'Staff Child']} value="" onChange={() => {}} theme={theme} placeholder="Select plan" />
+              </FormField>
+              <FormField label="Admission Date" theme={theme}>
+                <InputField type="date" value="2026-02-25" onChange={() => {}} theme={theme} />
+              </FormField>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => setConvertEnquiry(null)} className={`flex-1 py-2.5 rounded-xl ${theme.secondaryBg} text-xs font-bold ${theme.highlight} ${theme.buttonHover}`}>Cancel</button>
+              <button onClick={() => { window.alert('Enquiry ' + convertEnquiry.id + ' converted to admission for ' + convertEnquiry.child + '! (Blueprint demo)'); setConvertEnquiry(null); }} className={`flex-1 py-2.5 rounded-xl bg-emerald-500 text-white text-sm font-bold`}>Confirm Admission</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1101,11 +1517,129 @@ function FeesModule({ theme }: { theme: Theme }) {
           theme={theme}
         />
       )}
-      {(tab === 'Concessions' || tab === 'Receipts') && (
-        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-8 text-center`}>
-          <p className={`text-sm ${theme.iconColor}`}>{tab} view — full UI coming in next iteration</p>
+      {tab === 'Concessions' && <ConcessionTab theme={theme} />}
+      {tab === 'Receipts' && <ReceiptsTab theme={theme} />}
+    </div>
+  );
+}
+
+// ─── CONCESSIONS TAB ─────────────────────────────────
+function ConcessionTab({ theme }: { theme: Theme }) {
+  const [showForm, setShowForm] = useState(false);
+  const [concForm, setConcForm] = useState({ student: '', type: '', amount: '', reason: '', approvedBy: '' });
+
+  const concessions = [
+    { student: 'Riya Sharma', class: '5-A', type: 'Sibling Discount', amount: '10%', status: 'Approved' },
+    { student: 'Aarav Patel', class: '10-A', type: 'Merit Scholarship', amount: '₹15,000', status: 'Approved' },
+    { student: 'Meera Nair', class: '7-C', type: 'Staff Child', amount: '50%', status: 'Approved' },
+    { student: 'Zara Khan', class: '8-B', type: 'Economic Hardship', amount: '25%', status: 'Pending' },
+    { student: 'Kabir Joshi', class: '3-A', type: 'Sibling Discount', amount: '10%', status: 'Approved' },
+    { student: 'Prachi Mehta', class: '6-B', type: 'Merit Scholarship', amount: '₹10,000', status: 'Pending' },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className={`text-xs ${theme.iconColor}`}>Manage fee concessions, scholarships, and discounts</p>
+        <button onClick={() => setShowForm(true)} className={`px-3 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold flex items-center gap-1`}><Plus size={12} /> Apply Concession</button>
+      </div>
+      <DataTable
+        headers={['Student', 'Class', 'Concession Type', 'Amount / %', 'Status']}
+        rows={concessions.map(c => [
+          <span key="s" className={`font-bold ${theme.highlight}`}>{c.student}</span>,
+          <span key="c" className={theme.iconColor}>{c.class}</span>,
+          <span key="t" className={theme.iconColor}>{c.type}</span>,
+          <span key="a" className={`font-bold ${theme.primaryText}`}>{c.amount}</span>,
+          <StatusBadge key="st" status={c.status === 'Approved' ? 'Active' : 'Pending'} theme={theme} />,
+        ])}
+        theme={theme}
+      />
+
+      {showForm && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowForm(false)}>
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} shadow-2xl w-full max-w-md p-6 space-y-4`} onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <h2 className={`text-lg font-bold ${theme.highlight}`}>Apply Concession</h2>
+              <button onClick={() => setShowForm(false)} className={`p-1.5 rounded-lg ${theme.buttonHover}`}><X size={16} className={theme.iconColor} /></button>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <FormField label="Student" required theme={theme}>
+                <InputField placeholder="Search student..." value={concForm.student} onChange={v => setConcForm(p => ({ ...p, student: v }))} theme={theme} />
+              </FormField>
+              <FormField label="Concession Type" required theme={theme}>
+                <SelectField options={['Sibling Discount', 'Merit Scholarship', 'Staff Child', 'Economic Hardship', 'Sports Quota', 'Other']} value={concForm.type} onChange={v => setConcForm(p => ({ ...p, type: v }))} theme={theme} placeholder="Select type" />
+              </FormField>
+              <FormField label="Amount / %" required theme={theme}>
+                <InputField placeholder="e.g. 10% or ₹5000" value={concForm.amount} onChange={v => setConcForm(p => ({ ...p, amount: v }))} theme={theme} />
+              </FormField>
+              <FormField label="Approved By" theme={theme}>
+                <SelectField options={['Principal', 'Admin', 'Trustee']} value={concForm.approvedBy} onChange={v => setConcForm(p => ({ ...p, approvedBy: v }))} theme={theme} placeholder="Select" />
+              </FormField>
+            </div>
+            <FormField label="Reason" theme={theme}>
+              <TextAreaField placeholder="Reason for concession..." value={concForm.reason} onChange={v => setConcForm(p => ({ ...p, reason: v }))} theme={theme} rows={2} />
+            </FormField>
+            <div className="flex gap-2">
+              <button onClick={() => setShowForm(false)} className={`flex-1 py-2.5 rounded-xl ${theme.secondaryBg} text-xs font-bold ${theme.highlight}`}>Cancel</button>
+              <button onClick={() => { window.alert('Concession applied for ' + (concForm.student || 'student') + '! (Blueprint demo)'); setShowForm(false); setConcForm({ student: '', type: '', amount: '', reason: '', approvedBy: '' }); }} className={`flex-1 py-2.5 rounded-xl ${theme.primary} text-white text-sm font-bold`}>Apply Concession</button>
+            </div>
+          </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── RECEIPTS TAB ────────────────────────────────────
+function ReceiptsTab({ theme }: { theme: Theme }) {
+  const [receiptSearch, setReceiptSearch] = useState('');
+
+  const receipts = [
+    { no: 'REC-2026-0501', student: 'Aarav Patel', class: '10-A', amount: '₹5,800', date: '25-Feb-2026', mode: 'UPI' },
+    { no: 'REC-2026-0500', student: 'Riya Sharma', class: '5-A', amount: '₹4,200', date: '24-Feb-2026', mode: 'Cash' },
+    { no: 'REC-2026-0499', student: 'Meera Nair', class: '7-C', amount: '₹5,200', date: '24-Feb-2026', mode: 'Bank Transfer' },
+    { no: 'REC-2026-0498', student: 'Zara Khan', class: '8-B', amount: '₹5,800', date: '23-Feb-2026', mode: 'UPI' },
+    { no: 'REC-2026-0497', student: 'Kabir Joshi', class: '3-A', amount: '₹3,600', date: '23-Feb-2026', mode: 'Cash' },
+    { no: 'REC-2026-0496', student: 'Prachi Mehta', class: '6-B', amount: '₹4,800', date: '22-Feb-2026', mode: 'Cheque' },
+    { no: 'REC-2026-0495', student: 'Arjun Singh', class: '10-A', amount: '₹5,800', date: '22-Feb-2026', mode: 'UPI' },
+    { no: 'REC-2026-0494', student: 'Sanya Iyer', class: '1-A', amount: '₹3,200', date: '21-Feb-2026', mode: 'Cash' },
+    { no: 'REC-2026-0493', student: 'Rohan Gupta', class: '6-A', amount: '₹4,800', date: '21-Feb-2026', mode: 'Bank Transfer' },
+    { no: 'REC-2026-0492', student: 'Ananya Desai', class: '4-B', amount: '₹3,600', date: '20-Feb-2026', mode: 'UPI' },
+  ];
+
+  const filtered = receiptSearch
+    ? receipts.filter(r => r.no.toLowerCase().includes(receiptSearch.toLowerCase()) || r.student.toLowerCase().includes(receiptSearch.toLowerCase()))
+    : receipts;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-3">
+        <div className="flex-1">
+          <input
+            placeholder="Search by receipt number or student name..."
+            value={receiptSearch}
+            onChange={e => setReceiptSearch(e.target.value)}
+            className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none focus:ring-2 focus:ring-slate-300`}
+          />
+        </div>
+        <button className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold ${theme.iconColor} flex items-center gap-1`}><Download size={12} /> Export All</button>
+      </div>
+      <DataTable
+        headers={['Receipt No', 'Student', 'Class', 'Amount', 'Date', 'Payment Mode', '']}
+        rows={filtered.map(r => [
+          <span key="no" className={`font-mono text-xs ${theme.primaryText}`}>{r.no}</span>,
+          <span key="s" className={`font-bold ${theme.highlight}`}>{r.student}</span>,
+          <span key="c" className={theme.iconColor}>{r.class}</span>,
+          <span key="a" className="text-emerald-600 font-bold">{r.amount}</span>,
+          <span key="d" className={theme.iconColor}>{r.date}</span>,
+          <span key="m" className={theme.iconColor}>{r.mode}</span>,
+          <button key="print" onClick={() => window.alert('Printing receipt ' + r.no + '... (Blueprint demo)')} className={`px-2 py-1 rounded-lg ${theme.secondaryBg} text-[10px] font-bold ${theme.iconColor} flex items-center gap-1`}><Printer size={10} /> Print</button>,
+        ])}
+        theme={theme}
+      />
+      <div className={`flex items-center justify-between text-xs ${theme.iconColor} px-2`}>
+        <span>Showing {filtered.length} of {receipts.length} receipts</span>
+      </div>
     </div>
   );
 }
@@ -1175,20 +1709,60 @@ function TransportModule({ theme }: { theme: Theme }) {
 // ─── VISITORS MODULE ─────────────────────────────────
 function VisitorsModule({ theme }: { theme: Theme }) {
   const [tab, setTab] = useState('Visitor Log');
+
+  // Visitor log with checkout support
+  const [visitors, setVisitors] = useState([
+    ...mockVisitors.map(v => ({ ...v })),
+  ]);
+
+  // Visitor Approvals mock
+  const [approvalsList, setApprovalsList] = useState([
+    { id: 'VA01', name: 'Sanjay Verma', purpose: 'Parent-Teacher Meeting', personToMeet: 'Mrs. Priya Sharma', requestedTime: '10:30 AM', status: 'Pending' as string },
+    { id: 'VA02', name: 'Neha Kapoor', purpose: 'Document Submission', personToMeet: 'Admin Office', requestedTime: '11:00 AM', status: 'Pending' as string },
+    { id: 'VA03', name: 'Rajiv Malhotra', purpose: 'Fee Discussion', personToMeet: 'Accounts Dept', requestedTime: '02:00 PM', status: 'Pending' as string },
+    { id: 'VA04', name: 'Deepa Nair', purpose: 'Library Book Return', personToMeet: 'Library', requestedTime: '12:30 PM', status: 'Pending' as string },
+  ]);
+
+  // Student Pickup mock
+  const [showPickupForm, setShowPickupForm] = useState(false);
+  const [pickupReason, setPickupReason] = useState('');
+  const [pickupStudent, setPickupStudent] = useState('');
+  const [pickupNotes, setPickupNotes] = useState('');
+  const schoolPickups = [
+    { student: 'Aarav Patel', class: '10-A', reason: 'Sick', requestedBy: 'Class Teacher', parentStatus: 'Notified', gateStatus: 'Waiting' },
+    { student: 'Meera Nair', class: '7-C', reason: 'Emergency', requestedBy: 'Coordinator', parentStatus: 'Confirmed', gateStatus: 'Released' },
+    { student: 'Riya Sharma', class: '5-A', reason: 'Early Leave', requestedBy: 'Admin', parentStatus: 'Pending', gateStatus: 'Waiting' },
+  ];
+  const [parentPickups, setParentPickups] = useState([
+    { student: 'Zara Khan', class: '8-B', reason: 'Doctor appointment', requestedTime: '12:00 PM', approval: 'Pending' as string },
+    { student: 'Arjun Singh', class: '10-A', reason: 'Family function', requestedTime: '01:30 PM', approval: 'Pending' as string },
+    { student: 'Rohan Gupta', class: '6-A', reason: 'Unwell', requestedTime: '11:45 AM', approval: 'Approved' as string },
+  ]);
+
+  // Pre-registration mock
+  const [preRegForm, setPreRegForm] = useState({ name: '', phone: '', purpose: '', date: '', personToMeet: '', idType: '', vehicleNo: '' });
+  const preRegistered = [
+    { name: 'Mr. Alok Jain', date: '26-Feb-2026', purpose: 'Admission Discussion', status: 'Confirmed' },
+    { name: 'Mrs. Sunita Reddy', date: '26-Feb-2026', purpose: 'PTM', status: 'Pending' },
+    { name: 'Dr. Ravi Kumar', date: '27-Feb-2026', purpose: 'Health Camp', status: 'Confirmed' },
+  ];
+
   return (
     <div className="space-y-4">
       <h1 className={`text-2xl font-bold ${theme.highlight}`}>Visitor Management</h1>
-      <TabBar tabs={['Visitor Log', 'Check-in', 'Student Pickup']} active={tab} onChange={setTab} theme={theme} />
+      <TabBar tabs={['Visitor Log', 'Check-in', 'Approvals', 'Student Pickup', 'Pre-Register']} active={tab} onChange={setTab} theme={theme} />
       <div className="grid grid-cols-4 gap-4">
         <StatCard icon={Users} label="Today's Visitors" value="12" color="bg-blue-500" theme={theme} />
         <StatCard icon={UserCheck} label="Checked In" value="3" color="bg-emerald-500" theme={theme} />
         <StatCard icon={Clock} label="Avg Duration" value="45m" color="bg-indigo-500" theme={theme} />
         <StatCard icon={AlertTriangle} label="Overstaying" value="1" color="bg-amber-500" theme={theme} />
       </div>
+
+      {/* Visitor Log with Check-Out */}
       {tab === 'Visitor Log' && (
         <DataTable
-          headers={['Badge', 'Name', 'Purpose', 'Host', 'Time In', 'Time Out', 'Status']}
-          rows={mockVisitors.map(v => [
+          headers={['Badge', 'Name', 'Purpose', 'Host', 'Time In', 'Time Out', 'Status', '']}
+          rows={visitors.map((v, idx) => [
             <span key="badge" className={`text-xs px-2 py-0.5 rounded-full font-bold ${theme.secondaryBg} ${theme.primaryText}`}>{v.badge}</span>,
             <span key="name" className={`font-bold ${theme.highlight}`}>{v.name}</span>,
             <span key="purpose" className={theme.iconColor}>{v.purpose}</span>,
@@ -1196,10 +1770,22 @@ function VisitorsModule({ theme }: { theme: Theme }) {
             <span key="in" className={theme.iconColor}>{v.timeIn}</span>,
             <span key="out" className={v.timeOut === '-' ? 'text-amber-500 font-bold' : theme.iconColor}>{v.timeOut}</span>,
             <StatusBadge key="status" status={v.timeOut === '-' ? 'Active' : 'Paid'} theme={theme} />,
+            <div key="actions">
+              {v.timeOut === '-' && (
+                <button onClick={() => {
+                  const now = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false });
+                  const updated = [...visitors];
+                  updated[idx] = { ...updated[idx], timeOut: now };
+                  setVisitors(updated);
+                }} className="px-2 py-1 rounded-lg bg-amber-100 text-amber-700 text-[10px] font-bold whitespace-nowrap">Check Out</button>
+              )}
+            </div>,
           ])}
           theme={theme}
         />
       )}
+
+      {/* Check-in */}
       {tab === 'Check-in' && (
         <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-6`}>
           <h3 className={`text-sm font-bold ${theme.highlight} mb-4`}>New Visitor Check-in</h3>
@@ -1217,10 +1803,153 @@ function VisitorsModule({ theme }: { theme: Theme }) {
           </div>
         </div>
       )}
+
+      {/* Approvals Tab */}
+      {tab === 'Approvals' && (
+        <div className="space-y-3">
+          <p className={`text-xs ${theme.iconColor}`}>Pending visitor requests that need your approval before check-in:</p>
+          <DataTable
+            headers={['Visitor', 'Purpose', 'Person to Meet', 'Requested Time', 'Status', 'Actions']}
+            rows={approvalsList.map((a, idx) => [
+              <span key="name" className={`font-bold ${theme.highlight}`}>{a.name}</span>,
+              <span key="p" className={theme.iconColor}>{a.purpose}</span>,
+              <span key="m" className={theme.iconColor}>{a.personToMeet}</span>,
+              <span key="t" className={theme.iconColor}>{a.requestedTime}</span>,
+              <StatusBadge key="s" status={a.status === 'Approved' ? 'Active' : a.status === 'Denied' ? 'Overdue' : 'Pending'} theme={theme} />,
+              <div key="actions" className="flex gap-1">
+                {a.status === 'Pending' && (
+                  <>
+                    <button onClick={() => { const u = [...approvalsList]; u[idx] = { ...u[idx], status: 'Approved' }; setApprovalsList(u); }} className="px-2 py-1 rounded-lg bg-emerald-100 text-emerald-700 text-[10px] font-bold flex items-center gap-0.5"><ThumbsUp size={10} /> Approve</button>
+                    <button onClick={() => { const u = [...approvalsList]; u[idx] = { ...u[idx], status: 'Denied' }; setApprovalsList(u); }} className="px-2 py-1 rounded-lg bg-red-100 text-red-600 text-[10px] font-bold flex items-center gap-0.5"><ThumbsDown size={10} /> Deny</button>
+                  </>
+                )}
+                {a.status !== 'Pending' && <span className={`text-[10px] font-bold ${a.status === 'Approved' ? 'text-emerald-600' : 'text-red-500'}`}>{a.status}</span>}
+              </div>,
+            ])}
+            theme={theme}
+          />
+        </div>
+      )}
+
+      {/* Student Pickup — Bidirectional */}
       {tab === 'Student Pickup' && (
-        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-6 text-center`}>
-          <p className={`text-sm ${theme.iconColor}`}>Bidirectional Pickup System — School-initiated & Parent-initiated flows</p>
-          <p className={`text-xs ${theme.iconColor} mt-2`}>Full UI coming in next iteration</p>
+        <div className="space-y-4">
+          {/* School-Initiated */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>School-Initiated Pickups</h3>
+              <button onClick={() => setShowPickupForm(true)} className={`px-3 py-1.5 ${theme.primary} text-white rounded-xl text-[10px] font-bold flex items-center gap-1`}><Plus size={10} /> New Request</button>
+            </div>
+            <DataTable
+              headers={['Student', 'Class', 'Reason', 'Requested By', 'Parent Status', 'Gate Status']}
+              rows={schoolPickups.map(p => [
+                <span key="s" className={`font-bold ${theme.highlight}`}>{p.student}</span>,
+                <span key="c" className={theme.iconColor}>{p.class}</span>,
+                <span key="r" className={theme.iconColor}>{p.reason}</span>,
+                <span key="by" className={theme.iconColor}>{p.requestedBy}</span>,
+                <StatusBadge key="ps" status={p.parentStatus === 'Confirmed' ? 'Active' : p.parentStatus === 'Notified' ? 'Pending' : 'Pending'} theme={theme} />,
+                <span key="gs" className={`text-xs font-bold ${p.gateStatus === 'Released' ? 'text-emerald-600' : 'text-amber-600'}`}>{p.gateStatus}</span>,
+              ])}
+              theme={theme}
+            />
+          </div>
+
+          {/* Parent-Initiated */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+            <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Parent-Initiated Requests</h3>
+            <DataTable
+              headers={['Student', 'Class', 'Reason', 'Requested Time', 'Approval', 'Actions']}
+              rows={parentPickups.map((p, idx) => [
+                <span key="s" className={`font-bold ${theme.highlight}`}>{p.student}</span>,
+                <span key="c" className={theme.iconColor}>{p.class}</span>,
+                <span key="r" className={theme.iconColor}>{p.reason}</span>,
+                <span key="t" className={theme.iconColor}>{p.requestedTime}</span>,
+                <StatusBadge key="a" status={p.approval === 'Approved' ? 'Active' : p.approval === 'Denied' ? 'Overdue' : 'Pending'} theme={theme} />,
+                <div key="actions" className="flex gap-1">
+                  {p.approval === 'Pending' && (
+                    <>
+                      <button onClick={() => { const u = [...parentPickups]; u[idx] = { ...u[idx], approval: 'Approved' }; setParentPickups(u); }} className="px-2 py-1 rounded-lg bg-emerald-100 text-emerald-700 text-[10px] font-bold">Approve</button>
+                      <button onClick={() => { const u = [...parentPickups]; u[idx] = { ...u[idx], approval: 'Denied' }; setParentPickups(u); }} className="px-2 py-1 rounded-lg bg-red-100 text-red-600 text-[10px] font-bold">Deny</button>
+                    </>
+                  )}
+                  {p.approval !== 'Pending' && <span className={`text-[10px] font-bold ${p.approval === 'Approved' ? 'text-emerald-600' : 'text-red-500'}`}>{p.approval}</span>}
+                </div>,
+              ])}
+              theme={theme}
+            />
+          </div>
+
+          {/* New School Pickup Request Form */}
+          {showPickupForm && (
+            <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowPickupForm(false)}>
+              <div className={`${theme.cardBg} rounded-2xl border ${theme.border} shadow-2xl w-full max-w-md p-6 space-y-4`} onClick={e => e.stopPropagation()}>
+                <div className="flex items-center justify-between">
+                  <h2 className={`text-lg font-bold ${theme.highlight}`}>New Pickup Request</h2>
+                  <button onClick={() => setShowPickupForm(false)} className={`p-1.5 rounded-lg ${theme.buttonHover}`}><X size={16} className={theme.iconColor} /></button>
+                </div>
+                <FormField label="Student Name" required theme={theme}>
+                  <InputField placeholder="Search student..." value={pickupStudent} onChange={setPickupStudent} theme={theme} />
+                </FormField>
+                <FormField label="Reason" required theme={theme}>
+                  <SelectField options={['Sick', 'Emergency', 'Early Leave']} value={pickupReason} onChange={setPickupReason} theme={theme} placeholder="Select reason" />
+                </FormField>
+                <FormField label="Notes" theme={theme}>
+                  <TextAreaField placeholder="Additional details..." value={pickupNotes} onChange={setPickupNotes} theme={theme} rows={2} />
+                </FormField>
+                <div className="flex gap-2">
+                  <button onClick={() => setShowPickupForm(false)} className={`flex-1 py-2 rounded-xl ${theme.secondaryBg} text-xs font-bold ${theme.highlight}`}>Cancel</button>
+                  <button onClick={() => { window.alert('Pickup request sent to parent for ' + (pickupStudent || 'student') + '! (Blueprint demo)'); setShowPickupForm(false); setPickupStudent(''); setPickupReason(''); setPickupNotes(''); }} className={`flex-1 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}>Send to Parent</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Pre-Register Tab */}
+      {tab === 'Pre-Register' && (
+        <div className="space-y-4">
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5`}>
+            <h3 className={`text-sm font-bold ${theme.highlight} mb-4`}>Pre-Register a Visitor</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <FormField label="Visitor Name" required theme={theme}>
+                <InputField placeholder="Full name" value={preRegForm.name} onChange={v => setPreRegForm(p => ({ ...p, name: v }))} theme={theme} />
+              </FormField>
+              <FormField label="Phone" required theme={theme}>
+                <InputField placeholder="10-digit mobile" value={preRegForm.phone} onChange={v => setPreRegForm(p => ({ ...p, phone: v }))} theme={theme} />
+              </FormField>
+              <FormField label="Purpose" required theme={theme}>
+                <SelectField options={['Parent Meeting', 'Document Submission', 'Fee Payment', 'Admission Enquiry', 'Vendor Visit', 'Other']} value={preRegForm.purpose} onChange={v => setPreRegForm(p => ({ ...p, purpose: v }))} theme={theme} placeholder="Select purpose" />
+              </FormField>
+              <FormField label="Date of Visit" required theme={theme}>
+                <InputField type="date" value={preRegForm.date} onChange={v => setPreRegForm(p => ({ ...p, date: v }))} theme={theme} />
+              </FormField>
+              <FormField label="Person to Meet" theme={theme}>
+                <SelectField options={['Principal', 'Vice Principal', 'Admin Office', 'Accounts Dept', 'Class Teacher', 'Coordinator']} value={preRegForm.personToMeet} onChange={v => setPreRegForm(p => ({ ...p, personToMeet: v }))} theme={theme} placeholder="Select" />
+              </FormField>
+              <FormField label="ID Type" theme={theme}>
+                <SelectField options={['Aadhaar Card', 'PAN Card', 'Driving License', 'Voter ID', 'Passport']} value={preRegForm.idType} onChange={v => setPreRegForm(p => ({ ...p, idType: v }))} theme={theme} placeholder="Select ID type" />
+              </FormField>
+              <FormField label="Vehicle Number (optional)" theme={theme}>
+                <InputField placeholder="e.g. GJ-01-XX-1234" value={preRegForm.vehicleNo} onChange={v => setPreRegForm(p => ({ ...p, vehicleNo: v }))} theme={theme} />
+              </FormField>
+            </div>
+            <button onClick={() => { window.alert('Pre-registration link generated: https://school.app/visit/PRE-' + Math.floor(Math.random() * 9000 + 1000) + ' (Blueprint demo)'); setPreRegForm({ name: '', phone: '', purpose: '', date: '', personToMeet: '', idType: '', vehicleNo: '' }); }} className={`mt-4 px-4 py-2.5 ${theme.primary} text-white rounded-xl text-xs font-bold flex items-center gap-1.5`}><Link2 size={12} /> Generate Pre-Registration Link</button>
+          </div>
+
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5`}>
+            <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Pre-Registered Visitors</h3>
+            <DataTable
+              headers={['Visitor', 'Date', 'Purpose', 'Status']}
+              rows={preRegistered.map(p => [
+                <span key="n" className={`font-bold ${theme.highlight}`}>{p.name}</span>,
+                <span key="d" className={theme.iconColor}>{p.date}</span>,
+                <span key="p" className={theme.iconColor}>{p.purpose}</span>,
+                <StatusBadge key="s" status={p.status === 'Confirmed' ? 'Active' : 'Pending'} theme={theme} />,
+              ])}
+              theme={theme}
+            />
+          </div>
         </div>
       )}
     </div>

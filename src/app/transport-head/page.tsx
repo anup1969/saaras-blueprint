@@ -13,7 +13,8 @@ import {
   Eye, Edit, Trash2, Phone, Clock, Shield, AlertTriangle, CheckCircle, Navigation,
   Fuel, Calendar, FileText, IndianRupee, User, MapPinned, CircleDot, Timer,
   Gauge, Bell, TrendingUp, ChevronDown, BarChart3, MessageSquare,
-  PanelLeftClose, PanelLeftOpen, Headphones, UserCheck, UserPlus, X, GraduationCap
+  PanelLeftClose, PanelLeftOpen, Headphones, UserCheck, UserPlus, X, GraduationCap,
+  Upload, CreditCard
 } from 'lucide-react';
 
 // ─── MODULE SIDEBAR ────────────────────────────────
@@ -28,6 +29,7 @@ const modules = [
   { id: 'students', label: 'Students', icon: GraduationCap },
   { id: 'gps-tracking', label: 'GPS Tracking', icon: Navigation },
   { id: 'maintenance', label: 'Maintenance', icon: Wrench },
+  { id: 'fees', label: 'Fees', icon: IndianRupee },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
   { id: 'support', label: 'Support', icon: Headphones },
 ];
@@ -72,39 +74,39 @@ const mockGPSVehicles = [
 
 const mockStudentsByRoute = [
   { route: 'Route A', students: [
-    { id: 'STU-101', name: 'Arjun Mehta', class: '8-A', stop: 'Jodhpur Cross Roads', pickup: '6:50 AM', phone: '98250 11111' },
-    { id: 'STU-102', name: 'Priya Sharma', class: '6-B', stop: 'Satellite Circle', pickup: '6:55 AM', phone: '98250 11112' },
-    { id: 'STU-103', name: 'Rohan Desai', class: '9-A', stop: 'Shyamal Cross Roads', pickup: '7:00 AM', phone: '98250 11113' },
-    { id: 'STU-104', name: 'Ananya Patel', class: '5-C', stop: 'Prernatirth Derasar', pickup: '7:05 AM', phone: '98250 11114' },
-    { id: 'STU-105', name: 'Vivaan Shah', class: '7-A', stop: 'Judges Bungalow', pickup: '7:10 AM', phone: '98250 11115' },
+    { id: 'STU-101', name: 'Arjun Mehta', class: '8-A', stop: 'Jodhpur Cross Roads', pickup: '6:50 AM', dropStop: 'Jodhpur Cross Roads', dropTime: '3:40 PM', phone: '98250 11111' },
+    { id: 'STU-102', name: 'Priya Sharma', class: '6-B', stop: 'Satellite Circle', pickup: '6:55 AM', dropStop: 'Jodhpur Cross Roads', dropTime: '3:45 PM', phone: '98250 11112' },
+    { id: 'STU-103', name: 'Rohan Desai', class: '9-A', stop: 'Shyamal Cross Roads', pickup: '7:00 AM', dropStop: 'Shyamal Cross Roads', dropTime: '3:50 PM', phone: '98250 11113' },
+    { id: 'STU-104', name: 'Ananya Patel', class: '5-C', stop: 'Prernatirth Derasar', pickup: '7:05 AM', dropStop: 'Satellite Circle', dropTime: '3:55 PM', phone: '98250 11114' },
+    { id: 'STU-105', name: 'Vivaan Shah', class: '7-A', stop: 'Judges Bungalow', pickup: '7:10 AM', dropStop: 'Judges Bungalow', dropTime: '4:00 PM', phone: '98250 11115' },
   ]},
   { route: 'Route B', students: [
-    { id: 'STU-201', name: 'Ishaan Joshi', class: '10-A', stop: 'Prahlad Nagar Garden', pickup: '6:55 AM', phone: '98250 22221' },
-    { id: 'STU-202', name: 'Kavya Trivedi', class: '4-B', stop: 'Thaltej Cross Roads', pickup: '7:00 AM', phone: '98250 22222' },
-    { id: 'STU-203', name: 'Aditya Pandya', class: '8-C', stop: 'Sola Bridge', pickup: '7:05 AM', phone: '98250 22223' },
-    { id: 'STU-204', name: 'Nisha Raval', class: '6-A', stop: 'Sandesh Press Road', pickup: '7:10 AM', phone: '98250 22224' },
+    { id: 'STU-201', name: 'Ishaan Joshi', class: '10-A', stop: 'Prahlad Nagar Garden', pickup: '6:55 AM', dropStop: 'Prahlad Nagar Garden', dropTime: '3:55 PM', phone: '98250 22221' },
+    { id: 'STU-202', name: 'Kavya Trivedi', class: '4-B', stop: 'Thaltej Cross Roads', pickup: '7:00 AM', dropStop: 'Prahlad Nagar Garden', dropTime: '4:00 PM', phone: '98250 22222' },
+    { id: 'STU-203', name: 'Aditya Pandya', class: '8-C', stop: 'Sola Bridge', pickup: '7:05 AM', dropStop: 'Sola Bridge', dropTime: '4:05 PM', phone: '98250 22223' },
+    { id: 'STU-204', name: 'Nisha Raval', class: '6-A', stop: 'Sandesh Press Road', pickup: '7:10 AM', dropStop: 'Sandesh Press Road', dropTime: '4:10 PM', phone: '98250 22224' },
   ]},
   { route: 'Route C', students: [
-    { id: 'STU-301', name: 'Dev Chauhan', class: '9-B', stop: 'Bodakdev Circle', pickup: '6:35 AM', phone: '98250 33331' },
-    { id: 'STU-302', name: 'Riya Bhatt', class: '7-C', stop: 'Pakwan Cross Roads', pickup: '6:42 AM', phone: '98250 33332' },
-    { id: 'STU-303', name: 'Aarav Nair', class: '5-A', stop: 'Rajpath Club', pickup: '6:48 AM', phone: '98250 33333' },
-    { id: 'STU-304', name: 'Meera Iyer', class: '10-B', stop: 'Sola Overbridge', pickup: '6:55 AM', phone: '98250 33334' },
+    { id: 'STU-301', name: 'Dev Chauhan', class: '9-B', stop: 'Bodakdev Circle', pickup: '6:35 AM', dropStop: 'Bodakdev Circle', dropTime: '3:25 PM', phone: '98250 33331' },
+    { id: 'STU-302', name: 'Riya Bhatt', class: '7-C', stop: 'Pakwan Cross Roads', pickup: '6:42 AM', dropStop: 'Bodakdev Circle', dropTime: '3:32 PM', phone: '98250 33332' },
+    { id: 'STU-303', name: 'Aarav Nair', class: '5-A', stop: 'Rajpath Club', pickup: '6:48 AM', dropStop: 'Rajpath Club', dropTime: '3:38 PM', phone: '98250 33333' },
+    { id: 'STU-304', name: 'Meera Iyer', class: '10-B', stop: 'Sola Overbridge', pickup: '6:55 AM', dropStop: 'Sola Overbridge', dropTime: '3:45 PM', phone: '98250 33334' },
   ]},
   { route: 'Route D', students: [
-    { id: 'STU-401', name: 'Harsh Panchal', class: '6-A', stop: 'Isanpur Circle', pickup: '6:45 AM', phone: '98250 44441' },
-    { id: 'STU-402', name: 'Pooja Thakor', class: '9-C', stop: 'Maninagar Station', pickup: '6:52 AM', phone: '98250 44442' },
-    { id: 'STU-403', name: 'Yash Solanki', class: '4-A', stop: 'Kagdapith', pickup: '7:00 AM', phone: '98250 44443' },
+    { id: 'STU-401', name: 'Harsh Panchal', class: '6-A', stop: 'Isanpur Circle', pickup: '6:45 AM', dropStop: 'Isanpur Circle', dropTime: '3:50 PM', phone: '98250 44441' },
+    { id: 'STU-402', name: 'Pooja Thakor', class: '9-C', stop: 'Maninagar Station', pickup: '6:52 AM', dropStop: 'Isanpur Circle', dropTime: '3:57 PM', phone: '98250 44442' },
+    { id: 'STU-403', name: 'Yash Solanki', class: '4-A', stop: 'Kagdapith', pickup: '7:00 AM', dropStop: 'Kagdapith', dropTime: '4:05 PM', phone: '98250 44443' },
   ]},
   { route: 'Route E', students: [
-    { id: 'STU-501', name: 'Tanvi Vyas', class: '7-B', stop: 'Paldi', pickup: '7:05 AM', phone: '98250 55551' },
-    { id: 'STU-502', name: 'Dhruv Parikh', class: '10-A', stop: 'Navrangpura BRTS', pickup: '7:12 AM', phone: '98250 55552' },
-    { id: 'STU-503', name: 'Shreya Dave', class: '5-B', stop: 'CG Road', pickup: '7:18 AM', phone: '98250 55553' },
+    { id: 'STU-501', name: 'Tanvi Vyas', class: '7-B', stop: 'Paldi', pickup: '7:05 AM', dropStop: 'Paldi', dropTime: '3:40 PM', phone: '98250 55551' },
+    { id: 'STU-502', name: 'Dhruv Parikh', class: '10-A', stop: 'Navrangpura BRTS', pickup: '7:12 AM', dropStop: 'Paldi', dropTime: '3:47 PM', phone: '98250 55552' },
+    { id: 'STU-503', name: 'Shreya Dave', class: '5-B', stop: 'CG Road', pickup: '7:18 AM', dropStop: 'CG Road', dropTime: '3:53 PM', phone: '98250 55553' },
   ]},
   { route: 'Route F', students: [
-    { id: 'STU-601', name: 'Mihir Acharya', class: '8-B', stop: 'Motera Stadium', pickup: '6:40 AM', phone: '98250 66661' },
-    { id: 'STU-602', name: 'Aishwarya Gajjar', class: '6-C', stop: 'Chandkheda BRTS', pickup: '6:48 AM', phone: '98250 66662' },
-    { id: 'STU-603', name: 'Parth Rana', class: '9-A', stop: 'Sabarmati', pickup: '6:55 AM', phone: '98250 66663' },
-    { id: 'STU-604', name: 'Diya Kothari', class: '3-A', stop: 'Kali Circle', pickup: '7:02 AM', phone: '98250 66664' },
+    { id: 'STU-601', name: 'Mihir Acharya', class: '8-B', stop: 'Motera Stadium', pickup: '6:40 AM', dropStop: 'Motera Stadium', dropTime: '3:45 PM', phone: '98250 66661' },
+    { id: 'STU-602', name: 'Aishwarya Gajjar', class: '6-C', stop: 'Chandkheda BRTS', pickup: '6:48 AM', dropStop: 'Motera Stadium', dropTime: '3:53 PM', phone: '98250 66662' },
+    { id: 'STU-603', name: 'Parth Rana', class: '9-A', stop: 'Sabarmati', pickup: '6:55 AM', dropStop: 'Sabarmati', dropTime: '4:00 PM', phone: '98250 66663' },
+    { id: 'STU-604', name: 'Diya Kothari', class: '3-A', stop: 'Kali Circle', pickup: '7:02 AM', dropStop: 'Kali Circle', dropTime: '4:07 PM', phone: '98250 66664' },
   ]},
 ];
 
@@ -153,6 +155,7 @@ const mockDriverAssistants = [
 function TransportHeadDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [showLogMaintenance, setShowLogMaintenance] = useState(false);
   if (!theme) return null;
 
   return (
@@ -181,7 +184,7 @@ function TransportHeadDashboard({ theme, themeIdx, onThemeChange }: { theme?: Th
 
       {/* Module content */}
       <div className="flex-1 p-6 space-y-4 overflow-x-hidden">
-        {activeModule === 'dashboard' && <DashboardHome theme={theme} onProfileClick={() => setActiveModule('profile')} />}
+        {activeModule === 'dashboard' && <DashboardHome theme={theme} onProfileClick={() => setActiveModule('profile')} setActiveModule={setActiveModule} onLogMaintenance={() => { setShowLogMaintenance(true); setActiveModule('maintenance'); }} />}
         {activeModule === 'routes' && <RoutesModule theme={theme} />}
         {activeModule === 'vehicles' && <VehiclesModule theme={theme} />}
         {activeModule === 'drivers' && <DriversModule theme={theme} />}
@@ -190,7 +193,8 @@ function TransportHeadDashboard({ theme, themeIdx, onThemeChange }: { theme?: Th
         {activeModule === 'lady-attendant' && <LadyAttendantModule theme={theme} />}
         {activeModule === 'driver-assistant' && <DriverAssistantModule theme={theme} />}
         {activeModule === 'students' && <TransportStudentsModule theme={theme} />}
-        {activeModule === 'maintenance' && <MaintenanceModule theme={theme} />}
+        {activeModule === 'maintenance' && <MaintenanceModule theme={theme} showLogMaintenance={showLogMaintenance} setShowLogMaintenance={setShowLogMaintenance} />}
+        {activeModule === 'fees' && <FeesModule theme={theme} />}
         {activeModule === 'communication' && <CommunicationModule theme={theme} />}
         {activeModule === 'support' && <SupportModule theme={theme} role="transport-head" />}
         {activeModule === 'profile' && <StakeholderProfile role="transport-head" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
@@ -201,7 +205,15 @@ function TransportHeadDashboard({ theme, themeIdx, onThemeChange }: { theme?: Th
 
 // ─── DASHBOARD HOME ─────────────────────────────────
 
-function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick: () => void }) {
+function DashboardHome({ theme, onProfileClick, setActiveModule, onLogMaintenance }: { theme: Theme; onProfileClick: () => void; setActiveModule: (m: string) => void; onLogMaintenance: () => void }) {
+  type AttStatus = 'P' | 'H' | 'L' | 'A';
+  const [driverAtt, setDriverAtt] = useState<Record<string, AttStatus>>(Object.fromEntries(mockDrivers.map(d => [d.id, 'P' as AttStatus])));
+  const [attendantAtt, setAttendantAtt] = useState<Record<string, AttStatus>>(Object.fromEntries(mockLadyAttendants.map(a => [a.id, 'P' as AttStatus])));
+  const [assistantAtt, setAssistantAtt] = useState<Record<string, AttStatus>>(Object.fromEntries(mockDriverAssistants.map(a => [a.id, 'P' as AttStatus])));
+  const attColors: Record<AttStatus, string> = { P: 'bg-emerald-500 text-white', H: 'bg-amber-500 text-white', L: 'bg-blue-500 text-white', A: 'bg-red-500 text-white' };
+  const attLabels: AttStatus[] = ['P', 'H', 'L', 'A'];
+  const countPresent = (att: Record<string, AttStatus>) => Object.values(att).filter(v => v === 'P').length;
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -224,6 +236,32 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
         <StatCard icon={AlertTriangle} label="Maintenance Due" value={2} color="bg-amber-500" sub="next 30 days" theme={theme} />
         <StatCard icon={IndianRupee} label="Monthly Fuel Cost" value="₹1.85L" color="bg-orange-500" sub="Feb 2026" theme={theme} />
       </div>
+
+      {/* Fees Overview Card (clickable → fees module) */}
+      <button onClick={() => setActiveModule('fees')} className={`w-full text-left ${theme.cardBg} rounded-2xl border ${theme.border} p-4 hover:ring-2 hover:ring-emerald-400 transition-all`}>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className={`text-sm font-bold ${theme.highlight}`}>Transport Fees Overview</h3>
+          <span className={`text-[10px] ${theme.primaryText} font-bold`}>View Details →</span>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className={`p-3 rounded-xl ${theme.accentBg}`}>
+            <p className={`text-[10px] ${theme.iconColor}`}>Total Collected</p>
+            <p className={`text-lg font-bold text-emerald-600`}>{'\u20B9'}2.8L</p>
+          </div>
+          <div className={`p-3 rounded-xl ${theme.accentBg}`}>
+            <p className={`text-[10px] ${theme.iconColor}`}>Total Pending</p>
+            <p className={`text-lg font-bold text-amber-600`}>{'\u20B9'}1.2L</p>
+          </div>
+          <div className={`p-3 rounded-xl ${theme.accentBg}`}>
+            <p className={`text-[10px] ${theme.iconColor}`}>Outstanding</p>
+            <p className={`text-lg font-bold text-red-600`}>{'\u20B9'}45K</p>
+          </div>
+          <div className={`p-3 rounded-xl ${theme.accentBg}`}>
+            <p className={`text-[10px] ${theme.iconColor}`}>Collection Rate</p>
+            <p className={`text-lg font-bold ${theme.primaryText}`}>70%</p>
+          </div>
+        </div>
+      </button>
 
       {/* Today's Trip Status */}
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
@@ -248,21 +286,103 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
         </div>
       </div>
 
+      {/* Transport Staff Attendance */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-1`}>Transport Staff Attendance</h3>
+        <p className={`text-[10px] ${theme.iconColor} mb-3`}>
+          {countPresent(driverAtt)}/{mockDrivers.length} Drivers Present, {countPresent(attendantAtt)}/{mockLadyAttendants.length} Attendants Present, {countPresent(assistantAtt)}/{mockDriverAssistants.length} Assistants Present
+        </p>
+        {/* Drivers */}
+        <div className="mb-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className={`text-xs font-bold ${theme.highlight}`}>Drivers</span>
+            <button onClick={() => setDriverAtt(Object.fromEntries(mockDrivers.map(d => [d.id, 'P' as AttStatus])))} className={`text-[10px] ${theme.primaryText} font-bold hover:underline`}>Mark All Present</button>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            {mockDrivers.map(d => (
+              <div key={d.id} className={`p-2 rounded-lg ${theme.accentBg} border ${theme.border} flex items-center justify-between`}>
+                <div>
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{d.name.split(' ')[0]}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{mockRoutes.find(r => r.driver === d.name)?.name || '-'}</p>
+                </div>
+                <div className="flex gap-0.5">
+                  {attLabels.map(s => (
+                    <button key={s} onClick={() => setDriverAtt(prev => ({...prev, [d.id]: s}))}
+                      className={`w-6 h-6 rounded text-[10px] font-bold transition-all ${driverAtt[d.id] === s ? attColors[s] : `${theme.secondaryBg} ${theme.iconColor}`}`}>{s}</button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Lady Attendants */}
+        <div className="mb-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className={`text-xs font-bold ${theme.highlight}`}>Lady Attendants</span>
+            <button onClick={() => setAttendantAtt(Object.fromEntries(mockLadyAttendants.map(a => [a.id, 'P' as AttStatus])))} className={`text-[10px] ${theme.primaryText} font-bold hover:underline`}>Mark All Present</button>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            {mockLadyAttendants.map(a => (
+              <div key={a.id} className={`p-2 rounded-lg ${theme.accentBg} border ${theme.border} flex items-center justify-between`}>
+                <div>
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{a.name.split(' ')[0]}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{a.route}</p>
+                </div>
+                <div className="flex gap-0.5">
+                  {attLabels.map(s => (
+                    <button key={s} onClick={() => setAttendantAtt(prev => ({...prev, [a.id]: s}))}
+                      className={`w-6 h-6 rounded text-[10px] font-bold transition-all ${attendantAtt[a.id] === s ? attColors[s] : `${theme.secondaryBg} ${theme.iconColor}`}`}>{s}</button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Driver Assistants */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <span className={`text-xs font-bold ${theme.highlight}`}>Driver Assistants</span>
+            <button onClick={() => setAssistantAtt(Object.fromEntries(mockDriverAssistants.map(a => [a.id, 'P' as AttStatus])))} className={`text-[10px] ${theme.primaryText} font-bold hover:underline`}>Mark All Present</button>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            {mockDriverAssistants.map(a => (
+              <div key={a.id} className={`p-2 rounded-lg ${theme.accentBg} border ${theme.border} flex items-center justify-between`}>
+                <div>
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{a.name.split(' ')[0]}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{a.route}</p>
+                </div>
+                <div className="flex gap-0.5">
+                  {attLabels.map(s => (
+                    <button key={s} onClick={() => setAssistantAtt(prev => ({...prev, [a.id]: s}))}
+                      className={`w-6 h-6 rounded text-[10px] font-bold transition-all ${assistantAtt[a.id] === s ? attColors[s] : `${theme.secondaryBg} ${theme.iconColor}`}`}>{s}</button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* Quick Actions */}
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
         <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Quick Actions</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-          {[
-            { label: 'Add Vehicle', icon: Plus, color: 'bg-blue-500' },
-            { label: 'Add Route', icon: Route, color: 'bg-emerald-500' },
-            { label: 'Log Maintenance', icon: Wrench, color: 'bg-amber-500' },
-            { label: 'View Reports', icon: BarChart3, color: 'bg-purple-500' },
-          ].map(a => (
-            <button key={a.label} className={`flex items-center gap-2 p-3 rounded-xl ${theme.secondaryBg} ${theme.buttonHover} transition-all`}>
-              <div className={`w-8 h-8 rounded-lg ${a.color} flex items-center justify-center text-white`}><a.icon size={14} /></div>
-              <span className={`text-xs font-bold ${theme.highlight}`}>{a.label}</span>
-            </button>
-          ))}
+          <button onClick={() => setActiveModule('vehicles')} className={`flex items-center gap-2 p-3 rounded-xl ${theme.secondaryBg} ${theme.buttonHover} transition-all`}>
+            <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center text-white"><Plus size={14} /></div>
+            <span className={`text-xs font-bold ${theme.highlight}`}>Add Vehicle</span>
+          </button>
+          <button onClick={() => setActiveModule('routes')} className={`flex items-center gap-2 p-3 rounded-xl ${theme.secondaryBg} ${theme.buttonHover} transition-all`}>
+            <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center text-white"><Route size={14} /></div>
+            <span className={`text-xs font-bold ${theme.highlight}`}>Add Route</span>
+          </button>
+          <button onClick={onLogMaintenance} className={`flex items-center gap-2 p-3 rounded-xl ${theme.secondaryBg} ${theme.buttonHover} transition-all`}>
+            <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center text-white"><Wrench size={14} /></div>
+            <span className={`text-xs font-bold ${theme.highlight}`}>Log Maintenance</span>
+          </button>
+          <button onClick={() => window.alert('Reports module coming soon! (Blueprint demo)')} className={`flex items-center gap-2 p-3 rounded-xl ${theme.secondaryBg} ${theme.buttonHover} transition-all`}>
+            <div className="w-8 h-8 rounded-lg bg-purple-500 flex items-center justify-center text-white"><BarChart3 size={14} /></div>
+            <span className={`text-xs font-bold ${theme.highlight}`}>View Reports</span>
+          </button>
         </div>
       </div>
 
@@ -507,11 +627,12 @@ function RoutesModule({ theme }: { theme: Theme }) {
 
 function VehiclesModule({ theme }: { theme: Theme }) {
   const [tab, setTab] = useState('All Vehicles');
+  const [showAddVehicle, setShowAddVehicle] = useState(false);
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className={`text-2xl font-bold ${theme.highlight}`}>Vehicle Fleet</h1>
-        <button className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}><Plus size={14} /> Add Vehicle</button>
+        <button onClick={() => setShowAddVehicle(true)} className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}><Plus size={14} /> Add Vehicle</button>
       </div>
       <TabBar tabs={['All Vehicles', 'Bus', 'Mini Bus', 'Van', 'Under Maintenance']} active={tab} onChange={setTab} theme={theme} />
       <div className="flex gap-3">
@@ -558,6 +679,58 @@ function VehiclesModule({ theme }: { theme: Theme }) {
           <button className={`px-3 py-1.5 rounded-lg ${theme.secondaryBg}`}>Next</button>
         </div>
       </div>
+
+      {/* Add Vehicle Form */}
+      {showAddVehicle && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto`}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className={`text-lg font-bold ${theme.highlight}`}>Add New Vehicle</h2>
+              <button onClick={() => setShowAddVehicle(false)} className={`p-2 rounded-lg ${theme.buttonHover}`}><X size={16} className={theme.iconColor} /></button>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Vehicle Number *</label><input placeholder="e.g. GJ-01-MN-6789" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Vehicle Type *</label>
+                <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`}><option value="">Select type...</option><option>Bus</option><option>Mini Bus</option><option>Van</option><option>Tempo Traveller</option></select>
+              </div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Seating Capacity *</label><input type="number" placeholder="e.g. 40" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Manufacturing Year</label><input type="number" placeholder="e.g. 2023" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Assign Driver</label>
+                <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`}><option value="">Select driver...</option>{mockDrivers.map(d => <option key={d.id} value={d.name}>{d.name} ({d.experience})</option>)}</select>
+              </div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Assign to Route</label>
+                <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`}><option value="">Select route...</option>{mockRoutes.map(r => <option key={r.id} value={r.name}>{r.name} — {r.area}</option>)}</select>
+              </div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Insurance Expiry</label><input type="date" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>PUC Expiry</label><input type="date" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Fitness Certificate Expiry</label><input type="date" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Current KM Reading</label><input type="number" placeholder="e.g. 25000" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Fuel Type</label>
+                <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`}><option value="">Select...</option><option>Diesel</option><option>Petrol</option><option>CNG</option><option>Electric</option></select>
+              </div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Owner</label>
+                <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`}><option value="">Select...</option><option>School Owned</option><option>Rented</option><option>Contractor</option></select>
+              </div>
+              <div className="col-span-2">
+                <label className={`text-xs font-bold ${theme.iconColor} mb-2 block`}>GPS System</label>
+                <div className={`p-3 rounded-xl ${theme.accentBg} border ${theme.border} grid grid-cols-2 gap-3`}>
+                  <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>GPS Installed?</label>
+                    <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`}><option>Yes</option><option>No</option><option>Planned</option></select>
+                  </div>
+                  <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>GPS Device ID</label><input placeholder="e.g. GPS-2026-001" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+                  <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>GPS Provider</label><input placeholder="e.g. TechTrack Solutions" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+                  <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>GPS SIM Number</label><input placeholder="e.g. 98250 00001" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+                </div>
+              </div>
+              <div className="col-span-2"><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Notes</label><textarea placeholder="Any additional notes about the vehicle..." rows={2} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+            </div>
+            <div className="flex justify-end gap-2 mt-6">
+              <button onClick={() => setShowAddVehicle(false)} className={`px-4 py-2 rounded-xl border ${theme.border} text-xs font-bold ${theme.iconColor}`}>Cancel</button>
+              <button onClick={() => { setShowAddVehicle(false); window.alert('Vehicle added! (Blueprint demo)'); }} className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}>Add Vehicle</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -566,11 +739,13 @@ function VehiclesModule({ theme }: { theme: Theme }) {
 
 function DriversModule({ theme }: { theme: Theme }) {
   const [tab, setTab] = useState('All Drivers');
+  const [showAddDriver, setShowAddDriver] = useState(false);
+  const [customFields, setCustomFields] = useState<{label: string; value: string}[]>([]);
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className={`text-2xl font-bold ${theme.highlight}`}>Driver Management</h1>
-        <button className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}><Plus size={14} /> Add Driver</button>
+        <button onClick={() => setShowAddDriver(true)} className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}><Plus size={14} /> Add Driver</button>
       </div>
       <TabBar tabs={['All Drivers', 'Documents Complete', 'Documents Pending']} active={tab} onChange={setTab} theme={theme} />
       <div className="flex gap-3">
@@ -601,24 +776,6 @@ function DriversModule({ theme }: { theme: Theme }) {
         theme={theme}
       />
 
-      {/* Driver Attendance Card */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Today&apos;s Driver Attendance</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {mockDrivers.map((d, i) => (
-            <div key={i} className={`p-3 rounded-xl ${theme.accentBg} border ${theme.border} flex items-center gap-3`}>
-              <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
-                <CheckCircle size={14} className="text-emerald-600" />
-              </div>
-              <div>
-                <p className={`text-xs font-bold ${theme.highlight}`}>{d.name.split(' ')[0]}</p>
-                <p className={`text-[10px] ${theme.iconColor}`}>Checked in 6:30 AM</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
       <div className={`flex items-center justify-between text-xs ${theme.iconColor} px-2`}>
         <span>Showing {mockDrivers.filter(d => tab === 'All Drivers' || (tab === 'Documents Complete' && d.documents === 'Complete') || (tab === 'Documents Pending' && d.documents === 'Pending')).length} of {mockDrivers.length} drivers</span>
         <div className="flex gap-1">
@@ -627,6 +784,72 @@ function DriversModule({ theme }: { theme: Theme }) {
           <button className={`px-3 py-1.5 rounded-lg ${theme.secondaryBg}`}>Next</button>
         </div>
       </div>
+
+      {/* Comprehensive Add Driver Form */}
+      {showAddDriver && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto`}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className={`text-lg font-bold ${theme.highlight}`}>Add New Driver</h2>
+              <button onClick={() => setShowAddDriver(false)} className={`p-2 rounded-lg ${theme.buttonHover}`}><X size={16} className={theme.iconColor} /></button>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="col-span-2">
+                <label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Photo</label>
+                <div className={`flex items-center gap-3 p-3 rounded-xl border ${theme.border} ${theme.secondaryBg}`}>
+                  <div className={`w-12 h-12 rounded-full ${theme.accentBg} flex items-center justify-center`}><Upload size={16} className={theme.iconColor} /></div>
+                  <div><p className={`text-xs ${theme.highlight}`}>Upload photo</p><p className={`text-[10px] ${theme.iconColor}`}>JPG, PNG (max 2MB)</p></div>
+                </div>
+              </div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Full Name *</label><input placeholder="e.g. Ramesh Kumar" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Phone Number *</label><input placeholder="e.g. 98250 12345" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Secondary Phone</label><input placeholder="e.g. 98250 12346" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Age</label><input type="number" placeholder="e.g. 35" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Gender</label>
+                <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`}><option value="">Select...</option><option>Male</option><option>Female</option><option>Other</option></select>
+              </div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Blood Group</label>
+                <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`}><option value="">Select...</option>{['A+','A-','B+','B-','O+','O-','AB+','AB-'].map(b => <option key={b}>{b}</option>)}</select>
+              </div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Assign to Route</label>
+                <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`}><option value="">Select route...</option>{mockRoutes.map(r => <option key={r.id} value={r.name}>{r.name}</option>)}</select>
+              </div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Experience</label><input placeholder="e.g. 8 yrs" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Salary ({'\u20B9'})</label><input type="number" placeholder="e.g. 18000" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Aadhar Number</label><input placeholder="XXXX XXXX XXXX" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Badge Number</label><input placeholder="e.g. BDG-001" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>License Number *</label><input placeholder="e.g. GJ01-20180045623" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>License Expiry Date</label><input type="date" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Joining Date</label><input type="date" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div className="col-span-2"><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Address</label><textarea placeholder="Full address..." rows={2} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Emergency Contact Name</label><input placeholder="e.g. Sita Devi" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Emergency Contact Phone</label><input placeholder="e.g. 98250 99999" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div className="col-span-2">
+                <label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Documents</label>
+                <div className={`p-3 rounded-xl ${theme.accentBg} border ${theme.border} space-y-1`}>
+                  <p className={`text-[10px] ${theme.iconColor}`}>ID Proof: <span className="text-amber-600 font-bold">Not uploaded</span></p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>License Copy: <span className="text-amber-600 font-bold">Not uploaded</span></p>
+                </div>
+              </div>
+              {customFields.map((cf, i) => (
+                <React.Fragment key={i}>
+                  <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Field Label</label><input value={cf.label} onChange={e => { const n = [...customFields]; n[i].label = e.target.value; setCustomFields(n); }} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+                  <div className="flex gap-2"><div className="flex-1"><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Value</label><input value={cf.value} onChange={e => { const n = [...customFields]; n[i].value = e.target.value; setCustomFields(n); }} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+                    <button onClick={() => setCustomFields(customFields.filter((_, j) => j !== i))} className={`self-end p-2 rounded-lg ${theme.buttonHover}`}><Trash2 size={12} className="text-red-500" /></button>
+                  </div>
+                </React.Fragment>
+              ))}
+              <div className="col-span-2">
+                <button onClick={() => setCustomFields([...customFields, { label: '', value: '' }])} className={`text-xs font-bold ${theme.primaryText} hover:underline flex items-center gap-1`}><Plus size={12} /> Add Custom Field</button>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 mt-6">
+              <button onClick={() => setShowAddDriver(false)} className={`px-4 py-2 rounded-xl border ${theme.border} text-xs font-bold ${theme.iconColor}`}>Cancel</button>
+              <button onClick={() => { setShowAddDriver(false); window.alert('Driver added! (Blueprint demo)'); }} className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}>Add Driver</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -732,13 +955,18 @@ function GPSTrackingModule({ theme }: { theme: Theme }) {
 
 // ─── MAINTENANCE MODULE ─────────────────────────────
 
-function MaintenanceModule({ theme }: { theme: Theme }) {
+function MaintenanceModule({ theme, showLogMaintenance, setShowLogMaintenance }: { theme: Theme; showLogMaintenance: boolean; setShowLogMaintenance: (v: boolean) => void }) {
   const [tab, setTab] = useState('All Records');
+  const defaultServiceTypes = ['Oil Change', 'Battery Replacement', 'Tyre Replacement', 'AC Service', 'Brake Pad', 'GPS Repair', 'PUC Renewal', 'Insurance Renewal', 'Engine Overhaul'];
+  const [serviceTypes, setServiceTypes] = useState(defaultServiceTypes);
+  const [showCustomType, setShowCustomType] = useState(false);
+  const [customType, setCustomType] = useState('');
+  const [selectedServiceType, setSelectedServiceType] = useState('');
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className={`text-2xl font-bold ${theme.highlight}`}>Vehicle Maintenance</h1>
-        <button className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}><Plus size={14} /> Log Maintenance</button>
+        <button onClick={() => setShowLogMaintenance(true)} className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}><Plus size={14} /> Log Maintenance</button>
       </div>
       <TabBar tabs={['All Records', 'In Progress', 'Completed']} active={tab} onChange={setTab} theme={theme} />
       <div className="flex gap-3">
@@ -810,6 +1038,69 @@ function MaintenanceModule({ theme }: { theme: Theme }) {
           <button className={`px-3 py-1.5 rounded-lg ${theme.secondaryBg}`}>Next</button>
         </div>
       </div>
+
+      {/* Log Maintenance Form */}
+      {showLogMaintenance && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto`}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className={`text-lg font-bold ${theme.highlight}`}>Log Maintenance</h2>
+              <button onClick={() => setShowLogMaintenance(false)} className={`p-2 rounded-lg ${theme.buttonHover}`}><X size={16} className={theme.iconColor} /></button>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Vehicle *</label>
+                <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`}>
+                  <option value="">Select vehicle...</option>
+                  {mockVehicles.map(v => <option key={v.id} value={v.id}>{v.id} ({v.type})</option>)}
+                </select>
+              </div>
+              <div>
+                <label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Service Type *</label>
+                <select value={selectedServiceType} onChange={e => { if (e.target.value === '__custom__') { setShowCustomType(true); setSelectedServiceType(''); } else { setSelectedServiceType(e.target.value); setShowCustomType(false); }}} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`}>
+                  <option value="">Select type...</option>
+                  {serviceTypes.map(t => <option key={t} value={t}>{t}</option>)}
+                  <option value="__custom__">+ Add Custom</option>
+                </select>
+                {showCustomType && (
+                  <div className="flex gap-2 mt-2">
+                    <input value={customType} onChange={e => setCustomType(e.target.value)} placeholder="Enter custom type..." className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} />
+                    <button onClick={() => { if (customType.trim()) { setServiceTypes([...serviceTypes, customType.trim()]); setSelectedServiceType(customType.trim()); setCustomType(''); setShowCustomType(false); }}} className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}>Add</button>
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Date *</label>
+                <input type="date" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} />
+              </div>
+              <div>
+                <label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Cost ({'\u20B9'}) *</label>
+                <input type="number" placeholder="e.g. 12000" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} />
+              </div>
+              <div>
+                <label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Next Due Date</label>
+                <input type="date" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} />
+              </div>
+              <div>
+                <label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Vendor Name</label>
+                <input placeholder="e.g. Apollo Tyres, Narol" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} />
+              </div>
+              <div>
+                <label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Serviceman / Contractor Name</label>
+                <input placeholder="e.g. Rajesh Mechanic" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} />
+              </div>
+              <div className="col-span-2">
+                <label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Notes</label>
+                <textarea placeholder="Additional notes about the maintenance..." rows={3} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 mt-6">
+              <button onClick={() => setShowLogMaintenance(false)} className={`px-4 py-2 rounded-xl border ${theme.border} text-xs font-bold ${theme.iconColor}`}>Cancel</button>
+              <button onClick={() => { setShowLogMaintenance(false); window.alert('Maintenance logged! (Blueprint demo)'); }} className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}>Log Maintenance</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -885,6 +1176,7 @@ function StopsModule({ theme }: { theme: Theme }) {
 
 function LadyAttendantModule({ theme }: { theme: Theme }) {
   const [showAdd, setShowAdd] = useState(false);
+  const [laCustomFields, setLaCustomFields] = useState<{label: string; value: string}[]>([]);
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -922,24 +1214,54 @@ function LadyAttendantModule({ theme }: { theme: Theme }) {
       />
       {showAdd && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-6 w-full max-w-md`}>
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto`}>
             <div className="flex items-center justify-between mb-4">
               <h2 className={`text-lg font-bold ${theme.highlight}`}>Add Lady Attendant</h2>
               <button onClick={() => setShowAdd(false)} className={`p-2 rounded-lg ${theme.buttonHover}`}><X size={16} className={theme.iconColor} /></button>
             </div>
-            <div className="space-y-3">
-              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Full Name</label><input placeholder="e.g. Sunita Devi" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
-              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Phone Number</label><input placeholder="e.g. 98250 77777" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="col-span-2">
+                <label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Photo</label>
+                <div className={`flex items-center gap-3 p-3 rounded-xl border ${theme.border} ${theme.secondaryBg}`}>
+                  <div className={`w-12 h-12 rounded-full ${theme.accentBg} flex items-center justify-center`}><Upload size={16} className={theme.iconColor} /></div>
+                  <div><p className={`text-xs ${theme.highlight}`}>Upload photo</p><p className={`text-[10px] ${theme.iconColor}`}>JPG, PNG (max 2MB)</p></div>
+                </div>
+              </div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Full Name *</label><input placeholder="e.g. Sunita Devi" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Phone Number *</label><input placeholder="e.g. 98250 77777" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Secondary Phone</label><input placeholder="e.g. 98250 77778" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Age</label><input type="number" placeholder="e.g. 30" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Gender</label>
+                <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`}><option value="">Select...</option><option>Female</option><option>Male</option><option>Other</option></select>
+              </div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Blood Group</label>
+                <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`}><option value="">Select...</option>{['A+','A-','B+','B-','O+','O-','AB+','AB-'].map(b => <option key={b}>{b}</option>)}</select>
+              </div>
               <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Assign to Route</label>
-                <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`}>
-                  <option value="">Select route...</option>
-                  {mockRoutes.map(r => <option key={r.id} value={r.name}>{r.name}</option>)}
-                </select>
+                <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`}><option value="">Select route...</option>{mockRoutes.map(r => <option key={r.id} value={r.name}>{r.name}</option>)}</select>
               </div>
               <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Experience</label><input placeholder="e.g. 3 yrs" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Salary ({'\u20B9'})</label><input type="number" placeholder="e.g. 12000" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
               <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Aadhar Number</label><input placeholder="XXXX XXXX XXXX" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Joining Date</label><input type="date" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div className="col-span-2"><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Address</label><textarea placeholder="Full address..." rows={2} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Emergency Contact Name</label><input placeholder="e.g. Ramesh Devi" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Emergency Contact Phone</label><input placeholder="e.g. 98250 99999" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div className="col-span-2">
+                <label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Documents</label>
+                <div className={`p-3 rounded-xl ${theme.accentBg} border ${theme.border}`}><p className={`text-[10px] ${theme.iconColor}`}>ID Proof: <span className="text-amber-600 font-bold">Not uploaded</span></p></div>
+              </div>
+              {laCustomFields.map((cf, i) => (
+                <React.Fragment key={i}>
+                  <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Field Label</label><input value={cf.label} onChange={e => { const n = [...laCustomFields]; n[i].label = e.target.value; setLaCustomFields(n); }} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+                  <div className="flex gap-2"><div className="flex-1"><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Value</label><input value={cf.value} onChange={e => { const n = [...laCustomFields]; n[i].value = e.target.value; setLaCustomFields(n); }} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+                    <button onClick={() => setLaCustomFields(laCustomFields.filter((_, j) => j !== i))} className={`self-end p-2 rounded-lg ${theme.buttonHover}`}><Trash2 size={12} className="text-red-500" /></button>
+                  </div>
+                </React.Fragment>
+              ))}
+              <div className="col-span-2"><button onClick={() => setLaCustomFields([...laCustomFields, { label: '', value: '' }])} className={`text-xs font-bold ${theme.primaryText} hover:underline flex items-center gap-1`}><Plus size={12} /> Add Custom Field</button></div>
             </div>
-            <div className="flex justify-end gap-2 mt-4">
+            <div className="flex justify-end gap-2 mt-6">
               <button onClick={() => setShowAdd(false)} className={`px-4 py-2 rounded-xl border ${theme.border} text-xs font-bold ${theme.iconColor}`}>Cancel</button>
               <button onClick={() => { setShowAdd(false); window.alert('Attendant added! (Blueprint demo)'); }} className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}>Add Attendant</button>
             </div>
@@ -954,6 +1276,7 @@ function LadyAttendantModule({ theme }: { theme: Theme }) {
 
 function DriverAssistantModule({ theme }: { theme: Theme }) {
   const [showAdd, setShowAdd] = useState(false);
+  const [daCustomFields, setDaCustomFields] = useState<{label: string; value: string}[]>([]);
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -991,24 +1314,54 @@ function DriverAssistantModule({ theme }: { theme: Theme }) {
       />
       {showAdd && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-6 w-full max-w-md`}>
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto`}>
             <div className="flex items-center justify-between mb-4">
               <h2 className={`text-lg font-bold ${theme.highlight}`}>Add Driver Assistant</h2>
               <button onClick={() => setShowAdd(false)} className={`p-2 rounded-lg ${theme.buttonHover}`}><X size={16} className={theme.iconColor} /></button>
             </div>
-            <div className="space-y-3">
-              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Full Name</label><input placeholder="e.g. Kishan Patel" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
-              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Phone Number</label><input placeholder="e.g. 98250 88887" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="col-span-2">
+                <label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Photo</label>
+                <div className={`flex items-center gap-3 p-3 rounded-xl border ${theme.border} ${theme.secondaryBg}`}>
+                  <div className={`w-12 h-12 rounded-full ${theme.accentBg} flex items-center justify-center`}><Upload size={16} className={theme.iconColor} /></div>
+                  <div><p className={`text-xs ${theme.highlight}`}>Upload photo</p><p className={`text-[10px] ${theme.iconColor}`}>JPG, PNG (max 2MB)</p></div>
+                </div>
+              </div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Full Name *</label><input placeholder="e.g. Kishan Patel" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Phone Number *</label><input placeholder="e.g. 98250 88887" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Secondary Phone</label><input placeholder="e.g. 98250 88888" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Age</label><input type="number" placeholder="e.g. 28" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Gender</label>
+                <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`}><option value="">Select...</option><option>Male</option><option>Female</option><option>Other</option></select>
+              </div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Blood Group</label>
+                <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`}><option value="">Select...</option>{['A+','A-','B+','B-','O+','O-','AB+','AB-'].map(b => <option key={b}>{b}</option>)}</select>
+              </div>
               <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Assign to Route</label>
-                <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`}>
-                  <option value="">Select route...</option>
-                  {mockRoutes.map(r => <option key={r.id} value={r.name}>{r.name}</option>)}
-                </select>
+                <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`}><option value="">Select route...</option>{mockRoutes.map(r => <option key={r.id} value={r.name}>{r.name}</option>)}</select>
               </div>
               <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Experience</label><input placeholder="e.g. 2 yrs" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Salary ({'\u20B9'})</label><input type="number" placeholder="e.g. 10000" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
               <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Aadhar Number</label><input placeholder="XXXX XXXX XXXX" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Joining Date</label><input type="date" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div className="col-span-2"><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Address</label><textarea placeholder="Full address..." rows={2} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Emergency Contact Name</label><input placeholder="e.g. Sita Devi" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Emergency Contact Phone</label><input placeholder="e.g. 98250 99999" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div className="col-span-2">
+                <label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Documents</label>
+                <div className={`p-3 rounded-xl ${theme.accentBg} border ${theme.border}`}><p className={`text-[10px] ${theme.iconColor}`}>ID Proof: <span className="text-amber-600 font-bold">Not uploaded</span></p></div>
+              </div>
+              {daCustomFields.map((cf, i) => (
+                <React.Fragment key={i}>
+                  <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Field Label</label><input value={cf.label} onChange={e => { const n = [...daCustomFields]; n[i].label = e.target.value; setDaCustomFields(n); }} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+                  <div className="flex gap-2"><div className="flex-1"><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Value</label><input value={cf.value} onChange={e => { const n = [...daCustomFields]; n[i].value = e.target.value; setDaCustomFields(n); }} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+                    <button onClick={() => setDaCustomFields(daCustomFields.filter((_, j) => j !== i))} className={`self-end p-2 rounded-lg ${theme.buttonHover}`}><Trash2 size={12} className="text-red-500" /></button>
+                  </div>
+                </React.Fragment>
+              ))}
+              <div className="col-span-2"><button onClick={() => setDaCustomFields([...daCustomFields, { label: '', value: '' }])} className={`text-xs font-bold ${theme.primaryText} hover:underline flex items-center gap-1`}><Plus size={12} /> Add Custom Field</button></div>
             </div>
-            <div className="flex justify-end gap-2 mt-4">
+            <div className="flex justify-end gap-2 mt-6">
               <button onClick={() => setShowAdd(false)} className={`px-4 py-2 rounded-xl border ${theme.border} text-xs font-bold ${theme.iconColor}`}>Cancel</button>
               <button onClick={() => { setShowAdd(false); window.alert('Assistant added! (Blueprint demo)'); }} className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}>Add Assistant</button>
             </div>
@@ -1024,9 +1377,13 @@ function DriverAssistantModule({ theme }: { theme: Theme }) {
 function TransportStudentsModule({ theme }: { theme: Theme }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRoute, setSelectedRoute] = useState('All');
+  const [showAddStudent, setShowAddStudent] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<null | (typeof allStudents)[number]>(null);
+  const [addPickupRoute, setAddPickupRoute] = useState('');
+  const [addDropRoute, setAddDropRoute] = useState('');
   const allStudents = mockStudentsByRoute.flatMap(r => r.students.map(s => {
     const stop = mockStops.find(st => st.name === s.stop);
-    return { ...s, route: r.route, fee: stop?.fee || 0, stopId: stop?.id || '' };
+    return { ...s, route: r.route, fee: stop?.fee || 0, stopId: stop?.id || '', stopName: stop?.name || s.stop };
   }));
   const filtered = allStudents.filter(s => {
     const matchesRoute = selectedRoute === 'All' || s.route === selectedRoute;
@@ -1035,11 +1392,13 @@ function TransportStudentsModule({ theme }: { theme: Theme }) {
     return matchesRoute && matchesSearch;
   });
 
+  const pickupStopsForRoute = (routeName: string) => mockStops.filter(s => s.routes.includes(routeName));
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className={`text-2xl font-bold ${theme.highlight}`}>Transport Students</h1>
-        <button className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}><Plus size={14} /> Enroll Student</button>
+        <button onClick={() => setShowAddStudent(true)} className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}><Plus size={14} /> Add Student</button>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -1065,19 +1424,19 @@ function TransportStudentsModule({ theme }: { theme: Theme }) {
       </div>
 
       <DataTable
-        headers={['Student ID', 'Name', 'Class', 'Route', 'Pickup Stop', 'Pickup Time', 'Fee/mo', 'Parent Phone', '']}
+        headers={['Student ID', 'Name', 'Class', 'Route', 'Pickup Stop', 'Pickup Time', 'Drop Stop', 'Fee/mo', 'Parent Phone', '']}
         rows={filtered.map(s => [
           <span key="id" className={`font-mono text-xs ${theme.primaryText}`}>{s.id}</span>,
-          <span key="name" className={`font-bold ${theme.highlight}`}>{s.name}</span>,
+          <button key="name" onClick={() => setSelectedStudent(s)} className={`font-bold ${theme.primaryText} hover:underline text-left`}>{s.name}</button>,
           <span key="class" className={theme.iconColor}>{s.class}</span>,
           <span key="route" className={`text-xs font-bold ${theme.primaryText}`}>{s.route}</span>,
           <div key="stop" className="flex items-center gap-1"><MapPin size={10} className={theme.iconColor} /><span className={theme.iconColor}>{s.stop}</span></div>,
           <span key="time" className={`font-bold ${theme.primaryText}`}>{s.pickup}</span>,
-          <span key="fee" className={`font-bold ${theme.highlight}`}>{s.fee > 0 ? `\u20B9${s.fee.toLocaleString()}` : <span className={`text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700`}>Not set</span>}</span>,
+          <div key="drop" className="flex items-center gap-1"><MapPin size={10} className={theme.iconColor} /><span className={theme.iconColor}>{s.dropStop}{s.dropStop !== s.stop && <span className="text-amber-600 text-[9px] ml-1">(diff)</span>}</span></div>,
+          <span key="fee" className={`font-bold ${theme.highlight}`}>{s.fee > 0 ? <span>{'\u20B9'}{s.fee.toLocaleString()}/mo <span className={`text-[9px] ${theme.iconColor} font-normal`}>(from stop config)</span></span> : <span className={`text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700`}>Not set</span>}</span>,
           <span key="phone" className={theme.iconColor}>{s.phone}</span>,
           <div key="actions" className="flex gap-1">
-            <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`} title="View details"><Eye size={12} className={theme.iconColor} /></button>
-            <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`} title="Edit fee"><Edit size={12} className={theme.iconColor} /></button>
+            <button onClick={() => setSelectedStudent(s)} className={`p-1.5 rounded-lg ${theme.secondaryBg}`} title="View details"><Eye size={12} className={theme.iconColor} /></button>
             <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`} title="Call parent"><Phone size={12} className={theme.iconColor} /></button>
           </div>
         ])}
@@ -1111,6 +1470,306 @@ function TransportStudentsModule({ theme }: { theme: Theme }) {
           <button className={`px-3 py-1.5 rounded-lg ${theme.secondaryBg}`}>Next</button>
         </div>
       </div>
+
+      {/* Student Detail View */}
+      {selectedStudent && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto`}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className={`text-lg font-bold ${theme.highlight}`}>Student Details</h2>
+              <button onClick={() => setSelectedStudent(null)} className={`p-2 rounded-lg ${theme.buttonHover}`}><X size={16} className={theme.iconColor} /></button>
+            </div>
+            {/* Student Info */}
+            <div className="flex items-center gap-4 mb-4">
+              <div className={`w-16 h-16 rounded-full ${theme.accentBg} flex items-center justify-center`}><GraduationCap size={24} className={theme.iconColor} /></div>
+              <div>
+                <p className={`text-lg font-bold ${theme.highlight}`}>{selectedStudent.name}</p>
+                <p className={`text-xs ${theme.iconColor}`}>{selectedStudent.id} &bull; Class {selectedStudent.class}</p>
+              </div>
+            </div>
+            {/* Transport Details */}
+            <div className={`p-4 rounded-xl ${theme.accentBg} border ${theme.border} mb-4`}>
+              <h3 className={`text-xs font-bold ${theme.highlight} mb-3`}>Transport Details</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <div><p className={`text-[10px] ${theme.iconColor}`}>Pickup Route</p><p className={`text-xs font-bold ${theme.highlight}`}>{selectedStudent.route}</p></div>
+                <div><p className={`text-[10px] ${theme.iconColor}`}>Pickup Stop</p><p className={`text-xs font-bold ${theme.highlight}`}>{selectedStudent.stop}</p></div>
+                <div><p className={`text-[10px] ${theme.iconColor}`}>Pickup Time</p><p className={`text-xs font-bold ${theme.highlight}`}>{selectedStudent.pickup}</p></div>
+                <div><p className={`text-[10px] ${theme.iconColor}`}>Drop Route</p><p className={`text-xs font-bold ${theme.highlight}`}>{selectedStudent.route}{selectedStudent.dropStop !== selectedStudent.stop ? ' (same route)' : ''}</p></div>
+                <div><p className={`text-[10px] ${theme.iconColor}`}>Drop Stop</p><p className={`text-xs font-bold ${theme.highlight}`}>{selectedStudent.dropStop}{selectedStudent.dropStop !== selectedStudent.stop && <span className="text-amber-600 text-[10px] ml-1">(different from pickup)</span>}</p></div>
+                <div><p className={`text-[10px] ${theme.iconColor}`}>Drop Time</p><p className={`text-xs font-bold ${theme.highlight}`}>{selectedStudent.dropTime}</p></div>
+                <div><p className={`text-[10px] ${theme.iconColor}`}>Monthly Fee</p><p className={`text-xs font-bold ${theme.primaryText}`}>{'\u20B9'}{selectedStudent.fee.toLocaleString()}/mo</p><p className={`text-[9px] ${theme.iconColor}`}>Source: {selectedStudent.stopName} stop fee {selectedStudent.fee > 0 && '(can override)'}</p></div>
+              </div>
+            </div>
+            {/* Parent Contact */}
+            <div className={`p-4 rounded-xl ${theme.accentBg} border ${theme.border} mb-4`}>
+              <h3 className={`text-xs font-bold ${theme.highlight} mb-2`}>Parent Contact</h3>
+              <div className="flex items-center gap-2"><Phone size={12} className={theme.iconColor} /><span className={`text-xs ${theme.highlight}`}>{selectedStudent.phone}</span></div>
+            </div>
+            {/* History */}
+            <div className={`p-4 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+              <h3 className={`text-xs font-bold ${theme.highlight} mb-2`}>History</h3>
+              <div className="space-y-2">
+                {[
+                  { date: 'Jan 15, 2026', event: 'Enrolled in transport — ' + selectedStudent.route },
+                  { date: 'Feb 1, 2026', event: 'Fee payment received — ' + '\u20B9' + (selectedStudent.fee || 0).toLocaleString() },
+                  { date: 'Feb 10, 2026', event: 'Route change request (if applicable)' },
+                ].map((h, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <span className={`text-[10px] ${theme.iconColor} w-24 shrink-0`}>{h.date}</span>
+                    <span className={`text-xs ${theme.highlight}`}>{h.event}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Student Form */}
+      {showAddStudent && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto`}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className={`text-lg font-bold ${theme.highlight}`}>Add Student</h2>
+              <button onClick={() => setShowAddStudent(false)} className={`p-2 rounded-lg ${theme.buttonHover}`}><X size={16} className={theme.iconColor} /></button>
+            </div>
+            <p className={`text-[10px] ${theme.iconColor} mb-4 p-2 rounded-lg bg-blue-50 border border-blue-200`}>Note: Students added from Admin / Front Office will appear here automatically.</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Student Name *</label><input placeholder="e.g. Aarav Patel" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Student ID *</label><input placeholder="e.g. STU-701" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Class *</label><input placeholder="e.g. 5-A" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Parent Phone *</label><input placeholder="e.g. 98250 12345" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Pickup Route *</label>
+                <select value={addPickupRoute} onChange={e => { setAddPickupRoute(e.target.value); if (!addDropRoute) setAddDropRoute(e.target.value); }} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`}>
+                  <option value="">Select route...</option>{mockRoutes.map(r => <option key={r.id} value={r.name}>{r.name} — {r.area}</option>)}</select>
+              </div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Pickup Stop *</label>
+                <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`}>
+                  <option value="">Select stop...</option>{addPickupRoute && pickupStopsForRoute(addPickupRoute).map(s => <option key={s.id} value={s.name}>{s.name} ({'\u20B9'}{s.fee}/mo)</option>)}</select>
+              </div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Pickup Time</label><input type="time" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Drop Route</label>
+                <select value={addDropRoute} onChange={e => setAddDropRoute(e.target.value)} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`}>
+                  <option value="">Same as pickup</option>{mockRoutes.map(r => <option key={r.id} value={r.name}>{r.name} — {r.area}</option>)}</select>
+              </div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Drop Stop</label>
+                <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`}>
+                  <option value="">Select stop...</option>{(addDropRoute || addPickupRoute) && pickupStopsForRoute(addDropRoute || addPickupRoute).map(s => <option key={s.id} value={s.name}>{s.name}</option>)}</select>
+              </div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Monthly Fee ({'\u20B9'})</label>
+                <input type="number" placeholder="Auto-filled from stop" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} />
+                <p className={`text-[9px] ${theme.iconColor} mt-1`}>Auto-filled from stop config. Edit for special cases.</p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 mt-6">
+              <button onClick={() => setShowAddStudent(false)} className={`px-4 py-2 rounded-xl border ${theme.border} text-xs font-bold ${theme.iconColor}`}>Cancel</button>
+              <button onClick={() => { setShowAddStudent(false); window.alert('Student added! (Blueprint demo)'); }} className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}>Add Student</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── FEES MODULE ────────────────────────────────────
+
+function FeesModule({ theme }: { theme: Theme }) {
+  const [feeTab, setFeeTab] = useState('Overview');
+  const [showRecordPayment, setShowRecordPayment] = useState(false);
+  const [payRoute, setPayRoute] = useState('');
+  const allStudents = mockStudentsByRoute.flatMap(r => r.students.map(s => {
+    const stop = mockStops.find(st => st.name === s.stop);
+    return { ...s, route: r.route, fee: stop?.fee || 0 };
+  }));
+  const totalExpected = allStudents.reduce((s, st) => s + st.fee, 0) * 6;
+  const collected = Math.round(totalExpected * 0.7);
+  const pending = totalExpected - collected;
+  const overdue = Math.round(pending * 0.375);
+
+  const mockPayments = [
+    { student: 'Arjun Mehta', route: 'Route A', amount: 2500, date: 'Feb 20, 2026', mode: 'UPI' },
+    { student: 'Ishaan Joshi', route: 'Route B', amount: 2800, date: 'Feb 19, 2026', mode: 'Cash' },
+    { student: 'Dev Chauhan', route: 'Route C', amount: 2000, date: 'Feb 18, 2026', mode: 'Bank Transfer' },
+    { student: 'Harsh Panchal', route: 'Route D', amount: 3200, date: 'Feb 17, 2026', mode: 'UPI' },
+    { student: 'Mihir Acharya', route: 'Route F', amount: 3500, date: 'Feb 16, 2026', mode: 'Cheque' },
+  ];
+
+  const mockOutstanding = [
+    { student: 'Priya Sharma', class: '6-B', route: 'Route A', amount: 4400, months: 2, status: 'Overdue' },
+    { student: 'Kavya Trivedi', class: '4-B', route: 'Route B', amount: 3000, months: 1, status: 'Pending' },
+    { student: 'Aarav Nair', class: '5-A', route: 'Route C', amount: 2000, months: 1, status: 'Pending' },
+    { student: 'Yash Solanki', class: '4-A', route: 'Route D', amount: 6400, months: 2, status: 'Overdue' },
+    { student: 'Diya Kothari', class: '3-A', route: 'Route F', amount: 3500, months: 1, status: 'Pending' },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className={`text-2xl font-bold ${theme.highlight}`}>Transport Fees</h1>
+        <button onClick={() => setShowRecordPayment(true)} className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}><Plus size={14} /> Record Payment</button>
+      </div>
+      <div className={`flex items-center gap-4 p-2.5 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+        <div className="flex items-center gap-1.5"><CheckCircle size={12} className="text-emerald-500" /><span className={`text-[10px] font-bold ${theme.highlight}`}>Auto-receipt ON</span><span className={`text-[10px] ${theme.iconColor}`}>(configured by SSA)</span></div>
+        <div className={`w-px h-4 ${theme.border}`} />
+        <div className="flex items-center gap-1.5"><CheckCircle size={12} className="text-emerald-500" /><span className={`text-[10px] font-bold ${theme.highlight}`}>Syncs to School Fees Module</span><span className={`text-[10px] ${theme.iconColor}`}>(Transport Fee head)</span></div>
+      </div>
+      <TabBar tabs={['Overview', 'Route-wise', 'Recent Payments', 'Outstanding']} active={feeTab} onChange={setFeeTab} theme={theme} />
+
+      {/* Stats Row */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard icon={IndianRupee} label="Total Expected" value={`\u20B9${(totalExpected / 100000).toFixed(1)}L`} color="bg-blue-500" sub="6 months" theme={theme} />
+        <StatCard icon={CheckCircle} label="Collected" value={`\u20B9${(collected / 100000).toFixed(1)}L`} color="bg-emerald-500" sub="70%" theme={theme} />
+        <StatCard icon={Clock} label="Pending" value={`\u20B9${(pending / 100000).toFixed(1)}L`} color="bg-amber-500" theme={theme} />
+        <StatCard icon={AlertTriangle} label="Overdue" value={`\u20B9${(overdue / 1000).toFixed(0)}K`} color="bg-red-500" theme={theme} />
+      </div>
+
+      {feeTab === 'Overview' && (
+        <>
+          {/* Route-wise Fee Breakdown */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+            <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Route-wise Fee Breakdown</h3>
+            <DataTable
+              headers={['Route', 'Students', 'Expected/mo', 'Collected', 'Pending']}
+              rows={mockStudentsByRoute.map(r => {
+                const students = r.students.map(s => ({ ...s, fee: mockStops.find(st => st.name === s.stop)?.fee || 0 }));
+                const expected = students.reduce((sum, s) => sum + s.fee, 0);
+                const coll = Math.round(expected * 0.7);
+                return [
+                  <span key="r" className={`font-bold ${theme.highlight}`}>{r.route}</span>,
+                  <span key="s" className={theme.iconColor}>{r.students.length}</span>,
+                  <span key="e" className={`font-bold ${theme.highlight}`}>{'\u20B9'}{expected.toLocaleString()}</span>,
+                  <span key="c" className="text-emerald-600 font-bold">{'\u20B9'}{coll.toLocaleString()}</span>,
+                  <span key="p" className="text-amber-600 font-bold">{'\u20B9'}{(expected - coll).toLocaleString()}</span>,
+                ];
+              })}
+              theme={theme}
+            />
+          </div>
+          {/* Quick Payments */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+            <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Recent Payments</h3>
+            <div className="space-y-2">
+              {mockPayments.slice(0, 3).map((p, i) => (
+                <div key={i} className={`flex items-center justify-between p-3 rounded-xl ${theme.accentBg}`}>
+                  <div>
+                    <p className={`text-xs font-bold ${theme.highlight}`}>{p.student}</p>
+                    <p className={`text-[10px] ${theme.iconColor}`}>{p.route} &bull; {p.date}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className={`text-xs font-bold text-emerald-600`}>{'\u20B9'}{p.amount.toLocaleString()}</p>
+                    <p className={`text-[10px] ${theme.iconColor}`}>{p.mode}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {feeTab === 'Route-wise' && (
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Detailed Route-wise Breakdown</h3>
+          <DataTable
+            headers={['Route', 'Students', 'Expected/mo', 'Collected/mo', 'Pending/mo', 'Collection %']}
+            rows={mockStudentsByRoute.map(r => {
+              const students = r.students.map(s => ({ ...s, fee: mockStops.find(st => st.name === s.stop)?.fee || 0 }));
+              const expected = students.reduce((sum, s) => sum + s.fee, 0);
+              const coll = Math.round(expected * (0.6 + Math.random() * 0.3));
+              const pct = Math.round((coll / expected) * 100);
+              return [
+                <span key="r" className={`font-bold ${theme.highlight}`}>{r.route}</span>,
+                <span key="s" className={theme.iconColor}>{r.students.length}</span>,
+                <span key="e" className={`font-bold ${theme.highlight}`}>{'\u20B9'}{expected.toLocaleString()}</span>,
+                <span key="c" className="text-emerald-600 font-bold">{'\u20B9'}{coll.toLocaleString()}</span>,
+                <span key="p" className="text-amber-600 font-bold">{'\u20B9'}{(expected - coll).toLocaleString()}</span>,
+                <span key="pct" className={`text-xs font-bold ${pct >= 80 ? 'text-emerald-600' : pct >= 60 ? 'text-amber-600' : 'text-red-600'}`}>{pct}%</span>,
+              ];
+            })}
+            theme={theme}
+          />
+        </div>
+      )}
+
+      {feeTab === 'Recent Payments' && (
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>All Recent Payments</h3>
+          <DataTable
+            headers={['Student', 'Route', 'Amount', 'Date', 'Mode']}
+            rows={mockPayments.map((p, i) => [
+              <span key="s" className={`font-bold ${theme.highlight}`}>{p.student}</span>,
+              <span key="r" className={`text-xs font-bold ${theme.primaryText}`}>{p.route}</span>,
+              <span key="a" className="text-emerald-600 font-bold">{'\u20B9'}{p.amount.toLocaleString()}</span>,
+              <span key="d" className={theme.iconColor}>{p.date}</span>,
+              <span key="m" className={`text-xs px-2 py-0.5 rounded-full font-bold ${p.mode === 'UPI' ? 'bg-purple-100 text-purple-700' : p.mode === 'Cash' ? 'bg-emerald-100 text-emerald-700' : p.mode === 'Bank Transfer' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>{p.mode}</span>,
+            ])}
+            theme={theme}
+          />
+        </div>
+      )}
+
+      {feeTab === 'Outstanding' && (
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Student-wise Outstanding</h3>
+          <DataTable
+            headers={['Student', 'Class', 'Route', 'Outstanding', 'Months Due', 'Status', '']}
+            rows={mockOutstanding.map((o, i) => [
+              <span key="s" className={`font-bold ${theme.highlight}`}>{o.student}</span>,
+              <span key="c" className={theme.iconColor}>{o.class}</span>,
+              <span key="r" className={`text-xs font-bold ${theme.primaryText}`}>{o.route}</span>,
+              <span key="a" className="text-red-600 font-bold">{'\u20B9'}{o.amount.toLocaleString()}</span>,
+              <span key="m" className={`font-bold ${theme.highlight}`}>{o.months}</span>,
+              <StatusBadge key="st" status={o.status === 'Overdue' ? 'Overdue' : 'Pending'} theme={theme} />,
+              <button key="act" onClick={() => setShowRecordPayment(true)} className={`px-2 py-1 rounded-lg ${theme.primary} text-white text-[10px] font-bold`}>Accept Payment</button>,
+            ])}
+            theme={theme}
+          />
+        </div>
+      )}
+
+      {/* Record Payment Form */}
+      {showRecordPayment && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto`}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className={`text-lg font-bold ${theme.highlight}`}>Record Fee Payment</h2>
+              <button onClick={() => setShowRecordPayment(false)} className={`p-2 rounded-lg ${theme.buttonHover}`}><X size={16} className={theme.iconColor} /></button>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Route *</label>
+                <select value={payRoute} onChange={e => setPayRoute(e.target.value)} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`}>
+                  <option value="">Select route...</option>{mockRoutes.map(r => <option key={r.id} value={r.name}>{r.name}</option>)}</select>
+              </div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Student *</label>
+                <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`}>
+                  <option value="">Select student...</option>
+                  {payRoute ? mockStudentsByRoute.find(r => r.route === payRoute)?.students.map(s => <option key={s.id} value={s.id}>{s.name} ({s.class})</option>) : allStudents.map(s => <option key={s.id} value={s.id}>{s.name} ({s.class}) — {s.route}</option>)}
+                </select>
+              </div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Amount ({'\u20B9'}) *</label><input type="number" placeholder="e.g. 2500" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Payment Date *</label><input type="date" defaultValue={new Date().toISOString().split('T')[0]} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Payment Mode *</label>
+                <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`}><option value="">Select...</option><option>Cash</option><option>UPI</option><option>Bank Transfer</option><option>Cheque</option><option>Online (Portal)</option></select>
+              </div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Month(s) Covered *</label>
+                <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`}><option value="">Select...</option><option>Feb 2026</option><option>Jan 2026</option><option>Dec 2025</option><option>Jan–Feb 2026 (2 months)</option><option>Dec 2025–Feb 2026 (3 months)</option></select>
+              </div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Receipt Number</label><input defaultValue="RCP-TRANS-0043" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /><p className={`text-[9px] text-emerald-600 mt-0.5`}>Auto-generated (SSA config)</p></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Collected By</label>
+                <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`}><option value="">Select...</option><option>Transport Head</option><option>Driver (Ramesh Kumar)</option><option>Front Office</option><option>Online Payment</option></select>
+              </div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Cheque / Transaction Ref</label><input placeholder="e.g. UTR / Cheque No." className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Late Fee ({'\u20B9'})</label><input type="number" placeholder="0" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Discount / Concession ({'\u20B9'})</label><input type="number" placeholder="0" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+              <div className="col-span-2"><label className={`text-xs font-bold ${theme.iconColor} mb-1 block`}>Notes</label><textarea placeholder="e.g. Partial payment, balance ₹500 due next week" rows={2} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight}`} /></div>
+            </div>
+            <div className="flex justify-end gap-2 mt-6">
+              <button onClick={() => setShowRecordPayment(false)} className={`px-4 py-2 rounded-xl border ${theme.border} text-xs font-bold ${theme.iconColor}`}>Cancel</button>
+              <button onClick={() => { setShowRecordPayment(false); window.alert('Payment recorded! Receipt generated. (Blueprint demo)'); }} className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}>Record Payment</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

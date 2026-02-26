@@ -1273,6 +1273,8 @@ function TimetableModule({ theme }: { theme: Theme }) {
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const currentDay = 'Wed';
   const currentPeriod = 3; // 0-indexed, Period 4
+  const [showPTMCreator, setShowPTMCreator] = useState(false);
+  const [ptmSlotsGenerated, setPtmSlotsGenerated] = useState(false);
 
   return (
     <div className="space-y-4">
@@ -1360,6 +1362,171 @@ function TimetableModule({ theme }: { theme: Theme }) {
             <span className={`text-xs ${theme.iconColor}`}>Current Period</span>
           </div>
         </div>
+      </div>
+
+      {/* ── PTM Management ── */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Users size={16} className="text-blue-500" />
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>PTM Management</h3>
+            <span className={`text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold`}>Next: 20 Feb</span>
+          </div>
+          <button
+            onClick={() => { setShowPTMCreator(!showPTMCreator); setPtmSlotsGenerated(false); }}
+            className={`flex items-center gap-1 px-3 py-1.5 rounded-lg ${showPTMCreator ? 'bg-red-100 text-red-700' : `${theme.primary} text-white`} text-xs font-bold`}
+          >
+            {showPTMCreator ? <><X size={12} /> Cancel</> : <><Plus size={12} /> Create PTM Slots</>}
+          </button>
+        </div>
+
+        {showPTMCreator && (
+          <div className={`p-4 rounded-xl border ${theme.border} ${theme.secondaryBg} space-y-3 mb-4`}>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div>
+                <label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>Date *</label>
+                <input type="date" defaultValue="2026-02-20" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none`} />
+              </div>
+              <div>
+                <label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>Start Time *</label>
+                <input type="time" defaultValue="09:00" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none`} />
+              </div>
+              <div>
+                <label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>End Time *</label>
+                <input type="time" defaultValue="13:00" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none`} />
+              </div>
+              <div>
+                <label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>Slot Duration *</label>
+                <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none`}>
+                  <option>10 minutes</option>
+                  <option selected>15 minutes</option>
+                  <option>20 minutes</option>
+                </select>
+              </div>
+              <div>
+                <label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>Class/Section *</label>
+                <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none`}>
+                  <option>10-A (Class Teacher)</option>
+                  <option>10-B</option>
+                  <option>9-A</option>
+                  <option>9-B</option>
+                </select>
+              </div>
+              <div>
+                <label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>Location *</label>
+                <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none`}>
+                  <option>Room 301</option>
+                  <option>Room 302</option>
+                  <option>Staff Room</option>
+                  <option>Conference Room</option>
+                </select>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-2">
+              <button
+                onClick={() => setPtmSlotsGenerated(true)}
+                className={`flex items-center gap-1 px-4 py-2 ${theme.primary} text-white text-xs font-bold rounded-xl`}
+              >
+                <Calendar size={12} /> Generate Slots
+              </button>
+            </div>
+
+            {ptmSlotsGenerated && (
+              <div className={`mt-3 p-3 rounded-xl ${theme.cardBg} border ${theme.border}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>Generated: 16 slots (9:00 AM - 1:00 PM, 15 min each)</p>
+                  <button
+                    onClick={() => { window.alert('PTM slots published! Parents can now book slots. (Blueprint demo)'); setShowPTMCreator(false); }}
+                    className="px-3 py-1.5 bg-emerald-500 text-white text-xs font-bold rounded-lg hover:bg-emerald-600"
+                  >
+                    Publish Slots
+                  </button>
+                </div>
+                <div className="grid grid-cols-4 gap-1.5">
+                  {['9:00-9:15', '9:15-9:30', '9:30-9:45', '9:45-10:00', '10:00-10:15', '10:15-10:30', '10:30-10:45', '10:45-11:00',
+                    '11:00-11:15', '11:15-11:30', '11:30-11:45', '11:45-12:00', '12:00-12:15', '12:15-12:30', '12:30-12:45', '12:45-1:00'
+                  ].map((slot, i) => {
+                    const isBooked = i < 3; // first 3 booked
+                    const bookedNames = ['Aarav Mehta (Parent)', 'Diya Kulkarni (Parent)', 'Nikhil Verma (Parent)'];
+                    return (
+                      <div key={i} className={`px-2 py-1.5 rounded-lg text-[10px] text-center font-medium ${
+                        isBooked ? 'bg-blue-100 text-blue-700 border border-blue-200' : `${theme.secondaryBg} ${theme.iconColor}`
+                      }`}>
+                        <p className="font-bold">{slot}</p>
+                        <p className="mt-0.5">{isBooked ? bookedNames[i] : 'Available'}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* PTM Schedule View */}
+        <DataTable
+          headers={['Slot', 'Time', 'Student', 'Parent', 'Status']}
+          rows={[
+            [
+              <span key="s" className={`font-bold ${theme.highlight}`}>1</span>,
+              <span key="t" className={theme.iconColor}>9:00 - 9:15 AM</span>,
+              <span key="st" className={`font-bold ${theme.highlight}`}>Aarav Mehta</span>,
+              <span key="p" className={theme.iconColor}>Mr. Suresh Mehta</span>,
+              <span key="status" className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700">Booked</span>,
+            ],
+            [
+              <span key="s" className={`font-bold ${theme.highlight}`}>2</span>,
+              <span key="t" className={theme.iconColor}>9:15 - 9:30 AM</span>,
+              <span key="st" className={`font-bold ${theme.highlight}`}>Diya Kulkarni</span>,
+              <span key="p" className={theme.iconColor}>Mrs. Asha Kulkarni</span>,
+              <span key="status" className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700">Booked</span>,
+            ],
+            [
+              <span key="s" className={`font-bold ${theme.highlight}`}>3</span>,
+              <span key="t" className={theme.iconColor}>9:30 - 9:45 AM</span>,
+              <span key="st" className={`font-bold ${theme.highlight}`}>Nikhil Verma</span>,
+              <span key="p" className={theme.iconColor}>Mr. Rajesh Verma</span>,
+              <span key="status" className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700">Booked</span>,
+            ],
+            [
+              <span key="s" className={`font-bold ${theme.highlight}`}>4</span>,
+              <span key="t" className={theme.iconColor}>9:45 - 10:00 AM</span>,
+              <span key="st" className={`${theme.iconColor} italic`}>—</span>,
+              <span key="p" className={`${theme.iconColor} italic`}>—</span>,
+              <span key="status" className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">Available</span>,
+            ],
+            [
+              <span key="s" className={`font-bold ${theme.highlight}`}>5</span>,
+              <span key="t" className={theme.iconColor}>10:00 - 10:15 AM</span>,
+              <span key="st" className={`${theme.iconColor} italic`}>—</span>,
+              <span key="p" className={`${theme.iconColor} italic`}>—</span>,
+              <span key="status" className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">Available</span>,
+            ],
+            [
+              <span key="s" className={`font-bold ${theme.highlight}`}>6</span>,
+              <span key="t" className={theme.iconColor}>10:15 - 10:30 AM</span>,
+              <span key="st" className={`${theme.iconColor} italic`}>—</span>,
+              <span key="p" className={`${theme.iconColor} italic`}>—</span>,
+              <span key="status" className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">Available</span>,
+            ],
+            [
+              <span key="s" className={`font-bold ${theme.highlight}`}>7</span>,
+              <span key="t" className={theme.iconColor}>10:30 - 10:45 AM</span>,
+              <span key="st" className={`${theme.iconColor} italic`}>—</span>,
+              <span key="p" className={`${theme.iconColor} italic`}>—</span>,
+              <span key="status" className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">Available</span>,
+            ],
+            [
+              <span key="s" className={`font-bold ${theme.highlight}`}>8</span>,
+              <span key="t" className={theme.iconColor}>10:45 - 11:00 AM</span>,
+              <span key="st" className={`${theme.iconColor} italic`}>—</span>,
+              <span key="p" className={`${theme.iconColor} italic`}>—</span>,
+              <span key="status" className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">Available</span>,
+            ],
+          ]}
+          theme={theme}
+        />
+        <p className={`text-[10px] ${theme.iconColor} mt-2`}>PTM for Class 10-A on 20 Feb 2026 | 3 booked, 5 available of 8 morning slots shown</p>
       </div>
     </div>
   );
@@ -1765,7 +1932,8 @@ function ReportsModule({ theme }: { theme: Theme }) {
 // ─── COMMUNICATION MODULE ────────────────────────────
 function CommunicationModule({ theme }: { theme: Theme }) {
   const [commTab, setCommTab] = useState('Chat');
-  const tabs = ['Messages', 'Notices', 'Chat'];
+  const [showCreateNotice, setShowCreateNotice] = useState(false);
+  const tabs = ['Messages', 'Notices', 'My Notices', 'Chat'];
   return (
     <div className="space-y-3">
       <h2 className={`text-lg font-bold ${theme.highlight}`}>Communication</h2>
@@ -1792,19 +1960,117 @@ function CommunicationModule({ theme }: { theme: Theme }) {
         </div>
       )}
       {commTab === 'Notices' && (
-        <div className="space-y-2">
+        <div className="space-y-3">
+          <div className="flex items-center justify-end">
+            <button
+              onClick={() => setShowCreateNotice(!showCreateNotice)}
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg ${showCreateNotice ? 'bg-red-100 text-red-700' : `${theme.primary} text-white`} text-xs font-bold`}
+            >
+              {showCreateNotice ? <><X size={12} /> Cancel</> : <><Plus size={12} /> Create Notice</>}
+            </button>
+          </div>
+
+          {showCreateNotice && (
+            <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 border-l-2 border-l-amber-500 space-y-3`}>
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>Create Notice / Circular</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="col-span-2">
+                  <label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>Title *</label>
+                  <input placeholder="Enter notice title..." className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none`} />
+                </div>
+                <div className="col-span-2">
+                  <label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>Content *</label>
+                  <textarea rows={4} placeholder="Write the notice content..." className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none resize-none`} />
+                </div>
+                <div>
+                  <label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>Target Audience *</label>
+                  <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none`}>
+                    <option>My Class Only (10-A)</option>
+                    <option>All My Classes</option>
+                    <option>Specific Section...</option>
+                  </select>
+                </div>
+                <div>
+                  <label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>Priority *</label>
+                  <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none`}>
+                    <option>Normal</option>
+                    <option>Important</option>
+                    <option>Urgent</option>
+                  </select>
+                </div>
+                <div className="col-span-2">
+                  <label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>Attachments</label>
+                  <div className={`border-2 border-dashed ${theme.border} rounded-xl p-3 text-center cursor-pointer ${theme.buttonHover} transition-all`}>
+                    <Upload size={16} className={`${theme.iconColor} mx-auto mb-1`} />
+                    <p className={`text-[10px] ${theme.iconColor}`}>Click to upload files (PDF, images, documents)</p>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center justify-end gap-2">
+                <button onClick={() => setShowCreateNotice(false)} className={`px-4 py-2 rounded-xl ${theme.secondaryBg} ${theme.iconColor} text-xs font-bold`}>Cancel</button>
+                <button
+                  onClick={() => { window.alert('Notice published successfully! (Blueprint demo)'); setShowCreateNotice(false); }}
+                  className={`flex items-center gap-1 px-4 py-2 ${theme.primary} text-white text-xs font-bold rounded-xl`}
+                >
+                  <Send size={12} /> Publish Notice
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            {[
+              { title: 'Unit Test 3 Schedule — Classes 8 to 10', date: '10 Feb 2026', category: 'Academic' },
+              { title: 'PTM Notice — 22nd February 2026', date: '09 Feb 2026', category: 'Event' },
+              { title: 'Revised Assembly Timing from March', date: '08 Feb 2026', category: 'Administrative' },
+            ].map((n, i) => (
+              <div key={i} className={`${theme.cardBg} rounded-xl border ${theme.border} p-3 flex items-center gap-3`}>
+                <div className={`w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center`}>
+                  <Megaphone size={14} className="text-amber-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-xs font-semibold ${theme.highlight} truncate`}>{n.title}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{n.date} &middot; {n.category}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {commTab === 'My Notices' && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <p className={`text-xs ${theme.iconColor}`}>Notices created by you</p>
+            <button
+              onClick={() => { setCommTab('Notices'); setShowCreateNotice(true); }}
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg ${theme.primary} text-white text-xs font-bold`}
+            >
+              <Plus size={12} /> New Notice
+            </button>
+          </div>
           {[
-            { title: 'Unit Test 3 Schedule — Classes 8 to 10', date: '10 Feb 2026', category: 'Academic' },
-            { title: 'PTM Notice — 22nd February 2026', date: '09 Feb 2026', category: 'Event' },
-            { title: 'Revised Assembly Timing from March', date: '08 Feb 2026', category: 'Administrative' },
-          ].map((n, i) => (
+            { title: 'Homework Reminder — Ch 8 Trigonometry', date: '10 Feb 2026', audience: '10-A', priority: 'Normal', status: 'Published', views: 38 },
+            { title: 'Science Fair Project Submission Deadline', date: '08 Feb 2026', audience: 'All Classes', priority: 'Important', status: 'Published', views: 156 },
+            { title: 'Extra Class for Weak Students — Saturday', date: '05 Feb 2026', audience: '6-A', priority: 'Normal', status: 'Published', views: 28 },
+            { title: 'Lab Safety Guidelines Reminder', date: '01 Feb 2026', audience: '9-A, 9-B', priority: 'Urgent', status: 'Published', views: 72 },
+          ].map((notice, i) => (
             <div key={i} className={`${theme.cardBg} rounded-xl border ${theme.border} p-3 flex items-center gap-3`}>
-              <div className={`w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center`}>
-                <Megaphone size={14} className="text-amber-500" />
+              <div className={`w-8 h-8 rounded-full ${
+                notice.priority === 'Urgent' ? 'bg-red-100' : notice.priority === 'Important' ? 'bg-amber-100' : 'bg-blue-100'
+              } flex items-center justify-center`}>
+                <Megaphone size={14} className={
+                  notice.priority === 'Urgent' ? 'text-red-500' : notice.priority === 'Important' ? 'text-amber-500' : 'text-blue-500'
+                } />
               </div>
               <div className="flex-1 min-w-0">
-                <p className={`text-xs font-semibold ${theme.highlight} truncate`}>{n.title}</p>
-                <p className={`text-[10px] ${theme.iconColor}`}>{n.date} &middot; {n.category}</p>
+                <p className={`text-xs font-semibold ${theme.highlight} truncate`}>{notice.title}</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>{notice.date} &middot; To: {notice.audience} &middot; {notice.views} views</p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                  notice.priority === 'Urgent' ? 'bg-red-100 text-red-700' : notice.priority === 'Important' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
+                }`}>{notice.priority}</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-700">{notice.status}</span>
               </div>
             </div>
           ))}
