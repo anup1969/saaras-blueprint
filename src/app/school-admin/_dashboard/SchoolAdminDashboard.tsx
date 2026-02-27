@@ -10,6 +10,8 @@ import {
 } from 'lucide-react';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import SupportModule from '@/components/SupportModule';
+import YourInputsModule from '@/components/YourInputsModule';
+import { type TeamMember } from '@/lib/auth';
 
 import DashboardHome from '../_modules/DashboardHome';
 import StudentsModule from '../_modules/StudentsModule';
@@ -44,10 +46,11 @@ const modules = [
   { id: 'reports', label: 'Reports', icon: BarChart3 },
   { id: 'hr', label: 'HR Management', icon: Briefcase },
   { id: 'config', label: 'Configuration', icon: Settings },
+  { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
   { id: 'support', label: 'Support', icon: Headphones },
 ];
 
-export default function SchoolAdminDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
+export default function SchoolAdminDashboard({ theme, themeIdx, onThemeChange, currentUser }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void; currentUser?: TeamMember }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   if (!theme) return null;
@@ -94,6 +97,7 @@ export default function SchoolAdminDashboard({ theme, themeIdx, onThemeChange }:
         {activeModule === 'reports' && <ReportsModule theme={theme} />}
         {activeModule === 'hr' && <HRManagementModule theme={theme} />}
         {activeModule === 'config' && <ConfigModule theme={theme} />}
+        {activeModule === 'your-inputs' && <YourInputsModule theme={theme} userName={currentUser?.name || ''} />}
         {activeModule === 'support' && <SupportModule theme={theme} role="school-admin" />}
         {activeModule === 'profile' && <StakeholderProfile role="school-admin" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>

@@ -7,6 +7,8 @@ import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import { ChatsView } from '@/components/ChatModule';
 import SupportModule from '@/components/SupportModule';
+import YourInputsModule from '@/components/YourInputsModule';
+import { type TeamMember } from '@/lib/auth';
 import { type Theme } from '@/lib/themes';
 import {
   Home, Users, UserCheck, Calendar, Clock, Shield, Search, Plus, Filter, Download,
@@ -27,6 +29,7 @@ const modules = [
   { id: 'circulars', label: 'Circulars', icon: Megaphone },
   { id: 'approvals', label: 'Approvals', icon: CheckCircle },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
+  { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
   { id: 'support', label: 'Support', icon: Headphones },
 ];
 
@@ -106,7 +109,7 @@ const mockCirculars = [
 
 // ─── MAIN COMPONENT ─────────────────────────────────
 
-function VicePrincipalDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
+function VicePrincipalDashboard({ theme, themeIdx, onThemeChange, currentUser }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void; currentUser?: TeamMember }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   if (!theme) return null;
@@ -146,6 +149,7 @@ function VicePrincipalDashboard({ theme, themeIdx, onThemeChange }: { theme?: Th
         {activeModule === 'circulars' && <CircularsModule theme={theme} />}
         {activeModule === 'approvals' && <ApprovalsModule theme={theme} />}
         {activeModule === 'communication' && <CommunicationModule theme={theme} />}
+        {activeModule === 'your-inputs' && <YourInputsModule theme={theme} userName={currentUser?.name || ''} />}
         {activeModule === 'support' && <SupportModule theme={theme} role="vice-principal" />}
         {activeModule === 'profile' && <StakeholderProfile role="vice-principal" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>

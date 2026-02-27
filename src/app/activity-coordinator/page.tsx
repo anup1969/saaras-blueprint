@@ -8,11 +8,13 @@ import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import { ChatsView } from '@/components/ChatModule';
 import SupportModule from '@/components/SupportModule';
+import YourInputsModule from '@/components/YourInputsModule';
+import { type TeamMember } from '@/lib/auth';
 import {
   Home, Calendar, Star, Image, MessageSquare, Clock,
   Search, Plus, Filter, Download, Eye, Edit, CheckCircle,
   AlertTriangle, Users, Palette, Music, Dribbble, BookOpen,
-  PanelLeftClose, PanelLeftOpen, Headphones, Award, Camera, Heart
+  PanelLeftClose, PanelLeftOpen, Headphones, Award, Camera, Heart, ClipboardCheck
 } from 'lucide-react';
 
 // ─── MODULE SIDEBAR ────────────────────────────────
@@ -23,6 +25,7 @@ const modules = [
   { id: 'events', label: 'Events', icon: Award },
   { id: 'art-gallery', label: 'Art Gallery', icon: Image },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
+  { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
   { id: 'support', label: 'Support', icon: Headphones },
 ];
 
@@ -61,7 +64,7 @@ const mockArtGallery = [
   { id: 'ART-06', child: 'Ishita Joshi', activity: 'Paper Plate Craft', date: 'Feb 12', teacher: 'Ms. Kavita', likes: 7 },
 ];
 
-function ActivityCoordinatorDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
+function ActivityCoordinatorDashboard({ theme, themeIdx, onThemeChange, currentUser }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void; currentUser?: TeamMember }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   if (!theme) return null;
@@ -324,6 +327,7 @@ function ActivityCoordinatorDashboard({ theme, themeIdx, onThemeChange }: { them
 
         {activeModule === 'communication' && <ChatsView theme={theme} />}
 
+        {activeModule === 'your-inputs' && <YourInputsModule theme={theme} userName={currentUser?.name || ''} />}
         {activeModule === 'support' && <SupportModule theme={theme} role="Activity Coordinator" />}
       </div>
     </div>

@@ -5,10 +5,12 @@ import { type Theme } from '@/lib/themes';
 import {
   Home, BookOpen, Briefcase, ShieldCheck, MessageSquare,
   CalendarDays, CalendarClock, CheckCircle, BarChart3, Headphones,
-  PanelLeftClose, PanelLeftOpen, ChevronDown,
+  PanelLeftClose, PanelLeftOpen, ChevronDown, ClipboardCheck,
 } from 'lucide-react';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import SupportModule from '@/components/SupportModule';
+import YourInputsModule from '@/components/YourInputsModule';
+import { type TeamMember } from '@/lib/auth';
 
 // ─── Module imports ──────────────────────────────────
 import DashboardHome from '../_modules/DashboardHome';
@@ -35,10 +37,11 @@ const modules = [
   ]},
   { id: 'approvals', label: 'Approvals', icon: CheckCircle },
   { id: 'reports', label: 'Reports', icon: BarChart3 },
+  { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
   { id: 'support', label: 'Support', icon: Headphones },
 ];
 
-export default function PrincipalDashboard({ theme, themeIdx, onThemeChange, isPreschool }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void; isPreschool?: boolean }) {
+export default function PrincipalDashboard({ theme, themeIdx, onThemeChange, isPreschool, currentUser }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void; isPreschool?: boolean; currentUser?: TeamMember }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [expandedParent, setExpandedParent] = useState<string | null>(null);
@@ -107,6 +110,7 @@ export default function PrincipalDashboard({ theme, themeIdx, onThemeChange, isP
         {activeModule === 'yearly-planner' && <YearlyPlannerModule theme={theme} />}
         {activeModule === 'approvals' && <ApprovalsModule theme={theme} />}
         {activeModule === 'reports' && <ReportsModule theme={theme} />}
+        {activeModule === 'your-inputs' && <YourInputsModule theme={theme} userName={currentUser?.name || ''} />}
         {activeModule === 'support' && <SupportModule theme={theme} role="principal" />}
         {activeModule === 'profile' && <StakeholderProfile role="principal" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>

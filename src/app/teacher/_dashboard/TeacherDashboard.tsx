@@ -9,6 +9,8 @@ import {
 } from 'lucide-react';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import SupportModule from '@/components/SupportModule';
+import YourInputsModule from '@/components/YourInputsModule';
+import { type TeamMember } from '@/lib/auth';
 
 import DashboardHome from '../_modules/DashboardHome';
 import MyClassesModule from '../_modules/MyClassesModule';
@@ -38,10 +40,11 @@ const modules = [
   { id: 'diary', label: 'Diary', icon: Notebook },
   { id: 'reports', label: 'Reports', icon: BarChart3 },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
+  { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
   { id: 'support', label: 'Support', icon: Headphones },
 ];
 
-export default function TeacherDashboard({ theme, themeIdx, onThemeChange, isPreschool }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void; isPreschool?: boolean }) {
+export default function TeacherDashboard({ theme, themeIdx, onThemeChange, isPreschool, currentUser }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void; isPreschool?: boolean; currentUser?: TeamMember }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   if (!theme) return null;
@@ -95,6 +98,7 @@ export default function TeacherDashboard({ theme, themeIdx, onThemeChange, isPre
           {activeModule === 'diary' && <DiaryModule theme={theme} />}
           {activeModule === 'reports' && <ReportsModule theme={theme} />}
           {activeModule === 'communication' && <CommunicationModule theme={theme} />}
+          {activeModule === 'your-inputs' && <YourInputsModule theme={theme} userName={currentUser?.name || ''} />}
           {activeModule === 'support' && <SupportModule theme={theme} role="teacher" />}
           {activeModule === 'profile' && <StakeholderProfile role="teacher" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
         </div>

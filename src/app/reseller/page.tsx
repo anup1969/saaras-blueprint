@@ -7,13 +7,15 @@ import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import { ChatsView } from '@/components/ChatModule';
 import SupportModule from '@/components/SupportModule';
+import YourInputsModule from '@/components/YourInputsModule';
+import { type TeamMember } from '@/lib/auth';
 import { type Theme } from '@/lib/themes';
 import {
   Home, GraduationCap, IndianRupee, UserPlus, MessageSquare, Headphones,
   Search, Plus, Eye, Download, Filter, Calendar, TrendingUp, TrendingDown,
   AlertTriangle, ArrowRight, Building2, Clock, Phone, Mail, MapPin,
   PanelLeftClose, PanelLeftOpen, Handshake, CheckCircle, XCircle, Target,
-  FileText, Send, User
+  FileText, Send, User, ClipboardCheck
 } from 'lucide-react';
 
 // ─── MOCK DATA ────────────────────────────────────────
@@ -74,6 +76,7 @@ const modules = [
   { id: 'earnings', label: 'Earnings', icon: IndianRupee },
   { id: 'leads', label: 'Leads', icon: UserPlus },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
+  { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
   { id: 'support', label: 'Support', icon: Headphones },
 ];
 
@@ -491,7 +494,7 @@ function CommunicationModule({ theme }: { theme: Theme }) {
 }
 
 // ─── MAIN PAGE ─────────────────────────────────────────
-function ResellerDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
+function ResellerDashboard({ theme, themeIdx, onThemeChange, currentUser }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void; currentUser?: TeamMember }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   if (!theme) return null;
@@ -503,6 +506,7 @@ function ResellerDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; 
       case 'earnings': return <EarningsView theme={theme} />;
       case 'leads': return <LeadsView theme={theme} />;
       case 'communication': return <CommunicationModule theme={theme} />;
+      case 'your-inputs': return <YourInputsModule theme={theme} userName={currentUser?.name || ''} />;
       case 'support': return <SupportModule theme={theme} role="reseller" />;
       case 'profile': return <StakeholderProfile role="reseller" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />;
       default: return <DashboardView theme={theme} setActiveModule={setActiveModule} />;

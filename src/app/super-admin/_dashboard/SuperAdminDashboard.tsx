@@ -3,7 +3,9 @@
 import React, { useState } from 'react';
 import OnboardingWizard from '@/components/OnboardingWizard';
 import StakeholderProfile from '@/components/StakeholderProfile';
+import YourInputsModule from '@/components/YourInputsModule';
 import { type Theme } from '@/lib/themes';
+import { type TeamMember } from '@/lib/auth';
 import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { modules } from '../_modules/mockData';
 import DashboardView from '../_modules/DashboardView';
@@ -21,7 +23,7 @@ import AMAssignmentView from '../_modules/AMAssignmentView';
 import DataMigrationView from '../_modules/DataMigrationView';
 import CommunicationModule from '../_modules/CommunicationModule';
 
-export default function SuperAdminDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
+export default function SuperAdminDashboard({ theme, themeIdx, onThemeChange, currentUser }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void; currentUser?: TeamMember }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [showWizard, setShowWizard] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -45,6 +47,7 @@ export default function SuperAdminDashboard({ theme, themeIdx, onThemeChange }: 
       case 'users': return <UsersView theme={theme} />;
       case 'modules': return <ModulesConfigView theme={theme} />;
       case 'onboarding': return <OnboardingView theme={theme} onStartWizard={() => setShowWizard(true)} />;
+      case 'your-inputs': return <YourInputsModule theme={theme} userName={currentUser?.name || ''} />;
       case 'support': return <SupportView theme={theme} />;
       case 'analytics': return <AnalyticsView theme={theme} />;
       case 'config': return <SystemConfigView theme={theme} />;

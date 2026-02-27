@@ -5,6 +5,8 @@ import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import type { Theme } from '../_helpers/types';
 import { modules } from '../_helpers/modules';
 import SupportModule from '@/components/SupportModule';
+import YourInputsModule from '@/components/YourInputsModule';
+import { type TeamMember } from '@/lib/auth';
 
 // ─── Module imports ──────────────────────────────────
 import SSADashboardHome from './SSADashboardHome';
@@ -87,7 +89,7 @@ const MODULE_COMPONENTS: Record<string, React.ComponentType<{ theme: Theme }>> =
   'mobile-app-config': MobileAppConfigModule,
 };
 
-export default function SchoolSuperAdminDashboard({ theme }: { theme?: Theme }) {
+export default function SchoolSuperAdminDashboard({ theme, currentUser }: { theme?: Theme; currentUser?: TeamMember }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   if (!theme) return null;
@@ -115,8 +117,9 @@ export default function SchoolSuperAdminDashboard({ theme }: { theme?: Theme }) 
 
       <div className="flex-1 p-6 space-y-4 overflow-x-hidden">
         {activeModule === 'dashboard' && <SSADashboardHome theme={theme} onNavigate={setActiveModule} />}
+        {activeModule === 'your-inputs' && <YourInputsModule theme={theme} userName={currentUser?.name || ''} />}
         {activeModule === 'support' && <SupportModule theme={theme} role="school-super-admin" />}
-        {ActiveComponent && activeModule !== 'dashboard' && activeModule !== 'support' && <ActiveComponent theme={theme} />}
+        {ActiveComponent && activeModule !== 'dashboard' && activeModule !== 'support' && activeModule !== 'your-inputs' && <ActiveComponent theme={theme} />}
       </div>
     </div>
   );

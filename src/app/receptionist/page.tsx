@@ -8,12 +8,14 @@ import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import { ChatsView } from '@/components/ChatModule';
 import SupportModule from '@/components/SupportModule';
+import YourInputsModule from '@/components/YourInputsModule';
+import { type TeamMember } from '@/lib/auth';
 import {
   Home, Users, UserPlus, Phone, Mail, Calendar, Clock, Search, Plus, Eye, Edit,
   Filter, Download, CheckCircle, AlertTriangle, ArrowRight, PhoneCall, PhoneIncoming,
   PhoneOutgoing, Package, BookOpen, Shield, UserCheck, Briefcase, Building2,
   MapPin, Bell, MessageSquare, LogIn, LogOut, BadgeCheck, Hash, FileText, Send, User,
-  PanelLeftClose, PanelLeftOpen, Headphones, Banknote, CreditCard, X, IndianRupee
+  PanelLeftClose, PanelLeftOpen, Headphones, Banknote, CreditCard, X, IndianRupee, ClipboardCheck
 } from 'lucide-react';
 
 // ─── MODULE SIDEBAR ────────────────────────────────
@@ -28,6 +30,7 @@ const modules = [
   { id: 'search-dir', label: 'Search Directory', icon: Search },
   { id: 'directory', label: 'Staff Directory', icon: BookOpen },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
+  { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
   { id: 'support', label: 'Support', icon: Headphones },
 ];
 
@@ -95,7 +98,7 @@ const mockDirectory = [
 
 // ─── MAIN COMPONENT ─────────────────────────────────
 
-function ReceptionistDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
+function ReceptionistDashboard({ theme, themeIdx, onThemeChange, currentUser }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void; currentUser?: TeamMember }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   if (!theme) return null;
@@ -136,6 +139,7 @@ function ReceptionistDashboard({ theme, themeIdx, onThemeChange }: { theme?: The
         {activeModule === 'appointments' && <AppointmentsModule theme={theme} />}
         {activeModule === 'directory' && <DirectoryModule theme={theme} />}
         {activeModule === 'communication' && <CommunicationModule theme={theme} />}
+        {activeModule === 'your-inputs' && <YourInputsModule theme={theme} userName={currentUser?.name || ''} />}
         {activeModule === 'support' && <SupportModule theme={theme} role="receptionist" />}
         {activeModule === 'profile' && <StakeholderProfile role="receptionist" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>

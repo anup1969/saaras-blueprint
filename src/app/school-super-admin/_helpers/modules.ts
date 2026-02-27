@@ -46,5 +46,6 @@ export const modules = [
   { id: 'data-privacy-config', label: 'Data Privacy', icon: Shield },
   { id: 'demo-data-seeder', label: 'Demo Data Seeder', icon: Database },
   { id: 'mobile-app-config', label: 'Mobile App', icon: Smartphone },
+  { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
   { id: 'support', label: 'Support', icon: Headphones },
 ];

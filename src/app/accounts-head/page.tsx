@@ -7,13 +7,15 @@ import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import { ChatsView } from '@/components/ChatModule';
 import SupportModule from '@/components/SupportModule';
+import YourInputsModule from '@/components/YourInputsModule';
+import { type TeamMember } from '@/lib/auth';
 import { type Theme } from '@/lib/themes';
 import {
   Home, Banknote, CreditCard, Receipt, Users, FileText, BarChart3, Settings,
   Search, Plus, Eye, Download, Filter, Check, X, Calendar,
   DollarSign, TrendingUp, TrendingDown, AlertTriangle, ArrowRight,
   Wallet, Building2, ChevronDown, Percent, Clock, Hash, Printer, User, MessageSquare, Mail, Megaphone,
-  PanelLeftClose, PanelLeftOpen, Headphones
+  PanelLeftClose, PanelLeftOpen, Headphones, ClipboardCheck
 } from 'lucide-react';
 
 // ─── MOCK DATA ────────────────────────────────────────
@@ -79,6 +81,7 @@ const modules = [
   { id: 'reports', label: 'Financial Reports', icon: BarChart3 },
   { id: 'receipts', label: 'Receipts', icon: Receipt },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
+  { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
   { id: 'support', label: 'Support', icon: Headphones },
 ];
 
@@ -542,7 +545,7 @@ function CommunicationModule({ theme }: { theme: Theme }) {
 }
 
 // ─── MAIN PAGE ─────────────────────────────────────────
-function AccountsHeadDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
+function AccountsHeadDashboard({ theme, themeIdx, onThemeChange, currentUser }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void; currentUser?: TeamMember }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   if (!theme) return null;
@@ -558,6 +561,7 @@ function AccountsHeadDashboard({ theme, themeIdx, onThemeChange }: { theme?: The
       case 'reports': return <ReportsView theme={theme} />;
       case 'receipts': return <ReceiptsView theme={theme} />;
       case 'communication': return <CommunicationModule theme={theme} />;
+      case 'your-inputs': return <YourInputsModule theme={theme} userName={currentUser?.name || ''} />;
       case 'support': return <SupportModule theme={theme} role="accounts-head" />;
       case 'profile': return <StakeholderProfile role="accounts-head" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />;
       default: return <DashboardView theme={theme} setActiveModule={setActiveModule} />;

@@ -17,6 +17,8 @@ import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import { ChatsView } from '@/components/ChatModule';
 import SupportModule from '@/components/SupportModule';
+import YourInputsModule from '@/components/YourInputsModule';
+import { type TeamMember } from '@/lib/auth';
 
 // ─── STUDENT PROFILE ────────────────────────────────
 const studentProfile = {
@@ -258,11 +260,12 @@ const modules = [
   { id: 'documents', label: 'Documents', icon: FileBadge },
   { id: 'notices', label: 'Notices', icon: Megaphone },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
+  { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
   { id: 'support', label: 'Support', icon: Headphones },
 ];
 
 // ─── MAIN COMPONENT ────────────────────────────────
-function StudentDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
+function StudentDashboard({ theme, themeIdx, onThemeChange, currentUser }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void; currentUser?: TeamMember }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   if (!theme) return null;
@@ -304,6 +307,7 @@ function StudentDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; t
         {activeModule === 'documents' && <DocumentsModule theme={theme} />}
         {activeModule === 'notices' && <NoticesModule theme={theme} />}
         {activeModule === 'communication' && <CommunicationModule theme={theme} />}
+        {activeModule === 'your-inputs' && <YourInputsModule theme={theme} userName={currentUser?.name || ''} />}
         {activeModule === 'support' && <SupportModule theme={theme} role="student" />}
         {activeModule === 'profile' && <StakeholderProfile role="student" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>

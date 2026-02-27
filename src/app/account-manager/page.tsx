@@ -8,13 +8,15 @@ import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import { ChatsView } from '@/components/ChatModule';
 import SupportModule from '@/components/SupportModule';
+import YourInputsModule from '@/components/YourInputsModule';
+import { type TeamMember } from '@/lib/auth';
 import {
   Home, Building2, Headphones, BarChart3, RefreshCcw, Rocket,
   Search, Filter, Download, Eye, Edit, Phone, Mail, MessageSquare,
   TrendingUp, Users, AlertTriangle, CheckCircle, Clock, Star,
   Activity, Target, Calendar, ArrowRight, Zap, Shield,
   ThumbsUp, Percent, DollarSign, UserCheck, User,
-  PanelLeftClose, PanelLeftOpen
+  PanelLeftClose, PanelLeftOpen, ClipboardCheck
 } from 'lucide-react';
 
 // ─── MODULE SIDEBAR ────────────────────────────────
@@ -26,6 +28,7 @@ const modules = [
   { id: 'renewals', label: 'Renewals', icon: RefreshCcw },
   { id: 'onboarding', label: 'Onboarding', icon: Rocket },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
+  { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
   { id: 'support', label: 'Support', icon: Headphones },
 ];
 
@@ -115,7 +118,7 @@ function UsageBar({ value, theme }: { value: number; theme: Theme }) {
 }
 
 // ─── MAIN COMPONENT ────────────────────────────────
-function AccountManagerDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
+function AccountManagerDashboard({ theme, themeIdx, onThemeChange, currentUser }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void; currentUser?: TeamMember }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   if (!theme) return null;
@@ -153,6 +156,7 @@ function AccountManagerDashboard({ theme, themeIdx, onThemeChange }: { theme?: T
         {activeModule === 'renewals' && <RenewalsModule theme={theme} />}
         {activeModule === 'onboarding' && <OnboardingModule theme={theme} />}
         {activeModule === 'communication' && <CommunicationModule theme={theme} />}
+        {activeModule === 'your-inputs' && <YourInputsModule theme={theme} userName={currentUser?.name || ''} />}
         {activeModule === 'support' && <SupportModule theme={theme} role="account-manager" />}
         {activeModule === 'profile' && <StakeholderProfile role="account-manager" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>

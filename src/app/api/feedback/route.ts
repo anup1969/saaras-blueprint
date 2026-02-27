@@ -6,6 +6,7 @@ export async function GET(req: NextRequest) {
   const page = req.nextUrl.searchParams.get('page') || undefined;
   const isAdmin = req.nextUrl.searchParams.get('isAdmin') === 'true';
   const pendingOnly = req.nextUrl.searchParams.get('pending') === 'true';
+  const submittedBy = req.nextUrl.searchParams.get('submittedBy');
 
   const supabase = getServerSupabase();
   if (!supabase) return NextResponse.json([]);
@@ -15,6 +16,8 @@ export async function GET(req: NextRequest) {
   let query = supabase.from('feedback').select(columns).order('created_at', { ascending: false });
   if (pendingOnly) {
     query = query.eq('moderation_status', 'pending');
+  } else if (submittedBy) {
+    query = query.eq('submitted_by', submittedBy);
   } else {
     if (page) query = query.eq('page', page);
     if (!isAdmin) query = query.in('moderation_status', ['approved', 'modified']);

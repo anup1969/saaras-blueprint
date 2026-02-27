@@ -6,6 +6,8 @@ import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import { ChatsView } from '@/components/ChatModule';
 import SupportModule from '@/components/SupportModule';
+import YourInputsModule from '@/components/YourInputsModule';
+import { type TeamMember } from '@/lib/auth';
 import { TabBar } from '@/components/shared';
 import { type Theme } from '@/lib/themes';
 import {
@@ -13,7 +15,7 @@ import {
   Settings, Bell, ChevronLeft, ChevronRight, Check, X, Plus,
   Eye, Edit, Phone, Mail, Trash2, Camera, Award, CheckCircle, XCircle,
   GripVertical, Cake, Briefcase, Upload, MinusCircle, Wallet, GitBranch, Shield, User, MessageSquare, Megaphone,
-  PanelLeftClose, PanelLeftOpen, Headphones
+  PanelLeftClose, PanelLeftOpen, Headphones, ClipboardCheck
 } from 'lucide-react';
 
 // ─── MOCK DATA ────────────────────────────────────────
@@ -42,6 +44,7 @@ const modules = [
   { id: 'reports', label: 'Reports', icon: BarChart3 },
   { id: 'settings', label: 'Settings', icon: Settings },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
+  { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
   { id: 'support', label: 'Support', icon: Headphones },
 ];
 
@@ -481,7 +484,7 @@ function DocumentsModule({ theme }: { theme: Theme }) {
 }
 
 // ─── MAIN COMPONENT ───────────────────────────────────
-function HRManagerDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
+function HRManagerDashboard({ theme, themeIdx, onThemeChange, currentUser }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void; currentUser?: TeamMember }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [selectedEmp, setSelectedEmp] = useState(employees[0]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -519,6 +522,7 @@ function HRManagerDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme;
         {activeModule === 'reports' && <ReportsModule theme={theme} />}
         {activeModule === 'settings' && <SettingsModule theme={theme} />}
         {activeModule === 'communication' && <CommunicationModule theme={theme} />}
+        {activeModule === 'your-inputs' && <YourInputsModule theme={theme} userName={currentUser?.name || ''} />}
         {activeModule === 'support' && <SupportModule theme={theme} role="hr-manager" />}
         {activeModule === 'my-profile' && <StakeholderProfile role="hr-manager" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>

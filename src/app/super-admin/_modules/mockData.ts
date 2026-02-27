@@ -2,7 +2,7 @@
 
 import {
   Home, Building2, CreditCard, Users, Layers, UserPlus, Headphones, BarChart3, Settings, FileText,
-  MessageSquare, Handshake, UserCog, HardDrive,
+  MessageSquare, Handshake, UserCog, HardDrive, ClipboardCheck,
 } from 'lucide-react';
 
 // ─── MOCK DATA ────────────────────────────────────────
@@ -85,6 +85,7 @@ export const modules = [
   { id: 'users', label: 'User Management', icon: Users },
   { id: 'modules', label: 'Module Config', icon: Layers },
   { id: 'onboarding', label: 'Onboarding', icon: UserPlus },
+  { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
   { id: 'support', label: 'Support Tickets', icon: Headphones },
   { id: 'analytics', label: 'Analytics', icon: BarChart3 },
   { id: 'config', label: 'System Config', icon: Settings },

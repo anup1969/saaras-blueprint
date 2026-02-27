@@ -4,10 +4,12 @@ import React, { useState } from 'react';
 import { type Theme } from '@/lib/themes';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import SupportModule from '@/components/SupportModule';
+import YourInputsModule from '@/components/YourInputsModule';
+import { type TeamMember } from '@/lib/auth';
 import {
   Home, Route, Car, Users, MapPinned, Wrench, Navigation, IndianRupee,
   MessageSquare, Headphones, UserCheck, UserPlus, GraduationCap,
-  PanelLeftClose, PanelLeftOpen
+  PanelLeftClose, PanelLeftOpen, ClipboardCheck
 } from 'lucide-react';
 
 import DashboardHome from '../_modules/DashboardHome';
@@ -37,10 +39,11 @@ const modules = [
   { id: 'maintenance', label: 'Maintenance', icon: Wrench },
   { id: 'fees', label: 'Fees', icon: IndianRupee },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
+  { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
   { id: 'support', label: 'Support', icon: Headphones },
 ];
 
-export default function TransportHeadDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
+export default function TransportHeadDashboard({ theme, themeIdx, onThemeChange, currentUser }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void; currentUser?: TeamMember }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showLogMaintenance, setShowLogMaintenance] = useState(false);
@@ -84,6 +87,7 @@ export default function TransportHeadDashboard({ theme, themeIdx, onThemeChange 
         {activeModule === 'maintenance' && <MaintenanceModule theme={theme} showLogMaintenance={showLogMaintenance} setShowLogMaintenance={setShowLogMaintenance} />}
         {activeModule === 'fees' && <FeesModule theme={theme} />}
         {activeModule === 'communication' && <CommunicationModule theme={theme} />}
+        {activeModule === 'your-inputs' && <YourInputsModule theme={theme} userName={currentUser?.name || ''} />}
         {activeModule === 'support' && <SupportModule theme={theme} role="transport-head" />}
         {activeModule === 'profile' && <StakeholderProfile role="transport-head" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>

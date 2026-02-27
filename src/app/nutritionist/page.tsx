@@ -8,12 +8,14 @@ import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import { ChatsView } from '@/components/ChatModule';
 import SupportModule from '@/components/SupportModule';
+import YourInputsModule from '@/components/YourInputsModule';
+import { type TeamMember } from '@/lib/auth';
 import {
   Home, UtensilsCrossed, AlertTriangle, Calendar, Package, MessageSquare,
   Search, Plus, Filter, Download, Eye, Edit, Phone, Clock,
   CheckCircle, Baby, Heart, Leaf, Apple, Wheat, Milk, Egg,
   Users, Bell, ChevronDown, FileText, ShieldAlert,
-  PanelLeftClose, PanelLeftOpen, Headphones
+  PanelLeftClose, PanelLeftOpen, Headphones, ClipboardCheck
 } from 'lucide-react';
 
 // ─── MODULE SIDEBAR ────────────────────────────────
@@ -24,6 +26,7 @@ const modules = [
   { id: 'weekly-menu', label: 'Weekly Menu', icon: Calendar },
   { id: 'inventory', label: 'Inventory', icon: Package },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
+  { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
   { id: 'support', label: 'Support', icon: Headphones },
 ];
 
@@ -79,7 +82,7 @@ const mockMealPlans = [
 
 // ─── MAIN COMPONENT ─────────────────────────────────
 
-function NutritionistDashboard({ theme, themeIdx, onThemeChange, isPreschool }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void; isPreschool?: boolean }) {
+function NutritionistDashboard({ theme, themeIdx, onThemeChange, isPreschool, currentUser }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void; isPreschool?: boolean; currentUser?: TeamMember }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   if (!theme) return null;
@@ -116,6 +119,7 @@ function NutritionistDashboard({ theme, themeIdx, onThemeChange, isPreschool }: 
         {activeModule === 'weekly-menu' && <WeeklyMenuModule theme={theme} />}
         {activeModule === 'inventory' && <InventoryModule theme={theme} />}
         {activeModule === 'communication' && <CommunicationModule theme={theme} />}
+        {activeModule === 'your-inputs' && <YourInputsModule theme={theme} userName={currentUser?.name || ''} />}
         {activeModule === 'support' && <SupportModule theme={theme} role="nutritionist" />}
         {activeModule === 'profile' && <StakeholderProfile role="nutritionist" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>

@@ -5,6 +5,8 @@ import { type Theme } from '@/lib/themes';
 import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import SupportModule from '@/components/SupportModule';
 import StakeholderProfile from '@/components/StakeholderProfile';
+import YourInputsModule from '@/components/YourInputsModule';
+import { type TeamMember } from '@/lib/auth';
 import ChildSelector from '../_components/ChildSelector';
 import { childrenData, modules } from '../_components/data';
 import DashboardHome from '../_modules/DashboardHome';
@@ -16,7 +18,7 @@ import CommunicationModule from '../_modules/CommunicationModule';
 import TransportModule from '../_modules/TransportModule';
 import PickupAuthModule from '../_modules/PickupAuthModule';
 
-export default function ParentDashboard({ theme, themeIdx, onThemeChange }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void }) {
+export default function ParentDashboard({ theme, themeIdx, onThemeChange, currentUser }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void; currentUser?: TeamMember }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [selectedChild, setSelectedChild] = useState('child1');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -75,6 +77,7 @@ export default function ParentDashboard({ theme, themeIdx, onThemeChange }: { th
         {activeModule === 'communication' && <CommunicationModule theme={theme} child={child} />}
         {activeModule === 'transport' && <TransportModule theme={theme} child={child} />}
         {activeModule === 'pickup' && <PickupAuthModule theme={theme} child={child} />}
+        {activeModule === 'your-inputs' && <YourInputsModule theme={theme} userName={currentUser?.name || ''} />}
         {activeModule === 'support' && <SupportModule theme={theme} role="parent" />}
         {activeModule === 'profile' && <StakeholderProfile role="parent" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>
