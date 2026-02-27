@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { type Theme } from '@/lib/themes';
 import {
   Award, ClipboardCheck, IndianRupee, Briefcase, Bus,
-  Download, FileText, ArrowRight, X,
+  Download, FileText, ArrowRight, X, Monitor,
 } from 'lucide-react';
 
 export default function ReportsModule({ theme }: { theme: Theme }) {
@@ -135,6 +135,29 @@ export default function ReportsModule({ theme }: { theme: Theme }) {
         ['Route 10 - Maninagar', 'GJ-01-ST-8901', 'Arjun Desai', '112', '7', '2 min', 'Active'],
         ['Route 11 - Navrangpura', 'GJ-01-UV-2345', 'Prakash Jha', '125', '8', '5 min', 'Active'],
         ['Route 12 - Ellis Bridge', 'GJ-01-WX-6789', 'Sanjay Gupta', '174', '13', '3 min', 'Active'],
+      ],
+    },
+    {
+      id: 'engagement',
+      title: 'Dashboard Engagement',
+      icon: Monitor,
+      color: 'bg-teal-500',
+      lightBg: 'bg-teal-50',
+      borderColor: 'border-teal-200',
+      metrics: [
+        { label: 'Avg Daily Sessions', value: '2.4', color: 'text-teal-600' },
+        { label: 'Active Users', value: '1,240', color: 'text-blue-600' },
+        { label: 'Peak Hour', value: '9-10 AM', color: 'text-purple-600' },
+      ],
+      progressValue: 76,
+      progressColor: 'bg-teal-500',
+      detailHeaders: ['Role', 'Avg Daily Logins', 'Top 3 Dashlets', 'Avg Session'],
+      detailRows: [
+        ['Principal', '4.2', 'Attendance, Approvals, Finance', '18 min'],
+        ['Teachers', '2.1', 'Timetable, Homework, Marks Entry', '8 min'],
+        ['Parents', '1.4', 'Fee Payment, Attendance, Messages', '5 min'],
+        ['Students', '0.8', 'Homework, Results, Timetable', '4 min'],
+        ['Accountant', '3.6', 'Fee Collection, Receipts, Reports', '22 min'],
       ],
     },
   ];

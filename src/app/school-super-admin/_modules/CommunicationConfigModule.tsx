@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { X, Plus, CheckCircle, Edit } from 'lucide-react';
-import { SSAToggle, SectionCard, ModuleHeader } from '../_helpers/components';
+import { SSAToggle, SectionCard, ModuleHeader, InputField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
 
 export default function CommunicationConfigModule({ theme }: { theme: Theme }) {
@@ -62,6 +62,11 @@ export default function CommunicationConfigModule({ theme }: { theme: Theme }) {
   const [editingTemplate, setEditingTemplate] = useState<number | null>(null);
   const templateChannels = ['SMS', 'Email', 'WhatsApp', 'Push'];
   const templateCategories = ['Fee Reminder', 'Attendance Alert', 'Circular', 'Welcome', 'Birthday', 'Emergency'];
+
+  // Gap 17: Auto-Archive Announcements
+  const [autoArchive, setAutoArchive] = useState(true);
+  const [archiveDays, setArchiveDays] = useState('7');
+  const [notifySender, setNotifySender] = useState(true);
 
   return (
     <div className="space-y-4">
@@ -233,6 +238,31 @@ export default function CommunicationConfigModule({ theme }: { theme: Theme }) {
           className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl mt-2`}>
           <Plus size={12} /> Add Template
         </button>
+      </SectionCard>
+
+      <SectionCard title="Announcement Lifecycle" subtitle="Auto-manage announcement visibility and archival" theme={theme}>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex-1 mr-3">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Auto-archive announcements after expiry</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Expired announcements are automatically moved to archive and hidden from all dashboards</p>
+            </div>
+            <SSAToggle on={autoArchive} onChange={() => setAutoArchive(!autoArchive)} theme={theme} />
+          </div>
+          {autoArchive && (
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Archive after X days</p>
+              <InputField value={archiveDays} onChange={setArchiveDays} theme={theme} type="number" placeholder="7" />
+            </div>
+          )}
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex-1 mr-3">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Notify sender before archiving</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Send a notification to the announcement creator 24 hours before auto-archival</p>
+            </div>
+            <SSAToggle on={notifySender} onChange={() => setNotifySender(!notifySender)} theme={theme} />
+          </div>
+        </div>
       </SectionCard>
     </div>
   );

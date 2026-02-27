@@ -26,6 +26,12 @@ export default function SchoolIdentityConfigModule({ theme }: { theme: Theme }) 
   const [apiRateLimit, setApiRateLimit] = useState('100');
   const [logoFile, setLogoFile] = useState<string | null>(null);
 
+  // Gap 23: Locale & Format Settings
+  const [currency, setCurrency] = useState('INR (\u20B9)');
+  const [dateFormat, setDateFormat] = useState('DD/MM/YYYY');
+  const [timeZone, setTimeZone] = useState('IST (UTC+5:30)');
+  const [numberFormat, setNumberFormat] = useState('1,23,456.00 (Indian)');
+
   return (
     <div className="space-y-4">
       <ModuleHeader title="School Identity Configuration" subtitle="Core school details captured during onboarding — editable by SSA" theme={theme} />
@@ -153,6 +159,31 @@ export default function SchoolIdentityConfigModule({ theme }: { theme: Theme }) 
             <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>API Rate Limit (requests/min)</p>
             <InputField value={apiRateLimit} onChange={setApiRateLimit} theme={theme} type="number" placeholder="e.g. 100" />
             <p className={`text-[10px] ${theme.iconColor} mt-1`}>Maximum API requests allowed per minute per user</p>
+          </div>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Locale & Format Settings" subtitle="Currency, date format, and timezone preferences" theme={theme}>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-3">
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Currency</p>
+              <SelectField options={['INR (\u20B9)', 'USD ($)', 'AED (\u062F.\u0625)', 'GBP (\u00A3)', 'EUR (\u20AC)']} value={currency} onChange={setCurrency} theme={theme} />
+            </div>
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Date Format</p>
+              <SelectField options={['DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY-MM-DD']} value={dateFormat} onChange={setDateFormat} theme={theme} />
+            </div>
+          </div>
+          <div className="space-y-3">
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Time Zone</p>
+              <SelectField options={['IST (UTC+5:30)', 'GMT (UTC+0)', 'EST (UTC-5)', 'PST (UTC-8)', 'GST (UTC+4)']} value={timeZone} onChange={setTimeZone} theme={theme} />
+            </div>
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Number Format</p>
+              <SelectField options={['1,23,456.00 (Indian)', '1,234,56.00 (International)']} value={numberFormat} onChange={setNumberFormat} theme={theme} />
+            </div>
           </div>
         </div>
       </SectionCard>

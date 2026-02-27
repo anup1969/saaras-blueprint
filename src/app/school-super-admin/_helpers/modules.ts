@@ -3,7 +3,8 @@ import {
   MessageSquare, Calendar, Clock, Shield, Award, Upload, ShieldCheck, Headphones,
   Download, BookOpen, Users, Lock, Key,
   UtensilsCrossed, Building, Package, Notebook, UserPlus, CreditCard,
-  UserCircle, BarChart3, FileBarChart, Plug, Palette, School, Globe
+  UserCircle, BarChart3, FileBarChart, Plug, Palette, School, Globe,
+  Database, Smartphone
 } from 'lucide-react';
 
 export const modules = [
@@ -42,5 +43,8 @@ export const modules = [
   { id: 'api-integration-config', label: 'API & Integrations', icon: Plug },
   { id: 'branding-config', label: 'Branding & White-label', icon: Palette },
   { id: 'school-identity-config', label: 'School Identity', icon: School },
+  { id: 'data-privacy-config', label: 'Data Privacy', icon: Shield },
+  { id: 'demo-data-seeder', label: 'Demo Data Seeder', icon: Database },
+  { id: 'mobile-app-config', label: 'Mobile App', icon: Smartphone },
   { id: 'support', label: 'Support', icon: Headphones },
 ];

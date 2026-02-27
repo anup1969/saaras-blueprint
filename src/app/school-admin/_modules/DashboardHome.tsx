@@ -1,22 +1,41 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { type Theme } from '@/lib/themes';
 import { StatCard } from '@/components/shared';
 import { dashboardStats } from '@/lib/mock-data';
 import {
   Users, Briefcase, Banknote, CheckCircle, ClipboardCheck, UserPlus, Shield, Bell,
-  Clock, Bus, FileText, ShieldCheck, Radio, CreditCard, Send, BarChart3
+  Clock, Bus, FileText, ShieldCheck, Radio, CreditCard, Send, BarChart3,
+  Moon, Sun, Star, User,
 } from 'lucide-react';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import RecurringTasksCard from '@/components/RecurringTasksCard';
 
 export default function DashboardHome({ theme, stats, onProfileClick }: { theme: Theme; stats: typeof dashboardStats.schoolAdmin; onProfileClick: () => void }) {
+  {/* Gap 13 — Dark Mode state */}
+  const [darkMode, setDarkMode] = useState(false);
+
+  {/* Gap 14 — Pin / Favorite Quick Actions state */}
+  const [pinnedActions, setPinnedActions] = useState<Record<string, boolean>>({});
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className={`text-2xl font-bold ${theme.highlight}`}>School Admin Dashboard</h1>
-        <button onClick={onProfileClick} title="My Profile" className={`w-9 h-9 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold hover:opacity-90 transition-opacity`}>DV</button>
+        <div className="flex items-center gap-2">
+          {/* Gap 13 — Dark Mode / Accessibility Toggle */}
+          <button onClick={() => setDarkMode(!darkMode)} title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'} className={`relative w-9 h-9 rounded-full ${theme.secondaryBg} flex items-center justify-center ${theme.buttonHover} transition-all`}>
+            {darkMode ? <Sun size={16} className="text-amber-500" /> : <Moon size={16} className={theme.iconColor} />}
+          </button>
+          {/* Notification Bell */}
+          <button title="Notifications" className={`relative w-9 h-9 rounded-full ${theme.secondaryBg} flex items-center justify-center ${theme.buttonHover} transition-all`}>
+            <Bell size={16} className={theme.iconColor} />
+            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">5</span>
+          </button>
+          {/* Profile Avatar */}
+          <button onClick={onProfileClick} title="My Profile" className={`w-9 h-9 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold hover:opacity-90 transition-opacity`}>DV</button>
+        </div>
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon={Users} label="Total Students" value={stats.totalStudents} color="bg-blue-500" theme={theme} />
@@ -29,6 +48,26 @@ export default function DashboardHome({ theme, stats, onProfileClick }: { theme:
         <StatCard icon={UserPlus} label="New Enquiries" value={stats.newEnquiries} color="bg-purple-500" sub="this month" theme={theme} />
         <StatCard icon={Shield} label="Active Visitors" value={stats.activeVisitors} color="bg-orange-500" theme={theme} />
         <StatCard icon={Bell} label="Notifications" value="5" color="bg-red-500" sub="unread" theme={theme} />
+      </div>
+
+      {/* Gap 28: User Profile Completeness Score */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <div className="flex items-center gap-3">
+          <div className="relative w-12 h-12">
+            <svg viewBox="0 0 36 36" className="w-full h-full">
+              <circle r="16" cx="18" cy="18" fill="none" stroke="#e5e7eb" strokeWidth="3" />
+              <circle r="16" cx="18" cy="18" fill="none" stroke="#10b981" strokeWidth="3"
+                strokeDasharray={`${78/100 * 100.53} ${100.53 - 78/100 * 100.53}`}
+                strokeDashoffset="25.13" transform="rotate(-90 18 18)" strokeLinecap="round" />
+              <text x="18" y="19" textAnchor="middle" dominantBaseline="middle" className="fill-emerald-600" style={{ fontSize: '9px', fontWeight: 700 }}>78%</text>
+            </svg>
+          </div>
+          <div>
+            <p className={`text-sm font-bold ${theme.highlight}`}>Profile Completeness</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>Missing: Emergency contact, Blood group, Profile photo</p>
+            <button className={`text-[10px] font-bold text-blue-600 hover:underline mt-0.5`}>Complete Profile &rarr;</button>
+          </div>
+        </div>
       </div>
 
       {/* Fees Card */}
@@ -53,7 +92,7 @@ export default function DashboardHome({ theme, stats, onProfileClick }: { theme:
         </div>
       </div>
 
-      {/* Quick Actions */}
+      {/* Quick Actions — Gap 14: Pin / Favorite Quick Actions */}
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
         <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Quick Actions</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -63,10 +102,18 @@ export default function DashboardHome({ theme, stats, onProfileClick }: { theme:
             { label: 'Send Circular', icon: Send, color: 'bg-indigo-500' },
             { label: 'View Reports', icon: BarChart3, color: 'bg-purple-500' },
           ].map(a => (
-            <button key={a.label} className={`flex items-center gap-2 p-3 rounded-xl ${theme.secondaryBg} ${theme.buttonHover} transition-all`}>
+            <div key={a.label} className={`relative flex items-center gap-2 p-3 rounded-xl ${theme.secondaryBg} ${theme.buttonHover} transition-all cursor-pointer`}>
               <div className={`w-8 h-8 rounded-lg ${a.color} flex items-center justify-center text-white`}><a.icon size={14} /></div>
-              <span className={`text-xs font-bold ${theme.highlight}`}>{a.label}</span>
-            </button>
+              <span className={`text-xs font-bold ${theme.highlight} flex-1`}>{a.label}</span>
+              {/* Gap 14 — Pin/Favorite Star Toggle */}
+              <button
+                onClick={(e) => { e.stopPropagation(); setPinnedActions(prev => ({ ...prev, [a.label]: !prev[a.label] })); }}
+                title={pinnedActions[a.label] ? 'Unpin' : 'Pin to favorites'}
+                className="shrink-0"
+              >
+                <Star size={14} className={pinnedActions[a.label] ? 'fill-amber-400 text-amber-400' : theme.iconColor} />
+              </button>
+            </div>
           ))}
         </div>
       </div>

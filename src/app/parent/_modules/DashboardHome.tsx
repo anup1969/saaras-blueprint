@@ -7,7 +7,7 @@ import {
   Calendar, Bus, Download, BookOpen, ArrowRight,
   MessageSquare, IndianRupee, CreditCard,
   ClipboardCheck, BookMarked, Camera, FileText, Info,
-  Mail,
+  Mail, AlertTriangle,
 } from 'lucide-react';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import type { ChildProfile } from '../_components/types';
@@ -44,6 +44,16 @@ export default function DashboardHome({ theme, child, onProfileClick }: { theme:
           </div>
           <button onClick={onProfileClick} title="My Profile" className={`w-9 h-9 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold hover:opacity-90 transition-opacity`}>RM</button>
         </div>
+      </div>
+
+      {/* Gap 20: Action Required — Fee Overdue Banner */}
+      <div className="flex items-center gap-3 p-4 rounded-2xl bg-red-50 border-2 border-red-200">
+        <AlertTriangle size={18} className="text-red-600 shrink-0" />
+        <div className="flex-1">
+          <p className="text-sm font-bold text-red-800">Action Required — Fee Overdue</p>
+          <p className="text-xs text-red-600">Term 2 fee of {'\u20B9'}24,500 was due on Feb 15. Late fee of {'\u20B9'}50/day applies. Please pay to avoid report card hold.</p>
+        </div>
+        <button className="px-3 py-1.5 rounded-xl bg-red-600 text-white text-xs font-bold hover:bg-red-700 transition-all shrink-0">Pay Now</button>
       </div>
 
       {/* Stat Cards */}

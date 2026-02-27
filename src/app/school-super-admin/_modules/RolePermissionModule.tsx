@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Plus, X, Edit, Lock, Trash2, Eye, CheckCircle, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, X, Edit, Lock, Trash2, Eye, CheckCircle, AlertTriangle, ChevronDown, ChevronUp, Search, LogIn, ShieldAlert } from 'lucide-react';
 import { TabBar } from '@/components/shared';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
@@ -178,6 +178,25 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
 
   // Confirmation modal state (A1/A7)
   const [confirmModal, setConfirmModal] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
+
+  // Gap 18: Field-Level Data Masking toggles
+  const [maskingToggles, setMaskingToggles] = useState<Record<string, boolean>>({
+    'Aadhaar Number (show as ****1234)': true,
+    'Phone Number (show as ****5678)': true,
+    'Email (show as a***@school.edu)': false,
+    'Salary / CTC': true,
+    'Bank Account Number': true,
+    'Parent Income Details': false,
+  });
+
+  // Gap 27: Support Impersonation
+  const [impersonateSearch, setImpersonateSearch] = useState('');
+  const impersonateUsers = [
+    { name: 'Rajesh Kumar', role: 'Teacher', dept: 'Mathematics', email: 'rajesh.k@school.edu' },
+    { name: 'Priya Sharma', role: 'Parent', dept: '—', email: 'priya.s@gmail.com' },
+    { name: 'Admin01', role: 'School Admin', dept: 'Administration', email: 'admin01@school.edu' },
+    { name: 'Suresh Patel', role: 'Account Head', dept: 'Accounts', email: 'suresh.p@school.edu' },
+  ];
 
   // ── Permission toggle ──
   const togglePerm = (role: string, mod: string, perm: string) => {
@@ -974,6 +993,78 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
                 )}
               </div>
             ))}
+          </div>
+        </SectionCard>
+
+        {/* Gap 18: Field-Level Data Masking */}
+        <SectionCard title="Field-Level Data Masking" subtitle="Configure which sensitive fields are masked when displayed to users. Masking format is shown next to each field." theme={theme}>
+          <div className="space-y-2">
+            {Object.entries(maskingToggles).map(([field, enabled]) => (
+              <div key={field} className={`flex items-center justify-between p-3 rounded-xl ${theme.secondaryBg}`}>
+                <div className="flex items-center gap-3">
+                  <ShieldAlert size={14} className={enabled ? 'text-emerald-500' : theme.iconColor} />
+                  <div>
+                    <p className={`text-xs font-bold ${theme.highlight}`}>{field.split(' (')[0]}</p>
+                    <p className={`text-[10px] ${theme.iconColor}`}>
+                      {field.includes('(') ? field.match(/\(([^)]+)\)/)?.[1] : 'Hidden from unauthorized roles'}
+                    </p>
+                  </div>
+                </div>
+                <SSAToggle
+                  on={enabled}
+                  onChange={() => setMaskingToggles(prev => ({ ...prev, [field]: !prev[field] }))}
+                  theme={theme}
+                />
+              </div>
+            ))}
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-2.5 flex items-start gap-2 mt-2">
+              <AlertTriangle size={12} className="text-amber-500 mt-0.5 shrink-0" />
+              <p className="text-[10px] text-amber-700">Masking applies to all roles except Super Admin and Principal. Individual overrides can be configured in User Permission Override above.</p>
+            </div>
+          </div>
+        </SectionCard>
+
+        {/* Gap 27: Support Impersonation */}
+        <SectionCard title="Support Impersonation" subtitle="Log in as any user to troubleshoot their experience. All sessions are fully audited." theme={theme}>
+          <div className="space-y-3">
+            <div className="bg-red-50 border border-red-200 rounded-xl p-2.5 flex items-start gap-2">
+              <ShieldAlert size={14} className="text-red-500 mt-0.5 shrink-0" />
+              <p className="text-[10px] text-red-700 font-medium">All impersonation sessions are logged with admin ID, target user, start time, and end time. This feature is restricted to Super Admin only.</p>
+            </div>
+            <div className="relative">
+              <Search size={14} className={`absolute left-3 top-1/2 -translate-y-1/2 ${theme.iconColor}`} />
+              <input
+                type="text"
+                value={impersonateSearch}
+                onChange={e => setImpersonateSearch(e.target.value)}
+                placeholder="Search user by name, role, or email..."
+                className={`w-full pl-9 pr-4 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} placeholder:${theme.iconColor}`}
+              />
+            </div>
+            <div className={`rounded-xl border ${theme.border} overflow-hidden`}>
+              {impersonateUsers
+                .filter(u => !impersonateSearch || u.name.toLowerCase().includes(impersonateSearch.toLowerCase()) || u.role.toLowerCase().includes(impersonateSearch.toLowerCase()) || u.email.toLowerCase().includes(impersonateSearch.toLowerCase()))
+                .map((user, i) => (
+                <div key={i} className={`flex items-center justify-between px-4 py-3 ${i > 0 ? `border-t ${theme.border}` : ''} ${theme.buttonHover} transition-all`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-full ${theme.primary} text-white flex items-center justify-center text-[10px] font-bold`}>
+                      {user.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                    </div>
+                    <div>
+                      <p className={`text-xs font-bold ${theme.highlight}`}>{user.name}</p>
+                      <p className={`text-[10px] ${theme.iconColor}`}>{user.role} {user.dept !== '—' ? `| ${user.dept}` : ''} | {user.email}</p>
+                    </div>
+                  </div>
+                  <button className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 text-white text-[10px] font-bold hover:bg-amber-600 transition-all`}>
+                    <LogIn size={12} /> Login As
+                  </button>
+                </div>
+              ))}
+              {impersonateSearch && impersonateUsers.filter(u => u.name.toLowerCase().includes(impersonateSearch.toLowerCase()) || u.role.toLowerCase().includes(impersonateSearch.toLowerCase()) || u.email.toLowerCase().includes(impersonateSearch.toLowerCase())).length === 0 && (
+                <div className={`px-4 py-6 text-center ${theme.iconColor} text-xs`}>No users found matching &quot;{impersonateSearch}&quot;</div>
+              )}
+            </div>
+            <p className={`text-[10px] ${theme.iconColor} italic`}>Recent impersonation sessions: Rajesh Kumar (2 days ago, 4 min), Admin01 (5 days ago, 12 min)</p>
           </div>
         </SectionCard>
       </>}

@@ -5,11 +5,13 @@ import { StatCard } from '@/components/shared';
 import {
   Settings, CheckCircle, Clock, AlertTriangle, Lock, ShieldCheck,
   Banknote, Calendar, Briefcase, Bus, ClipboardCheck, FileText,
-  MessageSquare, Shield, Award, Upload
+  MessageSquare, Shield, Award, Upload, Eye
 } from 'lucide-react';
 import type { Theme } from '../_helpers/types';
 
 export default function SSADashboardHome({ theme, onNavigate }: { theme: Theme; onNavigate: (moduleId: string) => void }) {
+  const [previewRole, setPreviewRole] = useState<string | null>(null);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -18,6 +20,26 @@ export default function SSADashboardHome({ theme, onNavigate }: { theme: Theme; 
           <p className={`text-xs ${theme.iconColor}`}>Deep module configuration &mdash; all changes are audit-logged</p>
         </div>
       </div>
+
+      {/* Gap 15: Preview Dashboard As... */}
+      {previewRole ? (
+        <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-50 border border-blue-200">
+          <Eye size={14} className="text-blue-600 shrink-0" />
+          <p className="text-xs font-medium text-blue-800 flex-1">Previewing dashboard as <span className="font-bold">{previewRole}</span> — This is a read-only preview of how this role sees their dashboard</p>
+          <button onClick={() => setPreviewRole(null)} className="text-xs font-bold text-blue-600 hover:text-blue-800 underline">Exit Preview</button>
+        </div>
+      ) : (
+        <div className={`flex items-center gap-3 ${theme.cardBg} rounded-xl border ${theme.border} p-3`}>
+          <Eye size={14} className={theme.iconColor} />
+          <p className={`text-xs ${theme.iconColor}`}>Preview Dashboard As:</p>
+          {['Principal', 'Teacher', 'Parent', 'Student', 'Accountant'].map(role => (
+            <button key={role} onClick={() => setPreviewRole(role)}
+              className={`px-3 py-1 rounded-lg text-[10px] font-bold ${theme.secondaryBg} ${theme.iconColor} ${theme.buttonHover} transition-all`}>
+              {role}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 flex items-start gap-3">
         <ShieldCheck size={20} className="text-amber-500 mt-0.5 shrink-0" />

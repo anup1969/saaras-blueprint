@@ -176,6 +176,17 @@ export default function DashboardHome({ theme, isPreschool }: { theme: Theme; is
         </div>
       </div>
 
+      {/* Gap 20: All Caught Up success card */}
+      <div className={`flex items-center gap-3 p-4 rounded-2xl bg-emerald-50 border border-emerald-200`}>
+        <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
+          <CheckCircle size={20} className="text-emerald-600" />
+        </div>
+        <div>
+          <p className="text-sm font-bold text-emerald-800">All Caught Up!</p>
+          <p className="text-xs text-emerald-600">No pending submissions, approvals, or overdue tasks. Great work!</p>
+        </div>
+      </div>
+
       {/* ══════════════════════════════════════════════════════
           SECTION 1: TODAY'S TIMETABLE — Period-wise schedule
           This is the FIRST thing a teacher sees on their dashboard.

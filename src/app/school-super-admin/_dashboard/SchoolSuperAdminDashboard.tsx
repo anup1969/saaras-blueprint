@@ -42,6 +42,9 @@ import ReportEngineConfigModule from '../_modules/ReportEngineConfigModule';
 import APIIntegrationConfigModule from '../_modules/APIIntegrationConfigModule';
 import BrandingWhitelabelConfigModule from '../_modules/BrandingWhitelabelConfigModule';
 import SchoolIdentityConfigModule from '../_modules/SchoolIdentityConfigModule';
+import DataPrivacyConfigModule from '../_modules/DataPrivacyConfigModule';
+import DemoDataSeederModule from '../_modules/DemoDataSeederModule';
+import MobileAppConfigModule from '../_modules/MobileAppConfigModule';
 
 // ─── Module ID → Component mapping ──────────────────
 const MODULE_COMPONENTS: Record<string, React.ComponentType<{ theme: Theme }>> = {
@@ -79,6 +82,9 @@ const MODULE_COMPONENTS: Record<string, React.ComponentType<{ theme: Theme }>> =
   'api-integration-config': APIIntegrationConfigModule,
   'branding-config': BrandingWhitelabelConfigModule,
   'school-identity-config': SchoolIdentityConfigModule,
+  'data-privacy-config': DataPrivacyConfigModule,
+  'demo-data-seeder': DemoDataSeederModule,
+  'mobile-app-config': MobileAppConfigModule,
 };
 
 export default function SchoolSuperAdminDashboard({ theme }: { theme?: Theme }) {
