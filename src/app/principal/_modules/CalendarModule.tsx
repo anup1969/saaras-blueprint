@@ -31,36 +31,42 @@ export default function CalendarModule({ theme }: { theme: Theme }) {
   const currentMonth = 'February 2026';
 
   // Events data — keyed by day of month
+  // Color legend: Exam=blue, Holiday=red, Event/Function=purple, Sports=green, PTM=amber, Meeting=sky, Finance=orange, Training=indigo
   const [eventsData, setEventsData] = useState<Record<number, CalendarEvent[]>>({
-    1: [{ label: 'Fee Due Date', time: '9:00 AM', type: 'Finance', color: 'bg-amber-400' }],
-    5: [{ label: 'Staff Meeting', time: '9:00 AM', type: 'Meeting', color: 'bg-blue-400' }],
+    1: [{ label: 'Fee Due Date', time: '9:00 AM', type: 'Finance', color: 'bg-orange-400' }],
+    5: [{ label: 'Staff Meeting', time: '9:00 AM', type: 'Meeting', color: 'bg-sky-400' }],
+    8: [{ label: 'Inter-House Cricket', time: '10:00 AM', type: 'Sports', color: 'bg-green-400' }],
     10: [
-      { label: 'Staff meeting', time: '9:00 AM', type: 'Meeting', color: 'bg-blue-400' },
-      { label: 'PTM', time: '2:00 PM', type: 'Meeting', color: 'bg-purple-400' },
+      { label: 'Staff meeting', time: '9:00 AM', type: 'Meeting', color: 'bg-sky-400' },
+      { label: 'PTM', time: '2:00 PM', type: 'PTM', color: 'bg-amber-400' },
     ],
-    12: [{ label: 'Board Review', time: '11:00 AM', type: 'Meeting', color: 'bg-blue-400' }],
+    12: [{ label: 'Board Review', time: '11:00 AM', type: 'Meeting', color: 'bg-sky-400' }],
     14: [
-      { label: "Valentine's Day celebration", time: '10:00 AM', type: 'Event', color: 'bg-pink-400' },
-      { label: 'PTM (Classes VI-X)', time: '2:00 PM', type: 'Meeting', color: 'bg-purple-400' },
+      { label: "Valentine's Day celebration", time: '10:00 AM', type: 'Event', color: 'bg-purple-400' },
+      { label: 'PTM (Classes VI-X)', time: '2:00 PM', type: 'PTM', color: 'bg-amber-400' },
     ],
     15: [
-      { label: 'Mid-term exams begin', time: '8:00 AM', type: 'Exam', color: 'bg-red-400' },
-      { label: 'Fee Payment Deadline', time: '5:00 PM', type: 'Finance', color: 'bg-red-400' },
+      { label: 'Mid-term exams begin', time: '8:00 AM', type: 'Exam', color: 'bg-blue-400' },
+      { label: 'Fee Payment Deadline', time: '5:00 PM', type: 'Finance', color: 'bg-orange-400' },
     ],
+    18: [{ label: 'Annual Sports Day', time: '9:00 AM', type: 'Sports', color: 'bg-green-400' }],
     20: [
-      { label: 'Annual Day rehearsal', time: '10:00 AM', type: 'Event', color: 'bg-pink-400' },
+      { label: 'Annual Day rehearsal', time: '10:00 AM', type: 'Event', color: 'bg-purple-400' },
       { label: 'POCSO Awareness Training', time: '2:00 PM', type: 'Training', color: 'bg-indigo-400' },
     ],
-    25: [{ label: 'Inter-School Science Exhibition', time: '9:00 AM', type: 'Event', color: 'bg-teal-400' }],
-    28: [{ label: 'Annual Day Celebration', time: '9:00 AM', type: 'Event', color: 'bg-pink-400' }],
+    22: [{ label: 'Republic Day (Observed)', time: '9:00 AM', type: 'Holiday', color: 'bg-red-400' }],
+    25: [{ label: 'Inter-School Science Exhibition', time: '9:00 AM', type: 'Event', color: 'bg-purple-400' }],
+    28: [{ label: 'Annual Day Celebration', time: '9:00 AM', type: 'Event', color: 'bg-purple-400' }],
   });
 
   const upcomingEvents = [
-    { date: '14-Feb', label: 'Parent-Teacher Meeting (Classes VI-X)', type: 'Meeting', color: 'bg-purple-500' },
-    { date: '15-Feb', label: 'Fee Payment Deadline', type: 'Finance', color: 'bg-red-500' },
+    { date: '14-Feb', label: 'Parent-Teacher Meeting (Classes VI-X)', type: 'PTM', color: 'bg-amber-500' },
+    { date: '15-Feb', label: 'Fee Payment Deadline', type: 'Finance', color: 'bg-orange-500' },
+    { date: '18-Feb', label: 'Annual Sports Day', type: 'Sports', color: 'bg-green-500' },
     { date: '20-Feb', label: 'POCSO Awareness Training — All Staff', type: 'Training', color: 'bg-indigo-500' },
-    { date: '25-Feb', label: 'Inter-School Science Exhibition', type: 'Event', color: 'bg-teal-500' },
-    { date: '28-Feb', label: 'Annual Day Celebration', type: 'Event', color: 'bg-pink-500' },
+    { date: '22-Feb', label: 'Republic Day (Observed)', type: 'Holiday', color: 'bg-red-500' },
+    { date: '25-Feb', label: 'Inter-School Science Exhibition', type: 'Event', color: 'bg-purple-500' },
+    { date: '28-Feb', label: 'Annual Day Celebration', type: 'Event', color: 'bg-purple-500' },
   ];
 
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -87,8 +93,9 @@ export default function CalendarModule({ theme }: { theme: Theme }) {
   const handleAddEvent = () => {
     if (!newEventTitle.trim() || selectedDate === null) return;
     const typeColors: Record<string, string> = {
-      Meeting: 'bg-blue-400', Event: 'bg-pink-400', Exam: 'bg-red-400',
-      Finance: 'bg-amber-400', Training: 'bg-indigo-400', Holiday: 'bg-emerald-400',
+      Exam: 'bg-blue-400', Holiday: 'bg-red-400', Event: 'bg-purple-400',
+      Sports: 'bg-green-400', PTM: 'bg-amber-400', Meeting: 'bg-sky-400',
+      Finance: 'bg-orange-400', Training: 'bg-indigo-400',
     };
     const newEvent: CalendarEvent = {
       label: newEventTitle,
@@ -245,11 +252,13 @@ export default function CalendarModule({ theme }: { theme: Theme }) {
                 className={`w-full px-3 py-2 rounded-lg text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight} outline-none cursor-pointer focus:ring-2 focus:ring-purple-400`}
               >
                 <option value="Meeting">Meeting</option>
-                <option value="Event">Event</option>
+                <option value="Event">Event / Function</option>
                 <option value="Exam">Exam</option>
+                <option value="PTM">PTM</option>
+                <option value="Sports">Sports</option>
+                <option value="Holiday">Holiday</option>
                 <option value="Finance">Finance</option>
                 <option value="Training">Training</option>
-                <option value="Holiday">Holiday</option>
               </select>
             </div>
           </div>

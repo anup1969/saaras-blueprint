@@ -3,15 +3,29 @@
 import { useState } from 'react';
 import { TabBar } from '@/components/shared';
 import { type Theme } from '@/lib/themes';
-import { BarChart3, X } from 'lucide-react';
+import { BarChart3, X, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
 
+/* ──────────────────── Types ──────────────────── */
+interface ClassRow { cls: string; strength: number; present: number; absent: number; pct: number }
+interface ClassGroup { label: string; classes: ClassRow[]; borderColor: string; bgColor: string }
+interface DeptRow { dept: string; total: number; present: number; absent: number; onLeave: number; pct: number; minReq: number }
+interface SubjectGroup { label: string; coordinator: string; subjects: DeptRow[]; borderColor: string; bgColor: string }
+
+/* ──────────────────── Component ──────────────────── */
 export default function DrillDownPanel({ type, theme, onClose }: { type: 'students' | 'academic' | 'non-academic'; theme: Theme; onClose: () => void }) {
-  const [tab, setTab] = useState(type === 'students' ? 'Class-wise' : 'Department-wise');
+  // Remark 5: academic staff uses "Subject-wise", non-academic keeps "Department-wise"
+  const firstStaffTab = type === 'academic' ? 'Subject-wise' : 'Department-wise';
+  const [tab, setTab] = useState(type === 'students' ? 'Class-wise' : firstStaffTab);
+
+  // Remark 4+8: collapsible class groups state
+  const [expandedClassGroups, setExpandedClassGroups] = useState<Record<string, boolean>>({});
+  // Remark 9+7: collapsible subject groups state (academic staff)
+  const [expandedSubjectGroups, setExpandedSubjectGroups] = useState<Record<string, boolean>>({});
 
   const titles: Record<string, string> = { students: 'Student Attendance Analytics', academic: 'Academic Staff Analytics', 'non-academic': 'Non-Academic Staff Analytics' };
 
-  // Student drill-down data
-  const classWiseData = [
+  /* ── Student drill-down data ── */
+  const classWiseData: ClassRow[] = [
     { cls: 'Class I-A', strength: 42, present: 40, absent: 2, pct: 95.2 },
     { cls: 'Class I-B', strength: 40, present: 38, absent: 2, pct: 95.0 },
     { cls: 'Class II-A', strength: 45, present: 41, absent: 4, pct: 91.1 },
@@ -24,6 +38,29 @@ export default function DrillDownPanel({ type, theme, onClose }: { type: 'studen
     { cls: 'Class IX-A', strength: 50, present: 44, absent: 6, pct: 88.0 },
     { cls: 'Class X-A', strength: 48, present: 42, absent: 6, pct: 87.5 },
   ];
+
+  // Remark 4+8: hierarchical class groups
+  const classGroups: ClassGroup[] = [
+    {
+      label: 'Primary School (Classes I-V)',
+      borderColor: 'border-l-blue-500',
+      bgColor: 'bg-blue-500/10',
+      classes: classWiseData.filter(r => /Class (I|II|III|IV|V)-/.test(r.cls) && !/Class (VI|VII|VIII|IX|X)-/.test(r.cls)),
+    },
+    {
+      label: 'Middle School (Classes VI-VIII)',
+      borderColor: 'border-l-amber-500',
+      bgColor: 'bg-amber-500/10',
+      classes: classWiseData.filter(r => /Class (VI|VII|VIII)-/.test(r.cls)),
+    },
+    {
+      label: 'High School (Classes IX-X)',
+      borderColor: 'border-l-purple-500',
+      bgColor: 'bg-purple-500/10',
+      classes: classWiseData.filter(r => /Class (IX|X)-/.test(r.cls)),
+    },
+  ];
+
   const houseWiseData = [
     { house: 'Red House', strength: 312, present: 278, absent: 34, pct: 89.1, color: 'bg-red-500' },
     { house: 'Blue House', strength: 305, present: 271, absent: 34, pct: 88.9, color: 'bg-blue-500' },
@@ -38,27 +75,57 @@ export default function DrillDownPanel({ type, theme, onClose }: { type: 'studen
     { name: 'Reyansh Iyer', cls: 'X-A', reason: 'No Intimation', days: 2, parent: '9876543214' },
   ];
 
-  // Staff drill-down data
-  const deptWiseData = type === 'academic' ? [
-    { dept: 'Mathematics', total: 12, present: 11, absent: 1, onLeave: 0, pct: 91.7 },
-    { dept: 'Science', total: 10, present: 10, absent: 0, onLeave: 0, pct: 100 },
-    { dept: 'English', total: 10, present: 9, absent: 1, onLeave: 1, pct: 90.0 },
-    { dept: 'Social Studies', total: 8, present: 7, absent: 1, onLeave: 0, pct: 87.5 },
-    { dept: 'Hindi', total: 8, present: 8, absent: 0, onLeave: 0, pct: 100 },
-    { dept: 'Computer', total: 5, present: 4, absent: 1, onLeave: 1, pct: 80.0 },
-    { dept: 'Physical Ed.', total: 4, present: 4, absent: 0, onLeave: 0, pct: 100 },
-    { dept: 'Art & Music', total: 6, present: 5, absent: 1, onLeave: 0, pct: 83.3 },
-    { dept: 'Library', total: 3, present: 3, absent: 0, onLeave: 0, pct: 100 },
-  ] : [
-    { dept: 'Administration', total: 12, present: 10, absent: 2, onLeave: 1, pct: 83.3 },
-    { dept: 'Accounts', total: 6, present: 6, absent: 0, onLeave: 0, pct: 100 },
-    { dept: 'IT Support', total: 4, present: 4, absent: 0, onLeave: 0, pct: 100 },
-    { dept: 'Transport', total: 15, present: 13, absent: 2, onLeave: 0, pct: 86.7 },
-    { dept: 'Housekeeping', total: 10, present: 8, absent: 2, onLeave: 1, pct: 80.0 },
-    { dept: 'Security', total: 8, present: 7, absent: 1, onLeave: 0, pct: 87.5 },
-    { dept: 'Lab Assistants', total: 5, present: 5, absent: 0, onLeave: 0, pct: 100 },
-    { dept: 'Canteen', total: 4, present: 3, absent: 1, onLeave: 0, pct: 75.0 },
+  /* ── Staff drill-down data (Remark 6: minReq added) ── */
+  const academicSubjects: DeptRow[] = [
+    { dept: 'Mathematics', total: 12, present: 11, absent: 1, onLeave: 0, pct: 91.7, minReq: 10 },
+    { dept: 'Science', total: 10, present: 10, absent: 0, onLeave: 0, pct: 100, minReq: 8 },
+    { dept: 'English', total: 10, present: 9, absent: 1, onLeave: 1, pct: 90.0, minReq: 8 },
+    { dept: 'Social Studies', total: 8, present: 7, absent: 1, onLeave: 0, pct: 87.5, minReq: 6 },
+    { dept: 'Hindi', total: 8, present: 8, absent: 0, onLeave: 0, pct: 100, minReq: 6 },
+    { dept: 'Computer', total: 5, present: 4, absent: 1, onLeave: 1, pct: 80.0, minReq: 4 },
+    { dept: 'Physical Ed.', total: 4, present: 4, absent: 0, onLeave: 0, pct: 100, minReq: 3 },
+    { dept: 'Art & Music', total: 6, present: 5, absent: 1, onLeave: 0, pct: 83.3, minReq: 5 },
+    { dept: 'Library', total: 3, present: 3, absent: 0, onLeave: 0, pct: 100, minReq: 2 },
   ];
+
+  const nonAcademicDepts: DeptRow[] = [
+    { dept: 'Administration', total: 12, present: 10, absent: 2, onLeave: 1, pct: 83.3, minReq: 10 },
+    { dept: 'Accounts', total: 6, present: 6, absent: 0, onLeave: 0, pct: 100, minReq: 5 },
+    { dept: 'IT Support', total: 4, present: 4, absent: 0, onLeave: 0, pct: 100, minReq: 3 },
+    { dept: 'Transport', total: 15, present: 13, absent: 2, onLeave: 0, pct: 86.7, minReq: 13 },
+    { dept: 'Housekeeping', total: 10, present: 8, absent: 2, onLeave: 1, pct: 80.0, minReq: 8 },
+    { dept: 'Security', total: 8, present: 7, absent: 1, onLeave: 0, pct: 87.5, minReq: 7 },
+    { dept: 'Lab Assistants', total: 5, present: 5, absent: 0, onLeave: 0, pct: 100, minReq: 4 },
+    { dept: 'Canteen', total: 4, present: 3, absent: 1, onLeave: 0, pct: 75.0, minReq: 3 },
+  ];
+
+  const deptWiseData = type === 'academic' ? academicSubjects : nonAcademicDepts;
+
+  // Remark 9+7: Academic staff grouped by school level with coordinators
+  const subjectGroups: SubjectGroup[] = [
+    {
+      label: 'Primary Level',
+      coordinator: 'Ms. Sunita Rao',
+      borderColor: 'border-l-blue-500',
+      bgColor: 'bg-blue-500/10',
+      subjects: academicSubjects.filter(s => ['English', 'Hindi', 'Mathematics', 'Art & Music', 'Physical Ed.', 'Library'].includes(s.dept)),
+    },
+    {
+      label: 'Middle School Level',
+      coordinator: 'Mr. Anil Sharma',
+      borderColor: 'border-l-amber-500',
+      bgColor: 'bg-amber-500/10',
+      subjects: academicSubjects.filter(s => ['Mathematics', 'Science', 'English', 'Social Studies', 'Hindi', 'Computer'].includes(s.dept)),
+    },
+    {
+      label: 'Senior School Level',
+      coordinator: 'Dr. Meena Iyer',
+      borderColor: 'border-l-purple-500',
+      bgColor: 'bg-purple-500/10',
+      subjects: academicSubjects.filter(s => ['Mathematics', 'Science', 'English', 'Social Studies', 'Computer', 'Physical Ed.'].includes(s.dept)),
+    },
+  ];
+
   const absentStaff = type === 'academic' ? [
     { name: 'Ms. Priya Sharma', dept: 'Mathematics', reason: 'Casual Leave', since: 'Today' },
     { name: 'Mr. Arun Verma', dept: 'English', reason: 'Medical Leave', since: '3 days' },
@@ -73,7 +140,41 @@ export default function DrillDownPanel({ type, theme, onClose }: { type: 'studen
   ];
 
   const studentTabs = ['Class-wise', 'House-wise', 'Absent Today'];
-  const staffTabs = ['Department-wise', 'Absent Today', 'Leave Summary'];
+  // Remark 5: academic uses Subject-wise, non-academic keeps Department-wise
+  const staffTabs = type === 'academic'
+    ? ['Subject-wise', 'Absent Today', 'Leave Summary']
+    : ['Department-wise', 'Absent Today', 'Leave Summary'];
+
+  /* ── Helpers ── */
+  const toggleClassGroup = (label: string) => setExpandedClassGroups(prev => ({ ...prev, [label]: !prev[label] }));
+  const toggleSubjectGroup = (label: string) => setExpandedSubjectGroups(prev => ({ ...prev, [label]: !prev[label] }));
+
+  const groupSummary = (rows: { strength?: number; present?: number; absent?: number; pct?: number; total?: number }[]) => {
+    const strength = rows.reduce((s, r) => s + (r.strength ?? r.total ?? 0), 0);
+    const present = rows.reduce((s, r) => s + (r.present ?? 0), 0);
+    const absent = rows.reduce((s, r) => s + (r.absent ?? 0), 0);
+    const avgPct = rows.length > 0 ? Math.round((rows.reduce((s, r) => s + (r.pct ?? 0), 0) / rows.length) * 10) / 10 : 0;
+    return { strength, present, absent, avgPct };
+  };
+
+  const pctBadge = (pct: number, highThresh = 90, midThresh = 85) => (
+    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${pct >= highThresh ? 'bg-emerald-500/20 text-emerald-400' : pct >= midThresh ? 'bg-amber-500/20 text-amber-400' : 'bg-red-500/20 text-red-400'}`}>{pct}%</span>
+  );
+
+  // Remark 6: render present value with warning if below minReq
+  const presentCell = (present: number, minReq: number) => {
+    const isBelowMin = present < minReq;
+    return (
+      <td className="p-2.5 text-center">
+        <span className={`font-bold ${isBelowMin ? 'text-red-500' : 'text-emerald-500'}`}>
+          {present}
+        </span>
+        {isBelowMin && (
+          <AlertTriangle size={10} className="inline ml-1 text-red-400" />
+        )}
+      </td>
+    );
+  };
 
   return (
     <div className={`${theme.cardBg} rounded-2xl border-2 border-blue-500/30 p-4 animate-in`}>
@@ -95,7 +196,7 @@ export default function DrillDownPanel({ type, theme, onClose }: { type: 'studen
       />
 
       <div className="mt-3">
-        {/* Student: Class-wise */}
+        {/* ──── Student: Class-wise (Remark 4+8: collapsible groups) ──── */}
         {type === 'students' && tab === 'Class-wise' && (
           <div className={`border ${theme.border} rounded-xl overflow-hidden`}>
             <table className="w-full text-xs">
@@ -106,22 +207,46 @@ export default function DrillDownPanel({ type, theme, onClose }: { type: 'studen
                 <th className={`text-center p-2.5 ${theme.iconColor} font-bold`}>Absent</th>
                 <th className={`text-center p-2.5 ${theme.iconColor} font-bold`}>%</th>
               </tr></thead>
-              <tbody>{classWiseData.map((r, i) => (
-                <tr key={i} className={`border-t ${theme.border}`}>
-                  <td className={`p-2.5 font-bold ${theme.highlight}`}>{r.cls}</td>
-                  <td className={`p-2.5 text-center ${theme.iconColor}`}>{r.strength}</td>
-                  <td className="p-2.5 text-center text-emerald-500 font-bold">{r.present}</td>
-                  <td className="p-2.5 text-center text-red-500 font-bold">{r.absent}</td>
-                  <td className="p-2.5 text-center">
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${r.pct >= 90 ? 'bg-emerald-500/20 text-emerald-400' : r.pct >= 85 ? 'bg-amber-500/20 text-amber-400' : 'bg-red-500/20 text-red-400'}`}>{r.pct}%</span>
-                  </td>
-                </tr>
-              ))}</tbody>
+              <tbody>
+                {classGroups.map((group) => {
+                  const summary = groupSummary(group.classes);
+                  const isExpanded = !!expandedClassGroups[group.label];
+                  return (
+                    <>{/* Fragment for group */}
+                      {/* Group header row */}
+                      <tr
+                        key={group.label}
+                        className={`border-t ${theme.border} cursor-pointer border-l-4 ${group.borderColor} ${group.bgColor}`}
+                        onClick={() => toggleClassGroup(group.label)}
+                      >
+                        <td className={`p-2.5 font-bold ${theme.highlight} flex items-center gap-1.5`}>
+                          {isExpanded ? <ChevronUp size={14} className={theme.iconColor} /> : <ChevronDown size={14} className={theme.iconColor} />}
+                          {group.label}
+                        </td>
+                        <td className={`p-2.5 text-center font-bold ${theme.iconColor}`}>{summary.strength}</td>
+                        <td className="p-2.5 text-center text-emerald-500 font-bold">{summary.present}</td>
+                        <td className="p-2.5 text-center text-red-500 font-bold">{summary.absent}</td>
+                        <td className="p-2.5 text-center">{pctBadge(summary.avgPct)}</td>
+                      </tr>
+                      {/* Expanded class rows */}
+                      {isExpanded && group.classes.map((r, i) => (
+                        <tr key={`${group.label}-${i}`} className={`border-t ${theme.border} border-l-4 ${group.borderColor}`}>
+                          <td className={`p-2.5 pl-9 ${theme.highlight}`}>{r.cls}</td>
+                          <td className={`p-2.5 text-center ${theme.iconColor}`}>{r.strength}</td>
+                          <td className="p-2.5 text-center text-emerald-500 font-bold">{r.present}</td>
+                          <td className="p-2.5 text-center text-red-500 font-bold">{r.absent}</td>
+                          <td className="p-2.5 text-center">{pctBadge(r.pct)}</td>
+                        </tr>
+                      ))}
+                    </>
+                  );
+                })}
+              </tbody>
             </table>
           </div>
         )}
 
-        {/* Student: House-wise */}
+        {/* ──── Student: House-wise ──── */}
         {type === 'students' && tab === 'House-wise' && (
           <div className="grid grid-cols-2 gap-3">
             {houseWiseData.map((h, i) => (
@@ -141,7 +266,7 @@ export default function DrillDownPanel({ type, theme, onClose }: { type: 'studen
           </div>
         )}
 
-        {/* Student: Absent Today */}
+        {/* ──── Student: Absent Today ──── */}
         {type === 'students' && tab === 'Absent Today' && (
           <div className="space-y-2">
             <p className={`text-[10px] ${theme.iconColor} mb-2`}>249 students absent today. Showing flagged cases:</p>
@@ -160,23 +285,91 @@ export default function DrillDownPanel({ type, theme, onClose }: { type: 'studen
           </div>
         )}
 
-        {/* Staff: Department-wise */}
-        {(type === 'academic' || type === 'non-academic') && tab === 'Department-wise' && (
+        {/* ──── Academic Staff: Subject-wise (Remark 9+7: grouped by school level with coordinators) ──── */}
+        {type === 'academic' && tab === 'Subject-wise' && (
           <div className={`border ${theme.border} rounded-xl overflow-hidden`}>
             <table className="w-full text-xs">
               <thead><tr className={theme.secondaryBg}>
-                <th className={`text-left p-2.5 ${theme.iconColor} font-bold`}>Department</th>
+                <th className={`text-left p-2.5 ${theme.iconColor} font-bold`}>Subject</th>
                 <th className={`text-center p-2.5 ${theme.iconColor} font-bold`}>Total</th>
+                <th className={`text-center p-2.5 ${theme.iconColor} font-bold`}>Min Req</th>
                 <th className={`text-center p-2.5 ${theme.iconColor} font-bold`}>Present</th>
                 <th className={`text-center p-2.5 ${theme.iconColor} font-bold`}>Absent</th>
                 <th className={`text-center p-2.5 ${theme.iconColor} font-bold`}>On Leave</th>
                 <th className={`text-center p-2.5 ${theme.iconColor} font-bold`}>%</th>
               </tr></thead>
-              <tbody>{deptWiseData.map((r, i) => (
+              <tbody>
+                {subjectGroups.map((group) => {
+                  const totals = {
+                    total: group.subjects.reduce((s, r) => s + r.total, 0),
+                    present: group.subjects.reduce((s, r) => s + r.present, 0),
+                    absent: group.subjects.reduce((s, r) => s + r.absent, 0),
+                    onLeave: group.subjects.reduce((s, r) => s + r.onLeave, 0),
+                    minReq: group.subjects.reduce((s, r) => s + r.minReq, 0),
+                    avgPct: group.subjects.length > 0 ? Math.round((group.subjects.reduce((s, r) => s + r.pct, 0) / group.subjects.length) * 10) / 10 : 0,
+                  };
+                  const isExpanded = !!expandedSubjectGroups[group.label];
+                  return (
+                    <>{/* Fragment for subject group */}
+                      <tr
+                        key={group.label}
+                        className={`border-t ${theme.border} cursor-pointer border-l-4 ${group.borderColor} ${group.bgColor}`}
+                        onClick={() => toggleSubjectGroup(group.label)}
+                      >
+                        <td className={`p-2.5 font-bold ${theme.highlight}`}>
+                          <span className="flex items-center gap-1.5">
+                            {isExpanded ? <ChevronUp size={14} className={theme.iconColor} /> : <ChevronDown size={14} className={theme.iconColor} />}
+                            <span>
+                              {group.label}
+                              <span className={`font-normal text-[10px] ${theme.iconColor} ml-1.5`}>(Coordinator: {group.coordinator})</span>
+                            </span>
+                          </span>
+                        </td>
+                        <td className={`p-2.5 text-center font-bold ${theme.iconColor}`}>{totals.total}</td>
+                        <td className={`p-2.5 text-center ${theme.iconColor}`}>{totals.minReq}</td>
+                        <td className="p-2.5 text-center text-emerald-500 font-bold">{totals.present}</td>
+                        <td className="p-2.5 text-center text-red-500 font-bold">{totals.absent}</td>
+                        <td className={`p-2.5 text-center ${theme.iconColor}`}>{totals.onLeave}</td>
+                        <td className="p-2.5 text-center">{pctBadge(totals.avgPct, 90, 80)}</td>
+                      </tr>
+                      {isExpanded && group.subjects.map((r, i) => (
+                        <tr key={`${group.label}-${i}`} className={`border-t ${theme.border} border-l-4 ${group.borderColor}`}>
+                          <td className={`p-2.5 pl-9 ${theme.highlight}`}>{r.dept}</td>
+                          <td className={`p-2.5 text-center ${theme.iconColor}`}>{r.total}</td>
+                          <td className={`p-2.5 text-center ${theme.iconColor}`}>{r.minReq}</td>
+                          {presentCell(r.present, r.minReq)}
+                          <td className="p-2.5 text-center text-red-500 font-bold">{r.absent}</td>
+                          <td className={`p-2.5 text-center ${theme.iconColor}`}>{r.onLeave}</td>
+                          <td className="p-2.5 text-center">{pctBadge(r.pct, 90, 80)}</td>
+                        </tr>
+                      ))}
+                    </>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* ──── Non-Academic Staff: Department-wise (flat table + minReq, Remark 6) ──── */}
+        {type === 'non-academic' && tab === 'Department-wise' && (
+          <div className={`border ${theme.border} rounded-xl overflow-hidden`}>
+            <table className="w-full text-xs">
+              <thead><tr className={theme.secondaryBg}>
+                <th className={`text-left p-2.5 ${theme.iconColor} font-bold`}>Department</th>
+                <th className={`text-center p-2.5 ${theme.iconColor} font-bold`}>Total</th>
+                <th className={`text-center p-2.5 ${theme.iconColor} font-bold`}>Min Req</th>
+                <th className={`text-center p-2.5 ${theme.iconColor} font-bold`}>Present</th>
+                <th className={`text-center p-2.5 ${theme.iconColor} font-bold`}>Absent</th>
+                <th className={`text-center p-2.5 ${theme.iconColor} font-bold`}>On Leave</th>
+                <th className={`text-center p-2.5 ${theme.iconColor} font-bold`}>%</th>
+              </tr></thead>
+              <tbody>{nonAcademicDepts.map((r, i) => (
                 <tr key={i} className={`border-t ${theme.border}`}>
                   <td className={`p-2.5 font-bold ${theme.highlight}`}>{r.dept}</td>
                   <td className={`p-2.5 text-center ${theme.iconColor}`}>{r.total}</td>
-                  <td className="p-2.5 text-center text-emerald-500 font-bold">{r.present}</td>
+                  <td className={`p-2.5 text-center ${theme.iconColor}`}>{r.minReq}</td>
+                  {presentCell(r.present, r.minReq)}
                   <td className="p-2.5 text-center text-red-500 font-bold">{r.absent}</td>
                   <td className={`p-2.5 text-center ${theme.iconColor}`}>{r.onLeave}</td>
                   <td className="p-2.5 text-center">
@@ -188,7 +381,7 @@ export default function DrillDownPanel({ type, theme, onClose }: { type: 'studen
           </div>
         )}
 
-        {/* Staff: Absent Today */}
+        {/* ──── Staff: Absent Today ──── */}
         {(type === 'academic' || type === 'non-academic') && tab === 'Absent Today' && (
           <div className="space-y-2">
             <p className={`text-[10px] ${theme.iconColor} mb-2`}>{absentStaff.length} staff members absent today:</p>
@@ -208,7 +401,7 @@ export default function DrillDownPanel({ type, theme, onClose }: { type: 'studen
           </div>
         )}
 
-        {/* Staff: Leave Summary */}
+        {/* ──── Staff: Leave Summary ──── */}
         {(type === 'academic' || type === 'non-academic') && tab === 'Leave Summary' && (
           <div className="space-y-3">
             <div className="grid grid-cols-4 gap-3">

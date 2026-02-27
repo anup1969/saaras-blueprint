@@ -17,6 +17,7 @@ import DrillDownPanel from './DrillDownPanel';
 export default function DashboardHome({ theme, onProfileClick, isPreschool }: { theme: Theme; onProfileClick: () => void; isPreschool?: boolean }) {
   const [drillDown, setDrillDown] = useState<'students' | 'academic' | 'non-academic' | null>(null);
   const [showEnquiryPipeline, setShowEnquiryPipeline] = useState(false);
+  const [showFeeDrillDown, setShowFeeDrillDown] = useState(false);
 
   {/* Gap 13 — Dark Mode state */}
   const [darkMode, setDarkMode] = useState(false);
@@ -170,9 +171,11 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
 
       {/* Stat Cards + Quick Actions — same row */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-        <StatCard icon={Banknote} label="Fee This Month" value={`\u20B912.4L / \u20B918L`} color="bg-emerald-500" sub="69% collected" theme={theme} />
+        <button onClick={() => setShowFeeDrillDown(!showFeeDrillDown)} className="text-left">
+          <StatCard icon={Banknote} label="Fee This Month" value={`\u20B912.4L / \u20B918L`} color="bg-emerald-500" sub="Click for breakdown" theme={theme} />
+        </button>
         <button onClick={() => setShowEnquiryPipeline(!showEnquiryPipeline)} className="text-left">
-          <StatCard icon={Users} label="New Enquiries" value="12" color="bg-purple-500" sub="Click to view pipeline" theme={theme} />
+          <StatCard icon={Users} label="New Enquiries" value="12" color="bg-purple-500" sub="Click to view pipeline | 45 seats open" theme={theme} />
         </button>
         <StatCard icon={Clock} label="Pending Approvals" value="8" color="bg-amber-500" theme={theme} />
         <StatCard icon={Banknote} label="Today's Collection" value={`\u20B92,45,000`} color="bg-green-500" sub="Outstanding: \u20B918.5L" theme={theme} />
@@ -200,6 +203,10 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
           <div className="flex items-center justify-between mb-3">
             <h3 className={`text-sm font-bold ${theme.highlight}`}>Enquiry Pipeline — Today</h3>
             <button onClick={() => setShowEnquiryPipeline(false)} className={`text-xs ${theme.iconColor} hover:text-red-500`}>Close</button>
+          </div>
+          {/* Admission Vacancies Summary */}
+          <div className="mb-3 px-3 py-2.5 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-700">
+            <p className="text-xs font-bold">Admission Vacancies: <span className="font-medium">KG: 8 seats | Class I: 5 | Class VI: 12 | Total: 45 seats across all grades</span></p>
           </div>
           <div className="grid grid-cols-5 gap-2 mb-3">
             {[
@@ -253,6 +260,64 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
                       }`}>{e.stage}</span>
                     </td>
                     <td className={`py-2 px-2 ${theme.iconColor}`}>{e.date}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Fee Collection Drill-Down */}
+      {showFeeDrillDown && (
+        <div className={`${theme.cardBg} rounded-2xl border-2 border-emerald-400 ring-1 ring-emerald-400/30 p-4`}>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>Fee Collection Breakdown — This Month</h3>
+            <button onClick={() => setShowFeeDrillDown(false)} className={`text-xs ${theme.iconColor} hover:text-red-500`}>Close</button>
+          </div>
+          {/* Summary Stats */}
+          <div className="grid grid-cols-4 gap-2 mb-4">
+            {[
+              { label: 'Total Collected', value: '\u20B912.4L', color: 'text-emerald-600', bgColor: 'bg-emerald-50 border-emerald-200' },
+              { label: 'Outstanding', value: '\u20B95.6L', color: 'text-red-600', bgColor: 'bg-red-50 border-red-200' },
+              { label: 'Defaulters', value: '45 students', color: 'text-amber-600', bgColor: 'bg-amber-50 border-amber-200' },
+              { label: 'Online vs Cash', value: '68% / 32%', color: 'text-blue-600', bgColor: 'bg-blue-50 border-blue-200' },
+            ].map(s => (
+              <div key={s.label} className={`${s.bgColor} border rounded-xl p-3 text-center`}>
+                <p className={`text-[10px] ${theme.iconColor} mb-1`}>{s.label}</p>
+                <p className={`text-sm font-bold ${s.color}`}>{s.value}</p>
+              </div>
+            ))}
+          </div>
+          {/* Class-wise Collection Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className={`border-b ${theme.border}`}>
+                  <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Class</th>
+                  <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Total Due</th>
+                  <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Collected</th>
+                  <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Outstanding</th>
+                  <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Collection %</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { cls: 'Class I', due: '\u20B91,80,000', collected: '\u20B91,72,000', outstanding: '\u20B98,000', pct: 96 },
+                  { cls: 'Class II', due: '\u20B92,10,000', collected: '\u20B91,89,000', outstanding: '\u20B921,000', pct: 90 },
+                  { cls: 'Class III', due: '\u20B91,95,000', collected: '\u20B91,62,000', outstanding: '\u20B933,000', pct: 83 },
+                  { cls: 'Class V', due: '\u20B92,40,000', collected: '\u20B92,16,000', outstanding: '\u20B924,000', pct: 90 },
+                  { cls: 'Class VI', due: '\u20B92,60,000', collected: '\u20B92,08,000', outstanding: '\u20B952,000', pct: 80 },
+                  { cls: 'Class VIII', due: '\u20B93,00,000', collected: '\u20B92,22,000', outstanding: '\u20B978,000', pct: 74 },
+                  { cls: 'Class IX', due: '\u20B93,20,000', collected: '\u20B92,24,000', outstanding: '\u20B996,000', pct: 70 },
+                  { cls: 'Class X', due: '\u20B93,50,000', collected: '\u20B93,15,000', outstanding: '\u20B935,000', pct: 90 },
+                ].map((r, i) => (
+                  <tr key={i} className={`border-b ${theme.border} ${theme.buttonHover}`}>
+                    <td className={`py-2 px-2 ${theme.highlight} font-bold`}>{r.cls}</td>
+                    <td className={`py-2 px-2 ${theme.iconColor}`}>{r.due}</td>
+                    <td className={`py-2 px-2 ${theme.iconColor}`}>{r.collected}</td>
+                    <td className={`py-2 px-2 ${theme.iconColor}`}>{r.outstanding}</td>
+                    <td className={`py-2 px-2 font-bold ${r.pct >= 90 ? 'text-emerald-600' : r.pct >= 75 ? 'text-amber-600' : 'text-red-600'}`}>{r.pct}%</td>
                   </tr>
                 ))}
               </tbody>
