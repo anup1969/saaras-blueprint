@@ -10,6 +10,7 @@ interface ClassRow { cls: string; strength: number; present: number; absent: num
 interface ClassGroup { label: string; classes: ClassRow[]; borderColor: string; bgColor: string }
 interface DeptRow { dept: string; total: number; present: number; absent: number; onLeave: number; pct: number; minReq: number }
 interface SubjectGroup { label: string; coordinator: string; subjects: DeptRow[]; borderColor: string; bgColor: string }
+interface SchoolDept { dept: string; head: string; total: number; present: number; absent: number; onLeave: number; pct: number; minReq: number; borderColor: string; bgColor: string; subjects: string[] }
 
 /* ──────────────────── Component ──────────────────── */
 export default function DrillDownPanel({ type, theme, onClose }: { type: 'students' | 'academic' | 'non-academic'; theme: Theme; onClose: () => void }) {
@@ -21,6 +22,8 @@ export default function DrillDownPanel({ type, theme, onClose }: { type: 'studen
   const [expandedClassGroups, setExpandedClassGroups] = useState<Record<string, boolean>>({});
   // Remark 9+7: collapsible subject groups state (academic staff)
   const [expandedSubjectGroups, setExpandedSubjectGroups] = useState<Record<string, boolean>>({});
+  // Department-wise (organizational) expanded state
+  const [expandedDepts, setExpandedDepts] = useState<Record<string, boolean>>({});
 
   const titles: Record<string, string> = { students: 'Student Attendance Analytics', academic: 'Academic Staff Analytics', 'non-academic': 'Non-Academic Staff Analytics' };
 
@@ -126,6 +129,16 @@ export default function DrillDownPanel({ type, theme, onClose }: { type: 'studen
     },
   ];
 
+  // Organizational departments (Primary, Secondary, Pre-Primary, Arts, Commerce, Science streams)
+  const schoolDepartments: SchoolDept[] = [
+    { dept: 'Pre-Primary', head: 'Ms. Rekha Jain', total: 8, present: 8, absent: 0, onLeave: 0, pct: 100, minReq: 7, borderColor: 'border-l-pink-500', bgColor: 'bg-pink-500/10', subjects: ['Play Group', 'Nursery', 'LKG', 'UKG'] },
+    { dept: 'Primary', head: 'Ms. Sunita Rao', total: 18, present: 16, absent: 2, onLeave: 1, pct: 88.9, minReq: 15, borderColor: 'border-l-blue-500', bgColor: 'bg-blue-500/10', subjects: ['English', 'Hindi', 'Mathematics', 'EVS', 'Art & Music', 'Physical Ed.'] },
+    { dept: 'Secondary', head: 'Mr. Anil Sharma', total: 20, present: 18, absent: 2, onLeave: 0, pct: 90.0, minReq: 17, borderColor: 'border-l-amber-500', bgColor: 'bg-amber-500/10', subjects: ['Mathematics', 'Science', 'English', 'Social Studies', 'Hindi', 'Computer'] },
+    { dept: 'Senior Secondary — Science', head: 'Dr. Meena Iyer', total: 10, present: 9, absent: 1, onLeave: 1, pct: 90.0, minReq: 8, borderColor: 'border-l-purple-500', bgColor: 'bg-purple-500/10', subjects: ['Physics', 'Chemistry', 'Biology', 'Mathematics', 'Computer Science'] },
+    { dept: 'Senior Secondary — Commerce', head: 'Mr. Rajesh Kapoor', total: 6, present: 6, absent: 0, onLeave: 0, pct: 100, minReq: 5, borderColor: 'border-l-emerald-500', bgColor: 'bg-emerald-500/10', subjects: ['Accountancy', 'Business Studies', 'Economics', 'Mathematics'] },
+    { dept: 'Senior Secondary — Arts', head: 'Ms. Nandini Desai', total: 4, present: 4, absent: 0, onLeave: 0, pct: 100, minReq: 3, borderColor: 'border-l-teal-500', bgColor: 'bg-teal-500/10', subjects: ['History', 'Political Science', 'Geography', 'Psychology'] },
+  ];
+
   const absentStaff = type === 'academic' ? [
     { name: 'Ms. Priya Sharma', dept: 'Mathematics', reason: 'Casual Leave', since: 'Today' },
     { name: 'Mr. Arun Verma', dept: 'English', reason: 'Medical Leave', since: '3 days' },
@@ -140,14 +153,15 @@ export default function DrillDownPanel({ type, theme, onClose }: { type: 'studen
   ];
 
   const studentTabs = ['Class-wise', 'House-wise', 'Absent Today'];
-  // Remark 5: academic uses Subject-wise, non-academic keeps Department-wise
+  // Remark 5: academic uses Subject-wise + Department-wise, non-academic keeps Department-wise
   const staffTabs = type === 'academic'
-    ? ['Subject-wise', 'Absent Today', 'Leave Summary']
+    ? ['Subject-wise', 'Department-wise', 'Absent Today', 'Leave Summary']
     : ['Department-wise', 'Absent Today', 'Leave Summary'];
 
   /* ── Helpers ── */
   const toggleClassGroup = (label: string) => setExpandedClassGroups(prev => ({ ...prev, [label]: !prev[label] }));
   const toggleSubjectGroup = (label: string) => setExpandedSubjectGroups(prev => ({ ...prev, [label]: !prev[label] }));
+  const toggleDept = (label: string) => setExpandedDepts(prev => ({ ...prev, [label]: !prev[label] }));
 
   const groupSummary = (rows: { strength?: number; present?: number; absent?: number; pct?: number; total?: number }[]) => {
     const strength = rows.reduce((s, r) => s + (r.strength ?? r.total ?? 0), 0);
@@ -346,6 +360,75 @@ export default function DrillDownPanel({ type, theme, onClose }: { type: 'studen
                     </>
                   );
                 })}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* ──── Academic Staff: Department-wise (organizational departments — Pre-Primary, Primary, Secondary, Arts, Commerce, Science) ──── */}
+        {type === 'academic' && tab === 'Department-wise' && (
+          <div className={`border ${theme.border} rounded-xl overflow-hidden`}>
+            <table className="w-full text-xs">
+              <thead><tr className={theme.secondaryBg}>
+                <th className={`text-left p-2.5 ${theme.iconColor} font-bold`}>Department</th>
+                <th className={`text-center p-2.5 ${theme.iconColor} font-bold`}>Total</th>
+                <th className={`text-center p-2.5 ${theme.iconColor} font-bold`}>Min Req</th>
+                <th className={`text-center p-2.5 ${theme.iconColor} font-bold`}>Present</th>
+                <th className={`text-center p-2.5 ${theme.iconColor} font-bold`}>Absent</th>
+                <th className={`text-center p-2.5 ${theme.iconColor} font-bold`}>On Leave</th>
+                <th className={`text-center p-2.5 ${theme.iconColor} font-bold`}>%</th>
+              </tr></thead>
+              <tbody>
+                {schoolDepartments.map((d) => {
+                  const isExpanded = !!expandedDepts[d.dept];
+                  return (
+                    <>{/* Fragment for department */}
+                      <tr
+                        key={d.dept}
+                        className={`border-t ${theme.border} cursor-pointer border-l-4 ${d.borderColor} ${d.bgColor}`}
+                        onClick={() => toggleDept(d.dept)}
+                      >
+                        <td className={`p-2.5 font-bold ${theme.highlight}`}>
+                          <span className="flex items-center gap-1.5">
+                            {isExpanded ? <ChevronUp size={14} className={theme.iconColor} /> : <ChevronDown size={14} className={theme.iconColor} />}
+                            <span>
+                              {d.dept}
+                              <span className={`font-normal text-[10px] ${theme.iconColor} ml-1.5`}>(HOD: {d.head})</span>
+                            </span>
+                          </span>
+                        </td>
+                        <td className={`p-2.5 text-center font-bold ${theme.iconColor}`}>{d.total}</td>
+                        <td className={`p-2.5 text-center ${theme.iconColor}`}>{d.minReq}</td>
+                        {presentCell(d.present, d.minReq)}
+                        <td className="p-2.5 text-center text-red-500 font-bold">{d.absent}</td>
+                        <td className={`p-2.5 text-center ${theme.iconColor}`}>{d.onLeave}</td>
+                        <td className="p-2.5 text-center">{pctBadge(d.pct, 90, 80)}</td>
+                      </tr>
+                      {isExpanded && (
+                        <tr key={`${d.dept}-detail`} className={`border-t ${theme.border} border-l-4 ${d.borderColor}`}>
+                          <td colSpan={7} className="p-2.5 pl-9">
+                            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Subjects covered:</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {d.subjects.map(s => (
+                                <span key={s} className={`text-[10px] px-2 py-0.5 rounded-full ${theme.secondaryBg} ${theme.highlight} font-medium`}>{s}</span>
+                              ))}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </>
+                  );
+                })}
+                {/* Summary row */}
+                <tr className={`border-t-2 ${theme.border} ${theme.secondaryBg}`}>
+                  <td className={`p-2.5 font-bold ${theme.highlight}`}>Total</td>
+                  <td className={`p-2.5 text-center font-bold ${theme.highlight}`}>{schoolDepartments.reduce((s, d) => s + d.total, 0)}</td>
+                  <td className={`p-2.5 text-center font-bold ${theme.iconColor}`}>{schoolDepartments.reduce((s, d) => s + d.minReq, 0)}</td>
+                  <td className="p-2.5 text-center text-emerald-500 font-bold">{schoolDepartments.reduce((s, d) => s + d.present, 0)}</td>
+                  <td className="p-2.5 text-center text-red-500 font-bold">{schoolDepartments.reduce((s, d) => s + d.absent, 0)}</td>
+                  <td className={`p-2.5 text-center ${theme.iconColor}`}>{schoolDepartments.reduce((s, d) => s + d.onLeave, 0)}</td>
+                  <td className="p-2.5 text-center">{pctBadge(Math.round(schoolDepartments.reduce((s, d) => s + d.pct, 0) / schoolDepartments.length * 10) / 10, 90, 80)}</td>
+                </tr>
               </tbody>
             </table>
           </div>
