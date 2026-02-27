@@ -4,11 +4,21 @@ import { useState } from 'react';
 import { type Theme } from '@/lib/themes';
 import {
   Award, ClipboardCheck, IndianRupee, Briefcase, Bus,
-  Download, FileText, ArrowRight, X, Monitor,
+  Download, FileText, ArrowRight, X, Monitor, TrendingUp,
 } from 'lucide-react';
 
 export default function ReportsModule({ theme }: { theme: Theme }) {
   const [expandedReport, setExpandedReport] = useState<string | null>(null);
+  const [rankTrendExpanded, setRankTrendExpanded] = useState(false);
+
+  // Student rank trend data (moved from DashboardHome)
+  const rankTrendStudents = [
+    { name: 'Aarav Singh', cls: '8A', ranks: [5, 3, 2], trend: 'up' as const },
+    { name: 'Meera Joshi', cls: '10B', ranks: [8, 6, 4], trend: 'up' as const },
+    { name: 'Rohan Patel', cls: '9A', ranks: [3, 5, 7], trend: 'down' as const },
+    { name: 'Ananya Sharma', cls: '11A', ranks: [2, 2, 1], trend: 'up' as const },
+    { name: 'Karthik Nair', cls: '12B', ranks: [10, 7, 5], trend: 'up' as const },
+  ];
 
   const reportCards = [
     {
@@ -160,6 +170,29 @@ export default function ReportsModule({ theme }: { theme: Theme }) {
         ['Accountant', '3.6', 'Fee Collection, Receipts, Reports', '22 min'],
       ],
     },
+    {
+      id: 'rankTrend',
+      title: 'Student Rank Trend',
+      icon: TrendingUp,
+      color: 'bg-rose-500',
+      lightBg: 'bg-rose-50',
+      borderColor: 'border-rose-200',
+      metrics: [
+        { label: 'Improving', value: '4', color: 'text-emerald-600' },
+        { label: 'Declining', value: '1', color: 'text-red-600' },
+        { label: 'Exams Tracked', value: '3', color: 'text-blue-600' },
+      ],
+      progressValue: 80,
+      progressColor: 'bg-rose-500',
+      detailHeaders: ['Student', 'Class', 'Exam 1', 'Exam 2', 'Exam 3', 'Trend'],
+      detailRows: [
+        ['Aarav Singh', '8A', '#5', '#3', '#2', 'Improving'],
+        ['Meera Joshi', '10B', '#8', '#6', '#4', 'Improving'],
+        ['Rohan Patel', '9A', '#3', '#5', '#7', 'Declining'],
+        ['Ananya Sharma', '11A', '#2', '#2', '#1', 'Improving'],
+        ['Karthik Nair', '12B', '#10', '#7', '#5', 'Improving'],
+      ],
+    },
   ];
 
   return (
@@ -249,6 +282,36 @@ export default function ReportsModule({ theme }: { theme: Theme }) {
                         </tbody>
                       </table>
                     </div>
+                    {/* Sparkline visualization for Rank Trend */}
+                    {card.id === 'rankTrend' && (
+                      <div className={`mt-3 pt-3 border-t ${theme.border}`}>
+                        <p className={`text-[10px] font-bold uppercase ${theme.iconColor} mb-2`}>Visual Rank Trend (Sparklines)</p>
+                        <div className="grid grid-cols-5 gap-3">
+                          {rankTrendStudents.map((s, i) => {
+                            const maxRank = 12;
+                            const points = s.ranks.map((r, idx) => {
+                              const x = 5 + idx * 20;
+                              const y = 2 + (r / maxRank) * 16;
+                              return `${x},${y}`;
+                            });
+                            const polyline = points.join(' ');
+                            const color = s.trend === 'up' ? '#10b981' : '#ef4444';
+                            return (
+                              <div key={i} className={`${theme.secondaryBg} rounded-xl p-3 text-center`}>
+                                <svg viewBox="0 0 50 20" className="w-16 h-8 mx-auto mb-1">
+                                  <polyline points={polyline} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                  {s.ranks.map((r, idx) => (
+                                    <circle key={idx} cx={5 + idx * 20} cy={2 + (r / maxRank) * 16} r="2" fill={color} />
+                                  ))}
+                                </svg>
+                                <p className={`text-[10px] font-bold ${theme.highlight}`}>{s.name}</p>
+                                <p className={`text-[9px] ${theme.iconColor}`}>{s.cls} — #{s.ranks[2]}</p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                     <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100">
                       <button className={`px-3 py-1.5 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-1`}>
                         <Download size={10} /> Download PDF

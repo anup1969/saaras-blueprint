@@ -66,6 +66,7 @@ export default function FeeConfigModule({ theme }: { theme: Theme }) {
   const [concessionApprovalRequired, setConcessionApprovalRequired] = useState(true);
   const [concessionApprovalChain] = useState(['Accounts Officer', 'Principal', 'Trust / Management']);
   const [maxConcessionWithoutApproval, setMaxConcessionWithoutApproval] = useState('5000');
+  const [customFeeHeads, setCustomFeeHeads] = useState<{ name: string; frequency: string; enabled: boolean }[]>([]);
   const [blockRules, setBlockRules] = useState<Record<string, boolean>>({
     'Block report card if fees overdue > 60 days': true,
     'Block TC generation if outstanding > 0': true,
@@ -134,6 +135,38 @@ export default function FeeConfigModule({ theme }: { theme: Theme }) {
             </div>
           ))}
         </div>
+
+        {/* Custom Fee Heads added by user */}
+        {customFeeHeads.length > 0 && (
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 mt-2">
+            {customFeeHeads.map((cfh, idx) => (
+              <div key={idx} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg} ring-1 ring-emerald-200`}>
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <SSAToggle on={cfh.enabled} onChange={() => setCustomFeeHeads(p => p.map((h, i) => i === idx ? { ...h, enabled: !h.enabled } : h))} theme={theme} label={cfh.name} />
+                  <input
+                    value={cfh.name}
+                    onChange={e => setCustomFeeHeads(p => p.map((h, i) => i === idx ? { ...h, name: e.target.value } : h))}
+                    placeholder="Fee head name..."
+                    className={`text-xs font-medium ${theme.highlight} bg-transparent border-b ${theme.border} outline-none flex-1 min-w-0 px-1 py-0.5 focus:border-emerald-400`}
+                  />
+                </div>
+                {cfh.enabled && (
+                  <select value={cfh.frequency} onChange={e => setCustomFeeHeads(p => p.map((h, i) => i === idx ? { ...h, frequency: e.target.value } : h))}
+                    className={`text-[10px] px-1.5 py-0.5 rounded-lg border ${theme.border} ${theme.inputBg} ${theme.highlight} ml-2`}>
+                    {(feeTemplate === 'term-wise' ? ['Term 1', 'Term 2', 'Term 3', 'All Terms'] : frequencies).map(f => <option key={f} value={f}>{f}</option>)}
+                  </select>
+                )}
+                <button onClick={() => setCustomFeeHeads(p => p.filter((_, i) => i !== idx))}
+                  className="text-red-400 hover:text-red-600 ml-2 shrink-0"><X size={12} /></button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <button onClick={() => setCustomFeeHeads(p => [...p, { name: '', frequency: 'Monthly', enabled: true }])}
+          className={`flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 px-3 py-2 rounded-xl mt-3 transition-colors`}>
+          <Plus size={12} /> Add Fee Head
+        </button>
 
       </SectionCard>
       )}

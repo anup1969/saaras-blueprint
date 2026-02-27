@@ -8,7 +8,7 @@ import {
   Send, Calendar, GraduationCap, Briefcase, ChevronRight, Banknote,
   ClipboardCheck, Star, FileText, ShieldCheck, Award, User, Sparkles,
   Radio, Cake, Heart, Moon, Sun, Image, LayoutGrid, X, Eye, EyeOff,
-  Timer,
+  Timer, Phone, Stethoscope, ChevronDown, ChevronUp, Info,
 } from 'lucide-react';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import RecurringTasksCard from '@/components/RecurringTasksCard';
@@ -27,6 +27,11 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
     'birthday': true, 'bellCurve': true, 'sparkline': true, 'markEntry': true,
     'infirmary': true, 'progressRing': true, 'rteQuota': true, 'countdown': true,
   });
+
+  {/* Compact card expanded states */}
+  const [birthdayExpanded, setBirthdayExpanded] = useState(false);
+  const [galleryExpanded, setGalleryExpanded] = useState(false);
+  const [infirmaryExpanded, setInfirmaryExpanded] = useState(false);
 
   {/* Gap 22 — Mini-Profile Popup state */}
   const [miniProfile, setMiniProfile] = useState<{name: string; class?: string; role?: string} | null>(null);
@@ -165,7 +170,7 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
 
       {/* Stat Cards + Quick Actions — same row */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-        <StatCard icon={ClipboardCheck} label="Avg Attendance" value="94.2%" color="bg-emerald-500" theme={theme} />
+        <StatCard icon={Banknote} label="Fee This Month" value={`\u20B912.4L / \u20B918L`} color="bg-emerald-500" sub="69% collected" theme={theme} />
         <button onClick={() => setShowEnquiryPipeline(!showEnquiryPipeline)} className="text-left">
           <StatCard icon={Users} label="New Enquiries" value="12" color="bg-purple-500" sub="Click to view pipeline" theme={theme} />
         </button>
@@ -260,61 +265,183 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
 
       {/* ========== GAP DASHLETS (conditionally visible via dashlet gallery) ========== */}
 
-      {/* Gap 1 — Birthday & Gallery Dashlet */}
-      {dashletVisibility['birthday'] && (
-        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-          <div className="grid grid-cols-2 gap-4">
-            {/* Left: Today's Birthdays */}
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <Cake size={16} className="text-pink-500" />
-                <h3 className={`text-sm font-bold ${theme.highlight}`}>Today&apos;s Birthdays</h3>
-              </div>
-              <div className="space-y-2">
-                {[
-                  { name: 'Aarav Singh', detail: 'Class 8A', type: 'student' },
-                  { name: 'Priya Patel', detail: 'Class 5B', type: 'student' },
-                  { name: 'Mr. Rakesh Kumar', detail: 'Science Dept', type: 'staff' },
-                ].map((b, i) => (
-                  <div key={i} className={`flex items-center gap-2.5 p-2 rounded-xl ${theme.secondaryBg}`}>
-                    <div className="w-7 h-7 rounded-full bg-pink-100 flex items-center justify-center shrink-0">
-                      <Cake size={13} className="text-pink-500" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <button
-                        onClick={() => setMiniProfile({ name: b.name, class: b.type === 'student' ? b.detail : undefined, role: b.type === 'staff' ? b.detail : undefined })}
-                        className={`text-[11px] font-bold ${theme.highlight} hover:underline cursor-pointer truncate block text-left`}
-                      >
-                        {b.name}
-                      </button>
-                      <p className={`text-[10px] ${theme.iconColor}`}>{b.detail}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+      {/* Compact Dashlet Row — Birthday, Gallery, Infirmary, Event Countdown */}
+      <div className="grid grid-cols-4 gap-3">
+        {/* Compact Birthday Card */}
+        {dashletVisibility['birthday'] && (
+          <button onClick={() => setBirthdayExpanded(!birthdayExpanded)} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-3 text-left hover:ring-2 hover:ring-pink-300 transition-all`}>
+            <div className="flex items-center gap-2">
+              <Cake size={14} className="text-pink-500" />
+              <p className={`text-xs font-bold ${theme.highlight}`}>Birthdays Today</p>
             </div>
-            {/* Right: Gallery Highlights */}
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <Image size={16} className={theme.iconColor} />
-                <h3 className={`text-sm font-bold ${theme.highlight}`}>Gallery Highlights</h3>
+            <p className={`text-lg font-bold ${theme.highlight} mt-1`}>3 + 1</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>3 students, 1 staff</p>
+            <div className="flex items-center justify-end mt-1">
+              {birthdayExpanded ? <ChevronUp size={12} className={theme.iconColor} /> : <ChevronDown size={12} className={theme.iconColor} />}
+            </div>
+          </button>
+        )}
+
+        {/* Compact Gallery Card */}
+        {dashletVisibility['birthday'] && (
+          <button onClick={() => setGalleryExpanded(!galleryExpanded)} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-3 text-left hover:ring-2 hover:ring-blue-300 transition-all`}>
+            <div className="flex items-center gap-2">
+              <Image size={14} className={theme.iconColor} />
+              <p className={`text-xs font-bold ${theme.highlight}`}>Gallery</p>
+            </div>
+            <p className={`text-lg font-bold ${theme.highlight} mt-1`}>3 new</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>albums this week</p>
+            <div className="flex items-center justify-end mt-1">
+              {galleryExpanded ? <ChevronUp size={12} className={theme.iconColor} /> : <ChevronDown size={12} className={theme.iconColor} />}
+            </div>
+          </button>
+        )}
+
+        {/* Compact Infirmary Card */}
+        {dashletVisibility['infirmary'] && (
+          <button onClick={() => setInfirmaryExpanded(!infirmaryExpanded)} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-3 text-left hover:ring-2 hover:ring-red-300 transition-all`}>
+            <div className="flex items-center gap-2">
+              <Heart size={14} className="text-red-500" />
+              <p className={`text-xs font-bold ${theme.highlight}`}>Infirmary</p>
+            </div>
+            <p className={`text-lg font-bold ${theme.highlight} mt-1`}>4 visits</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>12 allergy alerts</p>
+            <div className="flex items-center justify-end mt-1">
+              {infirmaryExpanded ? <ChevronUp size={12} className={theme.iconColor} /> : <ChevronDown size={12} className={theme.iconColor} />}
+            </div>
+          </button>
+        )}
+
+        {/* Compact Event Countdown Card */}
+        {dashletVisibility['countdown'] && (
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-3 text-left`}>
+            <div className="flex items-center gap-2">
+              <Timer size={14} className={theme.iconColor} />
+              <p className={`text-xs font-bold ${theme.highlight}`}>Next Event</p>
+            </div>
+            <p className={`text-lg font-bold text-purple-700 mt-1`}>12 days</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>Annual Day</p>
+          </div>
+        )}
+      </div>
+
+      {/* Expanded Birthday Section */}
+      {birthdayExpanded && dashletVisibility['birthday'] && (
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Cake size={16} className="text-pink-500" />
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>Today&apos;s Birthdays</h3>
+            </div>
+            <button onClick={() => {
+              // Send wish to all — mock action
+            }} className="px-3 py-1.5 rounded-xl bg-emerald-500 text-white text-[10px] font-bold flex items-center gap-1 hover:bg-emerald-600 transition-colors">
+              <Send size={10} /> Send Wish to All
+            </button>
+          </div>
+          <div className="space-y-2">
+            {[
+              { name: 'Aarav Singh', detail: 'Class 8A', type: 'student' },
+              { name: 'Priya Patel', detail: 'Class 5B', type: 'student' },
+              { name: 'Sneha Verma', detail: 'Class 3C', type: 'student' },
+              { name: 'Mr. Rakesh Kumar', detail: 'Science Dept', type: 'staff' },
+            ].map((b, i) => (
+              <div key={i} className={`flex items-center gap-2.5 p-2 rounded-xl ${theme.secondaryBg}`}>
+                <div className="w-7 h-7 rounded-full bg-pink-100 flex items-center justify-center shrink-0">
+                  <Cake size={13} className="text-pink-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <button
+                    onClick={() => setMiniProfile({ name: b.name, class: b.type === 'student' ? b.detail : undefined, role: b.type === 'staff' ? b.detail : undefined })}
+                    className={`text-[11px] font-bold ${theme.highlight} hover:underline cursor-pointer truncate block text-left`}
+                  >
+                    {b.name}
+                  </button>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{b.detail}</p>
+                </div>
+                <button className="px-2 py-1 rounded-lg bg-emerald-500 text-white text-[10px] font-bold flex items-center gap-1 hover:bg-emerald-600 transition-colors shrink-0">
+                  <Send size={9} /> Send Wish
+                </button>
               </div>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { title: 'Science Exhibition', color: 'bg-blue-100' },
-                  { title: 'Sports Day', color: 'bg-emerald-100' },
-                  { title: 'Annual Function', color: 'bg-purple-100' },
-                ].map((g, i) => (
-                  <div key={i} className={`rounded-xl overflow-hidden border ${theme.border}`}>
-                    <div className={`${g.color} h-16 flex items-center justify-center`}>
-                      <Image size={20} className="text-gray-400" />
-                    </div>
-                    <div className="p-1.5">
-                      <p className={`text-[10px] font-bold ${theme.highlight} truncate`}>{g.title}</p>
-                    </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Expanded Gallery Section */}
+      {galleryExpanded && dashletVisibility['birthday'] && (
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <div className="flex items-center gap-2 mb-3">
+            <Image size={16} className={theme.iconColor} />
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>Gallery Highlights</h3>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { title: 'Science Exhibition', color: 'bg-blue-100' },
+              { title: 'Sports Day', color: 'bg-emerald-100' },
+              { title: 'Annual Function', color: 'bg-purple-100' },
+            ].map((g, i) => (
+              <div key={i} className={`rounded-xl overflow-hidden border ${theme.border}`}>
+                <div className={`${g.color} h-16 flex items-center justify-center`}>
+                  <Image size={20} className="text-gray-400" />
+                </div>
+                <div className="p-1.5">
+                  <p className={`text-[10px] font-bold ${theme.highlight} truncate`}>{g.title}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Expanded Infirmary Section */}
+      {infirmaryExpanded && dashletVisibility['infirmary'] && (
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <div className="flex items-center gap-2 mb-3">
+            <Heart size={16} className="text-red-500" />
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>Infirmary — Today&apos;s Visits</h3>
+          </div>
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <div className={`${theme.secondaryBg} rounded-xl p-3 text-center`}>
+              <p className={`text-[10px] ${theme.iconColor} mb-1`}>Visits Today</p>
+              <p className={`text-xl font-bold ${theme.highlight}`}>4</p>
+            </div>
+            <div className={`${theme.secondaryBg} rounded-xl p-3 text-center`}>
+              <p className={`text-[10px] ${theme.iconColor} mb-1`}>Active Allergy Alerts</p>
+              <p className="text-xl font-bold text-amber-600">12</p>
+            </div>
+          </div>
+          <div>
+            <p className={`text-[10px] font-bold uppercase ${theme.iconColor} mb-1.5`}>Recent Visits</p>
+            <div className="space-y-1.5">
+              {[
+                { name: 'Rahul M.', reason: 'Headache', time: '10:30 AM', cls: '7A' },
+                { name: 'Sneha K.', reason: 'Stomach ache', time: '11:15 AM', cls: '5B' },
+                { name: 'Arjun P.', reason: 'Minor cut', time: '1:45 PM', cls: '9A' },
+                { name: 'Meera D.', reason: 'Fever (100.2F)', time: '2:10 PM', cls: '4C' },
+              ].map((v, i) => (
+                <div key={i} className={`flex items-center justify-between p-2 rounded-xl ${theme.secondaryBg}`}>
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <Heart size={12} className="text-red-400 shrink-0" />
+                    <button
+                      onClick={() => setMiniProfile({ name: v.name, class: v.cls })}
+                      className={`text-[11px] font-bold ${theme.highlight} hover:underline cursor-pointer`}
+                    >
+                      {v.name}
+                    </button>
+                    <span className={`text-[10px] ${theme.iconColor}`}>— {v.reason}</span>
                   </div>
-                ))}
-              </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className={`text-[10px] ${theme.iconColor} font-medium`}>{v.time}</span>
+                    <button title="Call Parent" className="w-6 h-6 rounded-lg bg-blue-500/20 flex items-center justify-center hover:bg-blue-500/30 transition-colors">
+                      <Phone size={10} className="text-blue-600" />
+                    </button>
+                    <button title="Refer to Doctor" className="w-6 h-6 rounded-lg bg-red-500/20 flex items-center justify-center hover:bg-red-500/30 transition-colors">
+                      <Stethoscope size={10} className="text-red-600" />
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -323,20 +450,23 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
       {/* Gap 2 — Class-wise Grade Distribution Bell Curve */}
       {dashletVisibility['bellCurve'] && (
         <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-2 mb-1">
             <BarChart3 size={16} className={theme.iconColor} />
             <h3 className={`text-sm font-bold ${theme.highlight}`}>Class-wise Grade Distribution</h3>
           </div>
+          <p className={`text-[10px] ${theme.iconColor} mb-3 ml-6`}>Bell curve showing how marks are distributed across grades — helps identify if grading is too lenient or strict</p>
           <svg viewBox="0 0 300 150" className="w-full" style={{ maxHeight: '180px' }}>
             {/* X-axis labels */}
-            <text x="30" y="145" className="fill-gray-400" style={{ fontSize: '8px' }}>F</text>
-            <text x="75" y="145" className="fill-gray-400" style={{ fontSize: '8px' }}>D</text>
-            <text x="120" y="145" className="fill-gray-400" style={{ fontSize: '8px' }}>C</text>
-            <text x="165" y="145" className="fill-gray-400" style={{ fontSize: '8px' }}>B</text>
-            <text x="210" y="145" className="fill-gray-400" style={{ fontSize: '8px' }}>A</text>
-            <text x="255" y="145" className="fill-gray-400" style={{ fontSize: '8px' }}>A+</text>
+            <text x="27" y="145" textAnchor="middle" className="fill-gray-500" style={{ fontSize: '9px', fontWeight: 600 }}>F</text>
+            <text x="72" y="145" textAnchor="middle" className="fill-gray-500" style={{ fontSize: '9px', fontWeight: 600 }}>D</text>
+            <text x="120" y="145" textAnchor="middle" className="fill-gray-500" style={{ fontSize: '9px', fontWeight: 600 }}>C</text>
+            <text x="168" y="145" textAnchor="middle" className="fill-gray-500" style={{ fontSize: '9px', fontWeight: 600 }}>B</text>
+            <text x="216" y="145" textAnchor="middle" className="fill-gray-500" style={{ fontSize: '9px', fontWeight: 600 }}>A</text>
+            <text x="262" y="145" textAnchor="middle" className="fill-gray-500" style={{ fontSize: '9px', fontWeight: 600 }}>A+</text>
             {/* X-axis line */}
             <line x1="20" y1="135" x2="280" y2="135" stroke="#d1d5db" strokeWidth="0.5" />
+            {/* Y-axis label */}
+            <text x="8" y="75" textAnchor="middle" className="fill-gray-400" style={{ fontSize: '7px' }} transform="rotate(-90 8 75)">Students</text>
             {/* Class 10 — Blue bell curve */}
             <path d="M 20,135 C 60,135 80,120 120,60 C 140,20 160,20 180,60 C 220,120 240,135 280,135" fill="none" stroke="#3b82f6" strokeWidth="2" opacity="0.8" />
             <path d="M 20,135 C 60,135 80,120 120,60 C 140,20 160,20 180,60 C 220,120 240,135 280,135 Z" fill="#3b82f6" opacity="0.1" />
@@ -353,69 +483,15 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
             <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-emerald-500 inline-block rounded" /><span className={`text-[10px] ${theme.iconColor}`}>Class 11</span></span>
             <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-purple-500 inline-block rounded" /><span className={`text-[10px] ${theme.iconColor}`}>Class 12</span></span>
           </div>
+          {/* Info tip */}
+          <div className="flex items-start gap-1.5 mt-2 px-2">
+            <Info size={11} className={`${theme.iconColor} shrink-0 mt-0.5`} />
+            <p className={`text-[10px] ${theme.iconColor}`}>Tip: A healthy distribution shows a bell shape. Skewed right = too easy, skewed left = too hard</p>
+          </div>
         </div>
       )}
 
-      {/* Gap 3 — Student Rank/Growth Sparkline */}
-      {dashletVisibility['sparkline'] && (
-        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-          <div className="flex items-center gap-2 mb-3">
-            <Award size={16} className={theme.iconColor} />
-            <h3 className={`text-sm font-bold ${theme.highlight}`}>Student Rank Trend (Last 3 Exams)</h3>
-          </div>
-          <table className="w-full text-xs">
-            <thead>
-              <tr className={`border-b ${theme.border}`}>
-                <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Student</th>
-                <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Class</th>
-                <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Rank Trend</th>
-                <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Current</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[
-                { name: 'Aarav Singh', cls: '8A', ranks: [5, 3, 2], trend: 'up' },
-                { name: 'Meera Joshi', cls: '10B', ranks: [8, 6, 4], trend: 'up' },
-                { name: 'Rohan Patel', cls: '9A', ranks: [3, 5, 7], trend: 'down' },
-                { name: 'Ananya Sharma', cls: '11A', ranks: [2, 2, 1], trend: 'up' },
-                { name: 'Karthik Nair', cls: '12B', ranks: [10, 7, 5], trend: 'up' },
-              ].map((s, i) => {
-                // Normalize ranks to sparkline Y coordinates (lower rank = higher position)
-                const maxRank = 12;
-                const points = s.ranks.map((r, idx) => {
-                  const x = 5 + idx * 20;
-                  const y = 2 + (r / maxRank) * 16;
-                  return `${x},${y}`;
-                });
-                const polyline = points.join(' ');
-                const color = s.trend === 'up' ? '#10b981' : '#ef4444';
-                return (
-                  <tr key={i} className={`border-b ${theme.border}`}>
-                    <td className={`py-2 px-2`}>
-                      <button
-                        onClick={() => setMiniProfile({ name: s.name, class: s.cls })}
-                        className={`${theme.highlight} font-bold hover:underline cursor-pointer text-left`}
-                      >
-                        {s.name}
-                      </button>
-                    </td>
-                    <td className={`py-2 px-2 ${theme.iconColor}`}>{s.cls}</td>
-                    <td className="py-2 px-2">
-                      <svg viewBox="0 0 50 20" className="w-12 h-5 inline-block">
-                        <polyline points={polyline} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                        {s.ranks.map((r, idx) => (
-                          <circle key={idx} cx={5 + idx * 20} cy={2 + (r / maxRank) * 16} r="2" fill={color} />
-                        ))}
-                      </svg>
-                    </td>
-                    <td className={`py-2 px-2 font-bold ${s.trend === 'up' ? 'text-emerald-600' : 'text-red-500'}`}>#{s.ranks[2]}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
+      {/* Gap 3 — Student Rank Trend MOVED to ReportsModule.tsx */}
 
       {/* Gap 4 — Exam Mark-Entry Progress Tracker */}
       {dashletVisibility['markEntry'] && (
@@ -445,49 +521,7 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
         </div>
       )}
 
-      {/* Gap 5 — Student Health / Infirmary Dashlet */}
-      {dashletVisibility['infirmary'] && (
-        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-          <div className="flex items-center gap-2 mb-3">
-            <Heart size={16} className="text-red-500" />
-            <h3 className={`text-sm font-bold ${theme.highlight}`}>Infirmary</h3>
-          </div>
-          <div className="grid grid-cols-2 gap-3 mb-3">
-            <div className={`${theme.secondaryBg} rounded-xl p-3 text-center`}>
-              <p className={`text-[10px] ${theme.iconColor} mb-1`}>Visits Today</p>
-              <p className={`text-xl font-bold ${theme.highlight}`}>4</p>
-            </div>
-            <div className={`${theme.secondaryBg} rounded-xl p-3 text-center`}>
-              <p className={`text-[10px] ${theme.iconColor} mb-1`}>Active Allergy Alerts</p>
-              <p className="text-xl font-bold text-amber-600">12</p>
-            </div>
-          </div>
-          <div>
-            <p className={`text-[10px] font-bold uppercase ${theme.iconColor} mb-1.5`}>Recent Visits</p>
-            <div className="space-y-1.5">
-              {[
-                { name: 'Rahul M.', reason: 'Headache', time: '10:30 AM' },
-                { name: 'Sneha K.', reason: 'Stomach ache', time: '11:15 AM' },
-                { name: 'Arjun P.', reason: 'Minor cut', time: '1:45 PM' },
-              ].map((v, i) => (
-                <div key={i} className={`flex items-center justify-between p-2 rounded-xl ${theme.secondaryBg}`}>
-                  <div className="flex items-center gap-2">
-                    <Heart size={12} className="text-red-400 shrink-0" />
-                    <button
-                      onClick={() => setMiniProfile({ name: v.name, class: 'Student' })}
-                      className={`text-[11px] font-bold ${theme.highlight} hover:underline cursor-pointer`}
-                    >
-                      {v.name}
-                    </button>
-                    <span className={`text-[10px] ${theme.iconColor}`}>— {v.reason}</span>
-                  </div>
-                  <span className={`text-[10px] ${theme.iconColor} font-medium`}>{v.time}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Gap 5 — Infirmary MOVED to compact card row above */}
 
       {/* Gap 6 — Academic Progress Ring Chart */}
       {dashletVisibility['progressRing'] && (
@@ -573,31 +607,7 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
         </div>
       )}
 
-      {/* Gap 8 — Event Countdown Clock */}
-      {dashletVisibility['countdown'] && (
-        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-          <div className="flex items-center gap-2 mb-3">
-            <Timer size={16} className={theme.iconColor} />
-            <h3 className={`text-sm font-bold ${theme.highlight}`}>Upcoming Events</h3>
-          </div>
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { event: 'Annual Day', days: 12, color: 'bg-purple-500', lightBg: 'bg-purple-50', textColor: 'text-purple-700' },
-              { event: 'Board Exams (Class 10)', days: 28, color: 'bg-blue-500', lightBg: 'bg-blue-50', textColor: 'text-blue-700' },
-              { event: 'Summer Vacation', days: 45, color: 'bg-amber-500', lightBg: 'bg-amber-50', textColor: 'text-amber-700' },
-            ].map((e, i) => (
-              <div key={i} className={`${e.lightBg} rounded-xl p-4 text-center border ${theme.border}`}>
-                <div className="flex items-center justify-center gap-1 mb-2">
-                  <Calendar size={12} className={e.textColor} />
-                </div>
-                <p className={`text-3xl font-bold ${e.textColor}`}>{e.days}</p>
-                <p className={`text-[10px] ${e.textColor} font-medium mt-0.5`}>days</p>
-                <p className={`text-[11px] font-bold ${theme.highlight} mt-2`}>{e.event}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Gap 8 — Event Countdown MOVED to compact card row above */}
 
       {/* News Board + Task Tracker — Side by Side */}
       <div className="grid grid-cols-2 gap-4">
@@ -701,14 +711,13 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
             <p className={`text-xs ${theme.iconColor} mb-4`}>Toggle dashlets on/off to customize your dashboard view.</p>
             <div className="grid grid-cols-2 gap-3">
               {[
-                { key: 'birthday', name: 'Birthdays & Gallery', desc: 'Today\'s birthdays and photo gallery highlights', icon: Cake },
+                { key: 'birthday', name: 'Birthdays & Gallery', desc: 'Compact birthday wishes and photo gallery cards', icon: Cake },
                 { key: 'bellCurve', name: 'Grade Distribution', desc: 'Class-wise grade distribution bell curves', icon: BarChart3 },
-                { key: 'sparkline', name: 'Rank Trend', desc: 'Student rank trends across last 3 exams', icon: Award },
                 { key: 'markEntry', name: 'Mark Entry Progress', desc: 'Track teacher mark submission progress', icon: FileText },
-                { key: 'infirmary', name: 'Infirmary', desc: 'Health visits and allergy alerts', icon: Heart },
+                { key: 'infirmary', name: 'Infirmary', desc: 'Health visits and allergy alerts (compact card)', icon: Heart },
                 { key: 'progressRing', name: 'Academic Progress', desc: 'School-wide pass rate and distinction rings', icon: GraduationCap },
                 { key: 'rteQuota', name: 'RTE Quota', desc: 'RTE 25% seat allocation tracking', icon: ShieldCheck },
-                { key: 'countdown', name: 'Event Countdown', desc: 'Days until upcoming major events', icon: Timer },
+                { key: 'countdown', name: 'Event Countdown', desc: 'Days until upcoming major events (compact card)', icon: Timer },
               ].map(d => (
                 <div key={d.key} className={`flex items-center gap-3 p-3 rounded-xl ${theme.secondaryBg} border ${theme.border}`}>
                   <div className={`w-9 h-9 rounded-lg ${theme.accentBg} flex items-center justify-center shrink-0`}>
