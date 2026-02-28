@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, X } from 'lucide-react';
-import { SSAToggle, SectionCard, ModuleHeader, InputField } from '../_helpers/components';
+import { Plus, X, Upload, Download, Copy, CheckSquare, Square } from 'lucide-react';
+import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
 
 export default function AcademicConfigModule({ theme }: { theme: Theme }) {
@@ -102,6 +102,58 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
   const [newReligion, setNewReligion] = useState('');
   const [newCategory, setNewCategory] = useState('');
   const [newLanguage, setNewLanguage] = useState('');
+
+  // ─── Streams / Subject Groups (Class 11-12) ───
+  const [streams] = useState([
+    { name: 'Science', subjects: 'Phy, Chem, Math, Bio/CS', maxSeats: '120' },
+    { name: 'Commerce', subjects: 'Accts, BSt, Eco, Math/IP', maxSeats: '80' },
+    { name: 'Arts', subjects: 'Hist, Geo, Pol Sci, Eco/Psych', maxSeats: '40' },
+  ]);
+  const [allowStreamChoice, setAllowStreamChoice] = useState(true);
+
+  // ─── Class Capacity & Waitlist ───
+  const [enableWaitlist, setEnableWaitlist] = useState(true);
+  const [waitlistAutoPromote, setWaitlistAutoPromote] = useState('Automatic');
+  const [classCapacity] = useState([
+    { grade: 'Grade 1', sections: 3, maxPerSection: 40, total: 120, current: 115, waitlisted: 4 },
+    { grade: 'Grade 2', sections: 3, maxPerSection: 40, total: 120, current: 118, waitlisted: 2 },
+    { grade: 'Grade 3', sections: 2, maxPerSection: 40, total: 80, current: 78, waitlisted: 0 },
+    { grade: 'Grade 4', sections: 2, maxPerSection: 40, total: 80, current: 75, waitlisted: 1 },
+    { grade: 'Grade 5', sections: 2, maxPerSection: 40, total: 80, current: 80, waitlisted: 3 },
+    { grade: 'Grade 6', sections: 3, maxPerSection: 40, total: 120, current: 112, waitlisted: 0 },
+    { grade: 'Grade 7', sections: 3, maxPerSection: 40, total: 120, current: 119, waitlisted: 5 },
+    { grade: 'Grade 8', sections: 2, maxPerSection: 40, total: 80, current: 76, waitlisted: 0 },
+    { grade: 'Grade 9', sections: 3, maxPerSection: 40, total: 120, current: 110, waitlisted: 1 },
+    { grade: 'Grade 10', sections: 3, maxPerSection: 40, total: 120, current: 117, waitlisted: 2 },
+    { grade: 'Grade 11', sections: 2, maxPerSection: 40, total: 80, current: 72, waitlisted: 0 },
+    { grade: 'Grade 12', sections: 2, maxPerSection: 40, total: 80, current: 68, waitlisted: 0 },
+  ]);
+
+  // ─── Year Rollover Wizard ───
+  const [rolloverChecks, setRolloverChecks] = useState<Record<string, boolean>>({
+    'Grades & Sections': true, 'Subjects': true, 'Fee Structure': true, 'Timetable Template': true, 'Staff Assignments': false,
+  });
+
+  // ─── GPA & Credit System ───
+  const [enableCreditGrading, setEnableCreditGrading] = useState(false);
+  const [creditData] = useState([
+    { subject: 'Physics', credits: '5', weightage: '1.0', maxMarks: '100' },
+    { subject: 'Chemistry', credits: '5', weightage: '1.0', maxMarks: '100' },
+    { subject: 'Mathematics', credits: '5', weightage: '1.0', maxMarks: '100' },
+    { subject: 'Biology/CS', credits: '4', weightage: '0.8', maxMarks: '100' },
+    { subject: 'English', credits: '4', weightage: '0.8', maxMarks: '100' },
+    { subject: 'Physical Ed.', credits: '2', weightage: '0.5', maxMarks: '50' },
+  ]);
+
+  // ─── Class Teacher Assignment ───
+  const [classTeachers] = useState([
+    { classSection: '10-A', teacher: 'Mrs. Iyer', since: 'Apr 2025', status: 'Active' },
+    { classSection: '10-B', teacher: 'Mr. Sharma', since: 'Apr 2025', status: 'Active' },
+    { classSection: '10-C', teacher: 'Ms. Desai', since: 'Apr 2025', status: 'Active' },
+    { classSection: '9-A', teacher: 'Mr. Patel', since: 'Apr 2025', status: 'Active' },
+    { classSection: '9-B', teacher: 'Mrs. Gupta', since: 'Apr 2024', status: 'Active' },
+    { classSection: '9-C', teacher: 'Mr. Reddy', since: 'Apr 2025', status: 'Active' },
+  ]);
 
   return (
     <div className="space-y-4">
@@ -484,6 +536,195 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
                 className={`px-2 py-1 rounded-lg ${theme.primary} text-white text-xs font-bold`}><Plus size={10} /></button>
             </div>
           </div>
+        </div>
+      </SectionCard>
+
+      {/* ─── A) Streams / Subject Groups (Class 11-12) ─── */}
+      <SectionCard title="Streams for Class 11-12" subtitle="Configure streams with subject groups and seat limits for higher secondary" theme={theme}>
+        <div className="overflow-x-auto mb-3">
+          <table className="w-full text-xs">
+            <thead><tr className={theme.secondaryBg}>
+              {['Stream Name', 'Subjects', 'Max Seats'].map(h => (
+                <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
+              ))}
+            </tr></thead>
+            <tbody>
+              {streams.map((s, i) => (
+                <tr key={i} className={`border-t ${theme.border}`}>
+                  <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{s.name}</td>
+                  <td className={`px-3 py-2 ${theme.iconColor}`}>{s.subjects}</td>
+                  <td className={`px-3 py-2 ${theme.highlight}`}>{s.maxSeats}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="flex items-center justify-between">
+          <button className={`flex items-center gap-1.5 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl border ${theme.border}`}>
+            <Plus size={12} /> Add Stream
+          </button>
+          <div className={`flex items-center gap-3 p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <span className={`text-xs font-bold ${theme.highlight}`}>Allow students to choose stream during admission</span>
+            <SSAToggle on={allowStreamChoice} onChange={() => setAllowStreamChoice(!allowStreamChoice)} theme={theme} />
+          </div>
+        </div>
+      </SectionCard>
+
+      {/* ─── B) Class Capacity & Waitlist ─── */}
+      <SectionCard title="Class Capacity & Waitlist" subtitle="Maximum strength per section and waitlist management" theme={theme}>
+        <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg} mb-3`}>
+          <div>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Enable Waitlist Management</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>When a class is full, new applicants are added to a waitlist</p>
+          </div>
+          <SSAToggle on={enableWaitlist} onChange={() => setEnableWaitlist(!enableWaitlist)} theme={theme} />
+        </div>
+        {enableWaitlist && (
+          <div className={`flex items-center gap-3 p-2.5 rounded-xl ${theme.secondaryBg} mb-3`}>
+            <span className={`text-xs font-bold ${theme.highlight}`}>Waitlist Auto-Promote</span>
+            <SelectField options={['Automatic', 'Manual Approval', 'Disabled']} value={waitlistAutoPromote} onChange={setWaitlistAutoPromote} theme={theme} />
+          </div>
+        )}
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead><tr className={theme.secondaryBg}>
+              {['Grade', 'Sections', 'Max / Section', 'Total Capacity', 'Current', 'Waitlisted'].map(h => (
+                <th key={h} className={`text-left px-2 py-2 font-bold ${theme.iconColor}`}>{h}</th>
+              ))}
+            </tr></thead>
+            <tbody>
+              {classCapacity.map((c, i) => (
+                <tr key={i} className={`border-t ${theme.border}`}>
+                  <td className={`px-2 py-1.5 font-bold ${theme.highlight}`}>{c.grade}</td>
+                  <td className={`px-2 py-1.5 ${theme.iconColor}`}>{c.sections}</td>
+                  <td className={`px-2 py-1.5 ${theme.iconColor}`}>{c.maxPerSection}</td>
+                  <td className={`px-2 py-1.5 ${theme.highlight}`}>{c.total}</td>
+                  <td className={`px-2 py-1.5 ${c.current >= c.total ? 'text-red-600 font-bold' : theme.iconColor}`}>{c.current}</td>
+                  <td className="px-2 py-1.5">
+                    {c.waitlisted > 0 ? (
+                      <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold">{c.waitlisted}</span>
+                    ) : (
+                      <span className={`text-[10px] ${theme.iconColor}`}>--</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </SectionCard>
+
+      {/* ─── C) Year Rollover Wizard ─── */}
+      <SectionCard title="Year Rollover Wizard" subtitle="Copy academic structure from one year to the next" theme={theme}>
+        <div className={`p-4 rounded-xl ${theme.accentBg} border ${theme.border} mb-3`}>
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Copy 2025-26 Structure to 2026-27</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Select which structures to carry forward</p>
+            </div>
+            <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">Ready for rollover</span>
+          </div>
+          <div className="space-y-2 mb-3">
+            {Object.entries(rolloverChecks).map(([item, checked]) => (
+              <button key={item} onClick={() => setRolloverChecks(p => ({ ...p, [item]: !p[item] }))}
+                className={`flex items-center gap-2 w-full text-left p-2 rounded-lg ${theme.secondaryBg} transition-all`}>
+                {checked ? <CheckSquare size={14} className="text-emerald-500" /> : <Square size={14} className={theme.iconColor} />}
+                <span className={`text-xs font-medium ${theme.highlight}`}>{item}</span>
+              </button>
+            ))}
+          </div>
+          <button className={`flex items-center gap-1.5 px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}>
+            <Copy size={12} /> Start Rollover
+          </button>
+        </div>
+      </SectionCard>
+
+      {/* ─── D) Bulk Import / Export ─── */}
+      <SectionCard title="Bulk Import / Export" subtitle="Import courses and batches via CSV or export the current academic structure" theme={theme}>
+        <div className="grid grid-cols-2 gap-4 mb-3">
+          <button className={`flex items-center justify-center gap-2 p-3 rounded-xl border ${theme.border} ${theme.buttonHover} transition-all`}>
+            <Upload size={14} className={theme.iconColor} />
+            <span className={`text-xs font-bold ${theme.highlight}`}>Import Courses & Batches (CSV)</span>
+          </button>
+          <button className={`flex items-center justify-center gap-2 p-3 rounded-xl border ${theme.border} ${theme.buttonHover} transition-all`}>
+            <Download size={14} className={theme.iconColor} />
+            <span className={`text-xs font-bold ${theme.highlight}`}>Export Structure (Excel)</span>
+          </button>
+        </div>
+        <div className={`p-4 rounded-xl border-2 border-dashed ${theme.border} text-center`}>
+          <Upload size={24} className={`mx-auto mb-2 ${theme.iconColor}`} />
+          <p className={`text-xs font-bold ${theme.highlight} mb-1`}>Drag & drop CSV file here</p>
+          <p className={`text-[10px] ${theme.iconColor} mb-2`}>or click to browse files</p>
+          <a href="#" className={`text-[10px] font-bold text-blue-500 hover:underline`}>Download Template</a>
+        </div>
+      </SectionCard>
+
+      {/* ─── E) GPA & Credit System (Higher Secondary) ─── */}
+      <SectionCard title="GPA & Credit System (Higher Secondary)" subtitle="Credit-based grading configuration for Class 11-12" theme={theme}>
+        <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg} mb-3`}>
+          <div>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Enable Credit-Based Grading</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>Assigns credit points and weightage per subject for GPA calculation</p>
+          </div>
+          <SSAToggle on={enableCreditGrading} onChange={() => setEnableCreditGrading(!enableCreditGrading)} theme={theme} />
+        </div>
+        {enableCreditGrading && (
+          <div className="overflow-x-auto">
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-2 uppercase tracking-wide`}>Class 11 — Science Stream</p>
+            <table className="w-full text-xs">
+              <thead><tr className={theme.secondaryBg}>
+                {['Subject', 'Credits', 'Weightage', 'Max Marks'].map(h => (
+                  <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
+                ))}
+              </tr></thead>
+              <tbody>
+                {creditData.map((c, i) => (
+                  <tr key={i} className={`border-t ${theme.border}`}>
+                    <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{c.subject}</td>
+                    <td className={`px-3 py-2 ${theme.iconColor}`}>{c.credits}</td>
+                    <td className={`px-3 py-2 ${theme.iconColor}`}>{c.weightage}</td>
+                    <td className={`px-3 py-2 ${theme.iconColor}`}>{c.maxMarks}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </SectionCard>
+
+      {/* ─── F) Class Teacher Assignment ─── */}
+      <SectionCard title="Class Teacher Assignment" subtitle="Assign class teachers to each section" theme={theme}>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead><tr className={theme.secondaryBg}>
+              {['Class-Section', 'Assigned Teacher', 'Since', 'Status', 'Action'].map(h => (
+                <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
+              ))}
+            </tr></thead>
+            <tbody>
+              {classTeachers.map((ct, i) => (
+                <tr key={i} className={`border-t ${theme.border}`}>
+                  <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{ct.classSection}</td>
+                  <td className={`px-3 py-2 ${theme.highlight}`}>{ct.teacher}</td>
+                  <td className={`px-3 py-2 ${theme.iconColor}`}>{ct.since}</td>
+                  <td className="px-3 py-2">
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">{ct.status}</span>
+                  </td>
+                  <td className="px-3 py-2">
+                    <select className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight}`}>
+                      <option>Assign</option>
+                      <option>Mrs. Iyer</option>
+                      <option>Mr. Sharma</option>
+                      <option>Ms. Desai</option>
+                      <option>Mr. Patel</option>
+                      <option>Mrs. Gupta</option>
+                      <option>Mr. Reddy</option>
+                    </select>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </SectionCard>
     </div>

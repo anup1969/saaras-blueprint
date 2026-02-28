@@ -2,12 +2,17 @@
 
 import React, { useState } from 'react';
 import { type Theme } from '@/lib/themes';
-import { X } from 'lucide-react';
+import { X, Settings, Bell } from 'lucide-react';
 import { SelectField } from '../_components/FormHelpers';
 
 export default function PromotionWizard({ theme, onClose }: { theme: Theme; onClose: () => void }) {
   const [step, setStep] = useState(1);
   const [sourceClass, setSourceClass] = useState('');
+  const [promotionMode, setPromotionMode] = useState<'auto' | 'manual' | 'rule-based'>('manual');
+  const [minAttendance, setMinAttendance] = useState('75');
+  const [minMarks, setMinMarks] = useState('33');
+  const [allSubjectsPass, setAllSubjectsPass] = useState(false);
+  const [showRulesConfig, setShowRulesConfig] = useState(false);
   const classOptions = ['Nursery', 'LKG', 'UKG', '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th', '10th', '11th', '12th'];
   const nextClassMap: Record<string, string> = { 'Nursery': 'LKG', 'LKG': 'UKG', 'UKG': '1st', '1st': '2nd', '2nd': '3rd', '3rd': '4th', '4th': '5th', '5th': '6th', '6th': '7th', '7th': '8th', '8th': '9th', '9th': '10th', '10th': '11th', '11th': '12th', '12th': 'Passed Out' };
   const classStudentCount: Record<string, number> = { 'Nursery': 30, 'LKG': 35, 'UKG': 32, '1st': 40, '2nd': 38, '3rd': 42, '4th': 40, '5th': 45, '6th': 44, '7th': 42, '8th': 40, '9th': 38, '10th': 36, '11th': 30, '12th': 28 };
@@ -24,6 +29,10 @@ export default function PromotionWizard({ theme, onClose }: { theme: Theme; onCl
   ];
   const [students, setStudents] = useState(mockClassStudents);
   const [checked, setChecked] = useState<boolean[]>(mockClassStudents.map(() => true));
+  const [streams, setStreams] = useState<string[]>(mockClassStudents.map(() => 'Not Applicable'));
+  const [tcNotifyParent, setTcNotifyParent] = useState(true);
+  const [tcParentPhone, setTcParentPhone] = useState('');
+  const [tcReceivingSchool, setTcReceivingSchool] = useState('');
 
   const promoted = students.filter((s, i) => checked[i] && s.action === 'Promote').length;
   const detained = students.filter((s, i) => checked[i] && s.action === 'Detain').length;
@@ -46,6 +55,46 @@ export default function PromotionWizard({ theme, onClose }: { theme: Theme; onCl
 
         {step === 1 && (
           <div className="space-y-4">
+            {/* Promotion Rules Config */}
+            <div className={`p-4 rounded-xl border ${theme.border} ${theme.secondaryBg}`}>
+              <div className="flex items-center gap-2 mb-3">
+                <Settings size={14} className={theme.primaryText} />
+                <span className={`text-xs font-bold ${theme.highlight}`}>Promotion Rules</span>
+                <button onClick={() => setShowRulesConfig(!showRulesConfig)} className={`ml-auto text-[10px] font-bold ${theme.primaryText}`}>
+                  {showRulesConfig ? 'Hide' : 'Configure'}
+                </button>
+              </div>
+              <div className="flex gap-3 mb-2">
+                {(['auto', 'manual', 'rule-based'] as const).map(mode => (
+                  <label key={mode} className={`flex items-center gap-1.5 text-xs ${theme.highlight} cursor-pointer`}>
+                    <input type="radio" name="promoMode" checked={promotionMode === mode} onChange={() => setPromotionMode(mode)} className="accent-slate-600" />
+                    {mode === 'auto' ? 'Auto-promote all' : mode === 'manual' ? 'Manual case-by-case' : 'Rule-based'}
+                  </label>
+                ))}
+              </div>
+              {showRulesConfig && promotionMode === 'rule-based' && (
+                <div className={`mt-3 pt-3 border-t ${theme.border} space-y-2`}>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Min Attendance (%)</label>
+                      <input type="number" value={minAttendance} onChange={e => setMinAttendance(e.target.value)} className={`w-full px-3 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`} />
+                    </div>
+                    <div>
+                      <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Min Marks (%)</label>
+                      <input type="number" value={minMarks} onChange={e => setMinMarks(e.target.value)} className={`w-full px-3 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`} />
+                    </div>
+                  </div>
+                  <label className={`flex items-center gap-2 text-xs ${theme.highlight} cursor-pointer`}>
+                    <input type="checkbox" checked={allSubjectsPass} onChange={() => setAllSubjectsPass(!allSubjectsPass)} className="rounded accent-slate-600" />
+                    All subjects pass required
+                  </label>
+                  <button onClick={() => window.alert('Rules applied! Students auto-classified based on criteria. (Blueprint demo)')} className={`w-full py-1.5 rounded-lg ${theme.primary} text-white text-[10px] font-bold`}>
+                    Apply Rules
+                  </button>
+                </div>
+              )}
+            </div>
+
             <p className={`text-xs ${theme.iconColor}`}>Select the source class to promote students from:</p>
             <SelectField options={classOptions} value={sourceClass} onChange={setSourceClass} theme={theme} placeholder="Select source class" />
             {sourceClass && (
@@ -69,9 +118,44 @@ export default function PromotionWizard({ theme, onClose }: { theme: Theme; onCl
                   <select value={s.action} onChange={e => { const u = [...students]; u[i] = { ...u[i], action: e.target.value }; setStudents(u); }} className={`px-2 py-1 rounded-lg text-[10px] font-bold border ${theme.border} ${theme.inputBg} ${theme.highlight}`}>
                     <option>Promote</option><option>Detain</option><option>TC Issued</option>
                   </select>
+                  {/* Stream Selection for 10→11 promotion */}
+                  {sourceClass === '10th' && s.action === 'Promote' && (
+                    <select value={streams[i]} onChange={e => { const u = [...streams]; u[i] = e.target.value; setStreams(u); }} className={`px-2 py-1 rounded-lg text-[10px] font-bold border ${theme.border} ${theme.inputBg} ${theme.highlight}`}>
+                      <option>Not Applicable</option><option>Science</option><option>Commerce</option><option>Arts</option>
+                    </select>
+                  )}
                 </div>
               ))}
             </div>
+            {/* Stream selection note */}
+            {sourceClass === '10th' && (
+              <p className={`text-[10px] ${theme.iconColor} italic`}>Class 10 to 11 promotion: Select stream (Science/Commerce/Arts) for each promoted student.</p>
+            )}
+            {/* Transfer Notification for TC Issued students */}
+            {students.some(s => s.action === 'TC Issued') && (
+              <div className={`p-3 rounded-xl border border-amber-300 ${theme.accentBg}`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <Bell size={12} className="text-amber-600" />
+                  <span className={`text-xs font-bold ${theme.highlight}`}>Transfer Notification</span>
+                </div>
+                <label className={`flex items-center gap-2 text-xs ${theme.highlight} cursor-pointer mb-2`}>
+                  <input type="checkbox" checked={tcNotifyParent} onChange={() => setTcNotifyParent(!tcNotifyParent)} className="rounded accent-slate-600" />
+                  Notify parent and receiving school
+                </label>
+                {tcNotifyParent && (
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className={`text-[10px] font-bold ${theme.iconColor} block mb-0.5`}>Parent Phone</label>
+                      <input value={tcParentPhone} onChange={e => setTcParentPhone(e.target.value)} placeholder="10-digit mobile" className={`w-full px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight}`} />
+                    </div>
+                    <div>
+                      <label className={`text-[10px] font-bold ${theme.iconColor} block mb-0.5`}>Receiving School</label>
+                      <input value={tcReceivingSchool} onChange={e => setTcReceivingSchool(e.target.value)} placeholder="School name" className={`w-full px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight}`} />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
             <div className="flex gap-2">
               <button onClick={() => setStep(1)} className={`flex-1 py-2 rounded-xl ${theme.secondaryBg} text-xs font-bold ${theme.highlight}`}>Back</button>
               <button onClick={() => setStep(3)} className={`flex-1 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}>Next — Target Class</button>

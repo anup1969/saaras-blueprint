@@ -6,6 +6,7 @@ import {
   Plus, Check, X, Calendar, BarChart3, FileText, Users, Star,
   ShieldCheck, Download, Edit2, Eye, CalendarDays, CalendarClock,
   Sparkles, Bot, ChevronDown, Loader2, CheckCircle, Clock, Circle, User,
+  Lock, RefreshCw, Printer, FileDown,
 } from 'lucide-react';
 
 // ─── YEARLY PLANNER MODULE ───────────────────────────
@@ -65,6 +66,13 @@ export default function YearlyPlannerModule({ theme }: { theme: Theme }) {
   const [customHolidays, setCustomHolidays] = useState<string[]>([]);
   // Dropdown state for Q2
   const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  // Calendar sync state (Gap #68)
+  const [googleSyncEnabled, setGoogleSyncEnabled] = useState(false);
+  const [outlookSyncEnabled, setOutlookSyncEnabled] = useState(false);
+
+  // Export dropdown state (Planned #70)
+  const [showExportDropdown, setShowExportDropdown] = useState(false);
 
   // Generated Gantt categories from AI answers (FIX 3)
   interface GanttItem { label: string; startMonth: number; duration: number; detail: string; }
@@ -476,6 +484,11 @@ export default function YearlyPlannerModule({ theme }: { theme: Theme }) {
           <p className={`text-xs ${theme.iconColor}`}>Gantt-style yearly timeline view</p>
         </div>
         <div className="flex items-center gap-2">
+          {/* Gap #66 — Academic Week Numbering */}
+          <div className={`px-3 py-1.5 rounded-xl ${theme.secondaryBg}`}>
+            <span className={`text-xs font-bold ${theme.highlight}`}>Current: </span>
+            <span className="text-xs font-bold text-blue-600">Week 42 of 52</span>
+          </div>
           <div className={`px-3 py-1.5 rounded-xl ${theme.secondaryBg}`}>
             <span className={`text-xs font-bold ${theme.highlight}`}>Total Working Days: </span>
             <span className="text-xs font-bold text-emerald-600">220</span>
@@ -483,6 +496,28 @@ export default function YearlyPlannerModule({ theme }: { theme: Theme }) {
           <button className={`px-3 py-1.5 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-1`}>
             <Plus size={12} /> Add Event
           </button>
+          {/* Planned #70 — Calendar Export Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setShowExportDropdown(!showExportDropdown)}
+              className={`px-3 py-1.5 rounded-xl border ${theme.border} text-xs font-bold ${theme.highlight} flex items-center gap-1 ${theme.buttonHover}`}
+            >
+              <Download size={12} /> Export <ChevronDown size={10} />
+            </button>
+            {showExportDropdown && (
+              <div className={`absolute right-0 top-full mt-1 ${theme.cardBg} border ${theme.border} rounded-xl shadow-lg z-20 w-40 overflow-hidden`}>
+                <button className={`w-full text-left px-3 py-2 text-xs ${theme.highlight} ${theme.buttonHover} flex items-center gap-2`}>
+                  <FileDown size={12} /> Export as PDF
+                </button>
+                <button className={`w-full text-left px-3 py-2 text-xs ${theme.highlight} ${theme.buttonHover} flex items-center gap-2`}>
+                  <CalendarDays size={12} /> Export as iCal
+                </button>
+                <button className={`w-full text-left px-3 py-2 text-xs ${theme.highlight} ${theme.buttonHover} flex items-center gap-2`}>
+                  <Printer size={12} /> Print
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -575,6 +610,91 @@ export default function YearlyPlannerModule({ theme }: { theme: Theme }) {
               <span className={`text-[10px] font-bold ${theme.iconColor}`}>{cat.name}</span>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Planned #64 — Exam Window Blocking */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <div className="flex items-center gap-2 mb-3">
+          <Lock size={16} className="text-red-500" />
+          <h3 className={`text-sm font-bold ${theme.highlight}`}>Exam Window Blocks</h3>
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-bold">Scheduling Locked</span>
+        </div>
+        <p className={`text-[10px] ${theme.iconColor} mb-3`}>No events, activities, or meetings can be scheduled during exam windows. These periods are automatically protected.</p>
+        <div className="space-y-2">
+          {[
+            { label: 'Unit Test 1', dates: 'Jun 15 - Jun 20', status: 'Completed', color: 'bg-gray-100 border-gray-300 text-gray-600' },
+            { label: 'Mid-Term Exams', dates: 'Sep 22 - Sep 30', status: 'Completed', color: 'bg-gray-100 border-gray-300 text-gray-600' },
+            { label: 'Unit Test 2', dates: 'Nov 17 - Nov 22', status: 'Completed', color: 'bg-gray-100 border-gray-300 text-gray-600' },
+            { label: 'Pre-Board Exams', dates: 'Jan 26 - Feb 6', status: 'Upcoming', color: 'bg-amber-50 border-amber-300 text-amber-700' },
+            { label: 'Board Exam Window', dates: 'Mar 1 - Mar 28', status: 'Upcoming', color: 'bg-red-50 border-red-300 text-red-700' },
+            { label: 'Final Exams', dates: 'Mar 1 - Mar 15', status: 'Upcoming', color: 'bg-red-50 border-red-300 text-red-700' },
+          ].map((exam, i) => (
+            <div key={i} className={`flex items-center gap-3 p-2.5 rounded-xl border ${exam.color}`}>
+              <Lock size={12} className="shrink-0" />
+              <div className="flex-1">
+                <p className="text-xs font-bold">{exam.label}</p>
+                <p className="text-[10px] opacity-75">{exam.dates}</p>
+              </div>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                exam.status === 'Completed' ? 'bg-gray-200 text-gray-600' : 'bg-amber-100 text-amber-700'
+              }`}>{exam.status}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Gap #68 — Calendar Sync */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <div className="flex items-center gap-2 mb-3">
+          <RefreshCw size={16} className={theme.iconColor} />
+          <h3 className={`text-sm font-bold ${theme.highlight}`}>Calendar Sync</h3>
+        </div>
+        <div className="space-y-3">
+          {/* Google Calendar Sync */}
+          <div className={`flex items-center justify-between p-3 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-white border border-gray-200 flex items-center justify-center">
+                <Calendar size={16} className="text-blue-500" />
+              </div>
+              <div>
+                <p className={`text-xs font-bold ${theme.highlight}`}>Google Calendar</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>
+                  {googleSyncEnabled ? 'Last synced: Feb 27, 2026' : 'Not connected'}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setGoogleSyncEnabled(!googleSyncEnabled)}
+              className={`w-10 h-5 rounded-full transition-all relative ${googleSyncEnabled ? 'bg-emerald-500' : 'bg-gray-300'}`}
+            >
+              <div className={`w-4 h-4 rounded-full bg-white shadow absolute top-0.5 transition-all ${googleSyncEnabled ? 'left-5.5 right-0.5' : 'left-0.5'}`}
+                style={{ left: googleSyncEnabled ? '22px' : '2px' }}
+              />
+            </button>
+          </div>
+          {/* Outlook Sync */}
+          <div className={`flex items-center justify-between p-3 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-white border border-gray-200 flex items-center justify-center">
+                <Calendar size={16} className="text-blue-700" />
+              </div>
+              <div>
+                <p className={`text-xs font-bold ${theme.highlight}`}>Microsoft Outlook</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>
+                  {outlookSyncEnabled ? 'Last synced: Feb 27, 2026' : 'Not connected'}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setOutlookSyncEnabled(!outlookSyncEnabled)}
+              className={`w-10 h-5 rounded-full transition-all relative ${outlookSyncEnabled ? 'bg-emerald-500' : 'bg-gray-300'}`}
+            >
+              <div className={`w-4 h-4 rounded-full bg-white shadow absolute top-0.5 transition-all`}
+                style={{ left: outlookSyncEnabled ? '22px' : '2px' }}
+              />
+            </button>
+          </div>
         </div>
       </div>
     </div>

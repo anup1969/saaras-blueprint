@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { StatCard, TabBar, StatusBadge, DataTable } from '@/components/shared';
 import { type Theme } from '@/lib/themes';
-import { Award, TrendingUp, Star, BarChart3, FileText, GraduationCap, Info } from 'lucide-react';
+import { Award, TrendingUp, Star, BarChart3, FileText, GraduationCap, Info, ClipboardList, BookOpen, UserPlus, Sparkles, Heart, ToggleRight } from 'lucide-react';
 
 export default function AcademicsModule({ theme }: { theme: Theme }) {
   const [tab, setTab] = useState('Overview');
@@ -36,7 +36,7 @@ export default function AcademicsModule({ theme }: { theme: Theme }) {
   return (
     <div className="space-y-4">
       <h1 className={`text-2xl font-bold ${theme.highlight}`}>Academic Performance</h1>
-      <TabBar tabs={['Overview', 'Class Performance', 'Exam Results']} active={tab} onChange={setTab} theme={theme} />
+      <TabBar tabs={['Overview', 'Class Performance', 'Exam Results', 'Programs']} active={tab} onChange={setTab} theme={theme} />
 
       {tab === 'Overview' && (
         <div className="space-y-4">
@@ -162,6 +162,142 @@ export default function AcademicsModule({ theme }: { theme: Theme }) {
               ))}
             </div>
           </div>
+
+          {/* Planned #81 — Lesson Plan Submission Status */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+            <div className="flex items-center gap-2 mb-1">
+              <ClipboardList size={16} className={theme.iconColor} />
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>Lesson Plan Submission Status</h3>
+            </div>
+            <p className={`text-[10px] ${theme.iconColor} mb-3 ml-6`}>Department-wise lesson plan submission tracking for the current term</p>
+            <div className="mb-3 px-3 py-2 rounded-xl bg-amber-50 border border-amber-200">
+              <p className="text-xs font-bold text-amber-800">Overall: 78% submitted — Deadline: Mar 5, 2026</p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className={`border-b ${theme.border}`}>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Department</th>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Submitted</th>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Pending</th>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Overdue</th>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Progress</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { dept: 'Science', submitted: 12, total: 14, overdue: 1 },
+                    { dept: 'Mathematics', submitted: 8, total: 10, overdue: 0 },
+                    { dept: 'English', submitted: 10, total: 12, overdue: 1 },
+                    { dept: 'Hindi', submitted: 5, total: 8, overdue: 2 },
+                    { dept: 'Social Science', submitted: 7, total: 9, overdue: 1 },
+                  ].map((d, i) => {
+                    const pct = Math.round((d.submitted / d.total) * 100);
+                    return (
+                      <tr key={i} className={`border-b ${theme.border} ${theme.buttonHover}`}>
+                        <td className={`py-2 px-2 font-bold ${theme.highlight}`}>{d.dept}</td>
+                        <td className={`py-2 px-2 ${theme.iconColor}`}>{d.submitted}/{d.total}</td>
+                        <td className={`py-2 px-2 ${theme.iconColor}`}>{d.total - d.submitted}</td>
+                        <td className={`py-2 px-2 font-bold ${d.overdue > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{d.overdue}</td>
+                        <td className="py-2 px-2">
+                          <div className="flex items-center gap-2">
+                            <div className={`flex-1 h-2 rounded-full ${theme.secondaryBg}`}>
+                              <div className={`h-2 rounded-full ${pct >= 80 ? 'bg-emerald-500' : pct >= 60 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${pct}%` }} />
+                            </div>
+                            <span className={`text-[10px] font-bold ${pct >= 80 ? 'text-emerald-600' : pct >= 60 ? 'text-amber-600' : 'text-red-600'}`}>{pct}%</span>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Gap #130 — Remedial / Extra Classes */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+            <div className="flex items-center gap-2 mb-1">
+              <BookOpen size={16} className="text-amber-500" />
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>Remedial / Extra Classes</h3>
+            </div>
+            <p className={`text-[10px] ${theme.iconColor} mb-3 ml-6`}>After-school remedial and enrichment classes for students needing additional support</p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className={`border-b ${theme.border}`}>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Subject</th>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Teacher</th>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Students</th>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Schedule</th>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { subject: 'Math Remedial', teacher: 'Mr. Sharma', students: 8, schedule: 'Tue/Thu 3-4 PM', status: 'Active' },
+                    { subject: 'English Writing', teacher: 'Ms. D\'Souza', students: 6, schedule: 'Mon/Wed 3-4 PM', status: 'Active' },
+                    { subject: 'Science Lab Extra', teacher: 'Mrs. Iyer', students: 10, schedule: 'Fri 2-4 PM', status: 'Active' },
+                    { subject: 'Hindi Grammar', teacher: 'Mrs. Mishra', students: 5, schedule: 'Wed 3-4 PM', status: 'Paused' },
+                    { subject: 'Board Prep — Math', teacher: 'Mr. Patel', students: 15, schedule: 'Sat 9-12 PM', status: 'Active' },
+                  ].map((c, i) => (
+                    <tr key={i} className={`border-b ${theme.border} ${theme.buttonHover}`}>
+                      <td className={`py-2 px-2 font-bold ${theme.highlight}`}>{c.subject}</td>
+                      <td className={`py-2 px-2 ${theme.iconColor}`}>{c.teacher}</td>
+                      <td className={`py-2 px-2 ${theme.iconColor}`}>{c.students}</td>
+                      <td className={`py-2 px-2 ${theme.iconColor}`}>{c.schedule}</td>
+                      <td className="py-2 px-2">
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                          c.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'
+                        }`}>{c.status}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Gap #137 — Guest & Visiting Teachers */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+            <div className="flex items-center gap-2 mb-1">
+              <UserPlus size={16} className="text-indigo-500" />
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>Guest & Visiting Teachers</h3>
+            </div>
+            <p className={`text-[10px] ${theme.iconColor} mb-3 ml-6`}>External guest faculty and visiting educators for special sessions</p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className={`border-b ${theme.border}`}>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Name</th>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Subject/Topic</th>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Date</th>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Duration</th>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Honorarium</th>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Feedback</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { name: 'Dr. Rajesh Patel', topic: 'Space Science & ISRO Missions', date: 'Jan 15, 2026', duration: '2 hours', honorarium: '\u20B95,000', feedback: '4.8/5' },
+                    { name: 'Ms. Priya Roy', topic: 'Kathak Dance Workshop', date: 'Feb 5, 2026', duration: '3 hours', honorarium: '\u20B93,000', feedback: '4.6/5' },
+                    { name: 'Mr. James Adams', topic: 'English Literature — Shakespeare', date: 'Feb 20, 2026', duration: '1.5 hours', honorarium: '\u20B94,000', feedback: '4.9/5' },
+                  ].map((g, i) => (
+                    <tr key={i} className={`border-b ${theme.border} ${theme.buttonHover}`}>
+                      <td className={`py-2 px-2 font-bold ${theme.highlight}`}>{g.name}</td>
+                      <td className={`py-2 px-2 ${theme.iconColor}`}>{g.topic}</td>
+                      <td className={`py-2 px-2 ${theme.iconColor}`}>{g.date}</td>
+                      <td className={`py-2 px-2 ${theme.iconColor}`}>{g.duration}</td>
+                      <td className={`py-2 px-2 ${theme.iconColor}`}>{g.honorarium}</td>
+                      <td className="py-2 px-2">
+                        <span className="text-xs font-bold text-amber-600">{g.feedback}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       )}
 
@@ -192,6 +328,123 @@ export default function AcademicsModule({ theme }: { theme: Theme }) {
           ])}
           theme={theme}
         />
+      )}
+
+      {tab === 'Programs' && (
+        <div className="space-y-4">
+          {/* Gap #140 — Gifted Student Identification */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+            <div className="flex items-center gap-2 mb-3">
+              <Sparkles size={16} className="text-amber-500" />
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>Gifted Student Identification</h3>
+            </div>
+            <div className="grid grid-cols-3 gap-3 mb-4">
+              <StatCard icon={Star} label="Identified" value="28" color="bg-amber-500" theme={theme} />
+              <StatCard icon={GraduationCap} label="In Enrichment" value="22" color="bg-blue-500" theme={theme} />
+              <StatCard icon={Award} label="Achievements" value="15" color="bg-emerald-500" theme={theme} />
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className={`border-b ${theme.border}`}>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Student</th>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Class</th>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Area</th>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Program</th>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { name: 'Aarav Mehta', cls: '8A', area: 'Academic — Mathematics', program: 'Math Olympiad Prep', status: 'Active' },
+                    { name: 'Diya Reddy', cls: '6B', area: 'Arts — Classical Music', program: 'State Youth Festival', status: 'Active' },
+                    { name: 'Vivaan Sharma', cls: '10A', area: 'Academic — Science', program: 'NTSE Coaching', status: 'Active' },
+                    { name: 'Sneha Kulkarni', cls: '7A', area: 'Sports — Athletics', program: 'District Level Training', status: 'Selected' },
+                    { name: 'Rohan Patel', cls: '9B', area: 'Academic — Coding', program: 'ICPC Junior Prep', status: 'Active' },
+                    { name: 'Ananya Iyer', cls: '5A', area: 'Arts — Painting', program: 'National Art Competition', status: 'Nominated' },
+                  ].map((s, i) => (
+                    <tr key={i} className={`border-b ${theme.border} ${theme.buttonHover}`}>
+                      <td className={`py-2 px-2 font-bold ${theme.highlight}`}>{s.name}</td>
+                      <td className={`py-2 px-2 ${theme.iconColor}`}>{s.cls}</td>
+                      <td className={`py-2 px-2 ${theme.iconColor}`}>{s.area}</td>
+                      <td className={`py-2 px-2 ${theme.iconColor}`}>{s.program}</td>
+                      <td className="py-2 px-2">
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                          s.status === 'Active' ? 'bg-emerald-100 text-emerald-700' :
+                          s.status === 'Selected' ? 'bg-blue-100 text-blue-700' :
+                          'bg-purple-100 text-purple-700'
+                        }`}>{s.status}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Gap #141 — CWSN / Inclusive Education */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+            <div className="flex items-center gap-2 mb-3">
+              <Heart size={16} className="text-rose-500" />
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>CWSN / Inclusive Education</h3>
+            </div>
+            <div className="grid grid-cols-3 gap-3 mb-4">
+              <StatCard icon={Heart} label="CWSN Students" value="12" color="bg-rose-500" theme={theme} />
+              <StatCard icon={FileText} label="With IEP" value="10" color="bg-blue-500" theme={theme} />
+              <StatCard icon={GraduationCap} label="Resource Teachers" value="3" color="bg-violet-500" theme={theme} />
+            </div>
+            {/* Accessibility Toggle */}
+            <div className={`flex items-center justify-between p-3 rounded-xl ${theme.secondaryBg} mb-4`}>
+              <div className="flex items-center gap-2">
+                <ToggleRight size={16} className="text-emerald-500" />
+                <div>
+                  <p className={`text-xs font-bold ${theme.highlight}`}>Accessibility Features</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>Enabled for portal and mobile app</p>
+                </div>
+              </div>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold">Enabled</span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className={`border-b ${theme.border}`}>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Student</th>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Class</th>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Category</th>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>IEP Status</th>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Support Level</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { name: 'Arjun Kumar', cls: '5A', category: 'Learning Disability', iep: 'Active', support: 'High' },
+                    { name: 'Priya Nair', cls: '3B', category: 'Hearing Impairment', iep: 'Active', support: 'Medium' },
+                    { name: 'Rahul Joshi', cls: '7A', category: 'Autism Spectrum', iep: 'Active', support: 'High' },
+                    { name: 'Meena Singh', cls: '4C', category: 'Visual Impairment', iep: 'Active', support: 'High' },
+                    { name: 'Sahil Gupta', cls: '6B', category: 'ADHD', iep: 'Under Review', support: 'Medium' },
+                    { name: 'Kavya Reddy', cls: '8A', category: 'Dyslexia', iep: 'Active', support: 'Medium' },
+                  ].map((s, i) => (
+                    <tr key={i} className={`border-b ${theme.border} ${theme.buttonHover}`}>
+                      <td className={`py-2 px-2 font-bold ${theme.highlight}`}>{s.name}</td>
+                      <td className={`py-2 px-2 ${theme.iconColor}`}>{s.cls}</td>
+                      <td className={`py-2 px-2 ${theme.iconColor}`}>{s.category}</td>
+                      <td className="py-2 px-2">
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                          s.iep === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                        }`}>{s.iep}</span>
+                      </td>
+                      <td className="py-2 px-2">
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                          s.support === 'High' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
+                        }`}>{s.support}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

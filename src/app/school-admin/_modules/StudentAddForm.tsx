@@ -5,7 +5,7 @@ import { type Theme } from '@/lib/themes';
 import { TabBar, Toggle } from '@/components/shared';
 import {
   Users, MapPin, Bus, FileText, Heart, Building, Landmark,
-  ArrowLeft, Save, UserPlus, Plus, Trash2
+  ArrowLeft, Save, UserPlus, Plus, Trash2, Award, Activity, ShieldCheck
 } from 'lucide-react';
 import { FormField, InputField, SelectField, TextAreaField, PhotoUpload, FileUploadArea, FormSection } from '../_components/FormHelpers';
 import BulkUploadTab from './BulkUploadTab';
@@ -38,6 +38,37 @@ export default function StudentAddForm({ theme, onBack }: { theme: Theme; onBack
   const [caste, setCaste] = useState('');
   const [motherTongue, setMotherTongue] = useState('');
   const [languagesKnown, setLanguagesKnown] = useState<string[]>([]);
+  const [nationality, setNationality] = useState('Indian');
+  const [apaarId, setApaarId] = useState('');
+  const [transferReason, setTransferReason] = useState('');
+  const [destinationSchool, setDestinationSchool] = useState('');
+
+  // Achievements
+  const [achievements, setAchievements] = useState([
+    { title: 'Science Fair - 1st Prize', type: 'Academic', date: '2025-11-15', level: 'School' },
+    { title: 'Inter-School Cricket Tournament MVP', type: 'Sports', date: '2025-09-20', level: 'District' },
+    { title: 'Debate Competition Winner', type: 'Co-curricular', date: '2025-08-10', level: 'State' },
+  ]);
+
+  // NCC/Scouts/NSS
+  const [nccEnabled, setNccEnabled] = useState(false);
+  const [scoutsEnabled, setScoutsEnabled] = useState(false);
+  const [nssEnabled, setNssEnabled] = useState(false);
+  const [nccRank, setNccRank] = useState('Cadet');
+  const [nccJoinDate, setNccJoinDate] = useState('2024-07-01');
+  const [nccStatus, setNccStatus] = useState('Active');
+  const [scoutsRank, setScoutsRank] = useState('');
+  const [scoutsJoinDate, setScoutsJoinDate] = useState('');
+  const [scoutsStatus, setScoutsStatus] = useState('Active');
+  const [nssRank, setNssRank] = useState('');
+  const [nssJoinDate, setNssJoinDate] = useState('');
+  const [nssStatus, setNssStatus] = useState('Active');
+
+  // Consent & Permissions
+  const [fieldTripConsent, setFieldTripConsent] = useState(true);
+  const [photoConsent, setPhotoConsent] = useState(true);
+  const [medicalConsent, setMedicalConsent] = useState(true);
+  const [poolConsent, setPoolConsent] = useState(true);
 
   // Father
   const [fatherName, setFatherName] = useState('');
@@ -120,6 +151,17 @@ export default function StudentAddForm({ theme, onBack }: { theme: Theme; onBack
   const languageOptions = ['Hindi', 'English', 'Gujarati', 'Marathi', 'Tamil', 'Telugu', 'Kannada', 'Bengali', 'Malayalam', 'Punjabi', 'Urdu', 'Sanskrit'];
   const routeOptions = ['Route A', 'Route B', 'Route C', 'Route D', 'Route E', 'Route F'];
   const boardOptions = ['CBSE', 'ICSE', 'State Board', 'IB', 'IGCSE', 'Other'];
+  const nationalityOptions = ['Indian', 'NRI', 'Foreign National'];
+  const achievementTypeOptions = ['Academic', 'Sports', 'Co-curricular', 'Cultural'];
+  const achievementLevelOptions = ['School', 'District', 'State', 'National'];
+
+  const addAchievement = () => setAchievements([...achievements, { title: '', type: 'Academic', date: '', level: 'School' }]);
+  const removeAchievement = (idx: number) => setAchievements(achievements.filter((_, i) => i !== idx));
+  const updateAchievement = (idx: number, field: string, val: string) => {
+    const updated = [...achievements];
+    updated[idx] = { ...updated[idx], [field]: val };
+    setAchievements(updated);
+  };
 
   return (
     <div className="space-y-4">
@@ -158,9 +200,11 @@ export default function StudentAddForm({ theme, onBack }: { theme: Theme; onBack
                   <InputField placeholder="Auto / Manual" value={rollNo} onChange={setRollNo} theme={theme} />
                 </FormField>
                 <FormField label="Status" required theme={theme}>
-                  <SelectField options={['Active', 'Inactive', 'Left']} value={status} onChange={setStatus} theme={theme} />
+                  <SelectField options={['Active', 'Inactive', 'Left', 'Transferred', 'Alumni']} value={status} onChange={setStatus} theme={theme} />
                 </FormField>
-                <div /> {/* spacer */}
+                <FormField label="APAAR / ABC ID (NEP 2020)" theme={theme}>
+                  <InputField placeholder="12-digit Academic Bank of Credits ID" value={apaarId} onChange={setApaarId} theme={theme} />
+                </FormField>
                 <FormField label="First Name" required theme={theme}>
                   <InputField placeholder="First name" value={firstName} onChange={setFirstName} theme={theme} />
                 </FormField>
@@ -190,6 +234,9 @@ export default function StudentAddForm({ theme, onBack }: { theme: Theme; onBack
                 </FormField>
                 <FormField label="Category" theme={theme}>
                   <SelectField options={categoryOptions} value={category} onChange={setCategory} theme={theme} placeholder="Select" />
+                </FormField>
+                <FormField label="Nationality" theme={theme}>
+                  <SelectField options={nationalityOptions} value={nationality} onChange={setNationality} theme={theme} />
                 </FormField>
                 <FormField label="Primary Contact" required theme={theme}>
                   <InputField placeholder="10-digit mobile" value={primaryContact} onChange={setPrimaryContact} theme={theme} />
@@ -226,6 +273,20 @@ export default function StudentAddForm({ theme, onBack }: { theme: Theme; onBack
                 <PhotoUpload label="Student Photo" theme={theme} />
               </div>
             </div>
+            {/* Transfer fields — show when status is Transferred */}
+            {status === 'Transferred' && (
+              <div className={`mt-4 pt-4 border-t ${theme.border}`}>
+                <p className={`text-xs font-bold ${theme.highlight} mb-3`}>Transfer Details</p>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  <FormField label="Transfer Reason" required theme={theme}>
+                    <SelectField options={['Relocation', 'Fee Issues', 'Performance', 'Parent Request', 'Other']} value={transferReason} onChange={setTransferReason} theme={theme} placeholder="Select reason" />
+                  </FormField>
+                  <FormField label="Destination School" theme={theme}>
+                    <InputField placeholder="Name of receiving school" value={destinationSchool} onChange={setDestinationSchool} theme={theme} />
+                  </FormField>
+                </div>
+              </div>
+            )}
           </FormSection>
 
           {/* ─── PARENTS & GUARDIAN ────────────────────── */}
@@ -494,6 +555,128 @@ export default function StudentAddForm({ theme, onBack }: { theme: Theme; onBack
               <FormField label="Account Number" theme={theme}>
                 <InputField placeholder="Account no." value={accountNo} onChange={setAccountNo} theme={theme} />
               </FormField>
+            </div>
+          </FormSection>
+
+          {/* ─── ACHIEVEMENTS & AWARDS ───────────────── */}
+          <FormSection title="Achievements & Awards" icon={Award} theme={theme} collapsible defaultOpen={false}>
+            <div className="space-y-3">
+              {achievements.map((ach, idx) => (
+                <div key={idx} className={`grid grid-cols-2 md:grid-cols-5 gap-3 p-3 rounded-xl ${theme.accentBg} items-end`}>
+                  <FormField label="Achievement" theme={theme}>
+                    <InputField placeholder="Title" value={ach.title} onChange={v => updateAchievement(idx, 'title', v)} theme={theme} />
+                  </FormField>
+                  <FormField label="Type" theme={theme}>
+                    <SelectField options={achievementTypeOptions} value={ach.type} onChange={v => updateAchievement(idx, 'type', v)} theme={theme} />
+                  </FormField>
+                  <FormField label="Date" theme={theme}>
+                    <InputField type="date" value={ach.date} onChange={v => updateAchievement(idx, 'date', v)} theme={theme} />
+                  </FormField>
+                  <FormField label="Level" theme={theme}>
+                    <SelectField options={achievementLevelOptions} value={ach.level} onChange={v => updateAchievement(idx, 'level', v)} theme={theme} />
+                  </FormField>
+                  <div className="flex items-end pb-0.5">
+                    <button type="button" onClick={() => removeAchievement(idx)} className="p-2 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-all">
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+              <button type="button" onClick={addAchievement} className={`flex items-center gap-1.5 px-3 py-2 rounded-xl ${theme.secondaryBg} ${theme.buttonHover} text-xs font-bold ${theme.primaryText}`}>
+                <Plus size={12} /> Add Achievement
+              </button>
+            </div>
+          </FormSection>
+
+          {/* ─── EXTRA-CURRICULAR ACTIVITIES ────────────── */}
+          <FormSection title="Extra-curricular Activities" icon={Activity} theme={theme} collapsible defaultOpen={false}>
+            <div className="space-y-4">
+              {/* NCC */}
+              <div className={`p-3 rounded-xl ${theme.accentBg}`}>
+                <div className="flex items-center gap-3 mb-3">
+                  <label className={`flex items-center gap-2 text-xs font-bold ${theme.highlight} cursor-pointer`}>
+                    <input type="checkbox" checked={nccEnabled} onChange={() => setNccEnabled(!nccEnabled)} className="rounded accent-slate-600" />
+                    NCC (National Cadet Corps)
+                  </label>
+                </div>
+                {nccEnabled && (
+                  <div className="grid grid-cols-3 gap-3">
+                    <FormField label="Rank / Position" theme={theme}>
+                      <SelectField options={['Cadet', 'Lance Corporal', 'Corporal', 'Sergeant', 'Under Officer']} value={nccRank} onChange={setNccRank} theme={theme} />
+                    </FormField>
+                    <FormField label="Date Joined" theme={theme}>
+                      <InputField type="date" value={nccJoinDate} onChange={setNccJoinDate} theme={theme} />
+                    </FormField>
+                    <FormField label="Current Status" theme={theme}>
+                      <SelectField options={['Active', 'Inactive', 'Completed']} value={nccStatus} onChange={setNccStatus} theme={theme} />
+                    </FormField>
+                  </div>
+                )}
+              </div>
+              {/* Scouts & Guides */}
+              <div className={`p-3 rounded-xl ${theme.accentBg}`}>
+                <div className="flex items-center gap-3 mb-3">
+                  <label className={`flex items-center gap-2 text-xs font-bold ${theme.highlight} cursor-pointer`}>
+                    <input type="checkbox" checked={scoutsEnabled} onChange={() => setScoutsEnabled(!scoutsEnabled)} className="rounded accent-slate-600" />
+                    Scouts &amp; Guides
+                  </label>
+                </div>
+                {scoutsEnabled && (
+                  <div className="grid grid-cols-3 gap-3">
+                    <FormField label="Rank / Position" theme={theme}>
+                      <SelectField options={['Scout', 'Patrol Leader', 'Troop Leader', 'Rajya Puraskar', 'President Award']} value={scoutsRank} onChange={setScoutsRank} theme={theme} placeholder="Select" />
+                    </FormField>
+                    <FormField label="Date Joined" theme={theme}>
+                      <InputField type="date" value={scoutsJoinDate} onChange={setScoutsJoinDate} theme={theme} />
+                    </FormField>
+                    <FormField label="Current Status" theme={theme}>
+                      <SelectField options={['Active', 'Inactive', 'Completed']} value={scoutsStatus} onChange={setScoutsStatus} theme={theme} />
+                    </FormField>
+                  </div>
+                )}
+              </div>
+              {/* NSS */}
+              <div className={`p-3 rounded-xl ${theme.accentBg}`}>
+                <div className="flex items-center gap-3 mb-3">
+                  <label className={`flex items-center gap-2 text-xs font-bold ${theme.highlight} cursor-pointer`}>
+                    <input type="checkbox" checked={nssEnabled} onChange={() => setNssEnabled(!nssEnabled)} className="rounded accent-slate-600" />
+                    NSS (National Service Scheme)
+                  </label>
+                </div>
+                {nssEnabled && (
+                  <div className="grid grid-cols-3 gap-3">
+                    <FormField label="Role / Position" theme={theme}>
+                      <SelectField options={['Volunteer', 'Secretary', 'Program Officer']} value={nssRank} onChange={setNssRank} theme={theme} placeholder="Select" />
+                    </FormField>
+                    <FormField label="Date Joined" theme={theme}>
+                      <InputField type="date" value={nssJoinDate} onChange={setNssJoinDate} theme={theme} />
+                    </FormField>
+                    <FormField label="Current Status" theme={theme}>
+                      <SelectField options={['Active', 'Inactive', 'Completed']} value={nssStatus} onChange={setNssStatus} theme={theme} />
+                    </FormField>
+                  </div>
+                )}
+              </div>
+            </div>
+          </FormSection>
+
+          {/* ─── CONSENT & PERMISSIONS ──────────────────── */}
+          <FormSection title="Consent & Permissions" icon={ShieldCheck} theme={theme} collapsible defaultOpen={false}>
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { label: 'Field trip consent', value: fieldTripConsent, setter: setFieldTripConsent },
+                  { label: 'Photo / video consent', value: photoConsent, setter: setPhotoConsent },
+                  { label: 'Medical treatment consent', value: medicalConsent, setter: setMedicalConsent },
+                  { label: 'Swimming pool consent', value: poolConsent, setter: setPoolConsent },
+                ].map(item => (
+                  <label key={item.label} className={`flex items-center gap-2.5 p-3 rounded-xl ${theme.accentBg} cursor-pointer ${theme.buttonHover} transition-all`}>
+                    <input type="checkbox" checked={item.value} onChange={() => item.setter(!item.value)} className="w-4 h-4 rounded accent-slate-600" />
+                    <span className={`text-xs font-bold ${theme.highlight}`}>{item.label}</span>
+                  </label>
+                ))}
+              </div>
+              <p className={`text-[10px] ${theme.iconColor}`}>Last updated: Feb 15, 2026</p>
             </div>
           </FormSection>
 

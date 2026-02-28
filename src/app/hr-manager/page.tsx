@@ -263,17 +263,195 @@ function OnboardingModule({ theme }: { theme: Theme }) {
 
 // ─── ATTENDANCE ───────────────────────────────────────
 function AttendanceModule({ theme }: { theme: Theme }) {
+  const [attTab, setAttTab] = useState('Today');
   const data = [{ n: 'Priya Sharma', i: 'PS', d: 'Teaching', in_: '7:45 AM', out: '2:10 PM', s: 'Present' }, { n: 'Rajesh Kumar', i: 'RK', d: 'Teaching', in_: '7:52 AM', out: '2:05 PM', s: 'Present' }, { n: 'Sunita Patel', i: 'SP', d: 'Admin', in_: '9:15 AM', out: '-', s: 'Late' }, { n: 'Kavitha Nair', i: 'KN', d: 'Teaching', in_: '-', out: '-', s: 'Absent' }, { n: 'Deepak Verma', i: 'DV', d: 'Security', in_: '-', out: '-', s: 'On Leave' }, { n: 'Mohammed Irfan', i: 'MI', d: 'Transport', in_: '6:30 AM', out: '1:45 PM', s: 'Present' }];
   const sc: Record<string, string> = { Present: 'bg-emerald-500/20 text-emerald-400', Late: 'bg-amber-500/20 text-amber-400', Absent: 'bg-red-500/20 text-red-400', 'On Leave': 'bg-blue-500/20 text-blue-400' };
+
+  const monthlyData = [
+    { n: 'Priya Sharma', dept: 'Teaching', present: 20, leave: 1, absent: 0, lop: 0, pct: '100%' },
+    { n: 'Rajesh Kumar', dept: 'Teaching', present: 19, leave: 2, absent: 0, lop: 0, pct: '95%' },
+    { n: 'Sunita Patel', dept: 'Administration', present: 18, leave: 1, absent: 2, lop: 1, pct: '86%' },
+    { n: 'Mohammed Irfan', dept: 'Transport', present: 21, leave: 0, absent: 0, lop: 0, pct: '100%' },
+    { n: 'Kavitha Nair', dept: 'Teaching', present: 16, leave: 3, absent: 2, lop: 1, pct: '76%' },
+    { n: 'Deepak Verma', dept: 'Security', present: 20, leave: 1, absent: 0, lop: 0, pct: '100%' },
+    { n: 'Amit Saxena', dept: 'Teaching', present: 19, leave: 2, absent: 0, lop: 0, pct: '95%' },
+    { n: 'Meera Iyer', dept: 'Accounts', present: 17, leave: 2, absent: 2, lop: 1, pct: '81%' },
+    { n: 'Vijay Kumar', dept: 'IT', present: 21, leave: 0, absent: 0, lop: 0, pct: '100%' },
+    { n: 'Anjali Gupta', dept: 'Teaching', present: 18, leave: 3, absent: 0, lop: 0, pct: '90%' },
+  ];
+
+  const punchLog = [
+    { n: 'Priya Sharma', inTime: '7:45 AM', outTime: '2:10 PM', duration: '6h 25m', status: 'On Time' },
+    { n: 'Rajesh Kumar', inTime: '7:52 AM', outTime: '2:05 PM', duration: '6h 13m', status: 'On Time' },
+    { n: 'Sunita Patel', inTime: '9:15 AM', outTime: '5:30 PM', duration: '8h 15m', status: 'Late' },
+    { n: 'Mohammed Irfan', inTime: '6:30 AM', outTime: '1:45 PM', duration: '7h 15m', status: 'On Time' },
+    { n: 'Anjali Gupta', inTime: '8:20 AM', outTime: '1:30 PM', duration: '5h 10m', status: 'Early Exit' },
+    { n: 'Vijay Kumar', inTime: '9:05 AM', outTime: '6:10 PM', duration: '9h 05m', status: 'Late' },
+  ];
+  const punchSC: Record<string, string> = { 'On Time': 'bg-emerald-500/20 text-emerald-400', Late: 'bg-amber-500/20 text-amber-400', 'Early Exit': 'bg-red-500/20 text-red-400' };
+
+  const lopData = [
+    { n: 'Sunita Patel', month: 'Feb 2026', balance: 0, excess: 1, amount: 850 },
+    { n: 'Kavitha Nair', month: 'Feb 2026', balance: 0, excess: 1, amount: 1190 },
+    { n: 'Meera Iyer', month: 'Feb 2026', balance: 0, excess: 1, amount: 960 },
+  ];
+
+  const compOffData = [
+    { n: 'Priya Sharma', earned: 2, used: 1, balance: 1, expiry: '15 Apr 2026' },
+    { n: 'Rajesh Kumar', earned: 1, used: 0, balance: 1, expiry: '28 Mar 2026' },
+    { n: 'Deepak Verma', earned: 3, used: 2, balance: 1, expiry: '10 Apr 2026' },
+    { n: 'Mohammed Irfan', earned: 2, used: 1, balance: 1, expiry: '20 Mar 2026' },
+    { n: 'Vijay Kumar', earned: 1, used: 0, balance: 1, expiry: '05 Apr 2026' },
+  ];
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center"><h1 className={`text-xl font-bold ${theme.highlight}`}>Attendance</h1><button className={`px-3 py-2 ${theme.primary} text-white rounded-lg text-sm`}>Mark Attendance</button></div>
-      <p className="text-[10px] text-amber-600 mb-2">📋 Staff attendance methods: Biometric + Mobile App · Geo-fencing: OFF — per SSA config</p>
+      <p className="text-[10px] text-amber-600 mb-2">Staff attendance methods: Biometric + Mobile App. Geo-fencing: OFF -- per SSA config</p>
       <div className="grid grid-cols-4 gap-3"><SC icon={Users} label="Total" value="142" color="bg-indigo-600" theme={theme} /><SC icon={CheckCircle} label="Present" value="128" color="bg-emerald-500" theme={theme} /><SC icon={Calendar} label="Leave" value="8" color="bg-amber-500" theme={theme} /><SC icon={XCircle} label="Absent" value="6" color="bg-red-500" theme={theme} /></div>
-      <div className={`${theme.cardBg} rounded-xl border ${theme.border} overflow-hidden`}>
-        <table className="w-full text-sm"><thead><tr className={theme.secondaryBg}><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Employee</th><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Dept</th><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Check In</th><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Check Out</th><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Status</th></tr></thead>
-        <tbody>{data.map((e, i) => <tr key={i} className={`border-t ${theme.border}`}><td className="p-3"><div className="flex items-center gap-2"><div className={`w-7 h-7 ${theme.secondaryBg} rounded-full flex items-center justify-center text-xs font-bold ${theme.primaryText}`}>{e.i}</div><span className={theme.highlight}>{e.n}</span></div></td><td className={`p-3 ${theme.iconColor}`}>{e.d}</td><td className={`p-3 ${theme.highlight}`}>{e.in_}</td><td className={`p-3 ${theme.highlight}`}>{e.out}</td><td className="p-3"><span className={`px-2 py-1 text-xs rounded-full font-bold ${sc[e.s]}`}>{e.s}</span></td></tr>)}</tbody></table>
-      </div>
+
+      <TabBar tabs={['Today', 'Monthly Summary', 'Punch Log', 'LOP Tracking', 'Comp-off']} active={attTab} onChange={setAttTab} theme={theme} />
+
+      {/* Today's attendance (original) */}
+      {attTab === 'Today' && (
+        <div className={`${theme.cardBg} rounded-xl border ${theme.border} overflow-hidden`}>
+          <table className="w-full text-sm"><thead><tr className={theme.secondaryBg}><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Employee</th><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Dept</th><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Check In</th><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Check Out</th><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Status</th></tr></thead>
+          <tbody>{data.map((e, i) => <tr key={i} className={`border-t ${theme.border}`}><td className="p-3"><div className="flex items-center gap-2"><div className={`w-7 h-7 ${theme.secondaryBg} rounded-full flex items-center justify-center text-xs font-bold ${theme.primaryText}`}>{e.i}</div><span className={theme.highlight}>{e.n}</span></div></td><td className={`p-3 ${theme.iconColor}`}>{e.d}</td><td className={`p-3 ${theme.highlight}`}>{e.in_}</td><td className={`p-3 ${theme.highlight}`}>{e.out}</td><td className="p-3"><span className={`px-2 py-1 text-xs rounded-full font-bold ${sc[e.s]}`}>{e.s}</span></td></tr>)}</tbody></table>
+        </div>
+      )}
+
+      {/* Monthly Summary */}
+      {attTab === 'Monthly Summary' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>Monthly Attendance Summary &mdash; February 2026</h3>
+            <button className={`px-3 py-2 ${theme.primary} text-white rounded-lg text-xs font-bold flex items-center gap-1`}><BarChart3 size={12} /> Export Monthly Report</button>
+          </div>
+          <div className="grid grid-cols-4 gap-3">
+            <SC icon={Calendar} label="Working Days" value="22" color="bg-indigo-600" theme={theme} />
+            <SC icon={CheckCircle} label="Avg Attendance" value="94%" color="bg-emerald-500" theme={theme} />
+            <SC icon={Calendar} label="On Leave (total)" value="28 days" color="bg-amber-500" theme={theme} />
+            <SC icon={XCircle} label="LOP Days" value="3" color="bg-red-500" theme={theme} />
+          </div>
+          <div className={`${theme.cardBg} rounded-xl border ${theme.border} overflow-hidden`}>
+            <table className="w-full text-sm">
+              <thead><tr className={theme.secondaryBg}>
+                <th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Employee</th>
+                <th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Department</th>
+                <th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Present</th>
+                <th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Leave</th>
+                <th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Absent</th>
+                <th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>LOP</th>
+                <th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Percentage</th>
+              </tr></thead>
+              <tbody>{monthlyData.map((e, i) => (
+                <tr key={i} className={`border-t ${theme.border}`}>
+                  <td className={`p-3 font-medium ${theme.highlight}`}>{e.n}</td>
+                  <td className={`p-3 ${theme.iconColor}`}>{e.dept}</td>
+                  <td className={`p-3 text-center text-emerald-400 font-bold`}>{e.present}</td>
+                  <td className={`p-3 text-center text-amber-400 font-bold`}>{e.leave}</td>
+                  <td className={`p-3 text-center ${e.absent > 0 ? 'text-red-400 font-bold' : theme.iconColor}`}>{e.absent}</td>
+                  <td className={`p-3 text-center ${e.lop > 0 ? 'text-red-500 font-bold' : theme.iconColor}`}>{e.lop}</td>
+                  <td className="p-3 text-center">
+                    <span className={`px-2 py-0.5 text-xs rounded-full font-bold ${parseInt(e.pct) >= 95 ? 'bg-emerald-500/20 text-emerald-400' : parseInt(e.pct) >= 85 ? 'bg-amber-500/20 text-amber-400' : 'bg-red-500/20 text-red-400'}`}>{e.pct}</span>
+                  </td>
+                </tr>
+              ))}</tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Punch Log */}
+      {attTab === 'Punch Log' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>Today&apos;s Punch Log</h3>
+            <span className="px-2 py-1 text-xs font-bold rounded-full bg-amber-500/20 text-amber-400">Late arrivals today: 4</span>
+          </div>
+          <div className={`${theme.cardBg} rounded-xl border ${theme.border} overflow-hidden`}>
+            <table className="w-full text-sm">
+              <thead><tr className={theme.secondaryBg}>
+                <th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Employee</th>
+                <th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>In Time</th>
+                <th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Out Time</th>
+                <th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Duration</th>
+                <th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Status</th>
+              </tr></thead>
+              <tbody>{punchLog.map((e, i) => (
+                <tr key={i} className={`border-t ${theme.border}`}>
+                  <td className={`p-3 font-medium ${theme.highlight}`}>{e.n}</td>
+                  <td className={`p-3 text-center ${theme.highlight}`}>{e.inTime}</td>
+                  <td className={`p-3 text-center ${theme.highlight}`}>{e.outTime}</td>
+                  <td className={`p-3 text-center ${theme.iconColor}`}>{e.duration}</td>
+                  <td className="p-3 text-center"><span className={`px-2 py-1 text-xs rounded-full font-bold ${punchSC[e.status]}`}>{e.status}</span></td>
+                </tr>
+              ))}</tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* LOP Tracking */}
+      {attTab === 'LOP Tracking' && (
+        <div className="space-y-4">
+          <h3 className={`text-sm font-bold ${theme.highlight}`}>Loss of Pay (LOP)</h3>
+          <div className={`p-3 rounded-xl bg-amber-50 border border-amber-200 flex items-center gap-2`}>
+            <Bell size={14} className="text-amber-600 shrink-0" />
+            <p className="text-xs text-amber-700 font-medium">3 employees have exhausted leave balance this month</p>
+          </div>
+          <div className={`${theme.cardBg} rounded-xl border ${theme.border} overflow-hidden`}>
+            <table className="w-full text-sm">
+              <thead><tr className={theme.secondaryBg}>
+                <th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Employee</th>
+                <th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Month</th>
+                <th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Leave Balance</th>
+                <th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Excess Days</th>
+                <th className={`p-3 text-right text-xs font-bold ${theme.iconColor}`}>LOP Amount</th>
+              </tr></thead>
+              <tbody>{lopData.map((e, i) => (
+                <tr key={i} className={`border-t ${theme.border}`}>
+                  <td className={`p-3 font-medium ${theme.highlight}`}>{e.n}</td>
+                  <td className={`p-3 text-center ${theme.iconColor}`}>{e.month}</td>
+                  <td className="p-3 text-center text-red-400 font-bold">{e.balance}</td>
+                  <td className="p-3 text-center text-red-500 font-bold">{e.excess}</td>
+                  <td className="p-3 text-right text-red-500 font-bold">{'\u20B9'}{fmt(e.amount)}</td>
+                </tr>
+              ))}</tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Comp-off Balance */}
+      {attTab === 'Comp-off' && (
+        <div className="space-y-4">
+          <h3 className={`text-sm font-bold ${theme.highlight}`}>Comp-off Balance</h3>
+          <div className={`p-3 rounded-xl bg-blue-50 border border-blue-200`}>
+            <p className="text-xs text-blue-700 font-medium">Comp-off earned for: Working on Republic Day (5 staff), Saturday duty (3 staff)</p>
+          </div>
+          <div className={`${theme.cardBg} rounded-xl border ${theme.border} overflow-hidden`}>
+            <table className="w-full text-sm">
+              <thead><tr className={theme.secondaryBg}>
+                <th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Employee</th>
+                <th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Earned</th>
+                <th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Used</th>
+                <th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Balance</th>
+                <th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Expiry Date</th>
+              </tr></thead>
+              <tbody>{compOffData.map((e, i) => (
+                <tr key={i} className={`border-t ${theme.border}`}>
+                  <td className={`p-3 font-medium ${theme.highlight}`}>{e.n}</td>
+                  <td className="p-3 text-center text-emerald-400 font-bold">{e.earned}</td>
+                  <td className={`p-3 text-center ${theme.iconColor}`}>{e.used}</td>
+                  <td className={`p-3 text-center font-bold ${theme.primaryText}`}>{e.balance}</td>
+                  <td className={`p-3 text-center ${theme.iconColor}`}>{e.expiry}</td>
+                </tr>
+              ))}</tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

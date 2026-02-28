@@ -8,7 +8,7 @@ import {
   Send, Calendar, GraduationCap, Briefcase, ChevronRight, Banknote,
   ClipboardCheck, Star, FileText, ShieldCheck, Award, User, Sparkles,
   Radio, Cake, Heart, Moon, Sun, Image, LayoutGrid, X, Eye, EyeOff,
-  Timer, Phone, Stethoscope, ChevronDown, ChevronUp,
+  Timer, Phone, Stethoscope, ChevronDown, ChevronUp, Shield, MessageSquare,
 } from 'lucide-react';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import RecurringTasksCard from '@/components/RecurringTasksCard';
@@ -71,6 +71,96 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
         <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800">
           <AlertTriangle size={14} className="text-amber-600 shrink-0" />
           <p className="text-xs font-medium">Bottleneck Alert — 23 leave approvals pending &gt; 3 days | 5 fee concessions awaiting sign-off</p>
+        </div>
+      )}
+
+      {/* Gap #149 — Child Safety / Chronic Attendance Alert */}
+      {!isPreschool && (
+        <div className={`${theme.cardBg} rounded-2xl border-2 border-red-300 ring-1 ring-red-300/30 p-4`}>
+          <div className="flex items-center gap-2 mb-2">
+            <Shield size={16} className="text-red-600" />
+            <h3 className={`text-sm font-bold text-red-700`}>Chronic Attendance Alert</h3>
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-bold">Action Required</span>
+          </div>
+          <p className={`text-xs ${theme.iconColor} mb-3`}>3 students flagged for chronic absence (&gt;30 days). POCSO/Child Safety protocol: Auto-flagged for counselor review.</p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className={`border-b ${theme.border}`}>
+                  <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Student</th>
+                  <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Class</th>
+                  <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Days Absent</th>
+                  <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Parent Contacted</th>
+                  <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Counselor</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { name: 'Rohit Verma', cls: '7A', days: 34, contacted: 'Yes (Feb 20)', counselor: 'Assigned' },
+                  { name: 'Meena Kumari', cls: '5C', days: 31, contacted: 'Yes (Feb 22)', counselor: 'Pending' },
+                  { name: 'Ajay Thakur', cls: '9B', days: 38, contacted: 'No — unreachable', counselor: 'Assigned' },
+                ].map((s, i) => (
+                  <tr key={i} className={`border-b ${theme.border} ${theme.buttonHover}`}>
+                    <td className={`py-2 px-2 font-bold ${theme.highlight}`}>{s.name}</td>
+                    <td className={`py-2 px-2 ${theme.iconColor}`}>{s.cls}</td>
+                    <td className="py-2 px-2 font-bold text-red-600">{s.days}</td>
+                    <td className={`py-2 px-2 ${theme.iconColor}`}>{s.contacted}</td>
+                    <td className="py-2 px-2">
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                        s.counselor === 'Assigned' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                      }`}>{s.counselor}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Gap #147 — Student Grievance Tracker */}
+      {!isPreschool && (
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <MessageSquare size={16} className="text-indigo-500" />
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>Student Grievances</h3>
+            </div>
+            <button className={`text-xs px-3 py-1 rounded-xl ${theme.secondaryBg} ${theme.highlight} font-bold ${theme.buttonHover}`}>View All</button>
+          </div>
+          <div className="grid grid-cols-3 gap-3 mb-3">
+            <div className={`${theme.secondaryBg} rounded-xl p-3 text-center`}>
+              <p className="text-lg font-bold text-amber-600">2</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Open</p>
+            </div>
+            <div className={`${theme.secondaryBg} rounded-xl p-3 text-center`}>
+              <p className="text-lg font-bold text-emerald-600">15</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Resolved</p>
+            </div>
+            <div className={`${theme.secondaryBg} rounded-xl p-3 text-center`}>
+              <p className="text-lg font-bold text-blue-600">4 days</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Avg Resolution</p>
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            {[
+              { id: 'GR-042', subject: 'Bullying complaint — Class 7A', date: 'Feb 25', status: 'Open', priority: 'High' },
+              { id: 'GR-041', subject: 'Canteen food quality concern', date: 'Feb 23', status: 'Open', priority: 'Medium' },
+            ].map((g, i) => (
+              <div key={i} className={`flex items-center gap-3 p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <div className={`w-7 h-7 rounded-lg ${g.priority === 'High' ? 'bg-red-100' : 'bg-amber-100'} flex items-center justify-center shrink-0`}>
+                  <MessageSquare size={13} className={g.priority === 'High' ? 'text-red-500' : 'text-amber-500'} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-[11px] font-bold ${theme.highlight} truncate`}>{g.id}: {g.subject}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{g.date}</p>
+                </div>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold shrink-0 ${
+                  g.priority === 'High' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
+                }`}>{g.priority}</span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

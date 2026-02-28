@@ -29,23 +29,41 @@ export default function EnquiriesModule({ theme }: { theme: Theme }) {
         <StatCard icon={TrendingUp} label="Conversion Rate" value="62%" color="bg-purple-500" theme={theme} />
       </div>
       <DataTable
-        headers={['ID', 'Child Name', 'Class', 'Parent', 'Source', 'Date', 'Status', 'Phone', '']}
-        rows={mockEnquiries.map(e => [
-          <span key="id" className={`font-mono text-xs ${theme.primaryText}`}>{e.id}</span>,
-          <span key="name" className={`font-bold ${theme.highlight}`}>{e.child}</span>,
-          <span key="class" className={theme.iconColor}>{e.class}</span>,
-          <span key="parent" className={theme.iconColor}>{e.parent}</span>,
-          <span key="source" className={theme.iconColor}>{e.source}</span>,
-          <span key="date" className={theme.iconColor}>{e.date}</span>,
-          <StatusBadge key="status" status={e.status} theme={theme} />,
-          <span key="phone" className={theme.iconColor}>{e.phone}</span>,
-          <div key="action" className="flex gap-1">
-            <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Eye size={12} className={theme.iconColor} /></button>
-            {(e.status === 'New' || e.status === 'Follow-up') && (
-              <button onClick={() => setConvertEnquiry(e)} className="px-2 py-1 rounded-lg bg-emerald-100 text-emerald-700 text-[10px] font-bold">Convert</button>
-            )}
-          </div>
-        ])}
+        headers={['ID', 'Child Name', 'Class', 'Parent', 'Counselor', 'Source', 'Date', 'Status', 'Phone', '']}
+        rows={mockEnquiries.map((e, idx) => {
+          const counselors = ['Ms. Priya', 'Mr. Rahul', 'Ms. Neha', 'Mr. Arjun', 'Ms. Kavita'];
+          const counselor = counselors[idx % counselors.length];
+          const isWaitlisted = idx === 1 || idx === 4;
+          return [
+            <span key="id" className={`font-mono text-xs ${theme.primaryText}`}>{e.id}</span>,
+            <span key="name" className={`font-bold ${theme.highlight}`}>
+              {e.child}
+              {isWaitlisted && (
+                <span className="ml-1 text-[9px] px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700 font-bold" title={`Waitlist Position: #${idx === 1 ? 3 : 7}`}>Waitlisted #{idx === 1 ? 3 : 7}</span>
+              )}
+            </span>,
+            <span key="class" className={theme.iconColor}>{e.class}</span>,
+            <span key="parent" className={theme.iconColor}>{e.parent}</span>,
+            <span key="counselor" className={`text-xs ${theme.iconColor}`}>
+              {counselor}
+              <button className={`ml-1 text-[9px] ${theme.primaryText} font-bold`}>Assign</button>
+            </span>,
+            <span key="source" className={theme.iconColor}>{e.source}</span>,
+            <span key="date" className={theme.iconColor}>{e.date}</span>,
+            <StatusBadge key="status" status={e.status} theme={theme} />,
+            <span key="phone" className={theme.iconColor}>{e.phone}</span>,
+            <div key="action" className="flex gap-1">
+              <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Eye size={12} className={theme.iconColor} /></button>
+              {(e.status === 'New' || e.status === 'Follow-up') && (
+                <>
+                  <button onClick={() => setConvertEnquiry(e)} className="px-2 py-1 rounded-lg bg-emerald-100 text-emerald-700 text-[10px] font-bold">Convert</button>
+                  <button onClick={() => window.alert('Enquiry ' + e.id + ' rejected. (Blueprint demo)')} className="px-2 py-1 rounded-lg bg-red-100 text-red-600 text-[10px] font-bold" title="Are you sure? This will mark the enquiry as rejected.">Reject</button>
+                  <button onClick={() => window.alert('Enquiry ' + e.id + ' archived. (Blueprint demo)')} className="px-2 py-1 rounded-lg bg-slate-100 text-slate-600 text-[10px] font-bold">Archive</button>
+                </>
+              )}
+            </div>,
+          ];
+        })}
         theme={theme}
       />
 

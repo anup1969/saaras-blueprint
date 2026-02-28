@@ -47,6 +47,8 @@ import SchoolIdentityConfigModule from '../_modules/SchoolIdentityConfigModule';
 import DataPrivacyConfigModule from '../_modules/DataPrivacyConfigModule';
 import DemoDataSeederModule from '../_modules/DemoDataSeederModule';
 import MobileAppConfigModule from '../_modules/MobileAppConfigModule';
+import RemarkBankConfigModule from '../_modules/RemarkBankConfigModule';
+import LMSConfigModule from '../_modules/LMSConfigModule';
 
 // ─── Module ID → Component mapping ──────────────────
 const MODULE_COMPONENTS: Record<string, React.ComponentType<{ theme: Theme }>> = {
@@ -87,6 +89,8 @@ const MODULE_COMPONENTS: Record<string, React.ComponentType<{ theme: Theme }>> =
   'data-privacy-config': DataPrivacyConfigModule,
   'demo-data-seeder': DemoDataSeederModule,
   'mobile-app-config': MobileAppConfigModule,
+  'remark-bank-config': RemarkBankConfigModule,
+  'lms-config': LMSConfigModule,
 };
 
 export default function SchoolSuperAdminDashboard({ theme, currentUser }: { theme?: Theme; currentUser?: TeamMember }) {

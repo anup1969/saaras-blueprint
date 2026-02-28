@@ -298,6 +298,64 @@ function SubstitutionsModule({ theme }: { theme: Theme }) {
           <button className={`px-3 py-1.5 rounded-lg ${theme.secondaryBg}`}>Next</button>
         </div>
       </div>
+
+      {/* Available Teachers for Substitution */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Available Teachers — Free Periods Today</h3>
+        <div className={`overflow-hidden rounded-xl border ${theme.border}`}>
+          <table className="w-full text-xs">
+            <thead>
+              <tr className={theme.secondaryBg}>
+                <th className={`p-2.5 text-left font-bold ${theme.iconColor}`}>Teacher Name</th>
+                <th className={`p-2.5 text-left font-bold ${theme.iconColor}`}>Subject</th>
+                <th className={`p-2.5 text-left font-bold ${theme.iconColor}`}>Free Periods Today</th>
+                <th className={`p-2.5 text-center font-bold ${theme.iconColor}`}>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {mockAvailableTeachers.map((t, i) => (
+                <tr key={i} className={`border-t ${theme.border}`}>
+                  <td className={`p-2.5 font-bold ${theme.highlight}`}>{t.name}</td>
+                  <td className={`p-2.5 ${theme.iconColor}`}>{t.subject}</td>
+                  <td className={`p-2.5 ${theme.primaryText} font-medium`}>{t.freePeriods}</td>
+                  <td className="p-2.5 text-center">
+                    <button className={`px-3 py-1 ${theme.primary} text-white rounded-lg text-[10px] font-bold`}>Assign</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Substitution Log — This Month */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Substitution Log &mdash; This Month</h3>
+        <div className={`overflow-hidden rounded-xl border ${theme.border}`}>
+          <table className="w-full text-xs">
+            <thead>
+              <tr className={theme.secondaryBg}>
+                <th className={`p-2.5 text-left font-bold ${theme.iconColor}`}>Date</th>
+                <th className={`p-2.5 text-left font-bold ${theme.iconColor}`}>Absent Teacher</th>
+                <th className={`p-2.5 text-left font-bold ${theme.iconColor}`}>Substitute</th>
+                <th className={`p-2.5 text-left font-bold ${theme.iconColor}`}>Class</th>
+                <th className={`p-2.5 text-left font-bold ${theme.iconColor}`}>Period</th>
+              </tr>
+            </thead>
+            <tbody>
+              {mockSubstitutionLog.map((log, i) => (
+                <tr key={i} className={`border-t ${theme.border}`}>
+                  <td className={`p-2.5 ${theme.iconColor}`}>{log.date}</td>
+                  <td className={`p-2.5 font-bold ${theme.highlight}`}>{log.absent}</td>
+                  <td className={`p-2.5 ${theme.primaryText}`}>{log.substitute}</td>
+                  <td className={`p-2.5 ${theme.iconColor}`}>{log.class}</td>
+                  <td className={`p-2.5 ${theme.iconColor}`}>{log.period}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }
@@ -359,15 +417,58 @@ function DisciplineModule({ theme }: { theme: Theme }) {
 
 // ─── TIMETABLE MODULE ───────────────────────────────
 
+const timetableBuilderData: Record<string, Record<string, { subj: string; teacher: string; color: string }>> = {
+  Mon: { P1: { subj: 'Math', teacher: 'RS', color: 'bg-blue-100 text-blue-800' }, P2: { subj: 'Eng', teacher: 'SD', color: 'bg-emerald-100 text-emerald-800' }, P3: { subj: 'Sci', teacher: 'AP', color: 'bg-purple-100 text-purple-800' }, P4: { subj: 'Hindi', teacher: 'DJ', color: 'bg-amber-100 text-amber-800' }, P5: { subj: 'SSt', teacher: 'AK', color: 'bg-pink-100 text-pink-800' }, P6: { subj: 'PT', teacher: 'VS', color: 'bg-orange-100 text-orange-800' }, P7: { subj: 'Comp', teacher: 'RG', color: 'bg-cyan-100 text-cyan-800' } },
+  Tue: { P1: { subj: 'Eng', teacher: 'SD', color: 'bg-emerald-100 text-emerald-800' }, P2: { subj: 'Math', teacher: 'RS', color: 'bg-blue-100 text-blue-800' }, P3: { subj: 'Math', teacher: 'RS', color: 'bg-red-100 text-red-700' }, P4: { subj: 'Sci', teacher: 'AP', color: 'bg-purple-100 text-purple-800' }, P5: { subj: 'Hindi', teacher: 'DJ', color: 'bg-amber-100 text-amber-800' }, P6: { subj: 'Art', teacher: 'KD', color: 'bg-rose-100 text-rose-800' }, P7: { subj: 'SSt', teacher: 'AK', color: 'bg-pink-100 text-pink-800' } },
+  Wed: { P1: { subj: 'Sci', teacher: 'AP', color: 'bg-purple-100 text-purple-800' }, P2: { subj: 'Hindi', teacher: 'DJ', color: 'bg-amber-100 text-amber-800' }, P3: { subj: 'Eng', teacher: 'SD', color: 'bg-emerald-100 text-emerald-800' }, P4: { subj: 'Math', teacher: 'RS', color: 'bg-blue-100 text-blue-800' }, P5: { subj: 'Comp', teacher: 'RG', color: 'bg-cyan-100 text-cyan-800' }, P6: { subj: 'SSt', teacher: 'AK', color: 'bg-pink-100 text-pink-800' }, P7: { subj: 'PT', teacher: 'VS', color: 'bg-orange-100 text-orange-800' } },
+  Thu: { P1: { subj: 'Hindi', teacher: 'DJ', color: 'bg-amber-100 text-amber-800' }, P2: { subj: 'Eng', teacher: 'SD', color: 'bg-emerald-100 text-emerald-800' }, P3: { subj: 'SSt', teacher: 'AK', color: 'bg-pink-100 text-pink-800' }, P4: { subj: 'Sci', teacher: 'AP', color: 'bg-purple-100 text-purple-800' }, P5: { subj: 'Math', teacher: 'RS', color: 'bg-blue-100 text-blue-800' }, P6: { subj: 'Music', teacher: 'MT', color: 'bg-violet-100 text-violet-800' }, P7: { subj: 'Comp', teacher: 'RG', color: 'bg-cyan-100 text-cyan-800' } },
+  Fri: { P1: { subj: 'Math', teacher: 'RS', color: 'bg-blue-100 text-blue-800' }, P2: { subj: 'Sci', teacher: 'AP', color: 'bg-purple-100 text-purple-800' }, P3: { subj: 'Hindi', teacher: 'DJ', color: 'bg-amber-100 text-amber-800' }, P4: { subj: 'Eng', teacher: 'SD', color: 'bg-emerald-100 text-emerald-800' }, P5: { subj: 'Art', teacher: 'KD', color: 'bg-rose-100 text-rose-800' }, P6: { subj: 'PT', teacher: 'VS', color: 'bg-orange-100 text-orange-800' }, P7: { subj: 'SSt', teacher: 'AK', color: 'bg-pink-100 text-pink-800' } },
+  Sat: { P1: { subj: 'Eng', teacher: 'SD', color: 'bg-emerald-100 text-emerald-800' }, P2: { subj: 'Math', teacher: 'RS', color: 'bg-blue-100 text-blue-800' }, P3: { subj: 'Comp', teacher: 'RG', color: 'bg-cyan-100 text-cyan-800' }, P4: { subj: 'Sci', teacher: 'AP', color: 'bg-purple-100 text-purple-800' }, P5: { subj: 'Hindi', teacher: 'DJ', color: 'bg-amber-100 text-amber-800' }, P6: { subj: 'Music', teacher: 'MT', color: 'bg-violet-100 text-violet-800' }, P7: { subj: 'SSt', teacher: 'AK', color: 'bg-pink-100 text-pink-800' } },
+};
+
+const mockAvailableTeachers = [
+  { name: 'Mr. Rajeev Nair', subject: 'Mathematics', freePeriods: 'P2, P4, P6' },
+  { name: 'Ms. Reema Gupta', subject: 'Computer Science', freePeriods: 'P1, P3, P5' },
+  { name: 'Mr. Manoj Tiwari', subject: 'Music', freePeriods: 'P1, P2, P4, P5' },
+  { name: 'Ms. Kavita Desai', subject: 'Art / Craft', freePeriods: 'P2, P3, P7' },
+  { name: 'Mr. Vikram Singh', subject: 'Physical Education', freePeriods: 'P1, P2, P3, P4, P5' },
+];
+
+const mockSubstitutionLog = [
+  { date: '11 Feb 2026', absent: 'Mr. Suresh Reddy', substitute: 'Mr. Manoj Tiwari', class: 'Class 11-B', period: 'P6' },
+  { date: '10 Feb 2026', absent: 'Mrs. Sunita Sharma', substitute: 'Mr. Rajeev Nair', class: 'Class 10-A', period: 'P1' },
+  { date: '10 Feb 2026', absent: 'Ms. Priya Mehta', substitute: 'Ms. Kavita Desai', class: 'Class 9-A', period: 'P4' },
+  { date: '07 Feb 2026', absent: 'Mr. Arvind Patel', substitute: 'Mr. Vikram Singh', class: 'Class 8-B', period: 'P1' },
+  { date: '06 Feb 2026', absent: 'Ms. Priya Mehta', substitute: 'Ms. Reema Gupta', class: 'Class 10-B', period: 'P1' },
+  { date: '05 Feb 2026', absent: 'Mr. Deepak Joshi', substitute: 'Mr. Manoj Tiwari', class: 'Class 9-C', period: 'P4' },
+  { date: '04 Feb 2026', absent: 'Mrs. Anita Kulkarni', substitute: 'Ms. Kavita Desai', class: 'Class 7-A', period: 'P3' },
+  { date: '03 Feb 2026', absent: 'Mrs. Sunita Sharma', substitute: 'Mr. Rajeev Nair', class: 'Class 8-A', period: 'P5' },
+  { date: '03 Feb 2026', absent: 'Mr. Suresh Reddy', substitute: 'Mr. Vikram Singh', class: 'Class 12-A', period: 'P2' },
+  { date: '01 Feb 2026', absent: 'Mr. Arvind Patel', substitute: 'Ms. Reema Gupta', class: 'Class 10-A', period: 'P2' },
+];
+
+const mockSwapRequests = [
+  { id: 'SW001', requester: 'Mrs. Sunita Sharma', with: 'Mr. Rajeev Nair', period: 'P3 (Tue)', date: '18 Feb 2026', reason: 'Doctor appointment', status: 'Pending' },
+  { id: 'SW002', requester: 'Mr. Deepak Joshi', with: 'Ms. Priya Mehta', period: 'P1 (Wed)', date: '19 Feb 2026', reason: 'Lab preparation', status: 'Pending' },
+  { id: 'SW003', requester: 'Ms. Kavita Desai', with: 'Mr. Manoj Tiwari', period: 'P6 (Mon)', date: '10 Feb 2026', reason: 'Art exhibition setup', status: 'Approved' },
+];
+
 function TimetableModule({ theme }: { theme: Theme }) {
   const [tab, setTab] = useState('Class-wise');
+  const [builderClass, setBuilderClass] = useState('Class 10-A');
+  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const periods = ['P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7'];
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className={`text-2xl font-bold ${theme.highlight}`}>Timetable Management</h1>
-        <button className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}><Download size={14} /> Export Timetable</button>
+        <div className="flex gap-2">
+          <button className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold ${theme.iconColor} flex items-center gap-1`}><Download size={12} /> Export as PDF</button>
+          <button className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold ${theme.iconColor} flex items-center gap-1`}><FileText size={12} /> Import from Excel</button>
+          <button className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold ${theme.iconColor} flex items-center gap-1`}><Download size={12} /> Download Template</button>
+        </div>
       </div>
-      <TabBar tabs={['Class-wise', 'Teacher-wise', 'Room Allocation']} active={tab} onChange={setTab} theme={theme} />
+      <TabBar tabs={['Class-wise', 'Teacher-wise', 'Room Allocation', 'Timetable Builder', 'Swap Requests']} active={tab} onChange={setTab} theme={theme} />
 
       {tab === 'Class-wise' && (
         <>
@@ -440,6 +541,136 @@ function TimetableModule({ theme }: { theme: Theme }) {
             theme={theme}
           />
         </>
+      )}
+
+      {/* ── Timetable Builder ── */}
+      {tab === 'Timetable Builder' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <select value={builderClass} onChange={e => setBuilderClass(e.target.value)} className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-sm font-bold ${theme.highlight} outline-none`}>
+                {['Class 10-A', 'Class 10-B', 'Class 9-A', 'Class 9-B', 'Class 8-A', 'Class 8-B'].map(c => <option key={c}>{c}</option>)}
+              </select>
+              <span className={`px-2 py-1 text-[10px] font-bold rounded-full bg-red-100 text-red-700`}>1 conflict</span>
+            </div>
+            <div className="flex gap-2">
+              <button className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}>Save Changes</button>
+              <button className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold ${theme.iconColor}`}>Copy from Last Week</button>
+              <button className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold text-red-500`}>Clear All</button>
+            </div>
+          </div>
+
+          {/* Conflict Alert */}
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-red-50 border border-red-200">
+            <AlertTriangle size={16} className="text-red-600 shrink-0" />
+            <p className="text-xs text-red-700 font-medium">Conflict: Mr. Sharma (RS) is double-booked at P3 on Tuesday — already assigned to Class 9-A</p>
+            <button className="ml-auto px-2 py-1 text-[10px] rounded-lg bg-red-600 text-white font-bold shrink-0">Resolve</button>
+          </div>
+
+          {/* Grid Timetable */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} overflow-hidden`}>
+            <table className="w-full text-xs">
+              <thead>
+                <tr className={theme.secondaryBg}>
+                  <th className={`p-2 text-left font-bold ${theme.iconColor} w-14`}>Day</th>
+                  {periods.map(p => <th key={p} className={`p-2 text-center font-bold ${theme.iconColor}`}>{p}</th>)}
+                </tr>
+              </thead>
+              <tbody>
+                {days.map(day => (
+                  <tr key={day} className={`border-t ${theme.border}`}>
+                    <td className={`p-2 font-bold ${theme.highlight}`}>{day}</td>
+                    {periods.map(p => {
+                      const cell = timetableBuilderData[day]?.[p];
+                      const isConflict = day === 'Tue' && p === 'P3';
+                      return (
+                        <td key={p} className="p-1">
+                          {cell ? (
+                            <div className={`px-2 py-1.5 rounded-lg text-center font-bold ${isConflict ? 'bg-red-100 text-red-700 ring-2 ring-red-400' : cell.color}`}>
+                              {cell.subj} - {cell.teacher}
+                            </div>
+                          ) : (
+                            <div className={`px-2 py-1.5 rounded-lg text-center ${theme.secondaryBg} ${theme.iconColor}`}>--</div>
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Subject Legend */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-3`}>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>SUBJECT LEGEND</p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { subj: 'Math', color: 'bg-blue-100 text-blue-800' },
+                { subj: 'Eng', color: 'bg-emerald-100 text-emerald-800' },
+                { subj: 'Sci', color: 'bg-purple-100 text-purple-800' },
+                { subj: 'Hindi', color: 'bg-amber-100 text-amber-800' },
+                { subj: 'SSt', color: 'bg-pink-100 text-pink-800' },
+                { subj: 'PT', color: 'bg-orange-100 text-orange-800' },
+                { subj: 'Comp', color: 'bg-cyan-100 text-cyan-800' },
+                { subj: 'Art', color: 'bg-rose-100 text-rose-800' },
+                { subj: 'Music', color: 'bg-violet-100 text-violet-800' },
+              ].map(s => (
+                <span key={s.subj} className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${s.color}`}>{s.subj}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Swap Requests ── */}
+      {tab === 'Swap Requests' && (
+        <div className="space-y-4">
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+            <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Period Swap Requests</h3>
+            <div className={`overflow-hidden rounded-xl border ${theme.border}`}>
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className={theme.secondaryBg}>
+                    <th className={`p-2.5 text-left font-bold ${theme.iconColor}`}>ID</th>
+                    <th className={`p-2.5 text-left font-bold ${theme.iconColor}`}>Requester</th>
+                    <th className={`p-2.5 text-left font-bold ${theme.iconColor}`}>Swap With</th>
+                    <th className={`p-2.5 text-left font-bold ${theme.iconColor}`}>Period</th>
+                    <th className={`p-2.5 text-left font-bold ${theme.iconColor}`}>Date</th>
+                    <th className={`p-2.5 text-left font-bold ${theme.iconColor}`}>Reason</th>
+                    <th className={`p-2.5 text-center font-bold ${theme.iconColor}`}>Status</th>
+                    <th className={`p-2.5 text-center font-bold ${theme.iconColor}`}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {mockSwapRequests.map(s => (
+                    <tr key={s.id} className={`border-t ${theme.border}`}>
+                      <td className={`p-2.5 font-mono ${theme.primaryText}`}>{s.id}</td>
+                      <td className={`p-2.5 font-bold ${theme.highlight}`}>{s.requester}</td>
+                      <td className={`p-2.5 ${theme.highlight}`}>{s.with}</td>
+                      <td className={`p-2.5 ${theme.iconColor}`}>{s.period}</td>
+                      <td className={`p-2.5 ${theme.iconColor}`}>{s.date}</td>
+                      <td className={`p-2.5 ${theme.iconColor}`}>{s.reason}</td>
+                      <td className="p-2.5 text-center">
+                        <StatusBadge status={s.status === 'Approved' ? 'Active' : 'Pending'} theme={theme} />
+                      </td>
+                      <td className="p-2.5 text-center">
+                        {s.status === 'Pending' ? (
+                          <div className="flex justify-center gap-1">
+                            <button className="px-2 py-1 bg-emerald-500 text-white rounded-lg text-[10px] font-bold">Approve</button>
+                            <button className="px-2 py-1 bg-red-100 text-red-600 rounded-lg text-[10px] font-bold">Reject</button>
+                          </div>
+                        ) : (
+                          <span className={`text-[10px] ${theme.iconColor}`}>--</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

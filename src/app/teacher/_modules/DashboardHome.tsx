@@ -398,6 +398,22 @@ export default function DashboardHome({ theme, isPreschool }: { theme: Theme; is
       </div>
 
       {/* ══════════════════════════════════════════════════════
+          SECTION 3B: LESSON PLAN REMINDER
+          ══════════════════════════════════════════════════════ */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 flex items-center gap-4`}>
+        <div className="w-10 h-10 rounded-xl bg-purple-500 flex items-center justify-center text-white shrink-0">
+          <BookMarked size={18} />
+        </div>
+        <div className="flex-1">
+          <p className={`text-sm font-bold ${theme.highlight}`}>Lesson Plans Due</p>
+          <p className={`text-xs ${theme.iconColor} mt-0.5`}>3 lesson plans pending for this week -- Ch 8 Trigonometry (10-A), Force & Motion (9-A), Algebraic Expressions (8-A)</p>
+        </div>
+        <button className={`text-xs ${theme.primaryText} font-bold flex items-center gap-1 shrink-0`}>
+          View Plans <ArrowRight size={12} />
+        </button>
+      </div>
+
+      {/* ══════════════════════════════════════════════════════
           SECTION 4: QUICK STATS
           ══════════════════════════════════════════════════════ */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

@@ -4,7 +4,7 @@ import {
   Download, BookOpen, Users, Lock, Key,
   UtensilsCrossed, Building, Package, Notebook, UserPlus, CreditCard,
   UserCircle, BarChart3, FileBarChart, Plug, Palette, School, Globe,
-  Database, Smartphone
+  Database, Smartphone, MessageSquareText, MonitorPlay
 } from 'lucide-react';
 
 export const modules = [
@@ -46,6 +46,8 @@ export const modules = [
   { id: 'data-privacy-config', label: 'Data Privacy', icon: Shield },
   { id: 'demo-data-seeder', label: 'Demo Data Seeder', icon: Database },
   { id: 'mobile-app-config', label: 'Mobile App', icon: Smartphone },
+  { id: 'remark-bank-config', label: 'Remark Bank', icon: MessageSquareText },
+  { id: 'lms-config', label: 'LMS / E-Learning', icon: MonitorPlay },
   { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
   { id: 'support', label: 'Support', icon: Headphones },
 ];

@@ -7,7 +7,7 @@ import {
   Calendar, Bus, Download, BookOpen, ArrowRight,
   MessageSquare, IndianRupee, CreditCard,
   ClipboardCheck, BookMarked, Camera, FileText, Info,
-  Mail, AlertTriangle,
+  Mail, AlertTriangle, Bell,
 } from 'lucide-react';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import type { ChildProfile } from '../_components/types';
@@ -217,6 +217,121 @@ export default function DashboardHome({ theme, child, onProfileClick }: { theme:
               </button>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* ── Alert on Profile Updates (Gap #79) ── */}
+      <div className={`${theme.cardBg} rounded-2xl border-2 border-blue-200 p-4`}>
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+            <Bell size={14} className="text-blue-600" />
+          </div>
+          <div className="flex-1">
+            <p className={`text-sm font-bold ${theme.highlight}`}>Profile Updated</p>
+            <p className={`text-xs ${theme.iconColor}`}>School has updated {child.name}&apos;s medical records on Feb 25, 2026. Please review.</p>
+          </div>
+          <button className="px-3 py-1.5 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition-all shrink-0">Review Changes</button>
+        </div>
+      </div>
+
+      {/* ── At-Risk Student Alert (Gap #79) ── */}
+      {child.id === 'child1' && (
+        <div className="flex items-center gap-3 p-4 rounded-2xl bg-amber-50 border-2 border-amber-200">
+          <AlertTriangle size={18} className="text-amber-600 shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-bold text-amber-800">Attendance Alert</p>
+            <p className="text-xs text-amber-600">{child.name}&apos;s attendance has dropped to 72% this month. Minimum required: 75%</p>
+          </div>
+          <button className="px-3 py-1.5 rounded-xl bg-amber-600 text-white text-xs font-bold hover:bg-amber-700 transition-all shrink-0">View Attendance Details</button>
+        </div>
+      )}
+
+      {/* ── Consent & Permissions (Gap #150) ── */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className={`text-sm font-bold ${theme.highlight}`}>Consent &amp; Permissions</h3>
+          <ClipboardCheck size={14} className={theme.iconColor} />
+        </div>
+        <p className={`text-[10px] ${theme.iconColor} mb-3`}>Your consent responses are recorded and shared with the school</p>
+        <div className="space-y-3">
+          {/* Pending consent 1 */}
+          <div className={`p-3 rounded-xl ${theme.secondaryBg} border-l-2 border-amber-500`}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className={`text-xs font-bold ${theme.highlight}`}>Science Museum Field Trip &mdash; March 8, 2026</p>
+                <p className={`text-[10px] ${theme.iconColor} mt-1`}>Class {child.class} students will visit the Science Museum. Bus transport included. Return by 4 PM.</p>
+              </div>
+              <div className="flex gap-2 shrink-0 ml-4">
+                <button className="px-3 py-1.5 bg-emerald-500 text-white rounded-lg text-xs font-bold">Accept</button>
+                <button className="px-3 py-1.5 bg-red-100 text-red-600 rounded-lg text-xs font-bold">Decline</button>
+              </div>
+            </div>
+          </div>
+          {/* Pending consent 2 */}
+          <div className={`p-3 rounded-xl ${theme.secondaryBg} border-l-2 border-amber-500`}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className={`text-xs font-bold ${theme.highlight}`}>Annual Day Photography Consent</p>
+                <p className={`text-[10px] ${theme.iconColor} mt-1`}>School photographer will capture photos/videos of Annual Day for official use.</p>
+              </div>
+              <div className="flex gap-2 shrink-0 ml-4">
+                <button className="px-3 py-1.5 bg-emerald-500 text-white rounded-lg text-xs font-bold">Accept</button>
+                <button className="px-3 py-1.5 bg-red-100 text-red-600 rounded-lg text-xs font-bold">Decline</button>
+              </div>
+            </div>
+          </div>
+          {/* Approved consent */}
+          <div className={`p-3 rounded-xl ${theme.secondaryBg} border-l-2 border-emerald-500`}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className={`text-xs font-bold ${theme.highlight}`}>Swimming Classes Permission</p>
+                <p className={`text-[10px] ${theme.iconColor} mt-1`}>Weekly swimming sessions at school pool, Wednesdays 2-3 PM.</p>
+              </div>
+              <span className="px-2 py-1 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-700 shrink-0 ml-4">Approved</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Permission Slip Status (Gap #150) ── */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className={`text-sm font-bold ${theme.highlight}`}>Permission Slip Status</h3>
+          <FileText size={14} className={theme.iconColor} />
+        </div>
+        <div className={`overflow-hidden rounded-xl border ${theme.border}`}>
+          <table className="w-full text-xs">
+            <thead>
+              <tr className={theme.secondaryBg}>
+                <th className={`p-2.5 text-left font-bold ${theme.iconColor}`}>Form</th>
+                <th className={`p-2.5 text-center font-bold ${theme.iconColor}`}>Submitted</th>
+                <th className={`p-2.5 text-center font-bold ${theme.iconColor}`}>Status</th>
+                <th className={`p-2.5 text-center font-bold ${theme.iconColor}`}>Expires</th>
+                <th className={`p-2.5 text-center font-bold ${theme.iconColor}`}>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { form: 'Swimming Classes Permission', submitted: '10 Jan 2026', status: 'Approved', expires: '30 Apr 2026' },
+                { form: 'Science Museum Field Trip', submitted: '--', status: 'Pending', expires: '08 Mar 2026' },
+                { form: 'Annual Day Photography Consent', submitted: '--', status: 'Pending', expires: '25 Feb 2026' },
+                { form: 'Inter-school Sports Participation', submitted: '05 Feb 2026', status: 'Approved', expires: '15 Mar 2026' },
+              ].map((slip, i) => (
+                <tr key={i} className={`border-t ${theme.border}`}>
+                  <td className={`p-2.5 font-bold ${theme.highlight}`}>{slip.form}</td>
+                  <td className={`p-2.5 text-center ${theme.iconColor}`}>{slip.submitted}</td>
+                  <td className="p-2.5 text-center">
+                    <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${slip.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{slip.status}</span>
+                  </td>
+                  <td className={`p-2.5 text-center ${theme.iconColor}`}>{slip.expires}</td>
+                  <td className="p-2.5 text-center">
+                    {slip.status === 'Approved' && <button className={`text-[10px] font-bold ${theme.primaryText} underline`}>Download signed copy</button>}
+                    {slip.status === 'Pending' && <span className={`text-[10px] ${theme.iconColor}`}>Awaiting response</span>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 

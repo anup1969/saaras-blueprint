@@ -11,7 +11,8 @@ import {
   BarChart3, Timer, Library, BookOpenCheck, IndianRupee, Receipt, CreditCard,
   GraduationCap, User, ArrowRight, MessageSquare,
   PanelLeftClose, PanelLeftOpen, Headphones,
-  CalendarOff, FileBadge, LayoutGrid, X, Send, Copy
+  CalendarOff, FileBadge, LayoutGrid, X, Send, Copy,
+  FolderOpen, Trophy, Medal
 } from 'lucide-react';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
@@ -259,6 +260,8 @@ const modules = [
   { id: 'leave', label: 'Leave', icon: CalendarOff },
   { id: 'documents', label: 'Documents', icon: FileBadge },
   { id: 'notices', label: 'Notices', icon: Megaphone },
+  { id: 'portfolio', label: 'Portfolio', icon: FolderOpen },
+  { id: 'achievements', label: 'Achievements', icon: Trophy },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
   { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
   { id: 'support', label: 'Support', icon: Headphones },
@@ -306,6 +309,8 @@ function StudentDashboard({ theme, themeIdx, onThemeChange, currentUser }: { the
         {activeModule === 'leave' && <LeaveModule theme={theme} />}
         {activeModule === 'documents' && <DocumentsModule theme={theme} />}
         {activeModule === 'notices' && <NoticesModule theme={theme} />}
+        {activeModule === 'portfolio' && <PortfolioModule theme={theme} />}
+        {activeModule === 'achievements' && <AchievementsModule theme={theme} />}
         {activeModule === 'communication' && <CommunicationModule theme={theme} />}
         {activeModule === 'your-inputs' && <YourInputsModule theme={theme} userName={currentUser?.name || ''} />}
         {activeModule === 'support' && <SupportModule theme={theme} role="student" />}
@@ -1344,6 +1349,151 @@ function NoticesModule({ theme }: { theme: Theme }) {
                 <p className={`text-xs ${theme.highlight} leading-relaxed mt-3`}>{notice.content}</p>
               </div>
             )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── PORTFOLIO MODULE ─────────────────────────────────
+function PortfolioModule({ theme }: { theme: Theme }) {
+  const portfolioItems = [
+    { title: 'Science Fair Project — Solar Water Purifier', type: 'Project', date: 'Nov 2025', endorsement: 'Excellent innovation! — Mrs. Iyer', thumbnail: 'bg-emerald-500' },
+    { title: 'Art Competition Winner — Landscape Painting', type: 'Artwork', date: 'Oct 2025', endorsement: 'Beautiful composition! — Mrs. Kulkarni', thumbnail: 'bg-pink-500' },
+    { title: 'Basketball Tournament — District MVP', type: 'Certificate', date: 'Sep 2025', endorsement: 'Outstanding performance! — Mr. Singh', thumbnail: 'bg-amber-500' },
+    { title: 'Coding Workshop — Python Web Scraping', type: 'Certificate', date: 'Aug 2025', endorsement: 'Great learning spirit! — Mr. Joshi', thumbnail: 'bg-indigo-500' },
+    { title: 'Essay Competition — Digital India', type: 'Project', date: 'Jul 2025', endorsement: 'Well-articulated thoughts — Ms. D\'Souza', thumbnail: 'bg-purple-500' },
+    { title: 'Community Service — Tree Plantation Drive', type: 'Certificate', date: 'Jun 2025', endorsement: 'Wonderful initiative! — Mr. Reddy', thumbnail: 'bg-teal-500' },
+  ];
+
+  const typeBadgeColors: Record<string, string> = {
+    Artwork: 'bg-pink-100 text-pink-700',
+    Project: 'bg-blue-100 text-blue-700',
+    Certificate: 'bg-emerald-100 text-emerald-700',
+    Video: 'bg-purple-100 text-purple-700',
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className={`text-2xl font-bold ${theme.highlight}`}>My Portfolio</h1>
+        <div className="flex items-center gap-2">
+          <span className={`text-xs px-2.5 py-1 rounded-lg ${theme.secondaryBg} ${theme.iconColor} font-bold`}>{portfolioItems.length} items</span>
+          <button className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl ${theme.primary} text-white text-xs font-bold`}>
+            <Upload size={12} /> Upload New
+          </button>
+        </div>
+      </div>
+
+      {/* Portfolio Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {portfolioItems.map((item, i) => (
+          <div key={i} className={`${theme.cardBg} rounded-2xl border ${theme.border} overflow-hidden hover:shadow-md transition-all`}>
+            <div className={`h-24 ${item.thumbnail} flex items-center justify-center text-white`}>
+              <FolderOpen size={28} />
+            </div>
+            <div className="p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${typeBadgeColors[item.type] || 'bg-slate-100 text-slate-600'}`}>{item.type}</span>
+                <span className={`text-[10px] ${theme.iconColor}`}>{item.date}</span>
+              </div>
+              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>{item.title}</p>
+              <div className={`flex items-start gap-1.5 p-2 rounded-lg ${theme.accentBg}`}>
+                <Star size={10} className="text-amber-500 mt-0.5 shrink-0" />
+                <p className={`text-[10px] ${theme.iconColor} italic`}>{item.endorsement}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Self-Reflection Section */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>My Reflection</h3>
+        <textarea
+          placeholder="Write your self-reflection here... What did you learn this month? What are your goals?"
+          rows={4}
+          defaultValue="This month I worked really hard on my science project about solar water purification. I learned about renewable energy and how simple technology can solve real-world problems. My goal for next month is to prepare well for pre-boards and also practice basketball regularly for the state tournament."
+          className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} resize-none`}
+        />
+        <p className={`text-[10px] ${theme.iconColor} mt-1`}>Last entry: Feb 20, 2026</p>
+      </div>
+
+      {/* NEP Skills Section */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>NEP 2020 — Skill Assessment</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { skill: 'Cognitive', level: 3, maxLevel: 4 },
+            { skill: 'Social', level: 2, maxLevel: 4 },
+            { skill: 'Creative', level: 4, maxLevel: 4 },
+            { skill: 'Physical', level: 2, maxLevel: 4 },
+          ].map(s => (
+            <div key={s.skill} className={`p-3 rounded-xl ${theme.secondaryBg} text-center`}>
+              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>{s.skill}</p>
+              <div className="flex justify-center gap-1">
+                {Array.from({ length: s.maxLevel }).map((_, i) => (
+                  <div key={i} className={`w-4 h-4 rounded-full ${i < s.level ? 'bg-blue-500' : theme.accentBg} border ${theme.border}`} />
+                ))}
+              </div>
+              <p className={`text-[10px] ${theme.iconColor} mt-1`}>{s.level}/{s.maxLevel}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── ACHIEVEMENTS MODULE ────────────────────────────
+function AchievementsModule({ theme }: { theme: Theme }) {
+  const achievements = [
+    { title: 'Science Fair — 1st Prize (Solar Water Purifier)', level: 'School', date: 'Nov 2025', medal: 'Gold' as const },
+    { title: 'Inter-School Cricket Tournament — MVP', level: 'District', date: 'Sep 2025', medal: 'Gold' as const },
+    { title: 'Debate Competition — 2nd Place', level: 'State', date: 'Aug 2025', medal: 'Silver' as const },
+    { title: 'Painting Competition — 3rd Place', level: 'School', date: 'Jul 2025', medal: 'Bronze' as const },
+    { title: 'Republic Day Patriotic Speech — Winner', level: 'School', date: 'Jan 2026', medal: 'Gold' as const },
+  ];
+
+  const medalColors: Record<string, string> = {
+    Gold: 'bg-amber-100 text-amber-700 border-amber-300',
+    Silver: 'bg-slate-100 text-slate-600 border-slate-300',
+    Bronze: 'bg-orange-100 text-orange-700 border-orange-300',
+  };
+
+  const medalIcons: Record<string, string> = {
+    Gold: 'text-amber-500',
+    Silver: 'text-slate-400',
+    Bronze: 'text-orange-500',
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className={`text-2xl font-bold ${theme.highlight}`}>My Achievements</h1>
+        <span className={`text-xs px-2.5 py-1 rounded-lg ${theme.secondaryBg} ${theme.iconColor} font-bold`}>{achievements.length} achievements</span>
+      </div>
+
+      {/* Summary Stats */}
+      <div className="grid grid-cols-3 gap-4">
+        <StatCard icon={Trophy} label="Gold Medals" value={achievements.filter(a => a.medal === 'Gold').length} color="bg-amber-500" theme={theme} />
+        <StatCard icon={Award} label="Silver Medals" value={achievements.filter(a => a.medal === 'Silver').length} color="bg-slate-400" theme={theme} />
+        <StatCard icon={Award} label="Bronze Medals" value={achievements.filter(a => a.medal === 'Bronze').length} color="bg-orange-500" theme={theme} />
+      </div>
+
+      {/* Achievement List */}
+      <div className="space-y-3">
+        {achievements.map((ach, i) => (
+          <div key={i} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 flex items-center gap-4`}>
+            <div className={`w-12 h-12 rounded-xl border-2 ${medalColors[ach.medal]} flex items-center justify-center`}>
+              <Medal size={20} className={medalIcons[ach.medal]} />
+            </div>
+            <div className="flex-1">
+              <p className={`text-sm font-bold ${theme.highlight}`}>{ach.title}</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>{ach.date} | {ach.level} Level</p>
+            </div>
+            <span className={`text-xs px-3 py-1 rounded-full font-bold border ${medalColors[ach.medal]}`}>{ach.medal}</span>
           </div>
         ))}
       </div>

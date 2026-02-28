@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Plus, CheckCircle, ChevronUp, ChevronDown } from 'lucide-react';
+import { X, Plus, CheckCircle, ChevronUp, ChevronDown, Copy, CheckSquare, Square } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
 
@@ -28,6 +28,26 @@ export default function EnquiryAdmissionConfigModule({ theme }: { theme: Theme }
     { name: 'WhatsApp', active: true, priority: 10 },
   ]);
   const [newEnqSource, setNewEnqSource] = useState('');
+
+  // ─── Waitlist Management ───
+  const [enableWaitlist, setEnableWaitlist] = useState(true);
+  const [autoOffer, setAutoOffer] = useState(true);
+  const [waitlistNotification, setWaitlistNotification] = useState('Both');
+  const [maxWaitlist, setMaxWaitlist] = useState('20');
+
+  // ─── Provisional Admission ───
+  const [allowProvisional, setAllowProvisional] = useState(true);
+  const [provisionalConditions, setProvisionalConditions] = useState<Record<string, boolean>>({
+    'Pending documents': true, 'Pending fee payment': true, 'Pending test results': false,
+  });
+  const [provisionalExpiry, setProvisionalExpiry] = useState('30');
+
+  // ─── RTE 25% Quota ───
+  const [enableRTELottery, setEnableRTELottery] = useState(false);
+
+  // ─── APAAR / ABC ID ───
+  const [enableAPAAR, setEnableAPAAR] = useState(false);
+  const [apaarFormat, setApaarFormat] = useState('XXXX-XXXX-XXXX');
 
   return (
     <div className="space-y-4">
@@ -109,6 +129,132 @@ export default function EnquiryAdmissionConfigModule({ theme }: { theme: Theme }
             className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
           <button onClick={() => { if (newEnqSource.trim()) { setEnquirySources(p => [...p, { name: newEnqSource.trim(), active: true, priority: p.length + 1 }]); setNewEnqSource(''); } }}
             className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}><Plus size={14} /></button>
+        </div>
+      </SectionCard>
+
+      {/* ─── A) Waitlist Management ─── */}
+      <SectionCard title="Waitlist Management" subtitle="Manage applicants when classes are full" theme={theme}>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Enable Waitlist</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>When a class reaches capacity, new applicants are waitlisted</p>
+            </div>
+            <SSAToggle on={enableWaitlist} onChange={() => setEnableWaitlist(!enableWaitlist)} theme={theme} />
+          </div>
+          {enableWaitlist && (
+            <>
+              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <div>
+                  <p className={`text-xs font-bold ${theme.highlight}`}>Auto-offer seats when vacancy opens</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>Automatically send offer to next waitlisted applicant</p>
+                </div>
+                <SSAToggle on={autoOffer} onChange={() => setAutoOffer(!autoOffer)} theme={theme} />
+              </div>
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Waitlist Notification</p>
+                <SelectField options={['SMS', 'Email', 'Both']} value={waitlistNotification} onChange={setWaitlistNotification} theme={theme} />
+              </div>
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Max Waitlist per Class</p>
+                <InputField value={maxWaitlist} onChange={setMaxWaitlist} theme={theme} type="number" />
+              </div>
+            </>
+          )}
+        </div>
+      </SectionCard>
+
+      {/* ─── B) Provisional Admission ─── */}
+      <SectionCard title="Provisional Admission" subtitle="Allow conditional admission with pending requirements" theme={theme}>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Allow Provisional Admission</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Admit students conditionally while requirements are pending</p>
+            </div>
+            <SSAToggle on={allowProvisional} onChange={() => setAllowProvisional(!allowProvisional)} theme={theme} />
+          </div>
+          {allowProvisional && (
+            <>
+              <div className={`p-3 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-2 uppercase tracking-wide`}>Conditions</p>
+                <div className="space-y-2">
+                  {Object.entries(provisionalConditions).map(([cond, checked]) => (
+                    <button key={cond} onClick={() => setProvisionalConditions(p => ({ ...p, [cond]: !p[cond] }))}
+                      className={`flex items-center gap-2 w-full text-left p-2 rounded-lg ${theme.secondaryBg}`}>
+                      {checked ? <CheckSquare size={14} className="text-emerald-500" /> : <Square size={14} className={theme.iconColor} />}
+                      <span className={`text-xs ${theme.highlight}`}>{cond}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Auto-expire provisional after (days)</p>
+                <InputField value={provisionalExpiry} onChange={setProvisionalExpiry} theme={theme} type="number" />
+              </div>
+            </>
+          )}
+        </div>
+      </SectionCard>
+
+      {/* ─── C) RTE 25% Quota Settings ─── */}
+      <SectionCard title="RTE 25% Quota Settings" subtitle="Right to Education lottery and audit configuration" theme={theme}>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Enable Random Lottery for Oversubscribed Classes</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>When RTE applicants exceed seats, conduct a transparent random lottery</p>
+            </div>
+            <SSAToggle on={enableRTELottery} onChange={() => setEnableRTELottery(!enableRTELottery)} theme={theme} />
+          </div>
+          <div className={`p-2.5 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+            <p className={`text-[10px] ${theme.iconColor}`}>Lottery audit trail: All selections logged with timestamp and randomization seed</p>
+          </div>
+          <div className="relative">
+            <button disabled className={`px-4 py-2 rounded-xl bg-gray-200 text-gray-400 text-xs font-bold cursor-not-allowed`}
+              title="Available during admission window">
+              Run Lottery
+            </button>
+            <span className={`ml-2 text-[10px] ${theme.iconColor}`}>Available during admission window</span>
+          </div>
+        </div>
+      </SectionCard>
+
+      {/* ─── D) Website Integration ─── */}
+      <SectionCard title="Website Integration" subtitle="Embed the admission form on your school website" theme={theme}>
+        <div className={`p-3 rounded-xl ${theme.secondaryBg} mb-3`}>
+          <p className={`text-[10px] font-bold ${theme.iconColor} mb-2 uppercase tracking-wide`}>Embed Code for School Website</p>
+          <div className={`p-2.5 rounded-lg bg-gray-900 text-green-400 text-[10px] font-mono mb-2 overflow-x-auto`}>
+            {`<iframe src="https://your-school.saaras.app/apply" width="100%" height="700" frameBorder="0"></iframe>`}
+          </div>
+          <button className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl ${theme.primary} text-white text-xs font-bold`}>
+            <Copy size={12} /> Copy Code
+          </button>
+        </div>
+        <div className={`p-3 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+          <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Preview</p>
+          <div className={`h-20 rounded-lg ${theme.secondaryBg} flex items-center justify-center`}>
+            <span className={`text-[10px] ${theme.iconColor}`}>Application form preview thumbnail</span>
+          </div>
+        </div>
+      </SectionCard>
+
+      {/* ─── E) APAAR / ABC ID ─── */}
+      <SectionCard title="APAAR / ABC ID (NEP 2020)" subtitle="Academic Bank of Credits integration" theme={theme}>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Enable APAAR / ABC ID (NEP 2020)</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Track APAAR Academic Bank of Credits ID for students</p>
+            </div>
+            <SSAToggle on={enableAPAAR} onChange={() => setEnableAPAAR(!enableAPAAR)} theme={theme} />
+          </div>
+          {enableAPAAR && (
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>APAAR ID Format</p>
+              <InputField value={apaarFormat} onChange={setApaarFormat} theme={theme} />
+            </div>
+          )}
         </div>
       </SectionCard>
     </div>

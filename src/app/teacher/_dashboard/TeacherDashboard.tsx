@@ -5,7 +5,7 @@ import { type Theme } from '@/lib/themes';
 import {
   Home, BookOpen, ClipboardCheck, FileText, Award, Calendar,
   CalendarDays, Notebook, BarChart3, MessageSquare, Headphones,
-  PanelLeftClose, PanelLeftOpen
+  PanelLeftClose, PanelLeftOpen, MessageSquareText
 } from 'lucide-react';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import SupportModule from '@/components/SupportModule';
@@ -22,6 +22,8 @@ import LeaveModule from '../_modules/LeaveModule';
 import DiaryModule from '../_modules/DiaryModule';
 import ReportsModule from '../_modules/ReportsModule';
 import CommunicationModule from '../_modules/CommunicationModule';
+import LessonPlanModule from '../_modules/LessonPlanModule';
+import RemarksModule from '../_modules/RemarksModule';
 
 // ─── TEACHER PROFILE (for top bar) ──────────────────
 const teacherProfile = {
@@ -40,6 +42,8 @@ const modules = [
   { id: 'diary', label: 'Diary', icon: Notebook },
   { id: 'reports', label: 'Reports', icon: BarChart3 },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
+  { id: 'lesson-plans', label: 'Lesson Plans', icon: BookOpen },
+  { id: 'remarks', label: 'Student Remarks', icon: MessageSquareText },
   { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
   { id: 'support', label: 'Support', icon: Headphones },
 ];
@@ -98,6 +102,8 @@ export default function TeacherDashboard({ theme, themeIdx, onThemeChange, isPre
           {activeModule === 'diary' && <DiaryModule theme={theme} />}
           {activeModule === 'reports' && <ReportsModule theme={theme} />}
           {activeModule === 'communication' && <CommunicationModule theme={theme} />}
+          {activeModule === 'lesson-plans' && <LessonPlanModule theme={theme} />}
+          {activeModule === 'remarks' && <RemarksModule theme={theme} />}
           {activeModule === 'your-inputs' && <YourInputsModule theme={theme} userName={currentUser?.name || ''} />}
           {activeModule === 'support' && <SupportModule theme={theme} role="teacher" />}
           {activeModule === 'profile' && <StakeholderProfile role="teacher" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}

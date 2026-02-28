@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Lock } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
 
@@ -26,6 +27,26 @@ export default function AttendanceConfigModule({ theme }: { theme: Theme }) {
     'Medical Leave': true, 'On-Duty': true, 'Excused': false,
   });
   const [allowCustomAttendanceTypes, setAllowCustomAttendanceTypes] = useState(false);
+
+  // ─── Defaulter Thresholds ───
+  const [enableSubjectDefaulter, setEnableSubjectDefaulter] = useState(true);
+  const [defaulterThresholds] = useState([
+    { name: 'Warning', percentage: '80%', action: 'Notify class teacher' },
+    { name: 'Alert Parents', percentage: '75%', action: 'SMS + App notification to parents' },
+    { name: 'Detain Risk', percentage: '65%', action: 'Flag for Principal review' },
+  ]);
+
+  // ─── Correction Policy ───
+  const [allowCorrections, setAllowCorrections] = useState(true);
+  const [correctionWindow, setCorrectionWindow] = useState('7 days');
+  const [requireApproval, setRequireApproval] = useState(true);
+
+  // ─── Employee Attendance ───
+  const [recordInOut, setRecordInOut] = useState(true);
+  const [autoFlagLOP, setAutoFlagLOP] = useState(true);
+  const [monthlyReport, setMonthlyReport] = useState(true);
+  const [compOffHoliday, setCompOffHoliday] = useState(true);
+  const [compOffExtra, setCompOffExtra] = useState(true);
 
   return (
     <div className="space-y-4">
@@ -126,6 +147,114 @@ export default function AttendanceConfigModule({ theme }: { theme: Theme }) {
               <p className={`text-[10px] ${theme.iconColor}`}>Let school admins define additional attendance statuses</p>
             </div>
             <SSAToggle on={allowCustomAttendanceTypes} onChange={() => setAllowCustomAttendanceTypes(!allowCustomAttendanceTypes)} theme={theme} />
+          </div>
+        </div>
+      </SectionCard>
+
+      {/* ─── A) Defaulter Thresholds ─── */}
+      <SectionCard title="Defaulter Thresholds" subtitle="Configure attendance percentage thresholds and automatic actions" theme={theme}>
+        <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg} mb-3`}>
+          <div>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Enable Subject-wise Defaulter Tracking</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>Track attendance defaulters per subject, not just overall</p>
+          </div>
+          <SSAToggle on={enableSubjectDefaulter} onChange={() => setEnableSubjectDefaulter(!enableSubjectDefaulter)} theme={theme} />
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead><tr className={theme.secondaryBg}>
+              {['Threshold Name', 'Percentage', 'Action'].map(h => (
+                <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
+              ))}
+            </tr></thead>
+            <tbody>
+              {defaulterThresholds.map((d, i) => (
+                <tr key={i} className={`border-t ${theme.border}`}>
+                  <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{d.name}</td>
+                  <td className="px-3 py-2">
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                      d.percentage === '80%' ? 'bg-amber-100 text-amber-700' :
+                      d.percentage === '75%' ? 'bg-orange-100 text-orange-700' :
+                      'bg-red-100 text-red-700'
+                    }`}>{d.percentage}</span>
+                  </td>
+                  <td className={`px-3 py-2 ${theme.iconColor}`}>{d.action}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </SectionCard>
+
+      {/* ─── B) Correction Policy ─── */}
+      <SectionCard title="Correction Policy" subtitle="Rules for editing past attendance records" theme={theme}>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Allow Past Attendance Corrections</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Teachers can edit attendance marked on previous days</p>
+            </div>
+            <SSAToggle on={allowCorrections} onChange={() => setAllowCorrections(!allowCorrections)} theme={theme} />
+          </div>
+          {allowCorrections && (
+            <>
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Correction Window</p>
+                <SelectField options={['3 days', '7 days', '30 days', 'No limit']} value={correctionWindow} onChange={setCorrectionWindow} theme={theme} />
+              </div>
+              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <div>
+                  <p className={`text-xs font-bold ${theme.highlight}`}>Require VP/Principal Approval for Corrections</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>Corrections go through approval before taking effect</p>
+                </div>
+                <SSAToggle on={requireApproval} onChange={() => setRequireApproval(!requireApproval)} theme={theme} />
+              </div>
+              <div className={`flex items-center gap-2 p-2.5 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+                <Lock size={14} className={theme.iconColor} />
+                <span className={`text-xs font-bold ${theme.iconColor}`}>Correction Audit Log</span>
+                <span className={`text-[10px] ${theme.iconColor}`}>All corrections are logged with before/after values</span>
+              </div>
+            </>
+          )}
+        </div>
+      </SectionCard>
+
+      {/* ─── C) Employee Attendance Settings ─── */}
+      <SectionCard title="Employee Attendance Settings" subtitle="Staff attendance configuration and comp-off rules" theme={theme}>
+        <div className="space-y-2">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Record In/Out Times</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Track exact check-in and check-out timestamps for staff</p>
+            </div>
+            <SSAToggle on={recordInOut} onChange={() => setRecordInOut(!recordInOut)} theme={theme} />
+          </div>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Auto-flag Loss of Pay when leave balance = 0</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Automatically mark LOP when staff exhausts all leave types</p>
+            </div>
+            <SSAToggle on={autoFlagLOP} onChange={() => setAutoFlagLOP(!autoFlagLOP)} theme={theme} />
+          </div>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Generate Monthly Summary Report</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Auto-generate staff attendance summary at month end</p>
+            </div>
+            <SSAToggle on={monthlyReport} onChange={() => setMonthlyReport(!monthlyReport)} theme={theme} />
+          </div>
+          <div className={`p-3 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-2 uppercase tracking-wide`}>Comp-off Earned For</p>
+            <div className="space-y-2">
+              <div className={`flex items-center justify-between p-2 rounded-lg ${theme.secondaryBg}`}>
+                <span className={`text-xs ${theme.highlight}`}>Working on holiday</span>
+                <SSAToggle on={compOffHoliday} onChange={() => setCompOffHoliday(!compOffHoliday)} theme={theme} />
+              </div>
+              <div className={`flex items-center justify-between p-2 rounded-lg ${theme.secondaryBg}`}>
+                <span className={`text-xs ${theme.highlight}`}>Extra hours &gt; 2</span>
+                <SSAToggle on={compOffExtra} onChange={() => setCompOffExtra(!compOffExtra)} theme={theme} />
+              </div>
+            </div>
           </div>
         </div>
       </SectionCard>
