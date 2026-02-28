@@ -1,9 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { Lock, Plus, X } from 'lucide-react';
+import { Lock, Plus, X, Info, Eye } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
+
+function InfoIcon({ tip }: { tip: string }) {
+  return <span title={tip} className="inline-flex ml-1.5 shrink-0 cursor-help"><Info size={13} className="text-blue-400 hover:text-blue-600" /></span>;
+}
+function MobileBadge() {
+  return <span className="ml-1.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-green-100 text-green-700 whitespace-nowrap">{'\uD83D\uDCF1'} Mobile</span>;
+}
 
 export default function FeeConfigModule({ theme }: { theme: Theme }) {
   const [feeTemplate, setFeeTemplate] = useState('component-based');
@@ -82,6 +89,39 @@ export default function FeeConfigModule({ theme }: { theme: Theme }) {
     { timing: '15 days after due', channel: 'Push + SMS + Call', enabled: true },
     { timing: '30 days after due', channel: 'Push + SMS + Email + Call', enabled: true },
   ]);
+
+  // --- NEW STATE ---
+  // Copy Fee Structure
+  const [copyFeeHeadsChecked, setCopyFeeHeadsChecked] = useState(true);
+  const [copyGradeAmountsChecked, setCopyGradeAmountsChecked] = useState(true);
+  const [copyConcessionRulesChecked, setCopyConcessionRulesChecked] = useState(true);
+  const [copyLateFeeRulesChecked, setCopyLateFeeRulesChecked] = useState(false);
+  const [copyConfirmed, setCopyConfirmed] = useState(false);
+  // Student-Level Fee Override
+  const [feeOverrideEnabled, setFeeOverrideEnabled] = useState(false);
+  const [perStudentCustom, setPerStudentCustom] = useState(true);
+  const [overrideApproval, setOverrideApproval] = useState(true);
+  // EMI / Installment
+  const [emiEnabled, setEmiEnabled] = useState(false);
+  const [emiInterest, setEmiInterest] = useState('0');
+  const [emiMaxMonths, setEmiMaxMonths] = useState('12');
+  const [emiAutoDebit, setEmiAutoDebit] = useState(false);
+  // Fee Receipt Template
+  const [receiptLogo, setReceiptLogo] = useState(true);
+  const [receiptHeader, setReceiptHeader] = useState('Saaras International School');
+  const [receiptFooter, setReceiptFooter] = useState('This is a computer-generated receipt.');
+  const [receiptHSN, setReceiptHSN] = useState(false);
+  const [receiptWatermark, setReceiptWatermark] = useState(true);
+  const [receiptSignature, setReceiptSignature] = useState(true);
+  // Cheque Management
+  const [postDatedCheque, setPostDatedCheque] = useState(false);
+  const [autoPenaltyBounce, setAutoPenaltyBounce] = useState(false);
+  const [bouncePenalty, setBouncePenalty] = useState('500');
+  const [notifyBounce, setNotifyBounce] = useState(true);
+  // Fee Estimation Calculator
+  const [feeEstShowAdmission, setFeeEstShowAdmission] = useState(false);
+  const [feeEstTransport, setFeeEstTransport] = useState(true);
+  const [feeEstOptional, setFeeEstOptional] = useState(false);
 
   const activeHeads = Object.entries(feeHeads).filter(([, v]) => v).map(([k]) => k);
   const frequencies = ['Monthly', 'Quarterly', 'Term-wise', 'Half-yearly', 'Yearly', 'One-time'];
@@ -503,6 +543,213 @@ export default function FeeConfigModule({ theme }: { theme: Theme }) {
           className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl mt-2`}>
           <Plus size={12} /> Add Mode
         </button>
+      </SectionCard>
+
+      {/* ═══════════════════════════════════════════════════════════════
+          NEW SECTIONS
+          ═══════════════════════════════════════════════════════════════ */}
+
+      <SectionCard title="Copy Fee Structure" subtitle="Replicate current year's fee setup for new academic year" theme={theme}>
+        <div className="flex items-center mb-3">
+          <p className={`text-[10px] font-bold ${theme.iconColor}`}>Duplicate 2025-26 structure to 2026-27</p>
+          <InfoIcon tip="Replicate current year's fee setup for new academic year" />
+        </div>
+        <div className="space-y-3">
+          <p className={`text-xs font-bold ${theme.highlight}`}>Copy 2025-26 fee structure to 2026-27?</p>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { label: 'Fee Heads', val: copyFeeHeadsChecked, set: setCopyFeeHeadsChecked },
+              { label: 'Grade Amounts', val: copyGradeAmountsChecked, set: setCopyGradeAmountsChecked },
+              { label: 'Concession Rules', val: copyConcessionRulesChecked, set: setCopyConcessionRulesChecked },
+              { label: 'Late Fee Rules', val: copyLateFeeRulesChecked, set: setCopyLateFeeRulesChecked },
+            ].map(item => (
+              <label key={item.label} className={`flex items-center gap-2 p-2.5 rounded-xl ${theme.secondaryBg} cursor-pointer`}>
+                <input type="checkbox" checked={item.val} onChange={() => item.set(!item.val)} className="accent-emerald-500 w-3.5 h-3.5" />
+                <span className={`text-xs font-medium ${theme.highlight}`}>{item.label}</span>
+              </label>
+            ))}
+          </div>
+          <button onClick={() => { setCopyConfirmed(true); setTimeout(() => setCopyConfirmed(false), 3000); }}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold ${theme.primary} text-white`}>
+            Copy to Next Year
+          </button>
+          {copyConfirmed && <p className="text-xs text-emerald-600 font-bold animate-pulse">Fee structure copied successfully!</p>}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Student-Level Fee Override" subtitle="Allow per-student custom fee amounts" theme={theme}>
+        <div className="flex items-center mb-3">
+          <p className={`text-[10px] font-bold ${theme.iconColor}`}>Override fee amounts for individual students</p>
+          <InfoIcon tip="Enable custom fee amounts per student for special cases" />
+        </div>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Enable Student-Level Override</p>
+            <SSAToggle on={feeOverrideEnabled} onChange={() => setFeeOverrideEnabled(!feeOverrideEnabled)} theme={theme} />
+          </div>
+          {feeOverrideEnabled && (
+            <>
+              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <p className={`text-xs font-bold ${theme.highlight}`}>Allow per-student custom amount</p>
+                <SSAToggle on={perStudentCustom} onChange={() => setPerStudentCustom(!perStudentCustom)} theme={theme} />
+              </div>
+              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <p className={`text-xs font-bold ${theme.highlight}`}>Approval required for override</p>
+                <SSAToggle on={overrideApproval} onChange={() => setOverrideApproval(!overrideApproval)} theme={theme} />
+              </div>
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Example Overrides</p>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead><tr className={theme.secondaryBg}>
+                      {['Student', 'Class', 'Standard Fee', 'Custom Fee', 'Reason'].map(h => (
+                        <th key={h} className={`text-left px-2 py-2 font-bold ${theme.iconColor}`}>{h}</th>
+                      ))}
+                    </tr></thead>
+                    <tbody>
+                      <tr className={`border-t ${theme.border}`}>
+                        <td className={`px-2 py-1.5 font-bold ${theme.highlight}`}>Aarav Patel</td>
+                        <td className={`px-2 py-1.5 ${theme.highlight}`}>Grade 5</td>
+                        <td className={`px-2 py-1.5 ${theme.iconColor}`}>{'\u20B9'}3,600/mo</td>
+                        <td className="px-2 py-1.5 text-emerald-600 font-bold">{'\u20B9'}2,800/mo</td>
+                        <td className={`px-2 py-1.5 ${theme.iconColor}`}>Single parent waiver</td>
+                      </tr>
+                      <tr className={`border-t ${theme.border}`}>
+                        <td className={`px-2 py-1.5 font-bold ${theme.highlight}`}>Priya Shah</td>
+                        <td className={`px-2 py-1.5 ${theme.highlight}`}>Grade 8</td>
+                        <td className={`px-2 py-1.5 ${theme.iconColor}`}>{'\u20B9'}4,500/mo</td>
+                        <td className="px-2 py-1.5 text-emerald-600 font-bold">{'\u20B9'}3,500/mo</td>
+                        <td className={`px-2 py-1.5 ${theme.iconColor}`}>Staff child discount</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="EMI / Installment Plans" subtitle="Parents can pay fees in EMIs with optional interest" theme={theme}>
+        <div className="flex items-center mb-3">
+          <p className={`text-[10px] font-bold ${theme.iconColor}`}>Configure installment payment options</p>
+          <InfoIcon tip="Parents can pay fees in EMIs with optional interest" />
+        </div>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Enable EMI Plans</p>
+            <SSAToggle on={emiEnabled} onChange={() => setEmiEnabled(!emiEnabled)} theme={theme} />
+          </div>
+          {emiEnabled && (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Interest rate (%)</p>
+                  <InputField value={emiInterest} onChange={setEmiInterest} theme={theme} type="number" />
+                </div>
+                <div>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Max EMI months</p>
+                  <InputField value={emiMaxMonths} onChange={setEmiMaxMonths} theme={theme} type="number" />
+                </div>
+              </div>
+              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <p className={`text-xs font-bold ${theme.highlight}`}>Auto-debit via NACH</p>
+                <SSAToggle on={emiAutoDebit} onChange={() => setEmiAutoDebit(!emiAutoDebit)} theme={theme} />
+              </div>
+            </>
+          )}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Fee Receipt Template" subtitle="Customize printed/PDF fee receipt layout" theme={theme}>
+        <div className="flex items-center mb-3">
+          <p className={`text-[10px] font-bold ${theme.iconColor}`}>Design fee receipt template</p>
+          <InfoIcon tip="Customize printed/PDF fee receipt layout" />
+        </div>
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+            {[
+              { label: 'School Logo', val: receiptLogo, set: setReceiptLogo },
+              { label: 'Show HSN/SAC codes (GST)', val: receiptHSN, set: setReceiptHSN },
+              { label: 'Duplicate watermark', val: receiptWatermark, set: setReceiptWatermark },
+              { label: 'Signature field', val: receiptSignature, set: setReceiptSignature },
+            ].map(item => (
+              <div key={item.label} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <span className={`text-xs font-medium ${theme.highlight}`}>{item.label}</span>
+                <SSAToggle on={item.val} onChange={() => item.set(!item.val)} theme={theme} />
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Header Text</p>
+              <InputField value={receiptHeader} onChange={setReceiptHeader} theme={theme} />
+            </div>
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Footer Text</p>
+              <InputField value={receiptFooter} onChange={setReceiptFooter} theme={theme} />
+            </div>
+          </div>
+          <button className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold ${theme.primary} text-white`}>
+            <Eye size={14} /> Preview Receipt
+          </button>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Cheque Management" subtitle="Track cheques and auto-penalize bounced payments" theme={theme}>
+        <div className="flex items-center mb-3">
+          <p className={`text-[10px] font-bold ${theme.iconColor}`}>Manage cheque payments and bounce penalties</p>
+          <InfoIcon tip="Track cheques and auto-penalize bounced payments" />
+        </div>
+        <div className="space-y-2">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Post-dated cheque register</p>
+            <SSAToggle on={postDatedCheque} onChange={() => setPostDatedCheque(!postDatedCheque)} theme={theme} />
+          </div>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Auto-penalty on bounce</p>
+            <SSAToggle on={autoPenaltyBounce} onChange={() => setAutoPenaltyBounce(!autoPenaltyBounce)} theme={theme} />
+          </div>
+          {autoPenaltyBounce && (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Bounce penalty amount ({'\u20B9'})</p>
+                <InputField value={bouncePenalty} onChange={setBouncePenalty} theme={theme} type="number" />
+              </div>
+            </div>
+          )}
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex items-center">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Notify parent on bounce</p>
+              <MobileBadge />
+            </div>
+            <SSAToggle on={notifyBounce} onChange={() => setNotifyBounce(!notifyBounce)} theme={theme} />
+          </div>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Fee Estimation Calculator" subtitle="Parents see estimated annual fee during enquiry/admission" theme={theme}>
+        <div className="flex items-center mb-3">
+          <p className={`text-[10px] font-bold ${theme.iconColor}`}>Show fee estimator to parents</p>
+          <InfoIcon tip="Parents see estimated annual fee during enquiry/admission" />
+        </div>
+        <div className="space-y-2">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex items-center">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Show in admission portal</p>
+              <MobileBadge />
+            </div>
+            <SSAToggle on={feeEstShowAdmission} onChange={() => setFeeEstShowAdmission(!feeEstShowAdmission)} theme={theme} />
+          </div>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Include transport fee</p>
+            <SSAToggle on={feeEstTransport} onChange={() => setFeeEstTransport(!feeEstTransport)} theme={theme} />
+          </div>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Include optional fees</p>
+            <SSAToggle on={feeEstOptional} onChange={() => setFeeEstOptional(!feeEstOptional)} theme={theme} />
+          </div>
+        </div>
       </SectionCard>
 
     </div>

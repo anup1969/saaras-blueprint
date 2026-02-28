@@ -1,9 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Plus, CheckCircle } from 'lucide-react';
-import { SSAToggle, SectionCard, ModuleHeader, SelectField } from '../_helpers/components';
+import { X, Plus, CheckCircle, Info, Upload } from 'lucide-react';
+import { SSAToggle, SectionCard, ModuleHeader, SelectField, InputField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
+
+function InfoIcon({ tip }: { tip: string }) {
+  return <span title={tip} className="inline-flex ml-1.5 shrink-0 cursor-help"><Info size={13} className="text-blue-400 hover:text-blue-600" /></span>;
+}
+function MobileBadge() {
+  return <span className="ml-1.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-green-100 text-green-700 whitespace-nowrap">{'\uD83D\uDCF1'} Mobile</span>;
+}
 
 export default function HRConfigModule({ theme }: { theme: Theme }) {
   const [departments, setDepartments] = useState(['Administration', 'Teaching - Primary', 'Teaching - Secondary', 'Teaching - Senior', 'Accounts', 'IT', 'Transport', 'Housekeeping', 'Security', 'Library', 'Lab']);
@@ -40,6 +47,44 @@ export default function HRConfigModule({ theme }: { theme: Theme }) {
   const [hrLetters, setHrLetters] = useState(['Offer Letter', 'Appointment Letter', 'Confirmation Letter', 'Experience Letter', 'Relieving Letter', 'Salary Slip', 'Warning Letter', 'Termination Letter']);
   const [newHrLetter, setNewHrLetter] = useState('');
   const [appraisalStages, setAppraisalStages] = useState(['Self Assessment', 'HOD Review', 'Principal Review', 'Management Approval', 'Letter Generation']);
+
+  // --- NEW STATE ---
+  // LOP Calculation
+  const [lopMethod, setLopMethod] = useState('LOPD');
+  // Payslip Settings
+  const [payslipPDF, setPayslipPDF] = useState(true);
+  const [payslipPassword, setPayslipPassword] = useState(false);
+  const [payslipDistribution, setPayslipDistribution] = useState<Record<string, boolean>>({ Email: true, WhatsApp: false, 'Self-service portal': true });
+  const [payslipRegen, setPayslipRegen] = useState(false);
+  const [payslipRegenAudit, setPayslipRegenAudit] = useState(true);
+  // TDS
+  const [autoTDS, setAutoTDS] = useState(true);
+  const [form16Gen, setForm16Gen] = useState(true);
+  // Statutory
+  const [pfEnabled, setPfEnabled] = useState(true);
+  const [pfEmployee, setPfEmployee] = useState('12');
+  const [pfEmployer, setPfEmployer] = useState('12');
+  const [esiEnabled, setEsiEnabled] = useState(true);
+  const [esiThreshold, setEsiThreshold] = useState('21000');
+  const [ptEnabled, setPtEnabled] = useState(true);
+  const [ptState, setPtState] = useState('Gujarat');
+  const [gratuityEnabled, setGratuityEnabled] = useState(false);
+  // Payroll Extras
+  const [overtimeEnabled, setOvertimeEnabled] = useState(false);
+  const [overtimeRate, setOvertimeRate] = useState('1.5x');
+  const [festivalBonus, setFestivalBonus] = useState(false);
+  const [salaryAdvance, setSalaryAdvance] = useState(false);
+  const [arrearsAuto, setArrearsAuto] = useState(false);
+  // Export / Integration
+  const [bankBatchFile, setBankBatchFile] = useState(true);
+  const [bankFormat, setBankFormat] = useState('SBI');
+  const [tallyExport, setTallyExport] = useState(false);
+  const [quickbooksSync, setQuickbooksSync] = useState(false);
+  // Statutory Reports
+  const [pfECR, setPfECR] = useState(true);
+  const [esiReturn, setEsiReturn] = useState(true);
+  const [form16Report, setForm16Report] = useState(true);
+  const [ptChallan, setPtChallan] = useState(true);
 
   return (
     <div className="space-y-4">
@@ -196,6 +241,284 @@ export default function HRConfigModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
       </div>
+
+      {/* ═══════════════════════════════════════════════════════════════
+          NEW SECTIONS
+          ═══════════════════════════════════════════════════════════════ */}
+
+      <SectionCard title="Bulk Employee Import" subtitle="Upload employee data in bulk via CSV" theme={theme}>
+        <div className="flex items-center mb-3">
+          <p className={`text-[10px] font-bold ${theme.iconColor}`}>Import multiple employees at once</p>
+          <InfoIcon tip="Upload employee data in bulk via CSV" />
+        </div>
+        <div className="space-y-3">
+          <div className={`p-6 rounded-xl border-2 border-dashed ${theme.border} flex flex-col items-center justify-center gap-2`}>
+            <Upload size={24} className={theme.iconColor} />
+            <p className={`text-xs font-bold ${theme.highlight}`}>Drag and drop CSV file here</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>or click to browse</p>
+            <button className={`mt-2 px-4 py-2 rounded-xl text-xs font-bold ${theme.primary} text-white`}>
+              Import from CSV
+            </button>
+          </div>
+          <div className={`flex items-center gap-2 p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <span className={`text-xs font-bold ${theme.iconColor} underline cursor-pointer hover:opacity-80`}>Download Template (.csv)</span>
+          </div>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="LOP Calculation Method" subtitle="Choose how Loss of Pay is calculated in payroll" theme={theme}>
+        <div className="flex items-center mb-3">
+          <p className={`text-[10px] font-bold ${theme.iconColor}`}>Select the method for LOP deduction</p>
+          <InfoIcon tip="Choose how Loss of Pay is calculated in payroll" />
+        </div>
+        <div className="space-y-2">
+          {[
+            { id: 'LOPD', label: 'By LOP Days (LOPD)', desc: 'Deduct salary based on number of absent/LOP days' },
+            { id: 'NDW', label: 'By Days Worked (NDW)', desc: 'Pay only for the number of days actually worked' },
+          ].map(opt => (
+            <label key={opt.id} className={`flex items-start gap-3 p-3 rounded-xl ${theme.secondaryBg} cursor-pointer border-2 transition-all ${lopMethod === opt.id ? `${theme.border} ring-2 ring-blue-200` : 'border-transparent'}`}>
+              <input type="radio" name="lopMethod" value={opt.id} checked={lopMethod === opt.id}
+                onChange={() => setLopMethod(opt.id)} className="accent-emerald-500 mt-0.5" />
+              <div>
+                <p className={`text-xs font-bold ${theme.highlight}`}>{opt.label}</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>{opt.desc}</p>
+              </div>
+            </label>
+          ))}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Payslip Settings" subtitle="Configure payslip generation and distribution" theme={theme}>
+        <div className="flex items-center mb-3">
+          <p className={`text-[10px] font-bold ${theme.iconColor}`}>Payslip format and delivery options</p>
+          <InfoIcon tip="Configure how payslips are generated, protected, and distributed to staff" />
+        </div>
+        <div className="space-y-2">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Generate PDF with letterhead</p>
+            <SSAToggle on={payslipPDF} onChange={() => setPayslipPDF(!payslipPDF)} theme={theme} />
+          </div>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Password-protect payslips</p>
+            <SSAToggle on={payslipPassword} onChange={() => setPayslipPassword(!payslipPassword)} theme={theme} />
+          </div>
+          <div>
+            <div className="flex items-center mb-2">
+              <p className={`text-[10px] font-bold ${theme.iconColor}`}>Distribution via</p>
+              <MobileBadge />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(payslipDistribution).map(([ch, on]) => (
+                <label key={ch} className={`flex items-center gap-2 p-2 rounded-lg ${theme.secondaryBg} cursor-pointer`}>
+                  <input type="checkbox" checked={on} onChange={() => setPayslipDistribution(p => ({ ...p, [ch]: !p[ch] }))} className="accent-emerald-500 w-3.5 h-3.5" />
+                  <span className={`text-[10px] font-medium ${theme.highlight}`}>{ch}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Allow payslip regeneration</p>
+            <SSAToggle on={payslipRegen} onChange={() => setPayslipRegen(!payslipRegen)} theme={theme} />
+          </div>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Audit trail on regeneration</p>
+            <SSAToggle on={payslipRegenAudit} onChange={() => setPayslipRegenAudit(!payslipRegenAudit)} theme={theme} />
+          </div>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="TDS / Income Tax" subtitle="Tax deduction at source per Indian IT slabs" theme={theme}>
+        <div className="flex items-center mb-3">
+          <p className={`text-[10px] font-bold ${theme.iconColor}`}>Auto-calculate TDS and generate tax forms</p>
+          <InfoIcon tip="Tax deduction at source per Indian IT slabs" />
+        </div>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Auto-calculate TDS</p>
+            <SSAToggle on={autoTDS} onChange={() => setAutoTDS(!autoTDS)} theme={theme} />
+          </div>
+          {autoTDS && (
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Income Tax Slabs</p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead><tr className={theme.secondaryBg}>
+                    {['Income Range', 'Tax Rate'].map(h => (
+                      <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
+                    ))}
+                  </tr></thead>
+                  <tbody>
+                    {[
+                      { range: '0 - 5 Lakhs', rate: 'Nil' },
+                      { range: '5 - 10 Lakhs', rate: '20%' },
+                      { range: '10 Lakhs+', rate: '30%' },
+                    ].map((slab, i) => (
+                      <tr key={i} className={`border-t ${theme.border}`}>
+                        <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{slab.range}</td>
+                        <td className={`px-3 py-2 ${theme.iconColor}`}>{slab.rate}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Form 16/16A generation</p>
+            <SSAToggle on={form16Gen} onChange={() => setForm16Gen(!form16Gen)} theme={theme} />
+          </div>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Statutory Compliance" subtitle="Auto-calculate PF, ESI, PT per statutory rules" theme={theme}>
+        <div className="flex items-center mb-3">
+          <p className={`text-[10px] font-bold ${theme.iconColor}`}>Configure statutory deductions</p>
+          <InfoIcon tip="Auto-calculate PF, ESI, PT per statutory rules" />
+        </div>
+        <div className="space-y-3">
+          {/* PF/EPF */}
+          <div className={`p-3 rounded-xl border ${theme.border} ${theme.secondaryBg}`}>
+            <div className="flex items-center justify-between mb-2">
+              <p className={`text-xs font-bold ${theme.highlight}`}>PF / EPF</p>
+              <SSAToggle on={pfEnabled} onChange={() => setPfEnabled(!pfEnabled)} theme={theme} />
+            </div>
+            {pfEnabled && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Employee %</p>
+                  <InputField value={pfEmployee} onChange={setPfEmployee} theme={theme} type="number" />
+                </div>
+                <div>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Employer %</p>
+                  <InputField value={pfEmployer} onChange={setPfEmployer} theme={theme} type="number" />
+                </div>
+              </div>
+            )}
+          </div>
+          {/* ESI */}
+          <div className={`p-3 rounded-xl border ${theme.border} ${theme.secondaryBg}`}>
+            <div className="flex items-center justify-between mb-2">
+              <p className={`text-xs font-bold ${theme.highlight}`}>ESI</p>
+              <SSAToggle on={esiEnabled} onChange={() => setEsiEnabled(!esiEnabled)} theme={theme} />
+            </div>
+            {esiEnabled && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Threshold ({'\u20B9'})</p>
+                  <InputField value={esiThreshold} onChange={setEsiThreshold} theme={theme} type="number" />
+                </div>
+              </div>
+            )}
+          </div>
+          {/* Professional Tax */}
+          <div className={`p-3 rounded-xl border ${theme.border} ${theme.secondaryBg}`}>
+            <div className="flex items-center justify-between mb-2">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Professional Tax</p>
+              <SSAToggle on={ptEnabled} onChange={() => setPtEnabled(!ptEnabled)} theme={theme} />
+            </div>
+            {ptEnabled && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>State</p>
+                  <SelectField options={['Gujarat', 'Maharashtra', 'Karnataka']} value={ptState} onChange={setPtState} theme={theme} />
+                </div>
+              </div>
+            )}
+          </div>
+          {/* Gratuity */}
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Gratuity</p>
+            <SSAToggle on={gratuityEnabled} onChange={() => setGratuityEnabled(!gratuityEnabled)} theme={theme} />
+          </div>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Payroll Extras" subtitle="Additional payroll components beyond base salary" theme={theme}>
+        <div className="flex items-center mb-3">
+          <p className={`text-[10px] font-bold ${theme.iconColor}`}>Configure overtime, bonuses, advances, and arrears</p>
+          <InfoIcon tip="Additional payroll components beyond base salary" />
+        </div>
+        <div className="space-y-2">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Overtime calculation</p>
+            <SSAToggle on={overtimeEnabled} onChange={() => setOvertimeEnabled(!overtimeEnabled)} theme={theme} />
+          </div>
+          {overtimeEnabled && (
+            <div className="grid grid-cols-2 gap-3 pl-4">
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Rate</p>
+                <SelectField options={['1.5x', '2x']} value={overtimeRate} onChange={setOvertimeRate} theme={theme} />
+              </div>
+            </div>
+          )}
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Festival advance/bonus</p>
+            <SSAToggle on={festivalBonus} onChange={() => setFestivalBonus(!festivalBonus)} theme={theme} />
+          </div>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Salary advance/loan module</p>
+            <SSAToggle on={salaryAdvance} onChange={() => setSalaryAdvance(!salaryAdvance)} theme={theme} />
+          </div>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Arrears auto-calculation</p>
+            <SSAToggle on={arrearsAuto} onChange={() => setArrearsAuto(!arrearsAuto)} theme={theme} />
+          </div>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Export / Integration" subtitle="Generate bank-compatible salary payment files" theme={theme}>
+        <div className="flex items-center mb-3">
+          <p className={`text-[10px] font-bold ${theme.iconColor}`}>Export payroll data to bank and accounting systems</p>
+          <InfoIcon tip="Generate bank-compatible salary payment files" />
+        </div>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Bank batch file (NEFT/RTGS)</p>
+            <SSAToggle on={bankBatchFile} onChange={() => setBankBatchFile(!bankBatchFile)} theme={theme} />
+          </div>
+          {bankBatchFile && (
+            <div className="grid grid-cols-2 gap-3 pl-4">
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Format</p>
+                <SelectField options={['SBI', 'HDFC', 'ICICI', 'Generic']} value={bankFormat} onChange={setBankFormat} theme={theme} />
+              </div>
+            </div>
+          )}
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Tally export</p>
+            <SSAToggle on={tallyExport} onChange={() => setTallyExport(!tallyExport)} theme={theme} />
+          </div>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>QuickBooks sync</p>
+            <SSAToggle on={quickbooksSync} onChange={() => setQuickbooksSync(!quickbooksSync)} theme={theme} />
+          </div>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Statutory Reports" subtitle="Auto-generate statutory filing reports" theme={theme}>
+        <div className="flex items-center mb-3">
+          <p className={`text-[10px] font-bold ${theme.iconColor}`}>Generate compliance reports for government filings</p>
+          <InfoIcon tip="Auto-generate statutory filing reports" />
+        </div>
+        <div className="space-y-2">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>PF ECR file</p>
+            <SSAToggle on={pfECR} onChange={() => setPfECR(!pfECR)} theme={theme} />
+          </div>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>ESI return</p>
+            <SSAToggle on={esiReturn} onChange={() => setEsiReturn(!esiReturn)} theme={theme} />
+          </div>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Form 16/16A</p>
+            <SSAToggle on={form16Report} onChange={() => setForm16Report(!form16Report)} theme={theme} />
+          </div>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Professional Tax challan</p>
+            <SSAToggle on={ptChallan} onChange={() => setPtChallan(!ptChallan)} theme={theme} />
+          </div>
+        </div>
+      </SectionCard>
     </div>
   );
 }

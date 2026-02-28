@@ -7,12 +7,18 @@ import {
   Users, Award, ClipboardCheck, TrendingUp, Calendar, Star,
   Banknote, AlertTriangle, DollarSign, CreditCard,
   Briefcase, Shield, Bus, UserPlus, Download, PieChart, UserMinus, MessageSquare,
-  List, BarChart3
+  List, BarChart3, Info, FileCheck, Printer, Smartphone
 } from 'lucide-react';
 
 export default function ReportsModule({ theme }: { theme: Theme }) {
   const [tab, setTab] = useState('Academic');
   const [expandedReport, setExpandedReport] = useState<string | null>(null);
+  const [admitExam, setAdmitExam] = useState('Term 1');
+  const [admitClass, setAdmitClass] = useState('Class 5');
+  const [bulkClass, setBulkClass] = useState('Class 10');
+  const [bulkExam, setBulkExam] = useState('Term 1');
+  const [qrToggle, setQrToggle] = useState(true);
+  const [signToggle, setSignToggle] = useState(true);
   return (
     <div className="space-y-4">
       <h1 className={`text-2xl font-bold ${theme.highlight}`}>Reports & Analytics</h1>
@@ -30,6 +36,9 @@ export default function ReportsModule({ theme }: { theme: Theme }) {
           { title: 'Remark Submission Status', desc: 'Per-class teacher remark compliance tracking', icon: MessageSquare },
           { title: 'Batch-wise Student List', desc: 'Class & section-wise student count with gender split', icon: List },
           { title: 'Grade-wise Student Count', desc: 'Grade-level enrollment with bar visualization', icon: BarChart3 },
+          { title: 'Admit Cards / Hall Tickets', desc: 'Generate exam admit cards with photo & schedule', icon: Printer },
+          { title: 'Bulk Report Card Generation', desc: 'Generate and download all report cards for a class', icon: FileCheck },
+          { title: 'Mark Entry Compliance', desc: 'Track which teachers have completed mark entry', icon: ClipboardCheck },
         ] : tab === 'Financial' ? [
           { title: 'Fee Collection Summary', desc: 'Monthly/yearly collection vs outstanding', icon: Banknote },
           { title: 'Defaulters Report', desc: 'Student-wise fee dues with aging analysis', icon: AlertTriangle },
@@ -223,6 +232,200 @@ export default function ReportsModule({ theme }: { theme: Theme }) {
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+
+      {/* ── Admit Cards / Hall Tickets ── */}
+      {expandedReport === 'Admit Cards / Hall Tickets' && (
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5 space-y-4`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Printer size={18} className={theme.primaryText} />
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>Admit Cards / Hall Tickets</h3>
+              <span title="Generate and print exam admit cards with student photo and schedule. Mobile: students view in app"><Info size={14} className={`${theme.iconColor} cursor-help`} /></span>
+            </div>
+            <span className={`text-xs px-3 py-1 rounded-full font-bold bg-blue-100 text-blue-700`}>Generated 120/145 | Pending 25</span>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Exam</label>
+              <select value={admitExam} onChange={e => setAdmitExam(e.target.value)} className={`w-full px-3 py-2 rounded-xl text-xs border ${theme.border} ${theme.inputBg} ${theme.highlight}`}>
+                {['Term 1', 'Term 2', 'Final'].map(o => <option key={o}>{o}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Class</label>
+              <select value={admitClass} onChange={e => setAdmitClass(e.target.value)} className={`w-full px-3 py-2 rounded-xl text-xs border ${theme.border} ${theme.inputBg} ${theme.highlight}`}>
+                {['Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10'].map(o => <option key={o}>{o}</option>)}
+              </select>
+            </div>
+          </div>
+          {/* Preview Card */}
+          <div className={`${theme.secondaryBg} rounded-xl p-4 border ${theme.border}`}>
+            <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-2`}>Preview — Admit Card</p>
+            <div className={`${theme.cardBg} rounded-xl p-4 border ${theme.border} space-y-3`}>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center text-[8px] text-gray-500 font-bold">LOGO</div>
+                <div className="flex-1 text-center">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>Saaras International School</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{admitExam} Examination — 2025-26</p>
+                </div>
+                <div className="w-10 h-12 rounded-lg bg-gray-200 flex items-center justify-center text-[7px] text-gray-500 font-bold">Photo</div>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div><p className={`text-[9px] ${theme.iconColor}`}>Name</p><p className={`text-xs font-bold ${theme.highlight}`}>Aarav Mehta</p></div>
+                <div><p className={`text-[9px] ${theme.iconColor}`}>Class</p><p className={`text-xs font-bold ${theme.highlight}`}>{admitClass} - A</p></div>
+                <div><p className={`text-[9px] ${theme.iconColor}`}>Roll No.</p><p className={`text-xs font-bold ${theme.highlight}`}>12</p></div>
+              </div>
+              <table className="w-full text-[10px]">
+                <thead>
+                  <tr className={theme.secondaryBg}>
+                    <th className={`px-2 py-1 text-left ${theme.iconColor}`}>Subject</th>
+                    <th className={`px-2 py-1 text-left ${theme.iconColor}`}>Date</th>
+                    <th className={`px-2 py-1 text-left ${theme.iconColor}`}>Time</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { sub: 'Mathematics', date: 'Mar 10, 2026', time: '9:00 - 12:00' },
+                    { sub: 'Science', date: 'Mar 12, 2026', time: '9:00 - 12:00' },
+                    { sub: 'English', date: 'Mar 14, 2026', time: '9:00 - 11:00' },
+                  ].map((r, i) => (
+                    <tr key={i} className={`border-t ${theme.border}`}>
+                      <td className={`px-2 py-1 ${theme.highlight}`}>{r.sub}</td>
+                      <td className={`px-2 py-1 ${theme.iconColor}`}>{r.date}</td>
+                      <td className={`px-2 py-1 ${theme.iconColor}`}>{r.time}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className={`text-[9px] ${theme.iconColor} italic`}>Instructions: Carry this admit card to the exam hall. No electronic devices allowed.</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={() => window.alert('Generating admit cards for ' + admitClass + '... (Blueprint demo)')} className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}>Generate for Class</button>
+            <button onClick={() => window.alert('Generating all admit cards... (Blueprint demo)')} className={`px-4 py-2 rounded-xl border ${theme.border} text-xs font-bold ${theme.highlight}`}>Generate All</button>
+            <button onClick={() => window.alert('Downloading bulk PDF... (Blueprint demo)')} className={`px-4 py-2 rounded-xl border ${theme.border} text-xs font-bold ${theme.highlight} flex items-center gap-1`}><Download size={12} /> Download as PDF (Bulk)</button>
+          </div>
+          <div className="flex items-start gap-1.5 px-1">
+            <Smartphone size={11} className={`${theme.iconColor} shrink-0 mt-0.5`} />
+            <p className={`text-[10px] ${theme.iconColor}`}>Mobile: Students can view their admit card directly in the app</p>
+          </div>
+        </div>
+      )}
+
+      {/* ── Bulk Report Card Generation ── */}
+      {expandedReport === 'Bulk Report Card Generation' && (
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5 space-y-4`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <FileCheck size={18} className={theme.primaryText} />
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>Bulk Report Card Generation</h3>
+              <span title="Generate and download all report cards for a class in one click"><Info size={14} className={`${theme.iconColor} cursor-help`} /></span>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Class</label>
+              <select value={bulkClass} onChange={e => setBulkClass(e.target.value)} className={`w-full px-3 py-2 rounded-xl text-xs border ${theme.border} ${theme.inputBg} ${theme.highlight}`}>
+                {['Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10'].map(o => <option key={o}>{o}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Exam</label>
+              <select value={bulkExam} onChange={e => setBulkExam(e.target.value)} className={`w-full px-3 py-2 rounded-xl text-xs border ${theme.border} ${theme.inputBg} ${theme.highlight}`}>
+                {['Term 1', 'Term 2', 'Final'].map(o => <option key={o}>{o}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div className={`p-3 rounded-xl ${theme.secondaryBg} text-center`}>
+              <p className={`text-lg font-bold ${theme.highlight}`}>45</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Total Students</p>
+            </div>
+            <div className={`p-3 rounded-xl ${theme.secondaryBg} text-center`}>
+              <p className="text-lg font-bold text-emerald-600">43</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Marks Entered</p>
+            </div>
+            <div className={`p-3 rounded-xl ${theme.secondaryBg} text-center`}>
+              <p className="text-lg font-bold text-amber-600">2</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Pending</p>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <div className={`flex items-center justify-between p-3 rounded-xl ${theme.secondaryBg}`}>
+              <div className="flex items-center gap-2">
+                <span className={`text-xs font-bold ${theme.highlight}`}>Include QR verification code on report card</span>
+              </div>
+              <button onClick={() => setQrToggle(!qrToggle)} className={`w-9 h-5 rounded-full relative transition-colors ${qrToggle ? theme.primary : 'bg-gray-300'}`}>
+                <div className={`w-4 h-4 bg-white rounded-full absolute top-0.5 transition-transform ${qrToggle ? 'translate-x-4' : 'translate-x-0.5'}`} />
+              </button>
+            </div>
+            <div className={`flex items-center justify-between p-3 rounded-xl ${theme.secondaryBg}`}>
+              <div className="flex items-center gap-2">
+                <span className={`text-xs font-bold ${theme.highlight}`}>Include Principal&apos;s digital signature</span>
+              </div>
+              <button onClick={() => setSignToggle(!signToggle)} className={`w-9 h-5 rounded-full relative transition-colors ${signToggle ? theme.primary : 'bg-gray-300'}`}>
+                <div className={`w-4 h-4 bg-white rounded-full absolute top-0.5 transition-transform ${signToggle ? 'translate-x-4' : 'translate-x-0.5'}`} />
+              </button>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={() => window.alert('Generating all report cards for ' + bulkClass + '... (Blueprint demo)')} className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}>Generate All Report Cards</button>
+            <button onClick={() => window.alert('Downloading ZIP... (Blueprint demo)')} className={`px-4 py-2 rounded-xl border ${theme.border} text-xs font-bold ${theme.highlight} flex items-center gap-1`}><Download size={12} /> Download ZIP (PDF)</button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Mark Entry Compliance ── */}
+      {expandedReport === 'Mark Entry Compliance' && (
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5 space-y-4`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <ClipboardCheck size={18} className={theme.primaryText} />
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>Mark Entry Compliance</h3>
+              <span title="Track which teachers have completed mark entry per exam"><Info size={14} className={`${theme.iconColor} cursor-help`} /></span>
+            </div>
+            <span className={`text-xs px-3 py-1 rounded-full font-bold bg-blue-100 text-blue-700`}>Overall: 85% complete</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className={theme.secondaryBg}>
+                  {['Subject', 'Teacher', 'Marks Entered', 'Deadline', 'Status'].map(h => (
+                    <th key={h} className={`px-3 py-2 text-left text-[10px] font-bold ${theme.iconColor} uppercase`}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { subject: 'Mathematics', teacher: 'Mr. Sharma', pct: '100%', deadline: 'Feb 28', status: 'Complete' },
+                  { subject: 'Science', teacher: 'Mrs. Iyer', pct: '100%', deadline: 'Feb 28', status: 'Complete' },
+                  { subject: 'English', teacher: 'Ms. D\'Souza', pct: '100%', deadline: 'Feb 28', status: 'Complete' },
+                  { subject: 'Hindi', teacher: 'Mrs. Mishra', pct: '100%', deadline: 'Mar 1', status: 'Complete' },
+                  { subject: 'Social Science', teacher: 'Mr. Reddy', pct: '100%', deadline: 'Mar 1', status: 'Complete' },
+                  { subject: 'Computer Sc.', teacher: 'Mr. Joshi', pct: '100%', deadline: 'Mar 2', status: 'Complete' },
+                  { subject: 'Physical Ed.', teacher: 'Mr. Patil', pct: '72%', deadline: 'Mar 3', status: 'Pending' },
+                  { subject: 'Art', teacher: 'Mrs. Kulkarni', pct: '45%', deadline: 'Feb 25', status: 'Overdue' },
+                ].map((r, i) => (
+                  <tr key={i} className={`border-t ${theme.border}`}>
+                    <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{r.subject}</td>
+                    <td className={`px-3 py-2 ${theme.iconColor}`}>{r.teacher}</td>
+                    <td className={`px-3 py-2 font-bold ${r.pct === '100%' ? 'text-emerald-600' : r.status === 'Overdue' ? 'text-red-600' : 'text-amber-600'}`}>{r.pct}</td>
+                    <td className={`px-3 py-2 ${theme.iconColor}`}>{r.deadline}</td>
+                    <td className="px-3 py-2">
+                      <span className={`text-[10px] font-bold ${
+                        r.status === 'Complete' ? 'text-emerald-600' : r.status === 'Pending' ? 'text-amber-600' : 'text-red-600'
+                      }`}>
+                        {r.status === 'Complete' ? '\u2705' : r.status === 'Pending' ? '\u23F3' : '\u274C'} {r.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <button onClick={() => window.alert('Reminders sent to pending teachers. (Blueprint demo)')} className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}>Send Reminder to Pending</button>
         </div>
       )}
 

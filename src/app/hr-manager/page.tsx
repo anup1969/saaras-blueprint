@@ -15,7 +15,8 @@ import {
   Settings, Bell, ChevronLeft, ChevronRight, Check, X, Plus,
   Eye, Edit, Phone, Mail, Trash2, Camera, Award, CheckCircle, XCircle,
   GripVertical, Cake, Briefcase, Upload, MinusCircle, Wallet, GitBranch, Shield, User, MessageSquare, Megaphone,
-  PanelLeftClose, PanelLeftOpen, Headphones, ClipboardCheck
+  PanelLeftClose, PanelLeftOpen, Headphones, ClipboardCheck,
+  Info, Download, RefreshCw, Link, AlertCircle, Building2, Calculator, Gift, Lock, Smartphone, TrendingDown, ChevronDown, DollarSign, CreditCard, IndianRupee
 } from 'lucide-react';
 
 // ─── MOCK DATA ────────────────────────────────────────
@@ -41,6 +42,7 @@ const modules = [
   { id: 'lifecycle', label: 'Lifecycle', icon: GitBranch },
   { id: 'documents', label: 'Documents', icon: FileText },
   { id: 'offboarding', label: 'Offboarding', icon: UserMinus },
+  { id: 'loans', label: 'Loans & Advances', icon: CreditCard },
   { id: 'reports', label: 'Reports', icon: BarChart3 },
   { id: 'settings', label: 'Settings', icon: Settings },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
@@ -144,12 +146,53 @@ function DashboardModule({ theme, setActive }: { theme: Theme; setActive: (s: st
 
 // ─── EMPLOYEE LIST ────────────────────────────────────
 function EmployeeList({ theme, setActive, setSelectedEmp }: { theme: Theme; setActive: (s: string) => void; setSelectedEmp: (e: typeof employees[0]) => void }) {
+  const [showImportCSV, setShowImportCSV] = useState(false);
+  const csvPreview = [
+    { name: 'Anita Desai', id: 'EMP143', dept: 'Teaching', status: 'valid' },
+    { name: 'Ramesh Gupta', id: 'EMP144', dept: 'Admin', status: 'valid' },
+    { name: 'Invalid Row', id: '', dept: '', status: 'error' },
+  ];
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className={`text-xl font-bold ${theme.highlight}`}>Employee Management</h1>
-        <button onClick={() => setActive('addemployee')} className={`flex items-center gap-2 px-3 py-2 ${theme.primary} text-white rounded-lg text-sm`}><Plus size={14} />Add Employee</button>
+        <div className="flex gap-2">
+          <button onClick={() => setShowImportCSV(true)} className={`flex items-center gap-2 px-3 py-2 border ${theme.border} rounded-lg text-sm ${theme.highlight} ${theme.buttonHover}`}><Upload size={14} />Import Employees <span title="Upload employee data in bulk via CSV file"><Info size={14} className={theme.iconColor} /></span></button>
+          <button onClick={() => setActive('addemployee')} className={`flex items-center gap-2 px-3 py-2 ${theme.primary} text-white rounded-lg text-sm`}><Plus size={14} />Add Employee</button>
+        </div>
       </div>
+
+      {/* CSV Import Modal */}
+      {showImportCSV && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className={`${theme.cardBg} rounded-2xl p-6 w-[36rem] border ${theme.border}`}>
+            <div className="flex justify-between mb-4"><h3 className={`font-semibold ${theme.highlight}`}>Bulk CSV Import <span title="Upload employee data in bulk via CSV file"><Info size={14} className={`inline ${theme.iconColor} ml-1`} /></span></h3><button onClick={() => setShowImportCSV(false)} className={theme.iconColor}><X size={18} /></button></div>
+            <div className={`border-2 border-dashed ${theme.border} rounded-xl p-6 text-center ${theme.buttonHover} cursor-pointer mb-4`}>
+              <Upload size={24} className={`mx-auto ${theme.iconColor} mb-2`} />
+              <p className={`text-sm ${theme.highlight} font-medium`}>Drag & drop CSV file here</p>
+              <p className={`text-xs ${theme.iconColor} mt-1`}>or click to browse</p>
+            </div>
+            <button className={`flex items-center gap-1 text-xs ${theme.primaryText} mb-4`}><Download size={12} />Download Template (CSV)</button>
+            <div className="mb-3"><h4 className={`text-sm font-semibold ${theme.highlight} mb-2`}>Validation Preview</h4>
+              <div className={`${theme.cardBg} rounded-lg border ${theme.border} overflow-hidden`}>
+                <table className="w-full text-xs">
+                  <thead><tr className={theme.secondaryBg}><th className={`p-2 text-left ${theme.iconColor}`}>Name</th><th className={`p-2 text-left ${theme.iconColor}`}>ID</th><th className={`p-2 text-left ${theme.iconColor}`}>Department</th><th className={`p-2 text-center ${theme.iconColor}`}>Status</th></tr></thead>
+                  <tbody>{csvPreview.map((r, i) => (
+                    <tr key={i} className={`border-t ${theme.border}`}>
+                      <td className={`p-2 ${theme.highlight}`}>{r.name}</td>
+                      <td className={`p-2 ${theme.iconColor}`}>{r.id || '—'}</td>
+                      <td className={`p-2 ${theme.iconColor}`}>{r.dept || '—'}</td>
+                      <td className="p-2 text-center">{r.status === 'valid' ? <CheckCircle size={14} className="text-emerald-400 inline" /> : <XCircle size={14} className="text-red-400 inline" />}</td>
+                    </tr>
+                  ))}</tbody>
+                </table>
+              </div>
+              <p className={`text-xs mt-1 ${theme.iconColor}`}>2 valid, 1 error</p>
+            </div>
+            <div className="flex justify-end gap-2"><button onClick={() => setShowImportCSV(false)} className={`px-4 py-2 border ${theme.border} rounded-lg text-sm ${theme.highlight}`}>Cancel</button><button onClick={() => { setShowImportCSV(false); window.alert('2 employees imported successfully (Blueprint demo)'); }} className={`px-4 py-2 ${theme.primary} text-white rounded-lg text-sm`}>Import 2 Employees</button></div>
+          </div>
+        </div>
+      )}
       <div className={`${theme.cardBg} rounded-xl border ${theme.border} overflow-hidden`}>
         <table className="w-full text-sm">
           <thead><tr className={theme.secondaryBg}><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Employee</th><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Department</th><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Contact</th><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Status</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Actions</th></tr></thead>
@@ -308,9 +351,11 @@ function AttendanceModule({ theme }: { theme: Theme }) {
     <div className="space-y-4">
       <div className="flex justify-between items-center"><h1 className={`text-xl font-bold ${theme.highlight}`}>Attendance</h1><button className={`px-3 py-2 ${theme.primary} text-white rounded-lg text-sm`}>Mark Attendance</button></div>
       <p className="text-[10px] text-amber-600 mb-2">Staff attendance methods: Biometric + Mobile App. Geo-fencing: OFF -- per SSA config</p>
+      {/* Cross-Module Connectivity Banner */}
+      <div className={`flex items-center gap-2 p-2.5 rounded-lg border border-blue-500/30 bg-blue-500/10`}><Link size={14} className="text-blue-400 shrink-0" /><p className={`text-xs ${theme.highlight}`}><span className="font-semibold">Connected:</span> Attendance data feeds into Payroll for LOP/OT calculation</p></div>
       <div className="grid grid-cols-4 gap-3"><SC icon={Users} label="Total" value="142" color="bg-indigo-600" theme={theme} /><SC icon={CheckCircle} label="Present" value="128" color="bg-emerald-500" theme={theme} /><SC icon={Calendar} label="Leave" value="8" color="bg-amber-500" theme={theme} /><SC icon={XCircle} label="Absent" value="6" color="bg-red-500" theme={theme} /></div>
 
-      <TabBar tabs={['Today', 'Monthly Summary', 'Punch Log', 'LOP Tracking', 'Comp-off']} active={attTab} onChange={setAttTab} theme={theme} />
+      <TabBar tabs={['Today', 'Monthly Summary', 'Punch Log', 'LOP Tracking', 'Comp-off', 'Overtime']} active={attTab} onChange={setAttTab} theme={theme} />
 
       {/* Today's attendance (original) */}
       {attTab === 'Today' && (
@@ -452,6 +497,54 @@ function AttendanceModule({ theme }: { theme: Theme }) {
           </div>
         </div>
       )}
+
+      {/* Overtime Tracking */}
+      {attTab === 'Overtime' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>Overtime Calculation <span title="Track overtime hours and auto-calculate OT payments"><Info size={14} className={`inline ${theme.iconColor} ml-1`} /></span></h3>
+            <div className="flex items-center gap-2">
+              <span className={`text-xs ${theme.iconColor}`}>Link to Payroll (auto-add OT to next salary)</span>
+              <Tgl on={true} theme={theme} />
+            </div>
+          </div>
+          <div className={`${theme.cardBg} rounded-xl border ${theme.border} overflow-hidden`}>
+            <table className="w-full text-sm">
+              <thead><tr className={theme.secondaryBg}>
+                <th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Employee</th>
+                <th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Regular Hours</th>
+                <th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>OT Hours</th>
+                <th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>OT Rate</th>
+                <th className={`p-3 text-right text-xs font-bold ${theme.iconColor}`}>OT Amount</th>
+              </tr></thead>
+              <tbody>
+                {[
+                  { n: 'Priya Sharma', reg: 176, ot: 28, rate: '1.5x', amt: 12600 },
+                  { n: 'Rajesh Kumar', reg: 176, ot: 22, rate: '1.5x', amt: 8800 },
+                  { n: 'Deepak Verma', reg: 208, ot: 36, rate: '2x', amt: 10800 },
+                  { n: 'Mohammed Irfan', reg: 192, ot: 24, rate: '1.5x', amt: 7200 },
+                  { n: 'Vijay Kumar', reg: 176, ot: 14, rate: '1.5x', amt: 6200 },
+                ].map((e, i) => (
+                  <tr key={i} className={`border-t ${theme.border}`}>
+                    <td className={`p-3 font-medium ${theme.highlight}`}>{e.n}</td>
+                    <td className={`p-3 text-center ${theme.iconColor}`}>{e.reg}h</td>
+                    <td className="p-3 text-center text-amber-400 font-bold">{e.ot}h</td>
+                    <td className={`p-3 text-center ${theme.primaryText} font-bold`}>{e.rate}</td>
+                    <td className="p-3 text-right text-emerald-400 font-bold">{'\u20B9'}{fmt(e.amt)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
+            <h4 className={`text-sm font-semibold mb-2 ${theme.highlight}`}>Monthly OT Summary</h4>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-center gap-2"><Clock size={14} className="text-amber-400" /><span className={`text-sm ${theme.iconColor}`}>Total OT Hours:</span><span className={`text-sm font-bold ${theme.highlight}`}>124 hours</span></div>
+              <div className="flex items-center gap-2"><IndianRupee size={14} className="text-emerald-400" /><span className={`text-sm ${theme.iconColor}`}>Total OT Cost:</span><span className="text-sm font-bold text-emerald-400">{'\u20B9'}45,600</span></div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -466,7 +559,9 @@ function LeaveModule({ theme }: { theme: Theme }) {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center"><h1 className={`text-xl font-bold ${theme.highlight}`}>Leave Management</h1><button onClick={() => setShowModal(true)} className={`px-3 py-2 ${theme.primary} text-white rounded-lg text-sm`}>Apply Leave</button></div>
-      <p className="text-[10px] text-amber-600 mb-2">📋 Leave policy from SSA: Approval chain HOD→VP→Principal · Sandwich rule ON · LWP after 3 days</p>
+      <p className="text-[10px] text-amber-600 mb-2">Leave policy from SSA: Approval chain HOD-VP-Principal . Sandwich rule ON . LWP after 3 days</p>
+      {/* Cross-Module Connectivity Banner */}
+      <div className={`flex items-center gap-2 p-2.5 rounded-lg border border-blue-500/30 bg-blue-500/10`}><Link size={14} className="text-blue-400 shrink-0" /><p className={`text-xs ${theme.highlight}`}><span className="font-semibold">Connected:</span> Approved leave syncs with Attendance and Payroll</p></div>
       <div className={`${theme.cardBg} rounded-xl border ${theme.border} overflow-hidden`}>
         <div className={`p-3 border-b ${theme.border} flex gap-2`}>{filters.map((f, i) => <button key={f} onClick={() => setFilter(i)} className={`px-3 py-1 text-xs rounded-full font-bold ${i === filter ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.iconColor}`}`}>{f}</button>)}</div>
         <table className="w-full text-sm"><thead><tr className={theme.secondaryBg}><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Employee</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Type</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>From</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>To</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Days</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Status</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Actions</th></tr></thead>
@@ -479,16 +574,349 @@ function LeaveModule({ theme }: { theme: Theme }) {
 
 // ─── PAYROLL ──────────────────────────────────────────
 function PayrollModule({ theme }: { theme: Theme }) {
-  const data = [{ id: 'EMP001', n: 'Priya Sharma', i: 'PS', b: 35000, g: 57500, de: 6900, net: 50600, s: 'Processed' }, { id: 'EMP002', n: 'Rajesh Kumar', i: 'RK', b: 28000, g: 46000, de: 4760, net: 41240, s: 'Processed' }, { id: 'EMP003', n: 'Sunita Patel', i: 'SP', b: 18000, g: 29000, de: 2360, net: 26640, s: 'Pending' }, { id: 'EMP004', n: 'Mohammed Irfan', i: 'MI', b: 22000, g: 36000, de: 3200, net: 32800, s: 'Processed' }, { id: 'EMP005', n: 'Kavitha Nair', i: 'KN', b: 25000, g: 41000, de: 4100, net: 36900, s: 'Pending' }];
+  const [payTab, setPayTab] = useState('Salary');
+  const [showPayslip, setShowPayslip] = useState(false);
+  const [showRegenerate, setShowRegenerate] = useState(false);
+  const [showSalaryEdit, setShowSalaryEdit] = useState(false);
+  const [showAccountingDrop, setShowAccountingDrop] = useState(false);
+  const data = [{ id: 'EMP001', n: 'Priya Sharma', i: 'PS', b: 35000, g: 57500, de: 6900, net: 50600, s: 'Processed', slip: true }, { id: 'EMP002', n: 'Rajesh Kumar', i: 'RK', b: 28000, g: 46000, de: 4760, net: 41240, s: 'Processed', slip: true }, { id: 'EMP003', n: 'Sunita Patel', i: 'SP', b: 18000, g: 29000, de: 2360, net: 26640, s: 'Pending', slip: false }, { id: 'EMP004', n: 'Mohammed Irfan', i: 'MI', b: 22000, g: 36000, de: 3200, net: 32800, s: 'Processed', slip: true }, { id: 'EMP005', n: 'Kavitha Nair', i: 'KN', b: 25000, g: 41000, de: 4100, net: 36900, s: 'Pending', slip: false }];
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center"><h1 className={`text-xl font-bold ${theme.highlight}`}>Payroll</h1><div className="flex gap-2"><div className={`flex items-center gap-1 border ${theme.border} rounded-lg px-2 py-1 ${theme.highlight}`}><ChevronLeft size={14} /><span className="text-sm">Jan 2026</span><ChevronRight size={14} /></div><button className={`px-3 py-2 ${theme.primary} text-white rounded-lg text-sm`}>Process Payroll</button></div></div>
-      <p className="text-[10px] text-amber-600 mb-2">📋 Salary structure from SSA: Basic 40%, HRA 20%, DA 15%, TA 5%, SA 10% · Pay cycle: Monthly (last working day)</p>
-      <div className="grid grid-cols-4 gap-3"><SC icon={Banknote} label="Total Payroll" value={'₹'+fmt(2845000)} color="bg-indigo-600" theme={theme} /><SC icon={MinusCircle} label="Deductions" value={'₹'+fmt(412000)} color="bg-red-500" theme={theme} /><SC icon={Wallet} label="Net Payout" value={'₹'+fmt(2433000)} color="bg-emerald-500" theme={theme} /><SC icon={Users} label="Employees" value="142" color="bg-blue-500" theme={theme} /></div>
-      <div className={`${theme.cardBg} rounded-xl border ${theme.border} overflow-x-auto`}>
-        <table className="w-full text-sm"><thead><tr className={theme.secondaryBg}><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Employee</th><th className={`p-3 text-right text-xs font-bold ${theme.iconColor}`}>Basic</th><th className={`p-3 text-right text-xs font-bold ${theme.iconColor}`}>Gross</th><th className={`p-3 text-right text-xs font-bold ${theme.iconColor}`}>Deductions</th><th className={`p-3 text-right text-xs font-bold ${theme.iconColor}`}>Net</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Status</th></tr></thead>
-        <tbody>{data.map((e) => <tr key={e.id} className={`border-t ${theme.border}`}><td className="p-3"><div className="flex items-center gap-2"><div className={`w-7 h-7 ${theme.secondaryBg} rounded-full flex items-center justify-center text-xs font-bold ${theme.primaryText}`}>{e.i}</div><div><p className={`font-medium ${theme.highlight}`}>{e.n}</p><p className={`text-xs ${theme.iconColor}`}>{e.id}</p></div></div></td><td className={`p-3 text-right ${theme.highlight}`}>₹{fmt(e.b)}</td><td className={`p-3 text-right ${theme.primaryText} font-medium`}>₹{fmt(e.g)}</td><td className="p-3 text-right text-red-400">₹{fmt(e.de)}</td><td className="p-3 text-right text-emerald-400 font-bold">₹{fmt(e.net)}</td><td className="p-3 text-center"><span className={`px-2 py-1 text-xs rounded-full font-bold ${e.s === 'Processed' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>{e.s}</span></td></tr>)}</tbody></table>
-      </div>
+      <div className="flex justify-between items-center"><h1 className={`text-xl font-bold ${theme.highlight}`}>Payroll</h1><div className="flex gap-2">
+        {/* Feature 8: Tally/Accounting Export */}
+        <div className="relative">
+          <button onClick={() => setShowAccountingDrop(!showAccountingDrop)} className={`flex items-center gap-1 px-3 py-2 border ${theme.border} rounded-lg text-sm ${theme.highlight} ${theme.buttonHover}`}><Download size={14} />Export to Accounting <span title="Export payroll data to accounting software"><Info size={14} className={theme.iconColor} /></span><ChevronDown size={12} /></button>
+          {showAccountingDrop && <div className={`absolute right-0 top-10 z-20 ${theme.cardBg} border ${theme.border} rounded-lg shadow-lg w-48`}>{['Tally XML', 'QuickBooks CSV', 'Zoho Books', 'Generic Ledger CSV'].map(f => <button key={f} onClick={() => { setShowAccountingDrop(false); window.alert(`${f} export ready (Blueprint demo)`); }} className={`w-full text-left px-3 py-2 text-sm ${theme.highlight} ${theme.buttonHover} first:rounded-t-lg last:rounded-b-lg`}>{f}</button>)}</div>}
+        </div>
+        <div className={`flex items-center gap-1 border ${theme.border} rounded-lg px-2 py-1 ${theme.highlight}`}><ChevronLeft size={14} /><span className="text-sm">Feb 2026</span><ChevronRight size={14} /></div>
+        <button className={`px-3 py-2 ${theme.primary} text-white rounded-lg text-sm`}>Process Payroll</button>
+      </div></div>
+      <p className="text-[10px] text-amber-600 mb-2">Salary structure from SSA: Basic 40%, HRA 20%, DA 15%, TA 5%, SA 10% . Pay cycle: Monthly (last working day)</p>
+      {/* Cross-Module Connectivity Banner (Feature 18) */}
+      <div className={`flex items-center gap-2 p-2.5 rounded-lg border border-blue-500/30 bg-blue-500/10`}><Link size={14} className="text-blue-400 shrink-0" /><p className={`text-xs ${theme.highlight}`}><span className="font-semibold">Connected:</span> Attendance (LOP/OT) + Leave (deductions) + Loans (EMI) + Statutory (PF/ESI/PT)</p></div>
+      <div className="grid grid-cols-4 gap-3"><SC icon={Banknote} label="Total Payroll" value={'\u20B9'+fmt(2845000)} color="bg-indigo-600" theme={theme} /><SC icon={MinusCircle} label="Deductions" value={'\u20B9'+fmt(412000)} color="bg-red-500" theme={theme} /><SC icon={Wallet} label="Net Payout" value={'\u20B9'+fmt(2433000)} color="bg-emerald-500" theme={theme} /><SC icon={Users} label="Employees" value="142" color="bg-blue-500" theme={theme} /></div>
+
+      <TabBar tabs={['Salary', 'LOP Method', 'TDS', 'Statutory', 'Bank File', 'Arrears', 'Festival Bonus', 'Payslip Distribution']} active={payTab} onChange={setPayTab} theme={theme} />
+
+      {/* ── Salary Tab (original + payslip + regeneration + salary edit) ── */}
+      {payTab === 'Salary' && (
+        <div className="space-y-4">
+          <div className={`${theme.cardBg} rounded-xl border ${theme.border} overflow-x-auto`}>
+            <table className="w-full text-sm"><thead><tr className={theme.secondaryBg}><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Employee</th><th className={`p-3 text-right text-xs font-bold ${theme.iconColor}`}>Basic</th><th className={`p-3 text-right text-xs font-bold ${theme.iconColor}`}>Gross</th><th className={`p-3 text-right text-xs font-bold ${theme.iconColor}`}>Deductions</th><th className={`p-3 text-right text-xs font-bold ${theme.iconColor}`}>Net</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Status</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Payslip</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Edit</th></tr></thead>
+            <tbody>{data.map((e) => <tr key={e.id} className={`border-t ${theme.border}`}><td className="p-3"><div className="flex items-center gap-2"><div className={`w-7 h-7 ${theme.secondaryBg} rounded-full flex items-center justify-center text-xs font-bold ${theme.primaryText}`}>{e.i}</div><div><p className={`font-medium ${theme.highlight}`}>{e.n}</p><p className={`text-xs ${theme.iconColor}`}>{e.id}</p></div></div></td><td className={`p-3 text-right ${theme.highlight}`}>{'\u20B9'}{fmt(e.b)}</td><td className={`p-3 text-right ${theme.primaryText} font-medium`}>{'\u20B9'}{fmt(e.g)}</td><td className="p-3 text-right text-red-400">{'\u20B9'}{fmt(e.de)}</td><td className="p-3 text-right text-emerald-400 font-bold">{'\u20B9'}{fmt(e.net)}</td><td className="p-3 text-center"><span className={`px-2 py-1 text-xs rounded-full font-bold ${e.s === 'Processed' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>{e.s}</span></td>
+              <td className="p-3 text-center">
+                {/* Feature 3: Payslip PDF Generation */}
+                <button onClick={() => setShowPayslip(true)} className={`p-1 rounded ${theme.buttonHover}`} title="Generate Payslip"><FileText size={14} className={theme.primaryText} /></button>
+                {/* Feature 4: Payslip Regeneration */}
+                {e.slip && <button onClick={() => setShowRegenerate(true)} className={`p-1 rounded ${theme.buttonHover} ml-1`} title="Regenerate Payslip"><RefreshCw size={14} className="text-amber-400" /></button>}
+              </td>
+              {/* Feature 17: Instant Payroll Changes */}
+              <td className="p-3 text-center"><button onClick={() => setShowSalaryEdit(true)} className={`p-1 rounded ${theme.buttonHover}`} title="Edit Salary (with effective date)"><Edit size={14} className={theme.iconColor} /></button></td>
+            </tr>)}</tbody></table>
+          </div>
+
+          {/* Feature 3: Payslip Preview Modal */}
+          {showPayslip && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+              <div className={`${theme.cardBg} rounded-2xl p-6 w-[28rem] border ${theme.border}`}>
+                <div className="flex justify-between mb-3"><h3 className={`font-semibold ${theme.highlight}`}>Payslip Preview <span title="Generate and distribute payslips with school letterhead"><Info size={14} className={`inline ${theme.iconColor} ml-1`} /></span></h3><button onClick={() => setShowPayslip(false)} className={theme.iconColor}><X size={18} /></button></div>
+                <div className={`border ${theme.border} rounded-lg p-4 mb-3`}>
+                  <div className="text-center mb-3 pb-2 border-b border-dashed">
+                    <p className={`font-bold ${theme.highlight}`}>Delhi Public School, Ahmedabad</p>
+                    <p className={`text-xs ${theme.iconColor}`}>Payslip for February 2026</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs mb-3">
+                    <div><span className={theme.iconColor}>Name: </span><span className={`font-medium ${theme.highlight}`}>Priya Sharma</span></div>
+                    <div><span className={theme.iconColor}>ID: </span><span className={`font-medium ${theme.highlight}`}>EMP001</span></div>
+                    <div><span className={theme.iconColor}>Designation: </span><span className={`font-medium ${theme.highlight}`}>PGT Mathematics</span></div>
+                    <div><span className={theme.iconColor}>Department: </span><span className={`font-medium ${theme.highlight}`}>Teaching</span></div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 text-xs">
+                    <div>
+                      <p className={`font-bold text-emerald-400 mb-1`}>Earnings</p>
+                      {[['Basic', '35,000'], ['HRA', '10,000'], ['DA', '5,250'], ['TA', '3,500'], ['SA', '3,750']].map(([k, v]) => <div key={k} className={`flex justify-between py-0.5 ${theme.highlight}`}><span>{k}</span><span>{'\u20B9'}{v}</span></div>)}
+                      <div className={`flex justify-between pt-1 mt-1 border-t font-bold ${theme.highlight}`}><span>Gross</span><span>{'\u20B9'}57,500</span></div>
+                    </div>
+                    <div>
+                      <p className={`font-bold text-red-400 mb-1`}>Deductions</p>
+                      {[['PF', '4,200'], ['ESI', '1,035'], ['PT', '200'], ['TDS', '1,465']].map(([k, v]) => <div key={k} className={`flex justify-between py-0.5 ${theme.highlight}`}><span>{k}</span><span>{'\u20B9'}{v}</span></div>)}
+                      <div className={`flex justify-between pt-1 mt-1 border-t font-bold ${theme.highlight}`}><span>Total</span><span>{'\u20B9'}6,900</span></div>
+                    </div>
+                  </div>
+                  <div className={`text-center mt-3 pt-2 border-t border-dashed`}><span className={`text-sm font-bold ${theme.primaryText}`}>Net Salary: {'\u20B9'}50,600</span></div>
+                </div>
+                <div className="flex gap-2"><button onClick={() => { setShowPayslip(false); window.alert('PDF downloaded (Blueprint demo)'); }} className={`flex-1 py-2 ${theme.primary} text-white rounded-lg text-sm flex items-center justify-center gap-1`}><Download size={14} />Download PDF</button><button onClick={() => { setShowPayslip(false); window.alert('Payslip emailed (Blueprint demo)'); }} className={`flex-1 py-2 border ${theme.border} rounded-lg text-sm ${theme.highlight} flex items-center justify-center gap-1`}><Mail size={14} />Email to Employee</button></div>
+              </div>
+            </div>
+          )}
+
+          {/* Feature 4: Payslip Regeneration Modal */}
+          {showRegenerate && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+              <div className={`${theme.cardBg} rounded-2xl p-6 w-[28rem] border ${theme.border}`}>
+                <div className="flex justify-between mb-3"><h3 className={`font-semibold ${theme.highlight}`}>Regenerate Payslip <span title="Re-generate payslips with version tracking"><Info size={14} className={`inline ${theme.iconColor} ml-1`} /></span></h3><button onClick={() => setShowRegenerate(false)} className={theme.iconColor}><X size={18} /></button></div>
+                <div className={`p-3 ${theme.secondaryBg} rounded-lg mb-3`}>
+                  <p className={`text-xs ${theme.iconColor}`}>Previous version: <span className={`font-bold ${theme.highlight}`}>Feb 2026 v1</span> (generated Feb 28)</p>
+                </div>
+                <div className="mb-3"><label className={`block text-sm mb-1 ${theme.iconColor}`}>Reason for regeneration *</label>
+                  <select className={`w-full px-3 py-2 border ${theme.border} rounded-lg text-sm ${theme.inputBg} ${theme.highlight}`}><option>Correction</option><option>Arrears</option><option>Additional deduction</option></select>
+                </div>
+                <button onClick={() => { setShowRegenerate(false); window.alert('Payslip regenerated as v2 (Blueprint demo)'); }} className={`w-full py-2 ${theme.primary} text-white rounded-lg text-sm mb-4`}>Regenerate as v2</button>
+                <h4 className={`text-xs font-bold ${theme.iconColor} mb-2`}>Audit Log</h4>
+                <div className={`${theme.cardBg} rounded-lg border ${theme.border} overflow-hidden`}>
+                  <table className="w-full text-xs"><thead><tr className={theme.secondaryBg}><th className={`p-2 text-left ${theme.iconColor}`}>Version</th><th className={`p-2 text-left ${theme.iconColor}`}>Date</th><th className={`p-2 text-left ${theme.iconColor}`}>Changed by</th><th className={`p-2 text-left ${theme.iconColor}`}>Reason</th></tr></thead>
+                  <tbody><tr className={`border-t ${theme.border}`}><td className={`p-2 ${theme.highlight}`}>v1</td><td className={`p-2 ${theme.iconColor}`}>28-Feb-2026</td><td className={`p-2 ${theme.iconColor}`}>HR Manager</td><td className={`p-2 ${theme.iconColor}`}>Initial</td></tr><tr className={`border-t ${theme.border}`}><td className={`p-2 ${theme.primaryText} font-bold`}>v2</td><td className={`p-2 ${theme.iconColor}`}>01-Mar-2026</td><td className={`p-2 ${theme.iconColor}`}>HR Manager</td><td className={`p-2 ${theme.iconColor}`}>Correction</td></tr></tbody></table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Feature 17: Instant Payroll Changes / Salary Edit with Effective Date */}
+          {showSalaryEdit && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+              <div className={`${theme.cardBg} rounded-2xl p-6 w-[28rem] border ${theme.border}`}>
+                <div className="flex justify-between mb-3"><h3 className={`font-semibold ${theme.highlight}`}>Edit Salary Component <span title="Apply salary changes from a specific date with automatic arrear calculation"><Info size={14} className={`inline ${theme.iconColor} ml-1`} /></span></h3><button onClick={() => setShowSalaryEdit(false)} className={theme.iconColor}><X size={18} /></button></div>
+                <div className={`${theme.cardBg} rounded-lg border ${theme.border} overflow-hidden mb-3`}>
+                  <table className="w-full text-xs"><thead><tr className={theme.secondaryBg}><th className={`p-2 text-left ${theme.iconColor}`}>Component</th><th className={`p-2 text-right ${theme.iconColor}`}>Old Value</th><th className={`p-2 text-right ${theme.iconColor}`}>New Value</th></tr></thead>
+                  <tbody><tr className={`border-t ${theme.border}`}><td className={`p-2 ${theme.highlight}`}>Basic</td><td className={`p-2 text-right ${theme.iconColor}`}>{'\u20B9'}35,000</td><td className="p-2 text-right"><input defaultValue="38,000" className={`w-20 px-2 py-1 border ${theme.border} rounded text-right text-xs ${theme.inputBg} ${theme.highlight}`} /></td></tr>
+                  <tr className={`border-t ${theme.border}`}><td className={`p-2 ${theme.highlight}`}>HRA</td><td className={`p-2 text-right ${theme.iconColor}`}>{'\u20B9'}10,000</td><td className="p-2 text-right"><input defaultValue="11,400" className={`w-20 px-2 py-1 border ${theme.border} rounded text-right text-xs ${theme.inputBg} ${theme.highlight}`} /></td></tr></tbody></table>
+                </div>
+                <div className="mb-3"><label className={`block text-sm mb-1 ${theme.iconColor}`}>Effective From *</label><input type="date" defaultValue="2026-01-01" className={`w-full px-3 py-2 border ${theme.border} rounded-lg text-sm ${theme.inputBg} ${theme.highlight}`} /></div>
+                <p className={`text-xs ${theme.iconColor} mb-3`}>Arrears will be auto-calculated from effective date to current month.</p>
+                <div className="flex justify-end gap-2"><button onClick={() => setShowSalaryEdit(false)} className={`px-4 py-2 border ${theme.border} rounded-lg text-sm ${theme.highlight}`}>Cancel</button><button onClick={() => { setShowSalaryEdit(false); window.alert('Salary updated with arrears queued (Blueprint demo)'); }} className={`px-4 py-2 ${theme.primary} text-white rounded-lg text-sm`}>Save &amp; Calculate Arrears</button></div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Feature 2: LOP Calculation Method ── */}
+      {payTab === 'LOP Method' && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2"><h3 className={`text-sm font-bold ${theme.highlight}`}>LOP Calculation Method</h3><span title="Choose how Loss of Pay is deducted from salary"><Info size={14} className={theme.iconColor} /></span></div>
+          <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
+            <div className="space-y-3">
+              <label className={`flex items-center gap-3 p-3 rounded-lg border-2 border-indigo-500 ${theme.secondaryBg} cursor-pointer`}>
+                <div className="w-5 h-5 rounded-full border-4 border-indigo-500 bg-indigo-500" />
+                <div><p className={`text-sm font-bold ${theme.highlight}`}>By LOP Days</p><p className={`text-xs ${theme.iconColor}`}>Formula: Salary / 30 x LOP days</p><p className={`text-xs ${theme.primaryText} mt-1`}>Example: {'\u20B9'}35,000 / 30 x 2 LOP days = {'\u20B9'}2,333 deducted</p></div>
+              </label>
+              <label className={`flex items-center gap-3 p-3 rounded-lg border ${theme.border} ${theme.buttonHover} cursor-pointer`}>
+                <div className={`w-5 h-5 rounded-full border-2 ${theme.border}`} />
+                <div><p className={`text-sm font-bold ${theme.highlight}`}>By Days Worked</p><p className={`text-xs ${theme.iconColor}`}>Formula: Salary / 30 x days worked</p><p className={`text-xs ${theme.iconColor} mt-1`}>Example: {'\u20B9'}35,000 / 30 x 28 days worked = {'\u20B9'}32,667 paid</p></div>
+              </label>
+            </div>
+            <p className={`text-xs ${theme.iconColor} mt-3`}>Current method: <span className={`font-bold ${theme.primaryText}`}>By LOP Days</span></p>
+          </div>
+        </div>
+      )}
+
+      {/* ── Feature 5: TDS / Income Tax Management ── */}
+      {payTab === 'TDS' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2"><h3 className={`text-sm font-bold ${theme.highlight}`}>TDS / Income Tax Management</h3><span title="Manage TDS deductions and generate Form 16 for employees"><Info size={14} className={theme.iconColor} /></span></div>
+            <div className="flex gap-2">
+              <button className={`flex items-center gap-1 px-3 py-1.5 border ${theme.border} rounded-lg text-xs ${theme.highlight}`}><Smartphone size={12} />Collect Declarations</button>
+              <button className={`flex items-center gap-1 px-3 py-1.5 ${theme.primary} text-white rounded-lg text-xs`}><FileText size={12} />Generate Form 16</button>
+            </div>
+          </div>
+          <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
+            <h4 className={`text-xs font-bold ${theme.iconColor} mb-2`}>New Tax Regime Slabs (FY 2025-26)</h4>
+            <div className="grid grid-cols-6 gap-2">
+              {[['0 - 3L', 'Nil', 'bg-emerald-500/20'], ['3 - 7L', '5%', 'bg-blue-500/20'], ['7 - 10L', '10%', 'bg-indigo-500/20'], ['10 - 12L', '15%', 'bg-purple-500/20'], ['12 - 15L', '20%', 'bg-amber-500/20'], ['15L+', '30%', 'bg-red-500/20']].map(([range, rate, bg]) => (
+                <div key={range} className={`${bg} rounded-lg p-2 text-center`}><p className={`text-xs font-bold ${theme.highlight}`}>{rate}</p><p className={`text-[10px] ${theme.iconColor}`}>{range}</p></div>
+              ))}
+            </div>
+          </div>
+          <div className={`${theme.cardBg} rounded-xl border ${theme.border} overflow-hidden`}>
+            <table className="w-full text-xs"><thead><tr className={theme.secondaryBg}><th className={`p-2.5 text-left ${theme.iconColor}`}>Employee</th><th className={`p-2.5 text-right ${theme.iconColor}`}>Annual CTC</th><th className={`p-2.5 text-right ${theme.iconColor}`}>80C</th><th className={`p-2.5 text-right ${theme.iconColor}`}>80D</th><th className={`p-2.5 text-right ${theme.iconColor}`}>HRA</th><th className={`p-2.5 text-right ${theme.iconColor}`}>Taxable</th><th className={`p-2.5 text-right ${theme.iconColor}`}>Monthly TDS</th></tr></thead>
+            <tbody>{[
+              { n: 'Priya Sharma', ctc: 690000, c80: 150000, d80: 25000, hra: 120000, tax: 395000, tds: 1458 },
+              { n: 'Rajesh Kumar', ctc: 552000, c80: 100000, d80: 15000, hra: 96000, tax: 341000, tds: 708 },
+              { n: 'Sunita Patel', ctc: 348000, c80: 50000, d80: 10000, hra: 60000, tax: 228000, tds: 0 },
+              { n: 'Mohammed Irfan', ctc: 432000, c80: 80000, d80: 15000, hra: 72000, tax: 265000, tds: 0 },
+              { n: 'Kavitha Nair', ctc: 492000, c80: 120000, d80: 20000, hra: 84000, tax: 268000, tds: 0 },
+              { n: 'Deepak Verma', ctc: 300000, c80: 40000, d80: 5000, hra: 48000, tax: 207000, tds: 0 },
+            ].map((e, i) => (
+              <tr key={i} className={`border-t ${theme.border}`}>
+                <td className={`p-2.5 font-medium ${theme.highlight}`}>{e.n}</td>
+                <td className={`p-2.5 text-right ${theme.highlight}`}>{'\u20B9'}{fmt(e.ctc)}</td>
+                <td className={`p-2.5 text-right ${theme.iconColor}`}>{'\u20B9'}{fmt(e.c80)}</td>
+                <td className={`p-2.5 text-right ${theme.iconColor}`}>{'\u20B9'}{fmt(e.d80)}</td>
+                <td className={`p-2.5 text-right ${theme.iconColor}`}>{'\u20B9'}{fmt(e.hra)}</td>
+                <td className={`p-2.5 text-right ${theme.highlight}`}>{'\u20B9'}{fmt(e.tax)}</td>
+                <td className={`p-2.5 text-right font-bold ${e.tds > 0 ? 'text-red-400' : 'text-emerald-400'}`}>{e.tds > 0 ? `${'\u20B9'}${fmt(e.tds)}` : 'Nil'}</td>
+              </tr>
+            ))}</tbody></table>
+          </div>
+          <p className={`text-xs ${theme.iconColor} flex items-center gap-1`}><Smartphone size={12} />Employees can submit investment declarations via self-service portal</p>
+        </div>
+      )}
+
+      {/* ── Feature 6: Statutory Reports ── */}
+      {payTab === 'Statutory' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2"><h3 className={`text-sm font-bold ${theme.highlight}`}>Statutory Reports</h3><span title="Generate PF, ESI, and Professional Tax filing documents"><Info size={14} className={theme.iconColor} /></span></div>
+            <button className={`flex items-center gap-1 px-3 py-1.5 ${theme.primary} text-white rounded-lg text-xs`}><Download size={12} />Download All Statutory Files (ZIP)</button>
+          </div>
+          {/* PF ECR */}
+          <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
+            <div className="flex items-center justify-between mb-3">
+              <h4 className={`font-semibold ${theme.highlight}`}>PF ECR (Electronic Challan cum Return)</h4>
+              <div className="flex gap-2 items-center">
+                <select className={`px-2 py-1 border ${theme.border} rounded-lg text-xs ${theme.inputBg} ${theme.highlight}`}><option>February 2026</option><option>January 2026</option></select>
+                <button className={`px-3 py-1.5 ${theme.primary} text-white rounded-lg text-xs`}>Generate ECR File</button>
+              </div>
+            </div>
+            <div className={`rounded-lg border ${theme.border} overflow-hidden`}>
+              <table className="w-full text-xs"><thead><tr className={theme.secondaryBg}><th className={`p-2 text-left ${theme.iconColor}`}>Employee</th><th className={`p-2 text-left ${theme.iconColor}`}>UAN</th><th className={`p-2 text-right ${theme.iconColor}`}>Basic</th><th className={`p-2 text-right ${theme.iconColor}`}>PF (Employee)</th><th className={`p-2 text-right ${theme.iconColor}`}>PF (Employer)</th></tr></thead>
+              <tbody>{[
+                { n: 'Priya Sharma', uan: '1001234567', b: 35000, pfe: 4200, pfr: 4200 },
+                { n: 'Rajesh Kumar', uan: '1001234568', b: 28000, pfe: 3360, pfr: 3360 },
+                { n: 'Sunita Patel', uan: '1001234569', b: 18000, pfe: 2160, pfr: 2160 },
+                { n: 'Mohammed Irfan', uan: '1001234570', b: 22000, pfe: 2640, pfr: 2640 },
+                { n: 'Kavitha Nair', uan: '1001234571', b: 25000, pfe: 3000, pfr: 3000 },
+                { n: 'Deepak Verma', uan: '1001234572', b: 15000, pfe: 1800, pfr: 1800 },
+                { n: 'Amit Saxena', uan: '1001234573', b: 30000, pfe: 3600, pfr: 3600 },
+                { n: 'Vijay Kumar', uan: '1001234574', b: 32000, pfe: 3840, pfr: 3840 },
+              ].map((e, i) => (
+                <tr key={i} className={`border-t ${theme.border}`}><td className={`p-2 font-medium ${theme.highlight}`}>{e.n}</td><td className={`p-2 ${theme.iconColor}`}>{e.uan}</td><td className={`p-2 text-right ${theme.highlight}`}>{'\u20B9'}{fmt(e.b)}</td><td className={`p-2 text-right ${theme.iconColor}`}>{'\u20B9'}{fmt(e.pfe)}</td><td className={`p-2 text-right ${theme.iconColor}`}>{'\u20B9'}{fmt(e.pfr)}</td></tr>
+              ))}</tbody></table>
+            </div>
+            <div className="flex justify-end mt-2"><button className={`flex items-center gap-1 text-xs ${theme.primaryText}`}><Download size={12} />Download ECR</button></div>
+          </div>
+          {/* ESI Return */}
+          <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
+            <div className="flex items-center justify-between"><h4 className={`font-semibold ${theme.highlight}`}>ESI Return</h4><button className={`px-3 py-1.5 border ${theme.border} rounded-lg text-xs ${theme.highlight}`}>Generate ESI Return</button></div>
+            <p className={`text-xs ${theme.iconColor} mt-2`}><AlertCircle size={12} className="inline mr-1" />ESI applicable for employees with gross salary up to {'\u20B9'}21,000/month</p>
+          </div>
+          {/* Professional Tax */}
+          <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
+            <div className="flex items-center justify-between"><h4 className={`font-semibold ${theme.highlight}`}>Professional Tax Challan</h4><button className={`px-3 py-1.5 border ${theme.border} rounded-lg text-xs ${theme.highlight}`}>Generate PT Challan</button></div>
+            <div className="grid grid-cols-2 gap-3 mt-3">
+              <div className={`p-2 rounded-lg ${theme.secondaryBg}`}><p className={`text-xs font-bold ${theme.highlight}`}>Gujarat</p><p className={`text-[10px] ${theme.iconColor}`}>All employees: {'\u20B9'}200/month</p></div>
+              <div className={`p-2 rounded-lg ${theme.secondaryBg}`}><p className={`text-xs font-bold ${theme.highlight}`}>Maharashtra</p><p className={`text-[10px] ${theme.iconColor}`}>{'\u20B9'}200-300/month (slab-based)</p></div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Feature 7: Bank Salary File ── */}
+      {payTab === 'Bank File' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2"><h3 className={`text-sm font-bold ${theme.highlight}`}>Bank Salary File</h3><span title="Generate bank-compatible batch salary payment files (NEFT/RTGS)"><Info size={14} className={theme.iconColor} /></span></div>
+            <button className={`flex items-center gap-1 px-3 py-1.5 ${theme.primary} text-white rounded-lg text-xs`}><Download size={12} />Download NEFT File</button>
+          </div>
+          <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
+            <div className="flex items-center gap-3 mb-3">
+              <label className={`text-sm ${theme.iconColor}`}>Bank Format:</label>
+              <select className={`px-3 py-1.5 border ${theme.border} rounded-lg text-sm ${theme.inputBg} ${theme.highlight}`}><option>SBI</option><option>HDFC</option><option>ICICI</option><option>Axis</option><option>Generic CSV</option></select>
+              <button className={`px-3 py-1.5 ${theme.primary} text-white rounded-lg text-xs`}>Generate Bank File</button>
+            </div>
+          </div>
+          <div className={`${theme.cardBg} rounded-xl border ${theme.border} overflow-hidden`}>
+            <table className="w-full text-sm"><thead><tr className={theme.secondaryBg}><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Employee</th><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Account #</th><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>IFSC</th><th className={`p-3 text-right text-xs font-bold ${theme.iconColor}`}>Net Salary</th></tr></thead>
+            <tbody>{[
+              { n: 'Priya Sharma', acc: '1234567890', ifsc: 'SBIN0001234', net: 50600 },
+              { n: 'Rajesh Kumar', acc: '2345678901', ifsc: 'HDFC0002345', net: 41240 },
+              { n: 'Sunita Patel', acc: '3456789012', ifsc: 'ICIC0003456', net: 26640 },
+              { n: 'Mohammed Irfan', acc: '4567890123', ifsc: 'UTIB0004567', net: 32800 },
+              { n: 'Kavitha Nair', acc: '5678901234', ifsc: 'SBIN0005678', net: 36900 },
+            ].map((e, i) => (
+              <tr key={i} className={`border-t ${theme.border}`}><td className={`p-3 font-medium ${theme.highlight}`}>{e.n}</td><td className={`p-3 ${theme.iconColor}`}>{e.acc}</td><td className={`p-3 ${theme.iconColor}`}>{e.ifsc}</td><td className="p-3 text-right text-emerald-400 font-bold">{'\u20B9'}{fmt(e.net)}</td></tr>
+            ))}</tbody></table>
+          </div>
+        </div>
+      )}
+
+      {/* ── Feature 10: Arrears & Back-Pay ── */}
+      {payTab === 'Arrears' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2"><h3 className={`text-sm font-bold ${theme.highlight}`}>Arrears &amp; Back-Pay</h3><span title="Calculate and disburse salary arrears from retrospective revisions"><Info size={14} className={theme.iconColor} /></span></div>
+            <button className={`flex items-center gap-1 px-3 py-1.5 ${theme.primary} text-white rounded-lg text-xs`}><Calculator size={12} />Calculate Arrears</button>
+          </div>
+          <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
+            <h4 className={`text-xs font-bold ${theme.iconColor} mb-2`}>Arrear Calculation Form</h4>
+            <div className="grid grid-cols-4 gap-3">
+              <div><label className={`block text-xs mb-1 ${theme.iconColor}`}>Apply To</label><select className={`w-full px-2 py-1.5 border ${theme.border} rounded-lg text-xs ${theme.inputBg} ${theme.highlight}`}><option>All Employees</option><option>Priya Sharma</option><option>Rajesh Kumar</option></select></div>
+              <div><label className={`block text-xs mb-1 ${theme.iconColor}`}>Effective From</label><input type="date" defaultValue="2026-01-01" className={`w-full px-2 py-1.5 border ${theme.border} rounded-lg text-xs ${theme.inputBg} ${theme.highlight}`} /></div>
+              <div><label className={`block text-xs mb-1 ${theme.iconColor}`}>New Basic ({'\u20B9'})</label><input defaultValue="38,000" className={`w-full px-2 py-1.5 border ${theme.border} rounded-lg text-xs ${theme.inputBg} ${theme.highlight}`} /></div>
+              <div className="flex items-end"><button className={`w-full py-1.5 ${theme.primary} text-white rounded-lg text-xs`}>Calculate</button></div>
+            </div>
+          </div>
+          <div className={`${theme.cardBg} rounded-xl border ${theme.border} overflow-hidden`}>
+            <table className="w-full text-sm"><thead><tr className={theme.secondaryBg}><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Employee</th><th className={`p-3 text-right text-xs font-bold ${theme.iconColor}`}>Old Basic</th><th className={`p-3 text-right text-xs font-bold ${theme.iconColor}`}>New Basic</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Months Pending</th><th className={`p-3 text-right text-xs font-bold ${theme.iconColor}`}>Arrear Amount</th></tr></thead>
+            <tbody>{[
+              { n: 'Priya Sharma', old: 35000, nw: 38000, months: 2, arr: 6000 },
+              { n: 'Rajesh Kumar', old: 28000, nw: 31000, months: 2, arr: 6000 },
+              { n: 'Kavitha Nair', old: 25000, nw: 27500, months: 2, arr: 5000 },
+            ].map((e, i) => (
+              <tr key={i} className={`border-t ${theme.border}`}><td className={`p-3 font-medium ${theme.highlight}`}>{e.n}</td><td className={`p-3 text-right ${theme.iconColor}`}>{'\u20B9'}{fmt(e.old)}</td><td className={`p-3 text-right ${theme.highlight}`}>{'\u20B9'}{fmt(e.nw)}</td><td className={`p-3 text-center ${theme.highlight}`}>{e.months}</td><td className="p-3 text-right text-emerald-400 font-bold">{'\u20B9'}{fmt(e.arr)}</td></tr>
+            ))}</tbody></table>
+          </div>
+          <div className="flex items-center justify-between">
+            <p className={`text-sm font-bold ${theme.highlight}`}>Total Arrears: <span className="text-emerald-400">{'\u20B9'}1,24,500</span></p>
+            <button className={`px-3 py-1.5 ${theme.primary} text-white rounded-lg text-xs`}>Add to Next Payroll</button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Feature 14: Festival Advance & Bonus ── */}
+      {payTab === 'Festival Bonus' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2"><h3 className={`text-sm font-bold ${theme.highlight}`}>Festival Advance &amp; Bonus</h3><span title="Schedule festival bonuses and salary advances"><Info size={14} className={theme.iconColor} /></span></div>
+            <button className={`flex items-center gap-1 px-3 py-1.5 ${theme.primary} text-white rounded-lg text-xs`}><Gift size={12} />Declare Bonus</button>
+          </div>
+          {/* Declare Bonus Form */}
+          <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
+            <h4 className={`text-xs font-bold ${theme.iconColor} mb-3`}>New Bonus Declaration</h4>
+            <div className="grid grid-cols-4 gap-3">
+              <div><label className={`block text-xs mb-1 ${theme.iconColor}`}>Occasion</label><select className={`w-full px-2 py-1.5 border ${theme.border} rounded-lg text-xs ${theme.inputBg} ${theme.highlight}`}><option>Diwali</option><option>Christmas</option><option>Eid</option><option>Pongal</option><option>Custom</option></select></div>
+              <div><label className={`block text-xs mb-1 ${theme.iconColor}`}>Amount Type</label><select className={`w-full px-2 py-1.5 border ${theme.border} rounded-lg text-xs ${theme.inputBg} ${theme.highlight}`}><option>Fixed {'\u20B9'}</option><option>% of Basic</option></select></div>
+              <div><label className={`block text-xs mb-1 ${theme.iconColor}`}>Amount</label><input defaultValue="5,000" className={`w-full px-2 py-1.5 border ${theme.border} rounded-lg text-xs ${theme.inputBg} ${theme.highlight}`} /></div>
+              <div><label className={`block text-xs mb-1 ${theme.iconColor}`}>Eligible</label><select className={`w-full px-2 py-1.5 border ${theme.border} rounded-lg text-xs ${theme.inputBg} ${theme.highlight}`}><option>All</option><option>Department</option><option>Designation</option></select></div>
+            </div>
+          </div>
+          {/* Active Declarations */}
+          <div className={`${theme.cardBg} rounded-xl border ${theme.border} overflow-hidden`}>
+            <table className="w-full text-sm"><thead><tr className={theme.secondaryBg}><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Occasion</th><th className={`p-3 text-right text-xs font-bold ${theme.iconColor}`}>Amount</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Eligible</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Month</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Status</th></tr></thead>
+            <tbody>
+              <tr className={`border-t ${theme.border}`}><td className={`p-3 font-medium ${theme.highlight}`}><Gift size={14} className="inline text-amber-400 mr-1" />Diwali Bonus</td><td className={`p-3 text-right ${theme.highlight}`}>{'\u20B9'}5,000</td><td className={`p-3 text-center ${theme.iconColor}`}>All Staff</td><td className={`p-3 text-center ${theme.iconColor}`}>Oct 2026</td><td className="p-3 text-center"><span className="px-2 py-1 text-xs rounded-full font-bold bg-amber-500/20 text-amber-400">Scheduled</span></td></tr>
+              <tr className={`border-t ${theme.border}`}><td className={`p-3 font-medium ${theme.highlight}`}><Gift size={14} className="inline text-emerald-400 mr-1" />Christmas Advance</td><td className={`p-3 text-right ${theme.highlight}`}>{'\u20B9'}3,000</td><td className={`p-3 text-center ${theme.iconColor}`}>All Staff</td><td className={`p-3 text-center ${theme.iconColor}`}>Dec 2026</td><td className="p-3 text-center"><span className="px-2 py-1 text-xs rounded-full font-bold bg-blue-500/20 text-blue-400">Scheduled</span></td></tr>
+            </tbody></table>
+          </div>
+        </div>
+      )}
+
+      {/* ── Feature 15: Payslip Distribution ── */}
+      {payTab === 'Payslip Distribution' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2"><h3 className={`text-sm font-bold ${theme.highlight}`}>Payslip Distribution</h3><span title="Send payslips to employees via email, WhatsApp, or self-service portal"><Info size={14} className={theme.iconColor} /></span><span title="Mobile: Employees view payslips on phone"><Smartphone size={14} className={theme.iconColor} /></span></div>
+            <button className={`flex items-center gap-1 px-3 py-1.5 ${theme.primary} text-white rounded-lg text-xs`}><Mail size={12} />Distribute Payslips</button>
+          </div>
+          <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
+            <h4 className={`text-xs font-bold ${theme.iconColor} mb-3`}>Distribution Channels</h4>
+            <div className="flex gap-4">
+              <label className={`flex items-center gap-2 text-sm ${theme.highlight}`}><input type="checkbox" defaultChecked className="rounded" />Email</label>
+              <label className={`flex items-center gap-2 text-sm ${theme.highlight}`}><input type="checkbox" className="rounded" />WhatsApp</label>
+              <label className={`flex items-center gap-2 text-sm ${theme.highlight}`}><input type="checkbox" defaultChecked className="rounded" />Employee Portal</label>
+            </div>
+            <div className="flex items-center gap-2 mt-3"><Lock size={14} className={theme.iconColor} /><span className={`text-xs ${theme.iconColor}`}>Password-protect PDF (password = Date of Birth)</span><Tgl on={true} theme={theme} /></div>
+          </div>
+          <div className={`${theme.cardBg} rounded-xl border ${theme.border} overflow-hidden`}>
+            <table className="w-full text-sm"><thead><tr className={theme.secondaryBg}><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Month</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Total</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Email Sent</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>WhatsApp</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Portal</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Pending</th></tr></thead>
+            <tbody>
+              <tr className={`border-t ${theme.border}`}><td className={`p-3 font-medium ${theme.highlight}`}>Feb 2026</td><td className={`p-3 text-center ${theme.highlight}`}>142</td><td className="p-3 text-center text-emerald-400 font-bold">138</td><td className={`p-3 text-center ${theme.iconColor}`}>0</td><td className="p-3 text-center text-emerald-400 font-bold">142</td><td className="p-3 text-center text-amber-400 font-bold">4</td></tr>
+              <tr className={`border-t ${theme.border}`}><td className={`p-3 font-medium ${theme.highlight}`}>Jan 2026</td><td className={`p-3 text-center ${theme.highlight}`}>140</td><td className="p-3 text-center text-emerald-400 font-bold">140</td><td className={`p-3 text-center ${theme.iconColor}`}>0</td><td className="p-3 text-center text-emerald-400 font-bold">140</td><td className="p-3 text-center text-emerald-400">0</td></tr>
+            </tbody></table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -539,6 +967,73 @@ function OffboardingModule({ theme }: { theme: Theme }) {
         <table className="w-full text-sm"><thead><tr className={theme.secondaryBg}><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Employee</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Resignation</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Last Day</th><th className={`p-3 text-xs font-bold ${theme.iconColor}`}>Clearance</th></tr></thead>
         <tbody>{exits.map((e) => <tr key={e.id} className={`border-t ${theme.border}`}><td className="p-3"><div className="flex items-center gap-2"><div className={`w-7 h-7 ${theme.secondaryBg} rounded-full flex items-center justify-center text-xs font-bold ${theme.primaryText}`}>{e.i}</div><div><p className={`font-medium ${theme.highlight}`}>{e.n}</p><p className={`text-xs ${theme.iconColor}`}>{e.d}</p></div></div></td><td className={`p-3 text-center ${theme.highlight}`}>{e.r}</td><td className={`p-3 text-center ${theme.highlight}`}>{e.l}</td><td className="p-3"><div className="flex items-center gap-2"><div className={`flex-1 h-2 ${theme.secondaryBg} rounded-full`}><div className="h-2 bg-amber-500 rounded-full" style={{ width: (e.c / e.t) * 100 + '%' }} /></div><span className={`text-xs ${theme.highlight}`}>{e.c}/{e.t}</span></div></td></tr>)}</tbody></table>
       </div>
+
+      {/* Feature 12: Gratuity Calculator */}
+      <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
+        <div className="flex items-center gap-2 mb-3"><Calculator size={16} className={theme.primaryText} /><h3 className={`font-semibold ${theme.highlight}`}>Gratuity Calculator</h3><span title="Calculate gratuity as per Payment of Gratuity Act, 1972"><Info size={14} className={theme.iconColor} /></span></div>
+        <div className="grid grid-cols-4 gap-3 mb-3">
+          <div><label className={`block text-xs mb-1 ${theme.iconColor}`}>Employee Name</label><select className={`w-full px-2 py-1.5 border ${theme.border} rounded-lg text-xs ${theme.inputBg} ${theme.highlight}`}>{employees.map(e => <option key={e.id}>{e.name}</option>)}</select></div>
+          <div><label className={`block text-xs mb-1 ${theme.iconColor}`}>Date of Joining</label><input type="date" defaultValue="2008-06-15" className={`w-full px-2 py-1.5 border ${theme.border} rounded-lg text-xs ${theme.inputBg} ${theme.highlight}`} /></div>
+          <div><label className={`block text-xs mb-1 ${theme.iconColor}`}>Last Drawn Basic ({'\u20B9'})</label><input defaultValue="40,000" className={`w-full px-2 py-1.5 border ${theme.border} rounded-lg text-xs ${theme.inputBg} ${theme.highlight}`} /></div>
+          <div className="flex items-end"><button className={`w-full py-1.5 ${theme.primary} text-white rounded-lg text-xs`}>Calculate</button></div>
+        </div>
+        <div className={`p-3 ${theme.secondaryBg} rounded-lg`}>
+          <p className={`text-xs ${theme.iconColor} mb-1`}>Formula: <span className={`font-mono ${theme.highlight}`}>(15 x Last Basic x Years of Service) / 26</span></p>
+          <p className={`text-sm font-bold ${theme.primaryText}`}>Mr. Sharma (18 years): {'\u20B9'}4,15,384</p>
+          <p className={`text-[10px] ${theme.iconColor} mt-1`}><AlertCircle size={10} className="inline mr-1" />Applicable after 5 years of continuous service as per Payment of Gratuity Act, 1972</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── LOANS & ADVANCES (Feature 11) ───────────────────
+function LoansModule({ theme }: { theme: Theme }) {
+  const [showNewLoan, setShowNewLoan] = useState(false);
+  const loans = [
+    { n: 'Priya Sharma', type: 'Personal Loan', amt: 200000, emi: 12000, months: 12, bal: 84000 },
+    { n: 'Rajesh Kumar', type: 'Salary Advance', amt: 30000, emi: 10000, months: 2, bal: 10000 },
+    { n: 'Deepak Verma', type: 'Festival Advance', amt: 15000, emi: 5000, months: 2, bal: 5000 },
+    { n: 'Mohammed Irfan', type: 'Personal Loan', amt: 100000, emi: 8000, months: 8, bal: 48000 },
+  ];
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2"><h1 className={`text-xl font-bold ${theme.highlight}`}>Loans &amp; Advances</h1><span title="Manage staff loans with auto-EMI deduction from salary"><Info size={14} className={theme.iconColor} /></span><span title="Mobile: Employees can request loans via self-service"><Smartphone size={14} className={theme.iconColor} /></span></div>
+        <div className="flex gap-2">
+          <span className="px-2 py-1 text-xs rounded-full font-bold bg-amber-500/20 text-amber-400">2 Approval Pending</span>
+          <button onClick={() => setShowNewLoan(true)} className={`flex items-center gap-1 px-3 py-2 ${theme.primary} text-white rounded-lg text-sm`}><Plus size={14} />New Loan Request</button>
+        </div>
+      </div>
+      <div className={`flex items-center gap-2 p-2.5 rounded-lg border border-indigo-500/30 bg-indigo-500/10`}><Link size={14} className="text-indigo-400 shrink-0" /><p className={`text-xs ${theme.highlight}`}>EMI auto-deducted from monthly payroll</p></div>
+      <div className={`${theme.cardBg} rounded-xl border ${theme.border} overflow-hidden`}>
+        <table className="w-full text-sm"><thead><tr className={theme.secondaryBg}><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Employee</th><th className={`p-3 text-left text-xs font-bold ${theme.iconColor}`}>Loan Type</th><th className={`p-3 text-right text-xs font-bold ${theme.iconColor}`}>Amount</th><th className={`p-3 text-right text-xs font-bold ${theme.iconColor}`}>EMI</th><th className={`p-3 text-center text-xs font-bold ${theme.iconColor}`}>Months Left</th><th className={`p-3 text-right text-xs font-bold ${theme.iconColor}`}>Balance</th></tr></thead>
+        <tbody>{loans.map((l, i) => (
+          <tr key={i} className={`border-t ${theme.border}`}>
+            <td className={`p-3 font-medium ${theme.highlight}`}>{l.n}</td>
+            <td className="p-3"><span className={`px-2 py-0.5 text-xs rounded-full font-bold ${l.type === 'Salary Advance' ? 'bg-blue-500/20 text-blue-400' : l.type === 'Festival Advance' ? 'bg-amber-500/20 text-amber-400' : 'bg-purple-500/20 text-purple-400'}`}>{l.type}</span></td>
+            <td className={`p-3 text-right ${theme.highlight}`}>{'\u20B9'}{fmt(l.amt)}</td>
+            <td className={`p-3 text-right ${theme.iconColor}`}>{'\u20B9'}{fmt(l.emi)}/mo</td>
+            <td className={`p-3 text-center ${theme.highlight}`}>{l.months}</td>
+            <td className="p-3 text-right text-amber-400 font-bold">{'\u20B9'}{fmt(l.bal)}</td>
+          </tr>
+        ))}</tbody></table>
+      </div>
+      {showNewLoan && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className={`${theme.cardBg} rounded-2xl p-6 w-96 border ${theme.border}`}>
+            <div className="flex justify-between mb-4"><h3 className={`font-semibold ${theme.highlight}`}>New Loan Request</h3><button onClick={() => setShowNewLoan(false)} className={theme.iconColor}><X size={18} /></button></div>
+            <div className="space-y-3">
+              <div><label className={`block text-sm mb-1 ${theme.iconColor}`}>Employee *</label><select className={`w-full px-3 py-2 border ${theme.border} rounded-lg text-sm ${theme.inputBg} ${theme.highlight}`}>{employees.map(e => <option key={e.id}>{e.name}</option>)}</select></div>
+              <div><label className={`block text-sm mb-1 ${theme.iconColor}`}>Loan Type *</label><select className={`w-full px-3 py-2 border ${theme.border} rounded-lg text-sm ${theme.inputBg} ${theme.highlight}`}><option>Salary Advance</option><option>Personal Loan</option><option>Festival Advance</option></select></div>
+              <div><label className={`block text-sm mb-1 ${theme.iconColor}`}>Amount ({'\u20B9'}) *</label><input className={`w-full px-3 py-2 border ${theme.border} rounded-lg text-sm ${theme.inputBg} ${theme.highlight}`} placeholder="50,000" /></div>
+              <div><label className={`block text-sm mb-1 ${theme.iconColor}`}>EMI Amount ({'\u20B9'}) *</label><input className={`w-full px-3 py-2 border ${theme.border} rounded-lg text-sm ${theme.inputBg} ${theme.highlight}`} placeholder="10,000" /></div>
+              <div><label className={`block text-sm mb-1 ${theme.iconColor}`}>Start Month *</label><input type="month" defaultValue="2026-03" className={`w-full px-3 py-2 border ${theme.border} rounded-lg text-sm ${theme.inputBg} ${theme.highlight}`} /></div>
+            </div>
+            <div className="flex justify-end gap-2 mt-4"><button onClick={() => setShowNewLoan(false)} className={`px-4 py-2 border ${theme.border} rounded-lg text-sm ${theme.highlight}`}>Cancel</button><button onClick={() => { setShowNewLoan(false); window.alert('Loan request submitted for approval (Blueprint demo)'); }} className={`px-4 py-2 ${theme.primary} text-white rounded-lg text-sm`}>Submit</button></div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -554,6 +1049,50 @@ function ReportsModule({ theme }: { theme: Theme }) {
         <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}><h4 className={`font-medium mb-3 ${theme.highlight}`}>Gender Diversity</h4><div className="flex items-center justify-center gap-6 py-4"><div className="text-center"><p className="text-2xl font-bold text-indigo-400">58%</p><p className={`text-sm ${theme.iconColor}`}>Male</p></div><div className="w-20 h-20 rounded-full border-8 border-indigo-500" style={{ borderRightColor: '#10B981', borderBottomColor: '#10B981' }} /><div className="text-center"><p className="text-2xl font-bold text-emerald-400">42%</p><p className={`text-sm ${theme.iconColor}`}>Female</p></div></div></div>
       </div>
       <div className="grid grid-cols-4 gap-4">{['Muster Roll', 'Staff Directory', 'Salary Statement', 'Leave Report'].map((r) => <div key={r} className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}><h5 className={`font-medium mb-2 ${theme.highlight}`}>{r}</h5><p className={`text-xs ${theme.iconColor} mb-3`}>Generate detailed {r.toLowerCase()}</p><button className={`w-full py-2 ${theme.primary} text-white rounded-lg text-sm font-bold`}>Generate</button></div>)}</div>
+
+      {/* Feature 16: Attrition Report */}
+      <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
+        <div className="flex items-center gap-2 mb-3"><TrendingDown size={16} className="text-red-400" /><h4 className={`font-semibold ${theme.highlight}`}>Employee Attrition Analysis</h4><span title="Analyze employee turnover trends and exit reasons"><Info size={14} className={theme.iconColor} /></span></div>
+        <div className="grid grid-cols-3 gap-3 mb-4">
+          <div className={`p-3 rounded-lg ${theme.secondaryBg} text-center`}><p className="text-2xl font-bold text-red-400">8.2%</p><p className={`text-xs ${theme.iconColor}`}>Attrition Rate</p></div>
+          <div className={`p-3 rounded-lg ${theme.secondaryBg} text-center`}><p className={`text-2xl font-bold ${theme.primaryText}`}>4.3 yrs</p><p className={`text-xs ${theme.iconColor}`}>Avg Tenure</p></div>
+          <div className={`p-3 rounded-lg ${theme.secondaryBg} text-center`}><p className="text-2xl font-bold text-amber-400">7</p><p className={`text-xs ${theme.iconColor}`}>Exits This Year</p></div>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <h5 className={`text-xs font-bold ${theme.iconColor} mb-2`}>By Reason</h5>
+            {[{ r: 'Resignation', c: 4, color: 'bg-amber-500' }, { r: 'Retirement', c: 2, color: 'bg-blue-500' }, { r: 'Termination', c: 1, color: 'bg-red-500' }].map(e => (
+              <div key={e.r} className="flex items-center gap-2 mb-1.5">
+                <span className={`text-xs w-24 ${theme.highlight}`}>{e.r}</span>
+                <div className={`flex-1 h-2 ${theme.secondaryBg} rounded-full`}><div className={`h-2 ${e.color} rounded-full`} style={{ width: (e.c / 4) * 100 + '%' }} /></div>
+                <span className={`text-xs w-4 font-bold ${theme.highlight}`}>{e.c}</span>
+              </div>
+            ))}
+          </div>
+          <div>
+            <h5 className={`text-xs font-bold ${theme.iconColor} mb-2`}>By Department</h5>
+            {[{ d: 'Teaching', c: 3, color: 'bg-indigo-500' }, { d: 'Admin', c: 2, color: 'bg-purple-500' }, { d: 'Support', c: 2, color: 'bg-teal-500' }].map(e => (
+              <div key={e.d} className="flex items-center gap-2 mb-1.5">
+                <span className={`text-xs w-24 ${theme.highlight}`}>{e.d}</span>
+                <div className={`flex-1 h-2 ${theme.secondaryBg} rounded-full`}><div className={`h-2 ${e.color} rounded-full`} style={{ width: (e.c / 3) * 100 + '%' }} /></div>
+                <span className={`text-xs w-4 font-bold ${theme.highlight}`}>{e.c}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="mt-3 pt-3 border-t border-dashed">
+          <h5 className={`text-xs font-bold ${theme.iconColor} mb-2`}>3-Year Trend</h5>
+          <div className="flex items-end gap-4 h-16">
+            {[{ y: '2023-24', v: 5 }, { y: '2024-25', v: 6.5 }, { y: '2025-26', v: 8.2 }].map(e => (
+              <div key={e.y} className="flex-1 flex flex-col items-center">
+                <div className="w-full bg-red-500/80 rounded-t" style={{ height: (e.v / 10) * 60 + 'px' }} />
+                <span className={`text-[10px] ${theme.iconColor} mt-1`}>{e.y}</span>
+                <span className={`text-[10px] font-bold ${theme.highlight}`}>{e.v}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -562,7 +1101,7 @@ function ReportsModule({ theme }: { theme: Theme }) {
 function SettingsModule({ theme }: { theme: Theme }) {
   const [section, setSection] = useState('general');
   const [selectedDept, setSelectedDept] = useState('Administration');
-  const navItems = [{ id: 'general', icon: Settings, label: 'General' }, { id: 'employee', icon: Users, label: 'Employee Info' }, { id: 'attendance', icon: Clock, label: 'Attendance' }, { id: 'leave', icon: Calendar, label: 'Leave Tracker' }, { id: 'workflows', icon: GitBranch, label: 'Workflows' }, { id: 'approvals', icon: Shield, label: 'Approvals' }, { id: 'notifications', icon: Bell, label: 'Notifications' }];
+  const navItems = [{ id: 'general', icon: Settings, label: 'General' }, { id: 'employee', icon: Users, label: 'Employee Info' }, { id: 'attendance', icon: Clock, label: 'Attendance' }, { id: 'leave', icon: Calendar, label: 'Leave Tracker' }, { id: 'ptax', icon: Building2, label: 'Prof. Tax Slabs' }, { id: 'workflows', icon: GitBranch, label: 'Workflows' }, { id: 'approvals', icon: Shield, label: 'Approvals' }, { id: 'notifications', icon: Bell, label: 'Notifications' }];
   const departments = [{ n: 'Administration', c: 12 }, { n: 'Teaching-Primary', c: 22 }, { n: 'Teaching-Secondary', c: 24 }, { n: 'Teaching-Senior', c: 22 }, { n: 'Accounts', c: 6 }, { n: 'IT', c: 4 }, { n: 'Transport', c: 18 }, { n: 'Housekeeping', c: 10 }, { n: 'Security', c: 12 }, { n: 'Library', c: 4 }, { n: 'Lab', c: 8 }];
   const designations: Record<string, string[]> = { Administration: ['Principal', 'Vice Principal', 'Peon'], 'Teaching-Primary': ['PRT', 'HOD'], 'Teaching-Secondary': ['TGT', 'HOD'], 'Teaching-Senior': ['PGT', 'HOD'], Accounts: ['Accountant'], IT: ['IT Support'], Transport: ['Driver'], Housekeeping: ['Peon', 'Sweeper', 'Helper'], Security: ['Security Guard'], Library: ['Librarian'], Lab: ['Lab Assistant'] };
   const leaves = [{ t: 'Casual Leave', p: 'Paid', d: '12', cf: 'No', e: 'No', a: 'All' }, { t: 'Earned Leave', p: 'Paid', d: '15', cf: 'Yes', e: 'Yes', a: 'Confirmed' }, { t: 'Sick Leave', p: 'Paid', d: '10', cf: 'No', e: 'No', a: 'All' }, { t: 'Maternity', p: 'Paid', d: '180', cf: 'No', e: 'No', a: 'Female' }, { t: 'Paternity', p: 'Paid', d: '15', cf: 'No', e: 'No', a: 'Male' }, { t: 'LWP', p: 'Unpaid', d: '∞', cf: 'No', e: 'No', a: 'All' }];
@@ -592,6 +1131,32 @@ function SettingsModule({ theme }: { theme: Theme }) {
             <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}><h3 className={`font-semibold mb-3 ${theme.highlight}`}>Leave Policies</h3><div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className={theme.secondaryBg}><th className={`p-2 text-left text-xs ${theme.iconColor}`}>Leave Type</th><th className={`p-2 text-center text-xs ${theme.iconColor}`}>Type</th><th className={`p-2 text-center text-xs ${theme.iconColor}`}>Days</th><th className={`p-2 text-center text-xs ${theme.iconColor}`}>Carry</th><th className={`p-2 text-center text-xs ${theme.iconColor}`}>Encash</th><th className={`p-2 text-left text-xs ${theme.iconColor}`}>For</th><th className={`p-2 text-center text-xs ${theme.iconColor}`}>Active</th></tr></thead><tbody>{leaves.map((l, i) => <tr key={i} className={`border-t ${theme.border}`}><td className={`p-2 font-medium ${theme.highlight}`}>{l.t}</td><td className="p-2 text-center"><span className={`px-2 py-0.5 text-xs rounded-full font-bold ${l.p === 'Paid' ? 'bg-emerald-500/20 text-emerald-400' : `${theme.secondaryBg} ${theme.iconColor}`}`}>{l.p}</span></td><td className={`p-2 text-center ${theme.highlight}`}>{l.d}</td><td className={`p-2 text-center ${theme.highlight}`}>{l.cf}</td><td className={`p-2 text-center ${theme.highlight}`}>{l.e}</td><td className={`p-2 ${theme.iconColor}`}>{l.a}</td><td className="p-2 text-center"><Tgl on={true} theme={theme} /></td></tr>)}</tbody></table></div></div>
             <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}><h3 className={`font-semibold mb-3 ${theme.highlight}`}>Holidays 2025-26</h3><table className="w-full text-sm"><thead><tr className={theme.secondaryBg}><th className={`p-2 text-left text-xs ${theme.iconColor}`}>Date</th><th className={`p-2 text-left text-xs ${theme.iconColor}`}>Holiday</th><th className={`p-2 text-center text-xs ${theme.iconColor}`}>Actions</th></tr></thead><tbody>{holidays.map((h, i) => <tr key={i} className={`border-t ${theme.border}`}><td className={`p-2 ${theme.highlight}`}>{h.d}</td><td className={`p-2 font-medium ${theme.highlight}`}>{h.n}</td><td className="p-2 text-center"><Edit size={14} className={`inline ${theme.iconColor} mr-1`} /><Trash2 size={14} className={`inline ${theme.iconColor}`} /></td></tr>)}</tbody></table></div>
           </>}
+          {/* Feature 13: Professional Tax Slabs */}
+          {section === 'ptax' && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2"><h3 className={`font-semibold ${theme.highlight}`}>Professional Tax Slabs</h3><span title="State-wise professional tax slabs for auto-deduction"><Info size={14} className={theme.iconColor} /></span></div>
+              <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3"><label className={`text-sm ${theme.iconColor}`}>State:</label><select className={`px-3 py-1.5 border ${theme.border} rounded-lg text-sm ${theme.inputBg} ${theme.highlight}`}><option>Gujarat</option><option>Maharashtra</option><option>Karnataka</option><option>Tamil Nadu</option><option>Andhra Pradesh</option><option>West Bengal</option></select></div>
+                  <div className="flex items-center gap-2"><span className={`text-xs ${theme.iconColor}`}>Auto-deduct monthly</span><Tgl on={true} theme={theme} /></div>
+                </div>
+                <h4 className={`text-xs font-bold ${theme.iconColor} mb-2`}>Gujarat Slabs</h4>
+                <div className={`rounded-lg border ${theme.border} overflow-hidden mb-4`}>
+                  <table className="w-full text-sm"><thead><tr className={theme.secondaryBg}><th className={`p-2 text-left text-xs ${theme.iconColor}`}>Salary Range</th><th className={`p-2 text-right text-xs ${theme.iconColor}`}>PT Amount</th></tr></thead>
+                  <tbody><tr className={`border-t ${theme.border}`}><td className={`p-2 ${theme.highlight}`}>All employees</td><td className={`p-2 text-right font-bold ${theme.primaryText}`}>{'\u20B9'}200/month</td></tr></tbody></table>
+                </div>
+                <h4 className={`text-xs font-bold ${theme.iconColor} mb-2`}>Maharashtra Slabs (for comparison)</h4>
+                <div className={`rounded-lg border ${theme.border} overflow-hidden`}>
+                  <table className="w-full text-sm"><thead><tr className={theme.secondaryBg}><th className={`p-2 text-left text-xs ${theme.iconColor}`}>Salary Range</th><th className={`p-2 text-right text-xs ${theme.iconColor}`}>PT Amount</th></tr></thead>
+                  <tbody>
+                    <tr className={`border-t ${theme.border}`}><td className={`p-2 ${theme.highlight}`}>{'\u20B9'}0 - {'\u20B9'}7,500</td><td className={`p-2 text-right ${theme.iconColor}`}>Nil</td></tr>
+                    <tr className={`border-t ${theme.border}`}><td className={`p-2 ${theme.highlight}`}>{'\u20B9'}7,501 - {'\u20B9'}10,000</td><td className={`p-2 text-right font-bold ${theme.primaryText}`}>{'\u20B9'}175/month</td></tr>
+                    <tr className={`border-t ${theme.border}`}><td className={`p-2 ${theme.highlight}`}>{'\u20B9'}10,001+</td><td className={`p-2 text-right font-bold ${theme.primaryText}`}>{'\u20B9'}200-{'\u20B9'}300/month</td></tr>
+                  </tbody></table>
+                </div>
+              </div>
+            </div>
+          )}
           {section === 'workflows' && <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}><h3 className={`font-semibold mb-3 ${theme.highlight}`}>Configured Workflows</h3><table className="w-full text-sm"><thead><tr className={theme.secondaryBg}><th className={`p-2 text-left text-xs ${theme.iconColor}`}>Workflow</th><th className={`p-2 text-left text-xs ${theme.iconColor}`}>Form</th><th className={`p-2 text-left text-xs ${theme.iconColor}`}>Trigger</th><th className={`p-2 text-left text-xs ${theme.iconColor}`}>Action</th><th className={`p-2 text-center text-xs ${theme.iconColor}`}>Active</th></tr></thead><tbody>{workflows.map((w, i) => <tr key={i} className={`border-t ${theme.border}`}><td className={`p-2 font-medium ${theme.highlight}`}>{w.n}</td><td className={`p-2 ${theme.iconColor}`}>{w.f}</td><td className={`p-2 ${theme.iconColor}`}>{w.t}</td><td className={`p-2 ${theme.iconColor}`}>{w.a}</td><td className="p-2 text-center"><Tgl on={true} theme={theme} /></td></tr>)}</tbody></table></div>}
           {section === 'approvals' && <div className="space-y-4">{approvals.map((a, i) => <div key={i} className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}><h3 className={`font-semibold mb-3 ${theme.highlight}`}>{a.n} Approval</h3><div className="flex items-center gap-1 mb-3 flex-wrap">{a.f.map((s, j) => <React.Fragment key={j}><span className={`px-2 py-1 rounded-full text-xs font-bold ${j === 0 ? 'bg-blue-500/20 text-blue-400' : j === a.f.length - 1 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>{s}</span>{j < a.f.length - 1 && <ChevronRight size={12} className={theme.iconColor} />}</React.Fragment>)}</div><div className="flex items-center gap-4"><label className={`text-sm ${theme.iconColor}`}>Levels: <select className={`px-2 py-1 border ${theme.border} rounded-lg text-sm ${theme.inputBg} ${theme.highlight} ml-1`}><option>{a.l}</option></select></label><label className={`text-sm ${theme.iconColor}`}>Auto-approve: <select className={`px-2 py-1 border ${theme.border} rounded-lg text-sm ${theme.inputBg} ${theme.highlight} ml-1`}><option>3 days</option></select></label></div></div>)}</div>}
           {section === 'notifications' && <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}><h3 className={`font-semibold mb-3 ${theme.highlight}`}>Email Notifications</h3><table className="w-full text-sm"><thead><tr className={theme.secondaryBg}><th className={`p-2 text-left text-xs ${theme.iconColor}`}>Notification</th><th className={`p-2 text-left text-xs ${theme.iconColor}`}>Recipients</th><th className={`p-2 text-center text-xs ${theme.iconColor}`}>Enabled</th></tr></thead><tbody>{notifs.map((n, i) => <tr key={i} className={`border-t ${theme.border}`}><td className={`p-2 ${theme.highlight}`}>{n.n}</td><td className={`p-2 ${theme.iconColor}`}>{n.to}</td><td className="p-2 text-center"><Tgl on={true} theme={theme} /></td></tr>)}</tbody></table></div>}
@@ -697,6 +1262,7 @@ function HRManagerDashboard({ theme, themeIdx, onThemeChange, currentUser }: { t
         {activeModule === 'lifecycle' && <LifecycleModule theme={theme} />}
         {activeModule === 'documents' && <DocumentsModule theme={theme} />}
         {activeModule === 'offboarding' && <OffboardingModule theme={theme} />}
+        {activeModule === 'loans' && <LoansModule theme={theme} />}
         {activeModule === 'reports' && <ReportsModule theme={theme} />}
         {activeModule === 'settings' && <SettingsModule theme={theme} />}
         {activeModule === 'communication' && <CommunicationModule theme={theme} />}

@@ -1,9 +1,19 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Plus, AlertTriangle, Eye, UserCircle } from 'lucide-react';
-import { SSAToggle, SectionCard, ModuleHeader, SelectField } from '../_helpers/components';
+import { X, Plus, AlertTriangle, Eye, UserCircle, Info, Download } from 'lucide-react';
+import { SSAToggle, SectionCard, ModuleHeader, SelectField, InputField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
+
+function InfoIcon({ tip }: { tip: string }) {
+  return <span title={tip} className="inline-flex ml-1.5 shrink-0 cursor-help"><Info size={13} className="text-blue-400 hover:text-blue-600" /></span>;
+}
+function MobileBadge() {
+  return <span className="ml-1.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-green-100 text-green-700 whitespace-nowrap">{'\uD83D\uDCF1'} Mobile</span>;
+}
+function Phase2Badge() {
+  return <span className="ml-1.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-100 text-amber-700 whitespace-nowrap">Phase 2</span>;
+}
 
 export default function ExamConfigModule({ theme }: { theme: Theme }) {
   const [gradingSystem, setGradingSystem] = useState('cbse');
@@ -44,6 +54,56 @@ export default function ExamConfigModule({ theme }: { theme: Theme }) {
   });
   const [reportGradingMode, setReportGradingMode] = useState('Both');
   const [showReportPreview, setShowReportPreview] = useState(false);
+
+  // --- NEW STATE: Exam Operations Config ---
+  const [scheduleBatchEnabled, setScheduleBatchEnabled] = useState(false);
+  const [batchGrades, setBatchGrades] = useState<Record<string, boolean>>({
+    'Nursery': false, 'Jr. KG': false, 'Sr. KG': false, 'Grade 1': true, 'Grade 2': true, 'Grade 3': true,
+    'Grade 4': true, 'Grade 5': true, 'Grade 6': true, 'Grade 7': true, 'Grade 8': true,
+    'Grade 9': true, 'Grade 10': true, 'Grade 11': false, 'Grade 12': false,
+  });
+  // Admit Card Template
+  const [admitCardLogo, setAdmitCardLogo] = useState(true);
+  const [admitCardPhoto, setAdmitCardPhoto] = useState(true);
+  const [admitCardSchedule, setAdmitCardSchedule] = useState(true);
+  const [admitCardInstructions, setAdmitCardInstructions] = useState('1. Reach 30 minutes before exam.\n2. Carry your own stationery.\n3. Electronic devices not allowed.');
+  const [admitCardSignature, setAdmitCardSignature] = useState(true);
+  // Hall/Room Allocation
+  const [halls, setHalls] = useState([
+    { name: 'Hall A', capacity: '60', floor: 'Ground', equipment: 'Projector' },
+    { name: 'Hall B', capacity: '40', floor: '1st Floor', equipment: 'AC' },
+    { name: 'Room 101', capacity: '30', floor: '1st Floor', equipment: 'None' },
+  ]);
+  // Invigilator Assignment
+  const [autoAssignInvigilator, setAutoAssignInvigilator] = useState(true);
+  const [maxDuties, setMaxDuties] = useState('5');
+  const [crossGradeInvigilation, setCrossGradeInvigilation] = useState(false);
+  // Mark Entry Controls
+  const [lockMarksAfterDeadline, setLockMarksAfterDeadline] = useState(true);
+  const [lockDate, setLockDate] = useState('2026-03-20');
+  const [graceHours, setGraceHours] = useState('24');
+  const [graceMarksEnabled, setGraceMarksEnabled] = useState(false);
+  const [maxGraceMarks, setMaxGraceMarks] = useState('5');
+  const [graceApprovalRequired, setGraceApprovalRequired] = useState(true);
+  // Result Publishing
+  const [publishMode, setPublishMode] = useState('Manual');
+  const [publishDate, setPublishDate] = useState('');
+  const [notifyParentsOnPublish, setNotifyParentsOnPublish] = useState(true);
+  const [notifyChannels, setNotifyChannels] = useState<Record<string, boolean>>({ SMS: true, Email: true, Push: true, WhatsApp: false });
+  // Re-exam / Supplementary
+  const [reExamEnabled, setReExamEnabled] = useState(false);
+  const [maxReExamAttempts, setMaxReExamAttempts] = useState('1');
+  const [reExamDays, setReExamDays] = useState('15');
+  const [separateReportEntry, setSeparateReportEntry] = useState(false);
+  // Bulk Mark Entry
+  const [bulkExcelUpload, setBulkExcelUpload] = useState(true);
+  const [validateBeforeImport, setValidateBeforeImport] = useState(true);
+  // Question Bank Config
+  const [questionBankEnabled, setQuestionBankEnabled] = useState(false);
+  const [bloomsTaxonomy, setBloomsTaxonomy] = useState(true);
+  const [difficultyLevels, setDifficultyLevels] = useState<Record<string, boolean>>({ Easy: true, Medium: true, Hard: true, 'Very Hard': false });
+  const [csvImportQB, setCsvImportQB] = useState(true);
+  const [autoGeneratePaper, setAutoGeneratePaper] = useState(false);
 
   return (
     <div className="space-y-4">
@@ -344,6 +404,318 @@ export default function ExamConfigModule({ theme }: { theme: Theme }) {
             </div>
           </div>
         )}
+      </SectionCard>
+
+      {/* ═══════════════════════════════════════════════════════════════
+          NEW SECTIONS: Exam Operations Config
+          ═══════════════════════════════════════════════════════════════ */}
+
+      <SectionCard title="Schedule Exam for All Batches" subtitle="One-click exam scheduling across multiple grades" theme={theme}>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex items-center">
+              <p className={`text-xs font-bold ${theme.highlight}`}>One-click exam scheduling across grades</p>
+              <InfoIcon tip="Enable to schedule an exam for multiple grades at once instead of one-by-one" />
+            </div>
+            <SSAToggle on={scheduleBatchEnabled} onChange={() => setScheduleBatchEnabled(!scheduleBatchEnabled)} theme={theme} />
+          </div>
+          {scheduleBatchEnabled && (
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Select Grades</p>
+              <div className="grid grid-cols-3 lg:grid-cols-5 gap-1.5">
+                {Object.entries(batchGrades).map(([grade, checked]) => (
+                  <label key={grade} className={`flex items-center gap-2 p-2 rounded-lg ${theme.secondaryBg} cursor-pointer`}>
+                    <input type="checkbox" checked={checked} onChange={() => setBatchGrades(p => ({ ...p, [grade]: !p[grade] }))} className="accent-emerald-500 w-3.5 h-3.5" />
+                    <span className={`text-[10px] font-medium ${theme.highlight}`}>{grade}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Admit Card Template" subtitle="Configure hall ticket layout for exam admit cards" theme={theme}>
+        <div className="flex items-center mb-3">
+          <p className={`text-[10px] font-bold ${theme.iconColor}`}>Design the admit card / hall ticket template</p>
+          <InfoIcon tip="Configure hall ticket layout for exam admit cards" />
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 mb-3">
+          {[
+            { label: 'School Logo', val: admitCardLogo, set: setAdmitCardLogo },
+            { label: 'Student Photo', val: admitCardPhoto, set: setAdmitCardPhoto },
+            { label: 'Exam Schedule Table', val: admitCardSchedule, set: setAdmitCardSchedule },
+            { label: 'Signature Field', val: admitCardSignature, set: setAdmitCardSignature },
+          ].map(item => (
+            <div key={item.label} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <span className={`text-xs font-medium ${theme.highlight}`}>{item.label}</span>
+              <SSAToggle on={item.val} onChange={() => item.set(!item.val)} theme={theme} />
+            </div>
+          ))}
+        </div>
+        <div className="mb-3">
+          <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Instructions Area</p>
+          <textarea value={admitCardInstructions} onChange={e => setAdmitCardInstructions(e.target.value)} rows={3}
+            className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none resize-none`} />
+        </div>
+        <button className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold ${theme.primary} text-white`}>
+          <Eye size={14} /> Preview Template
+        </button>
+      </SectionCard>
+
+      <SectionCard title="Hall / Room Allocation" subtitle="Define exam halls for seating plan" theme={theme}>
+        <div className="flex items-center mb-3">
+          <p className={`text-[10px] font-bold ${theme.iconColor}`}>Manage exam halls and rooms</p>
+          <InfoIcon tip="Define exam halls for seating plan" />
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead><tr className={theme.secondaryBg}>
+              {['Room Name', 'Capacity', 'Floor', 'Equipment', ''].map(h => (
+                <th key={h} className={`text-left px-2 py-2 font-bold ${theme.iconColor}`}>{h}</th>
+              ))}
+            </tr></thead>
+            <tbody>
+              {halls.map((hall, i) => (
+                <tr key={i} className={`border-t ${theme.border}`}>
+                  <td className="px-2 py-1.5">
+                    <input value={hall.name} onChange={e => { const n = [...halls]; n[i] = { ...n[i], name: e.target.value }; setHalls(n); }}
+                      className={`w-full px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} />
+                  </td>
+                  <td className="px-2 py-1.5">
+                    <input value={hall.capacity} onChange={e => { const n = [...halls]; n[i] = { ...n[i], capacity: e.target.value }; setHalls(n); }}
+                      className={`w-16 px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none`} />
+                  </td>
+                  <td className="px-2 py-1.5">
+                    <input value={hall.floor} onChange={e => { const n = [...halls]; n[i] = { ...n[i], floor: e.target.value }; setHalls(n); }}
+                      className={`w-24 px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                  </td>
+                  <td className="px-2 py-1.5">
+                    <select value={hall.equipment} onChange={e => { const n = [...halls]; n[i] = { ...n[i], equipment: e.target.value }; setHalls(n); }}
+                      className={`px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] font-bold ${theme.highlight}`}>
+                      <option value="None">None</option><option value="Projector">Projector</option><option value="AC">AC</option><option value="Projector + AC">Projector + AC</option>
+                    </select>
+                  </td>
+                  <td className="px-2 py-1.5"><button onClick={() => setHalls(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={12} /></button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <button onClick={() => setHalls(p => [...p, { name: '', capacity: '', floor: '', equipment: 'None' }])}
+          className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl mt-2`}>
+          <Plus size={12} /> Add Room
+        </button>
+      </SectionCard>
+
+      <SectionCard title="Invigilator Assignment Rules" subtitle="Automate invigilator duty assignment for exams" theme={theme}>
+        <div className="flex items-center mb-3">
+          <p className={`text-[10px] font-bold ${theme.iconColor}`}>Configure how invigilators are assigned</p>
+          <InfoIcon tip="Set rules for automatic invigilator assignment based on teacher free periods" />
+        </div>
+        <div className="space-y-2">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Auto-assign based on free periods</p>
+            <SSAToggle on={autoAssignInvigilator} onChange={() => setAutoAssignInvigilator(!autoAssignInvigilator)} theme={theme} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Max duties per teacher</p>
+              <InputField value={maxDuties} onChange={setMaxDuties} theme={theme} type="number" />
+            </div>
+          </div>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Cross-grade invigilation</p>
+            <SSAToggle on={crossGradeInvigilation} onChange={() => setCrossGradeInvigilation(!crossGradeInvigilation)} theme={theme} />
+          </div>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Mark Entry Controls" subtitle="Control when teachers can no longer edit marks" theme={theme}>
+        <div className="flex items-center mb-3">
+          <p className={`text-[10px] font-bold ${theme.iconColor}`}>Lock marks and manage grace marks</p>
+          <InfoIcon tip="Control when teachers can no longer edit marks" />
+        </div>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Lock marks after deadline</p>
+            <SSAToggle on={lockMarksAfterDeadline} onChange={() => setLockMarksAfterDeadline(!lockMarksAfterDeadline)} theme={theme} />
+          </div>
+          {lockMarksAfterDeadline && (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Lock Date</p>
+                <InputField value={lockDate} onChange={setLockDate} theme={theme} type="date" />
+              </div>
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Grace period (hours)</p>
+                <InputField value={graceHours} onChange={setGraceHours} theme={theme} type="number" />
+              </div>
+            </div>
+          )}
+          <div className={`p-3 rounded-xl border ${theme.border} ${theme.secondaryBg}`}>
+            <div className="flex items-center justify-between mb-2">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Grace Marks</p>
+              <SSAToggle on={graceMarksEnabled} onChange={() => setGraceMarksEnabled(!graceMarksEnabled)} theme={theme} />
+            </div>
+            {graceMarksEnabled && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Max grace marks</p>
+                  <InputField value={maxGraceMarks} onChange={setMaxGraceMarks} theme={theme} type="number" />
+                </div>
+                <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.cardBg}`}>
+                  <p className={`text-xs font-medium ${theme.highlight}`}>Approval required</p>
+                  <SSAToggle on={graceApprovalRequired} onChange={() => setGraceApprovalRequired(!graceApprovalRequired)} theme={theme} />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Result Publishing" subtitle="Control how exam results reach parents" theme={theme}>
+        <div className="flex items-center mb-3">
+          <p className={`text-[10px] font-bold ${theme.iconColor}`}>Configure result publish mode and notifications</p>
+          <InfoIcon tip="Control how exam results reach parents" />
+        </div>
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Publish Mode</p>
+              <SelectField options={['Instant', 'Scheduled', 'Manual']} value={publishMode} onChange={setPublishMode} theme={theme} />
+            </div>
+            {publishMode === 'Scheduled' && (
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Schedule Date</p>
+                <InputField value={publishDate} onChange={setPublishDate} theme={theme} type="date" />
+              </div>
+            )}
+          </div>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex items-center">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Notify parents on publish</p>
+              <MobileBadge />
+            </div>
+            <SSAToggle on={notifyParentsOnPublish} onChange={() => setNotifyParentsOnPublish(!notifyParentsOnPublish)} theme={theme} />
+          </div>
+          {notifyParentsOnPublish && (
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Notify via</p>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(notifyChannels).map(([ch, on]) => (
+                  <label key={ch} className={`flex items-center gap-2 p-2 rounded-lg ${theme.secondaryBg} cursor-pointer`}>
+                    <input type="checkbox" checked={on} onChange={() => setNotifyChannels(p => ({ ...p, [ch]: !p[ch] }))} className="accent-emerald-500 w-3.5 h-3.5" />
+                    <span className={`text-[10px] font-medium ${theme.highlight}`}>{ch}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Re-exam / Supplementary" subtitle="Configure re-examination and supplementary exam rules" theme={theme}>
+        <div className="flex items-center mb-3">
+          <p className={`text-[10px] font-bold ${theme.iconColor}`}>Manage re-exam policies for failed students</p>
+          <InfoIcon tip="Allow students who failed to retake exams under controlled rules" />
+        </div>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Enable Re-exam / Supplementary</p>
+            <SSAToggle on={reExamEnabled} onChange={() => setReExamEnabled(!reExamEnabled)} theme={theme} />
+          </div>
+          {reExamEnabled && (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Max re-exam attempts</p>
+                  <InputField value={maxReExamAttempts} onChange={setMaxReExamAttempts} theme={theme} type="number" />
+                </div>
+                <div>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Schedule within (days)</p>
+                  <InputField value={reExamDays} onChange={setReExamDays} theme={theme} type="number" />
+                </div>
+              </div>
+              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <p className={`text-xs font-bold ${theme.highlight}`}>Separate report card entry</p>
+                <SSAToggle on={separateReportEntry} onChange={() => setSeparateReportEntry(!separateReportEntry)} theme={theme} />
+              </div>
+            </>
+          )}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Bulk Mark Entry" subtitle="Teachers can upload marks via Excel instead of manual entry" theme={theme}>
+        <div className="flex items-center mb-3">
+          <p className={`text-[10px] font-bold ${theme.iconColor}`}>Configure bulk mark upload via Excel</p>
+          <InfoIcon tip="Teachers can upload marks via Excel instead of manual entry" />
+        </div>
+        <div className="space-y-2">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Allow Excel upload</p>
+            <SSAToggle on={bulkExcelUpload} onChange={() => setBulkExcelUpload(!bulkExcelUpload)} theme={theme} />
+          </div>
+          {bulkExcelUpload && (
+            <>
+              <div className={`flex items-center gap-2 p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <Download size={14} className={theme.iconColor} />
+                <span className={`text-xs font-bold ${theme.iconColor} underline cursor-pointer hover:opacity-80`}>Download Excel Template</span>
+              </div>
+              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <p className={`text-xs font-bold ${theme.highlight}`}>Validate before import</p>
+                <SSAToggle on={validateBeforeImport} onChange={() => setValidateBeforeImport(!validateBeforeImport)} theme={theme} />
+              </div>
+            </>
+          )}
+        </div>
+      </SectionCard>
+
+      {/* ═══════════════════════════════════════════════════════════════
+          NEW SECTION: Question Bank Config
+          ═══════════════════════════════════════════════════════════════ */}
+
+      <SectionCard title="Question Bank Settings" subtitle="Manage question bank, taxonomy, and auto-paper generation" theme={theme}>
+        <div className="flex items-center mb-3">
+          <p className={`text-[10px] font-bold ${theme.iconColor}`}>Configure school-wide question bank</p>
+          <InfoIcon tip="Question bank allows teachers to build a repository of questions tagged by topic, difficulty, and Bloom's level" />
+        </div>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Enable Question Bank</p>
+            <SSAToggle on={questionBankEnabled} onChange={() => setQuestionBankEnabled(!questionBankEnabled)} theme={theme} />
+          </div>
+          {questionBankEnabled && (
+            <>
+              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <p className={`text-xs font-bold ${theme.highlight}`}>Bloom&apos;s Taxonomy Tagging</p>
+                <SSAToggle on={bloomsTaxonomy} onChange={() => setBloomsTaxonomy(!bloomsTaxonomy)} theme={theme} />
+              </div>
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Difficulty Levels</p>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(difficultyLevels).map(([lvl, on]) => (
+                    <label key={lvl} className={`flex items-center gap-2 p-2 rounded-lg ${theme.secondaryBg} cursor-pointer`}>
+                      <input type="checkbox" checked={on} onChange={() => setDifficultyLevels(p => ({ ...p, [lvl]: !p[lvl] }))} className="accent-emerald-500 w-3.5 h-3.5" />
+                      <span className={`text-[10px] font-medium ${theme.highlight}`}>{lvl}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <p className={`text-xs font-bold ${theme.highlight}`}>Allow CSV import</p>
+                <SSAToggle on={csvImportQB} onChange={() => setCsvImportQB(!csvImportQB)} theme={theme} />
+              </div>
+              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <div className="flex items-center">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>Auto-generate paper from bank</p>
+                  <Phase2Badge />
+                </div>
+                <SSAToggle on={autoGeneratePaper} onChange={() => setAutoGeneratePaper(!autoGeneratePaper)} theme={theme} />
+              </div>
+            </>
+          )}
+        </div>
       </SectionCard>
     </div>
   );

@@ -12,7 +12,8 @@ import {
   GraduationCap, User, ArrowRight, MessageSquare,
   PanelLeftClose, PanelLeftOpen, Headphones,
   CalendarOff, FileBadge, LayoutGrid, X, Send, Copy,
-  FolderOpen, Trophy, Medal, Plus, Pencil, Trash2, Shield
+  FolderOpen, Trophy, Medal, Plus, Pencil, Trash2, Shield,
+  FileCheck, Info, Smartphone, Play, ChevronLeft
 } from 'lucide-react';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
@@ -261,6 +262,7 @@ const modules = [
   { id: 'documents', label: 'Documents', icon: FileBadge },
   { id: 'notices', label: 'Notices', icon: Megaphone },
   { id: 'portfolio', label: 'Portfolio', icon: FolderOpen },
+  { id: 'my-exams', label: 'My Exams', icon: FileCheck },
   { id: 'achievements', label: 'Achievements', icon: Trophy },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
   { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
@@ -309,6 +311,7 @@ function StudentDashboard({ theme, themeIdx, onThemeChange, currentUser }: { the
         {activeModule === 'leave' && <LeaveModule theme={theme} />}
         {activeModule === 'documents' && <DocumentsModule theme={theme} />}
         {activeModule === 'notices' && <NoticesModule theme={theme} />}
+        {activeModule === 'my-exams' && <MyExamsModule theme={theme} />}
         {activeModule === 'portfolio' && <PortfolioModule theme={theme} />}
         {activeModule === 'achievements' && <AchievementsModule theme={theme} />}
         {activeModule === 'communication' && <CommunicationModule theme={theme} />}
@@ -1590,6 +1593,494 @@ function AchievementsModule({ theme }: { theme: Theme }) {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ─── MY EXAMS MODULE ────────────────────────────────
+function MyExamsModule({ theme }: { theme: Theme }) {
+  const [examTab, setExamTab] = useState('Upcoming');
+  const [showAdmitCard, setShowAdmitCard] = useState(false);
+  const [showTest, setShowTest] = useState(false);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [answers, setAnswers] = useState<Record<number, number>>({});
+  const [expandedResult, setExpandedResult] = useState<number | null>(null);
+
+  // Helper: Info tooltip icon
+  const InfoTip = ({ tip }: { tip: string }) => (
+    <span title={tip} className="inline-block ml-1 cursor-help"><Info size={14} className={theme.iconColor} /></span>
+  );
+
+  // Helper: Mobile badge
+  const MobileBadge = () => (
+    <span className="inline-flex items-center gap-0.5 ml-1.5 text-[9px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold">
+      <Smartphone size={9} /> Mobile
+    </span>
+  );
+
+  // Upcoming exams data
+  const upcomingExams = [
+    { id: 1, name: 'Term 2 - Mathematics', date: 'Mar 15, 2026', time: '10:00 AM', duration: '2 hours', marks: 80, hall: 'Hall A', countdown: 14, hasAdmitCard: true },
+    { id: 2, name: 'Science Practical', date: 'Mar 18, 2026', time: '2:00 PM', duration: '1 hour', marks: 20, hall: 'Lab A', countdown: 17, hasAdmitCard: true },
+    { id: 3, name: 'English Literature', date: 'Mar 20, 2026', time: '10:00 AM', duration: '3 hours', marks: 100, hall: 'Hall B', countdown: 19, hasAdmitCard: false },
+  ];
+
+  // Online tests data
+  const onlineTests = [
+    { id: 1, name: 'Math Chapter Test - Trigonometry', duration: '30 min', marks: 25 },
+    { id: 2, name: 'Science Quiz - Chemical Reactions', duration: '15 min', marks: 10 },
+  ];
+
+  // Test questions data
+  const testQuestions = [
+    { q: 'What is the value of sin(30\u00b0)?', options: ['0', '1/2', '1', '\u221a3/2'], correct: 1 },
+    { q: 'What is cos(60\u00b0)?', options: ['0', '1/2', '\u221a3/2', '1'], correct: 1 },
+    { q: 'tan(45\u00b0) equals?', options: ['0', '1/\u221a2', '1', '\u221a3'], correct: 2 },
+    { q: 'sin\u00b2\u03b8 + cos\u00b2\u03b8 = ?', options: ['0', '1', '2', 'sin2\u03b8'], correct: 1 },
+    { q: 'What is sec(0\u00b0)?', options: ['0', '1', '\u221e', 'Undefined'], correct: 1 },
+    { q: 'cot(90\u00b0) equals?', options: ['0', '1', '\u221e', 'Undefined'], correct: 0 },
+    { q: 'What is the period of sin(x)?', options: ['\u03c0', '2\u03c0', '\u03c0/2', '3\u03c0'], correct: 1 },
+    { q: 'cos(180\u00b0) = ?', options: ['0', '1', '-1', '\u221a2'], correct: 2 },
+    { q: 'sin(90\u00b0) = ?', options: ['0', '1', '-1', '1/2'], correct: 1 },
+    { q: 'tan(0\u00b0) = ?', options: ['0', '1', '\u221e', 'Undefined'], correct: 0 },
+  ];
+
+  // Results data
+  const resultsDataExams = [
+    { id: 1, name: 'Unit Test 2', subject: 'Mathematics', date: 'Jan 10, 2026', obtained: 22, max: 25, grade: 'A1', rank: 3, status: 'Pass', details: [
+      { q: 'Q1: Solve for x: 2x+3=7', correct: true, yourAnswer: 'x=2', correctAnswer: 'x=2' },
+      { q: 'Q2: Simplify: (a+b)\u00b2', correct: true, yourAnswer: 'a\u00b2+2ab+b\u00b2', correctAnswer: 'a\u00b2+2ab+b\u00b2' },
+      { q: 'Q3: Value of \u221a144', correct: false, yourAnswer: '14', correctAnswer: '12' },
+    ]},
+    { id: 2, name: 'Unit Test 2', subject: 'Science', date: 'Jan 12, 2026', obtained: 20, max: 25, grade: 'A2', rank: 5, status: 'Pass', details: [
+      { q: 'Q1: Define photosynthesis', correct: true, yourAnswer: 'Process by which plants make food using sunlight', correctAnswer: 'Process by which plants make food using sunlight' },
+      { q: 'Q2: Chemical formula of water', correct: true, yourAnswer: 'H\u2082O', correctAnswer: 'H\u2082O' },
+    ]},
+    { id: 3, name: 'Unit Test 2', subject: 'English', date: 'Jan 14, 2026', obtained: 19, max: 25, grade: 'B1', rank: 8, status: 'Pass', details: [
+      { q: 'Q1: Identify the noun', correct: true, yourAnswer: 'dog', correctAnswer: 'dog' },
+      { q: 'Q2: Past tense of "go"', correct: false, yourAnswer: 'gone', correctAnswer: 'went' },
+    ]},
+    { id: 4, name: 'Unit Test 2', subject: 'Hindi', date: 'Jan 16, 2026', obtained: 17, max: 25, grade: 'B2', rank: 12, status: 'Pass', details: [] },
+    { id: 5, name: 'Unit Test 2', subject: 'Computer Science', date: 'Jan 18, 2026', obtained: 24, max: 25, grade: 'A1', rank: 1, status: 'Pass', details: [] },
+  ];
+
+  // Practice tests data
+  const practiceTests = [
+    { id: 1, name: 'Math Practice - Algebra', questions: 20, attempts: 3, bestScore: 85 },
+    { id: 2, name: 'Science Mock - Full Syllabus', questions: 30, attempts: 1, bestScore: 72 },
+    { id: 3, name: 'English Grammar Practice', questions: 25, attempts: 2, bestScore: 90 },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className={`text-2xl font-bold ${theme.highlight}`}>My Exams</h1>
+        <span className={`text-xs px-3 py-1.5 rounded-lg ${theme.secondaryBg} ${theme.iconColor} font-bold`}>
+          Academic Year 2025-26
+        </span>
+      </div>
+
+      <TabBar
+        tabs={['Upcoming', 'Online Tests', 'My Results', 'Practice']}
+        active={examTab}
+        onChange={(t) => { setExamTab(t); setShowTest(false); }}
+        theme={theme}
+      />
+
+      {/* ── TAB: Upcoming Exams ── */}
+      {examTab === 'Upcoming' && !showAdmitCard && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-1">
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>Upcoming Exams</h3>
+            <InfoTip tip="Your upcoming exams with schedule, venue, and admit card download" />
+            <MobileBadge />
+          </div>
+          <div className="space-y-3">
+            {upcomingExams.map(exam => (
+              <div key={exam.id} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5`}>
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-indigo-500 flex items-center justify-center text-white">
+                      <FileCheck size={20} />
+                    </div>
+                    <div>
+                      <p className={`text-sm font-bold ${theme.highlight}`}>{exam.name}</p>
+                      <div className="flex items-center gap-3 mt-1">
+                        <span className={`text-[10px] ${theme.iconColor}`}><Calendar size={10} className="inline mr-0.5" /> {exam.date}</span>
+                        <span className={`text-[10px] ${theme.iconColor}`}><Clock size={10} className="inline mr-0.5" /> {exam.time}</span>
+                        <span className={`text-[10px] ${theme.iconColor}`}><Timer size={10} className="inline mr-0.5" /> {exam.duration}</span>
+                        <span className={`text-[10px] ${theme.iconColor}`}>{exam.marks} marks</span>
+                        <span className={`text-[10px] ${theme.iconColor}`}>Venue: {exam.hall}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 font-bold">{exam.countdown} days</span>
+                    {exam.hasAdmitCard && (
+                      <button
+                        onClick={() => setShowAdmitCard(true)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl ${theme.primary} text-white text-xs font-bold`}
+                      >
+                        <Eye size={12} /> View Admit Card
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Admit Card View ── */}
+      {examTab === 'Upcoming' && showAdmitCard && (
+        <div className="space-y-4">
+          <button onClick={() => setShowAdmitCard(false)} className={`flex items-center gap-1.5 text-xs font-bold ${theme.primaryText}`}>
+            <ChevronLeft size={14} /> Back to Upcoming Exams
+          </button>
+          <div className="flex items-center gap-1">
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>Admit Card</h3>
+            <InfoTip tip="Download your exam hall ticket" />
+            <MobileBadge />
+          </div>
+          <div className={`${theme.cardBg} rounded-2xl border-2 ${theme.border} p-6 max-w-2xl mx-auto`}>
+            {/* Header */}
+            <div className="flex items-center justify-between border-b pb-4 mb-4" style={{ borderColor: 'rgba(0,0,0,0.1)' }}>
+              <div className="flex items-center gap-3">
+                <div className="w-14 h-14 rounded-xl bg-indigo-500 flex items-center justify-center text-white text-lg font-bold">SRS</div>
+                <div>
+                  <p className={`text-lg font-bold ${theme.highlight}`}>Saaras International School</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>CBSE Affiliated | Affiliation No: 430XXX</p>
+                </div>
+              </div>
+              <div className="w-16 h-20 rounded-lg border-2 border-dashed border-slate-300 flex items-center justify-center">
+                <User size={24} className="text-slate-300" />
+              </div>
+            </div>
+            {/* Student Info */}
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div><span className={`text-[10px] ${theme.iconColor}`}>Student Name:</span><p className={`text-xs font-bold ${theme.highlight}`}>{studentProfile.name}</p></div>
+              <div><span className={`text-[10px] ${theme.iconColor}`}>Class / Section:</span><p className={`text-xs font-bold ${theme.highlight}`}>{studentProfile.class}</p></div>
+              <div><span className={`text-[10px] ${theme.iconColor}`}>Roll No:</span><p className={`text-xs font-bold ${theme.highlight}`}>{studentProfile.rollNo}</p></div>
+              <div><span className={`text-[10px] ${theme.iconColor}`}>Admission No:</span><p className={`text-xs font-bold ${theme.highlight}`}>{studentProfile.admissionNo}</p></div>
+            </div>
+            {/* Exam schedule table */}
+            <div className={`overflow-hidden rounded-xl border ${theme.border} mb-4`}>
+              <table className="w-full text-xs">
+                <thead><tr className={theme.secondaryBg}>
+                  <th className={`p-2.5 text-left font-bold ${theme.iconColor} uppercase`}>Date</th>
+                  <th className={`p-2.5 text-left font-bold ${theme.iconColor} uppercase`}>Subject</th>
+                  <th className={`p-2.5 text-left font-bold ${theme.iconColor} uppercase`}>Time</th>
+                  <th className={`p-2.5 text-left font-bold ${theme.iconColor} uppercase`}>Hall</th>
+                </tr></thead>
+                <tbody>
+                  {upcomingExams.map((ex, i) => (
+                    <tr key={i} className={`border-t ${theme.border}`}>
+                      <td className={`p-2.5 ${theme.iconColor}`}>{ex.date}</td>
+                      <td className={`p-2.5 font-bold ${theme.highlight}`}>{ex.name}</td>
+                      <td className={`p-2.5 ${theme.iconColor}`}>{ex.time} ({ex.duration})</td>
+                      <td className={`p-2.5 ${theme.iconColor}`}>{ex.hall}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {/* Instructions */}
+            <div className={`p-3 rounded-xl ${theme.secondaryBg} mb-4`}>
+              <p className={`text-[10px] font-bold ${theme.highlight} mb-1`}>Instructions:</p>
+              <ul className={`text-[10px] ${theme.iconColor} space-y-0.5 list-disc list-inside`}>
+                <li>Carry this admit card to the examination hall.</li>
+                <li>Report 30 minutes before the scheduled time.</li>
+                <li>Electronic devices are strictly prohibited.</li>
+                <li>Use blue/black ink pen only. Pencil allowed for diagrams.</li>
+              </ul>
+            </div>
+            {/* Signature */}
+            <div className="flex justify-between items-end mt-4 pt-4 border-t" style={{ borderColor: 'rgba(0,0,0,0.1)' }}>
+              <div className="text-center">
+                <div className="w-32 border-b border-slate-300 mb-1 h-8" />
+                <p className={`text-[10px] ${theme.iconColor}`}>Class Teacher</p>
+              </div>
+              <div className="text-center">
+                <div className="w-32 border-b border-slate-300 mb-1 h-8" />
+                <p className={`text-[10px] ${theme.iconColor}`}>Principal</p>
+              </div>
+            </div>
+          </div>
+          {/* Download/Print buttons */}
+          <div className="flex justify-center gap-3">
+            <button onClick={() => alert('Download PDF (Blueprint demo)')} className={`flex items-center gap-1.5 px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}>
+              <Download size={14} /> Download PDF
+            </button>
+            <button onClick={() => alert('Print Admit Card (Blueprint demo)')} className={`flex items-center gap-1.5 px-4 py-2 rounded-xl ${theme.secondaryBg} ${theme.highlight} text-xs font-bold ${theme.buttonHover}`}>
+              <FileText size={14} /> Print
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── TAB: Online Tests ── */}
+      {examTab === 'Online Tests' && !showTest && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-1">
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>Online Tests Available</h3>
+            <InfoTip tip="Take online tests from your device. Timer auto-submits when time runs out" />
+            <MobileBadge />
+          </div>
+          <div className="space-y-3">
+            {onlineTests.map(test => (
+              <div key={test.id} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5 flex items-center justify-between`}>
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center text-white">
+                    <Play size={16} />
+                  </div>
+                  <div>
+                    <p className={`text-sm font-bold ${theme.highlight}`}>{test.name}</p>
+                    <div className="flex items-center gap-3 mt-0.5">
+                      <span className={`text-[10px] ${theme.iconColor}`}><Timer size={10} className="inline mr-0.5" /> {test.duration}</span>
+                      <span className={`text-[10px] ${theme.iconColor}`}>{test.marks} marks</span>
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => { setShowTest(true); setCurrentQuestion(0); setAnswers({}); }}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition-all"
+                >
+                  <Play size={12} /> Start Test
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Online Test-taking UI ── */}
+      {examTab === 'Online Tests' && showTest && (
+        <div className="space-y-4">
+          {/* Timer bar */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-3 flex items-center justify-between`}>
+            <div className="flex items-center gap-2">
+              <Timer size={16} className="text-red-500" />
+              <span className={`text-sm font-bold text-red-600`}>29:45 remaining</span>
+            </div>
+            <span className={`text-xs ${theme.iconColor}`}>Math Chapter Test - Trigonometry</span>
+          </div>
+
+          {/* Question */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-6`}>
+            <p className={`text-xs ${theme.iconColor} mb-2`}>Q{currentQuestion + 1} of {testQuestions.length}</p>
+            <p className={`text-sm font-bold ${theme.highlight} mb-4`}>{testQuestions[currentQuestion].q}</p>
+            <div className="space-y-2">
+              {testQuestions[currentQuestion].options.map((opt, i) => (
+                <label key={i} className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all ${
+                  answers[currentQuestion] === i ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.buttonHover}`
+                }`}>
+                  <input
+                    type="radio"
+                    name={`q${currentQuestion}`}
+                    checked={answers[currentQuestion] === i}
+                    onChange={() => setAnswers(prev => ({ ...prev, [currentQuestion]: i }))}
+                    className="w-4 h-4"
+                  />
+                  <span className={`text-xs font-medium ${answers[currentQuestion] === i ? 'text-white' : theme.highlight}`}>
+                    ({String.fromCharCode(97 + i)}) {opt}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Navigation */}
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => setCurrentQuestion(Math.max(0, currentQuestion - 1))}
+              disabled={currentQuestion === 0}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl ${currentQuestion === 0 ? 'opacity-40' : ''} ${theme.secondaryBg} ${theme.highlight} text-xs font-bold ${theme.buttonHover}`}
+            >
+              <ChevronLeft size={14} /> Previous
+            </button>
+            <div className="flex items-center gap-1.5">
+              {testQuestions.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrentQuestion(i)}
+                  className={`w-7 h-7 rounded-full text-[10px] font-bold flex items-center justify-center transition-all ${
+                    i === currentQuestion ? 'bg-blue-500 text-white' :
+                    answers[i] !== undefined ? 'bg-emerald-500 text-white' :
+                    `${theme.secondaryBg} ${theme.iconColor}`
+                  }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+            </div>
+            {currentQuestion < testQuestions.length - 1 ? (
+              <button
+                onClick={() => setCurrentQuestion(currentQuestion + 1)}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}
+              >
+                Next <ArrowRight size={14} />
+              </button>
+            ) : (
+              <button
+                onClick={() => { alert('Test Submitted! (Blueprint demo)'); setShowTest(false); }}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-600 text-white text-xs font-bold hover:bg-red-700 transition-all"
+              >
+                <Send size={14} /> Submit Test
+              </button>
+            )}
+          </div>
+
+          {/* Legend */}
+          <div className="flex items-center gap-4 justify-center">
+            <div className="flex items-center gap-1.5"><div className="w-4 h-4 rounded-full bg-blue-500" /><span className={`text-[10px] ${theme.iconColor}`}>Current</span></div>
+            <div className="flex items-center gap-1.5"><div className="w-4 h-4 rounded-full bg-emerald-500" /><span className={`text-[10px] ${theme.iconColor}`}>Answered</span></div>
+            <div className="flex items-center gap-1.5"><div className={`w-4 h-4 rounded-full ${theme.secondaryBg}`} /><span className={`text-[10px] ${theme.iconColor}`}>Unanswered</span></div>
+          </div>
+        </div>
+      )}
+
+      {/* ── TAB: My Results ── */}
+      {examTab === 'My Results' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1">
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>My Results</h3>
+              <InfoTip tip="View your exam results, grades, and rank" />
+              <MobileBadge />
+            </div>
+            <button onClick={() => alert('Download Report Card (Blueprint demo)')} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl ${theme.primary} text-white text-xs font-bold`}>
+              <Download size={12} /> Download Report Card
+            </button>
+          </div>
+
+          {/* Results Table */}
+          <div className={`overflow-hidden rounded-xl border ${theme.border}`}>
+            <table className="w-full text-xs">
+              <thead><tr className={theme.secondaryBg}>
+                <th className={`p-2.5 text-left font-bold ${theme.iconColor} uppercase`}>Exam Name</th>
+                <th className={`p-2.5 text-left font-bold ${theme.iconColor} uppercase`}>Subject</th>
+                <th className={`p-2.5 text-center font-bold ${theme.iconColor} uppercase`}>Date</th>
+                <th className={`p-2.5 text-center font-bold ${theme.iconColor} uppercase`}>Marks</th>
+                <th className={`p-2.5 text-center font-bold ${theme.iconColor} uppercase`}>Max</th>
+                <th className={`p-2.5 text-center font-bold ${theme.iconColor} uppercase`}>Grade</th>
+                <th className={`p-2.5 text-center font-bold ${theme.iconColor} uppercase`}>Rank</th>
+                <th className={`p-2.5 text-center font-bold ${theme.iconColor} uppercase`}>Status</th>
+                <th className={`p-2.5 text-center font-bold ${theme.iconColor} uppercase`}>Details</th>
+              </tr></thead>
+              <tbody>
+                {resultsDataExams.map((r, i) => (
+                  <React.Fragment key={i}>
+                    <tr className={`border-t ${theme.border}`}>
+                      <td className={`p-2.5 font-bold ${theme.highlight}`}>{r.name}</td>
+                      <td className={`p-2.5 ${theme.highlight}`}>{r.subject}</td>
+                      <td className={`p-2.5 text-center ${theme.iconColor}`}>{r.date}</td>
+                      <td className={`p-2.5 text-center font-bold ${theme.highlight}`}>{r.obtained}</td>
+                      <td className={`p-2.5 text-center ${theme.iconColor}`}>{r.max}</td>
+                      <td className="p-2.5 text-center">
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                          r.grade.startsWith('A') ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
+                        }`}>{r.grade}</span>
+                      </td>
+                      <td className={`p-2.5 text-center font-bold ${theme.highlight}`}>#{r.rank}</td>
+                      <td className="p-2.5 text-center">
+                        <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-700">{r.status}</span>
+                      </td>
+                      <td className="p-2.5 text-center">
+                        {r.details.length > 0 && (
+                          <button onClick={() => setExpandedResult(expandedResult === i ? null : i)} className={`text-[10px] font-bold ${theme.primaryText}`}>
+                            {expandedResult === i ? 'Hide' : 'View'}
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                    {expandedResult === i && r.details.length > 0 && (
+                      <tr>
+                        <td colSpan={9} className={`p-3 ${theme.secondaryBg}`}>
+                          <p className={`text-[10px] font-bold ${theme.highlight} mb-2`}>Question-wise Analysis:</p>
+                          <div className="space-y-1.5">
+                            {r.details.map((d, j) => (
+                              <div key={j} className={`flex items-center gap-3 p-2 rounded-lg ${theme.cardBg}`}>
+                                {d.correct ? <CheckCircle size={12} className="text-emerald-500" /> : <XCircle size={12} className="text-red-500" />}
+                                <span className={`text-[10px] ${theme.highlight} flex-1`}>{d.q}</span>
+                                <span className={`text-[10px] ${d.correct ? 'text-emerald-600' : 'text-red-600'} font-bold`}>Your: {d.yourAnswer}</span>
+                                {!d.correct && <span className="text-[10px] text-emerald-600 font-bold">Correct: {d.correctAnswer}</span>}
+                              </div>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Performance Trend */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+            <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Performance Trend (Last 3 Exams)</h3>
+            <div className="flex items-end gap-4 justify-center h-32">
+              {[
+                { label: 'UT 1', pct: 88 },
+                { label: 'UT 2', pct: 82 },
+                { label: 'Half Yearly', pct: 85 },
+              ].map((bar, i) => (
+                <div key={i} className="flex flex-col items-center gap-1">
+                  <span className={`text-[10px] font-bold ${theme.highlight}`}>{bar.pct}%</span>
+                  <div
+                    className={`w-12 rounded-t-lg ${i === 0 ? 'bg-blue-500' : i === 1 ? 'bg-amber-500' : 'bg-emerald-500'}`}
+                    style={{ height: `${bar.pct}%` }}
+                  />
+                  <span className={`text-[10px] ${theme.iconColor}`}>{bar.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── TAB: Practice ── */}
+      {examTab === 'Practice' && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-1">
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>Practice Tests</h3>
+            <InfoTip tip="Practice anytime to prepare for exams" />
+            <MobileBadge />
+          </div>
+          <p className={`text-[10px] text-amber-600`}>Practice tests are ungraded and allow unlimited attempts</p>
+          <div className="space-y-3">
+            {practiceTests.map(pt => (
+              <div key={pt.id} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5 flex items-center justify-between`}>
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-purple-500 flex items-center justify-center text-white">
+                    <BookOpenCheck size={16} />
+                  </div>
+                  <div>
+                    <p className={`text-sm font-bold ${theme.highlight}`}>{pt.name}</p>
+                    <div className="flex items-center gap-3 mt-0.5">
+                      <span className={`text-[10px] ${theme.iconColor}`}>{pt.questions} questions</span>
+                      <span className={`text-[10px] ${theme.iconColor}`}>Unlimited attempts</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="text-right">
+                    <p className={`text-[10px] ${theme.iconColor}`}>Attempts: {pt.attempts}</p>
+                    <p className={`text-[10px] font-bold ${theme.highlight}`}>Best Score: {pt.bestScore}%</p>
+                  </div>
+                  <button
+                    onClick={() => alert('Start Practice Test (Blueprint demo)')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl ${theme.primary} text-white text-xs font-bold`}
+                  >
+                    <Play size={12} /> Start Practice
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { type Theme } from '@/lib/themes';
 import { StatCard, StatusBadge, TabBar, DataTable } from '@/components/shared';
 import { mockEnquiries } from '@/lib/mock-data';
-import { UserPlus, Clock, CheckCircle, TrendingUp, Plus, Eye, X, UserCheck, Download, Trash2, Archive, Info, Gift } from 'lucide-react';
+import { UserPlus, Clock, CheckCircle, TrendingUp, Plus, Eye, X, UserCheck, Download, Trash2, Archive, Info, Gift, Calculator, Award, Smartphone } from 'lucide-react';
 import { FormField, InputField, SelectField, TextAreaField } from '../_components/FormHelpers';
 
 export default function EnquiriesModule({ theme }: { theme: Theme }) {
@@ -170,6 +170,82 @@ export default function EnquiriesModule({ theme }: { theme: Theme }) {
             </div>
           </div>
           <p className={`text-[10px] ${theme.iconColor} italic`}>Referral types: Parent, Staff, Alumni, Advertisement</p>
+
+          {/* ── Fee Estimation Calculator ── */}
+          <div className={`p-4 rounded-xl border ${theme.border} ${theme.secondaryBg} space-y-3`}>
+            <div className="flex items-center gap-2">
+              <Calculator size={16} className={theme.primaryText} />
+              <h4 className={`text-sm font-bold ${theme.highlight}`}>Fee Estimate</h4>
+              <span title="Show parents estimated annual fee during admission enquiry"><Info size={14} className={`${theme.iconColor} cursor-help`} /></span>
+            </div>
+            <p className={`text-[10px] ${theme.iconColor}`}>Auto-populated based on class applied</p>
+            <div className="space-y-1.5">
+              {[
+                { item: 'Tuition Fee', amount: '35,000' },
+                { item: 'Activity Fee', amount: '5,000' },
+                { item: 'Transport (if opted)', amount: '18,000' },
+                { item: 'Uniform', amount: '3,500' },
+              ].map((f, i) => (
+                <div key={i} className="flex items-center justify-between">
+                  <span className={`text-xs ${theme.iconColor}`}>{f.item}</span>
+                  <span className={`text-xs font-bold ${theme.highlight}`}>{'\u20B9'}{f.amount}</span>
+                </div>
+              ))}
+              <div className={`flex items-center justify-between pt-2 border-t ${theme.border}`}>
+                <span className={`text-xs font-bold ${theme.highlight}`}>Gross Total</span>
+                <span className={`text-xs font-bold ${theme.primaryText}`}>{'\u20B9'}61,500</span>
+              </div>
+            </div>
+            <div className={`p-3 rounded-xl ${theme.cardBg} border ${theme.border} space-y-1.5`}>
+              <p className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Applicable Concessions</p>
+              <div className="flex items-center justify-between">
+                <span className={`text-xs ${theme.iconColor}`}>EWS (if eligible)</span>
+                <span className="text-xs font-bold text-red-600">-{'\u20B9'}35,000</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className={`text-xs ${theme.iconColor}`}>Sibling (if applicable)</span>
+                <span className="text-xs font-bold text-red-600">-{'\u20B9'}3,500</span>
+              </div>
+            </div>
+            <div className={`flex items-center justify-between p-3 rounded-xl bg-emerald-50 border border-emerald-200`}>
+              <span className="text-sm font-bold text-emerald-800">Net Estimated Fee</span>
+              <span className="text-sm font-bold text-emerald-800">{'\u20B9'}23,000</span>
+            </div>
+            <button onClick={() => window.alert('Fee estimate shared with parent via WhatsApp/Email. (Blueprint demo)')} className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-1`}>
+              <Smartphone size={12} /> Share with Parent
+            </button>
+            <p className={`text-[10px] ${theme.iconColor} flex items-center gap-1`}>
+              <Smartphone size={10} /> Sends to parent WhatsApp/email
+            </p>
+          </div>
+
+          {/* ── Available Scholarships ── */}
+          <div className={`p-4 rounded-xl border ${theme.border} ${theme.secondaryBg} space-y-3`}>
+            <div className="flex items-center gap-2">
+              <Award size={16} className="text-amber-500" />
+              <h4 className={`text-sm font-bold ${theme.highlight}`}>Available Scholarships</h4>
+              <span title="Show applicable scholarships during admission process"><Info size={14} className={`${theme.iconColor} cursor-help`} /></span>
+            </div>
+            <div className="space-y-2">
+              {[
+                { name: 'Merit Scholarship', criteria: 'Top 10% in entrance test', amount: '\u20B95,000 / year' },
+                { name: 'EWS Scholarship', criteria: 'Family income < \u20B93L / year', amount: '100% fee waiver' },
+                { name: 'Sports Scholarship', criteria: 'State-level player', amount: '\u20B910,000 / year' },
+              ].map((s, i) => (
+                <div key={i} className={`p-3 rounded-xl ${theme.cardBg} border ${theme.border}`}>
+                  <div className="flex items-center justify-between">
+                    <span className={`text-xs font-bold ${theme.highlight}`}>{s.name}</span>
+                    <span className={`text-[10px] font-bold ${theme.primaryText}`}>{s.amount}</span>
+                  </div>
+                  <p className={`text-[10px] ${theme.iconColor} mt-0.5`}>{s.criteria}</p>
+                </div>
+              ))}
+            </div>
+            <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200">
+              <p className="text-xs font-bold text-emerald-800">This student may be eligible for: <span className="inline-block px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-900 text-[10px] font-bold ml-1">EWS</span></p>
+              <p className="text-[10px] text-emerald-700 mt-0.5">Based on category field in enquiry form</p>
+            </div>
+          </div>
         </div>
       )}
 

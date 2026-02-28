@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { StatCard, TabBar, StatusBadge, DataTable } from '@/components/shared';
 import { type Theme } from '@/lib/themes';
-import { Award, TrendingUp, Star, BarChart3, FileText, GraduationCap, Info, ClipboardList, BookOpen, UserPlus, Sparkles, Heart, ToggleRight } from 'lucide-react';
+import { Award, TrendingUp, Star, BarChart3, FileText, GraduationCap, Info, ClipboardList, BookOpen, UserPlus, Sparkles, Heart, ToggleRight, CheckCircle, AlertTriangle, CalendarCheck, Smartphone, Send } from 'lucide-react';
 
 export default function AcademicsModule({ theme }: { theme: Theme }) {
   const [tab, setTab] = useState('Overview');
@@ -443,6 +443,179 @@ export default function AcademicsModule({ theme }: { theme: Theme }) {
                 </tbody>
               </table>
             </div>
+          </div>
+
+          {/* ── Mark Entry Compliance Report ── */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+            <div className="flex items-center gap-2 mb-3">
+              <BarChart3 size={16} className={theme.primaryText} />
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>Mark Entry Compliance</h3>
+              <span title="Track teacher-wise mark entry completion across all exams"><Info size={14} className={`${theme.iconColor} cursor-help`} /></span>
+              <span title="Available on mobile"><Smartphone size={14} className={theme.iconColor} /></span>
+            </div>
+            {/* Per-exam progress */}
+            <div className="grid grid-cols-3 gap-3 mb-4">
+              {[
+                { exam: 'Term 1', pct: 100, icon: '\u2705' },
+                { exam: 'Term 2', pct: 78, icon: '\u23F3' },
+                { exam: 'Annual', pct: 0, icon: '\u25CB' },
+              ].map((e, i) => (
+                <div key={i} className={`p-3 rounded-xl ${theme.secondaryBg} text-center`}>
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{e.exam}</p>
+                  <p className={`text-lg font-bold ${e.pct === 100 ? 'text-emerald-600' : e.pct > 0 ? 'text-amber-600' : theme.iconColor}`}>{e.pct}% {e.icon}</p>
+                </div>
+              ))}
+            </div>
+            {/* Per-teacher drill-down */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className={`border-b ${theme.border}`}>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Teacher</th>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Subjects</th>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Classes</th>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Entry Status</th>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Last Updated</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { teacher: 'Mr. Sharma', subjects: 'Math', classes: '8A, 9A, 10A', status: 'Complete', updated: 'Feb 28' },
+                    { teacher: 'Mrs. Iyer', subjects: 'Science', classes: '10A, 10B', status: 'Complete', updated: 'Feb 27' },
+                    { teacher: 'Ms. D\'Souza', subjects: 'English', classes: '9A, 9B', status: 'Complete', updated: 'Feb 28' },
+                    { teacher: 'Mrs. Mishra', subjects: 'Hindi', classes: '6A, 7A, 8A', status: 'Complete', updated: 'Feb 26' },
+                    { teacher: 'Mr. Patil', subjects: 'Physical Ed.', classes: '6-10', status: 'In Progress', updated: 'Mar 1' },
+                    { teacher: 'Mrs. Kulkarni', subjects: 'Art', classes: '6-10', status: 'Not Started', updated: '--' },
+                  ].map((t, i) => (
+                    <tr key={i} className={`border-b ${theme.border} ${theme.buttonHover}`}>
+                      <td className={`py-2 px-2 font-bold ${theme.highlight}`}>{t.teacher}</td>
+                      <td className={`py-2 px-2 ${theme.iconColor}`}>{t.subjects}</td>
+                      <td className={`py-2 px-2 ${theme.iconColor}`}>{t.classes}</td>
+                      <td className="py-2 px-2">
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                          t.status === 'Complete' ? 'bg-emerald-100 text-emerald-700' :
+                          t.status === 'In Progress' ? 'bg-amber-100 text-amber-700' :
+                          'bg-red-100 text-red-700'
+                        }`}>{t.status}</span>
+                      </td>
+                      <td className={`py-2 px-2 ${theme.iconColor}`}>{t.updated}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <button onClick={() => window.alert('Reminders sent to incomplete teachers. (Blueprint demo)')} className={`mt-3 px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-1`}>
+              <Send size={12} /> Send Reminder
+            </button>
+          </div>
+
+          {/* ── Grace Marks Management ── */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+            <div className="flex items-center gap-2 mb-3">
+              <AlertTriangle size={16} className="text-amber-500" />
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>Grace Marks Management</h3>
+              <span title="Review and approve grace marks requests from teachers"><Info size={14} className={`${theme.iconColor} cursor-help`} /></span>
+            </div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-2`}>Pending Grace Marks Requests</p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className={`border-b ${theme.border}`}>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Student</th>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Subject</th>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Current</th>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Grace</th>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>New Total</th>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Requested By</th>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Status</th>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { student: 'Rahul Joshi', subject: 'Mathematics', current: 32, grace: 3, newTotal: 35, requestedBy: 'Mr. Sharma', status: 'Pending' },
+                    { student: 'Sneha Kulkarni', subject: 'Hindi', current: 28, grace: 5, newTotal: 33, requestedBy: 'Mrs. Mishra', status: 'Pending' },
+                    { student: 'Arjun Kumar', subject: 'Science', current: 30, grace: 4, newTotal: 34, requestedBy: 'Mrs. Iyer', status: 'Pending' },
+                  ].map((g, i) => (
+                    <tr key={i} className={`border-b ${theme.border} ${theme.buttonHover}`}>
+                      <td className={`py-2 px-2 font-bold ${theme.highlight}`}>{g.student}</td>
+                      <td className={`py-2 px-2 ${theme.iconColor}`}>{g.subject}</td>
+                      <td className={`py-2 px-2 font-bold text-red-600`}>{g.current}</td>
+                      <td className={`py-2 px-2 font-bold text-amber-600`}>+{g.grace}</td>
+                      <td className={`py-2 px-2 font-bold text-emerald-600`}>{g.newTotal}</td>
+                      <td className={`py-2 px-2 ${theme.iconColor}`}>{g.requestedBy}</td>
+                      <td className="py-2 px-2">
+                        <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-100 text-amber-700">Pending Approval</span>
+                      </td>
+                      <td className="py-2 px-2">
+                        <div className="flex gap-1">
+                          <button onClick={() => window.alert('Grace marks approved for ' + g.student + '. (Blueprint demo)')} className="px-2 py-1 rounded-lg bg-emerald-100 text-emerald-700 text-[10px] font-bold">Approve</button>
+                          <button onClick={() => window.alert('Grace marks rejected for ' + g.student + '. (Blueprint demo)')} className="px-2 py-1 rounded-lg bg-red-100 text-red-600 text-[10px] font-bold">Reject</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className={`mt-3 p-3 rounded-xl ${theme.secondaryBg} flex items-start gap-2`}>
+              <Info size={12} className={`${theme.iconColor} shrink-0 mt-0.5`} />
+              <p className={`text-[10px] ${theme.iconColor}`}>Policy: Max grace marks: 5 per subject (as per school policy)</p>
+            </div>
+          </div>
+
+          {/* ── Re-exam / Supplementary Tracking ── */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+            <div className="flex items-center gap-2 mb-3">
+              <CalendarCheck size={16} className="text-blue-500" />
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>Supplementary Exam Schedule</h3>
+              <span title="Track students who need re-examination and their supplementary results"><Info size={14} className={`${theme.iconColor} cursor-help`} /></span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className={`border-b ${theme.border}`}>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Student</th>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Subject</th>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Failed Marks</th>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Re-exam Date</th>
+                    <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { student: 'Rahul Joshi', subject: 'Mathematics', marks: 28, date: 'Mar 15, 2026', status: 'Scheduled' },
+                    { student: 'Kiran Verma', subject: 'Science', marks: 30, date: 'Mar 15, 2026', status: 'Scheduled' },
+                    { student: 'Sahil Gupta', subject: 'Hindi', marks: 25, date: 'Mar 18, 2026', status: 'Scheduled' },
+                    { student: 'Meena Singh', subject: 'Mathematics', marks: 32, date: 'Feb 20, 2026', status: 'Passed' },
+                  ].map((r, i) => (
+                    <tr key={i} className={`border-b ${theme.border} ${theme.buttonHover}`}>
+                      <td className={`py-2 px-2 font-bold ${theme.highlight}`}>{r.student}</td>
+                      <td className={`py-2 px-2 ${theme.iconColor}`}>{r.subject}</td>
+                      <td className="py-2 px-2 font-bold text-red-600">{r.marks}/100</td>
+                      <td className={`py-2 px-2 ${theme.iconColor}`}>{r.date}</td>
+                      <td className="py-2 px-2">
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                          r.status === 'Scheduled' ? 'bg-blue-100 text-blue-700' :
+                          r.status === 'Passed' ? 'bg-emerald-100 text-emerald-700' :
+                          r.status === 'Failed' ? 'bg-red-100 text-red-700' :
+                          'bg-gray-100 text-gray-600'
+                        }`}>{r.status}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <button onClick={() => window.alert('Schedule re-exam dialog... (Blueprint demo)')} className={`mt-3 px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-1`}>
+              <CalendarCheck size={12} /> Schedule Re-exam
+            </button>
+          </div>
+
+          {/* Cross-module connectivity banner */}
+          <div className={`px-4 py-2.5 rounded-xl border ${theme.border} ${theme.secondaryBg} flex items-center gap-2`}>
+            <Info size={14} className={theme.primaryText} />
+            <p className={`text-[10px] font-bold ${theme.iconColor}`}>{'\u2192'} Mark entry data from Teacher Gradebook. Grace marks require Principal approval.</p>
           </div>
         </div>
       )}

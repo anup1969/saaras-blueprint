@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { TabBar, SearchBar } from '@/components/shared';
 import { type Theme } from '@/lib/themes';
 import {
-  Plus, X, Search, Eye, Edit, Send, Notebook
+  Plus, X, Search, Eye, Edit, Send, Notebook, Info, Bell
 } from 'lucide-react';
 
 // ─── MOCK DATA ──────────────────────────────────────
@@ -14,12 +14,12 @@ const teacherProfile = {
 };
 
 const diaryEntries = [
-  { id: 'D001', date: '12 Feb 2026', class: '10-A', subject: 'Mathematics', message: 'Completed Ch 7 Coordinate Geometry. Homework assigned — Exercise 7.2, Q1-Q10. Students must bring graph sheets tomorrow.' },
-  { id: 'D002', date: '12 Feb 2026', class: '9-A', subject: 'Science', message: 'Light & Reflection — completed ray diagrams. Lab practical on mirrors next class. Students must bring lab coats.' },
-  { id: 'D003', date: '11 Feb 2026', class: '10-B', subject: 'Mathematics', message: 'Revised Quadratic Equations. Unit Test 3 on 15 Feb — syllabus: Ch 4 & Ch 5.' },
-  { id: 'D004', date: '11 Feb 2026', class: '6-A', subject: 'Mathematics', message: 'Fractions & Decimals practice. Weak students to attend extra class on Saturday.' },
-  { id: 'D005', date: '10 Feb 2026', class: '9-B', subject: 'Science', message: 'Chemical Reactions — completed balancing equations. Lab report due Friday.' },
-  { id: 'D006', date: '10 Feb 2026', class: '8-A', subject: 'Mathematics', message: 'Linear Equations practice complete. Chapter test next Monday.' },
+  { id: 'D001', date: '12 Feb 2026', class: '10-A', subject: 'Mathematics', message: 'Completed Ch 7 Coordinate Geometry. Homework assigned — Exercise 7.2, Q1-Q10. Students must bring graph sheets tomorrow.', readCount: 32, totalParents: 35 },
+  { id: 'D002', date: '12 Feb 2026', class: '9-A', subject: 'Science', message: 'Light & Reflection — completed ray diagrams. Lab practical on mirrors next class. Students must bring lab coats.', readCount: 30, totalParents: 35 },
+  { id: 'D003', date: '11 Feb 2026', class: '10-B', subject: 'Mathematics', message: 'Revised Quadratic Equations. Unit Test 3 on 15 Feb — syllabus: Ch 4 & Ch 5.', readCount: 38, totalParents: 40 },
+  { id: 'D004', date: '11 Feb 2026', class: '6-A', subject: 'Mathematics', message: 'Fractions & Decimals practice. Weak students to attend extra class on Saturday.', readCount: 28, totalParents: 34 },
+  { id: 'D005', date: '10 Feb 2026', class: '9-B', subject: 'Science', message: 'Chemical Reactions — completed balancing equations. Lab report due Friday.', readCount: 33, totalParents: 36 },
+  { id: 'D006', date: '10 Feb 2026', class: '8-A', subject: 'Mathematics', message: 'Linear Equations practice complete. Chapter test next Monday.', readCount: 35, totalParents: 35 },
 ];
 
 export default function DiaryModule({ theme }: { theme: Theme }) {
@@ -38,6 +38,15 @@ export default function DiaryModule({ theme }: { theme: Theme }) {
         </button>
       </div>
       <TabBar tabs={['All Entries', 'Today', 'This Week']} active={tab} onChange={setTab} theme={theme} />
+
+      {/* Parent Acknowledgement Info Banner */}
+      <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-50 border border-blue-200">
+        <Info size={14} className="text-blue-500" />
+        <p className="text-xs text-blue-700 font-medium">
+          Parents acknowledge diary entries via mobile app. Unread entries trigger auto-reminders after 24 hours
+        </p>
+        <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-bold ml-auto">Mobile</span>
+      </div>
 
       <div className="flex gap-3">
         <SearchBar placeholder="Search diary entries..." theme={theme} icon={Search} />
@@ -96,26 +105,48 @@ export default function DiaryModule({ theme }: { theme: Theme }) {
             if (tab === 'This Week') return ['10 Feb 2026', '11 Feb 2026', '12 Feb 2026'].includes(d.date);
             return true;
           })
-          .map(d => (
-          <div key={d.id} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-indigo-500 flex items-center justify-center text-white">
-                  <Notebook size={18} />
+          .map(d => {
+            const allRead = d.readCount === d.totalParents;
+            const pendingCount = d.totalParents - d.readCount;
+            return (
+              <div key={d.id} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-indigo-500 flex items-center justify-center text-white">
+                      <Notebook size={18} />
+                    </div>
+                    <div>
+                      <p className={`text-sm font-bold ${theme.highlight}`}>Class {d.class} — {d.subject}</p>
+                      <p className={`text-[10px] ${theme.iconColor}`}>{d.date} | ID: {d.id}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {/* Parent Read Status */}
+                    <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg ${allRead ? 'bg-emerald-50 border border-emerald-200' : 'bg-amber-50 border border-amber-200'}`}>
+                      <span className="text-[11px]">{allRead ? '\u2705' : '\u23F3'}</span>
+                      <span className={`text-[10px] font-bold ${allRead ? 'text-emerald-700' : 'text-amber-700'}`}>
+                        {allRead ? 'Read' : 'Read'} ({d.readCount}/{d.totalParents})
+                      </span>
+                      {pendingCount > 0 && (
+                        <span className="text-[10px] text-amber-600">| Pending: {pendingCount}</span>
+                      )}
+                    </div>
+                    {pendingCount > 0 && (
+                      <button
+                        onClick={() => alert(`Reminder sent to ${pendingCount} parents (Blueprint demo)`)}
+                        className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-amber-100 text-amber-700 text-[10px] font-bold"
+                      >
+                        <Bell size={10} /> Send Reminder
+                      </button>
+                    )}
+                    <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Edit size={12} className={theme.iconColor} /></button>
+                    <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Eye size={12} className={theme.iconColor} /></button>
+                  </div>
                 </div>
-                <div>
-                  <p className={`text-sm font-bold ${theme.highlight}`}>Class {d.class} — {d.subject}</p>
-                  <p className={`text-[10px] ${theme.iconColor}`}>{d.date} | ID: {d.id}</p>
-                </div>
+                <p className={`text-xs ${theme.iconColor} leading-relaxed`}>{d.message}</p>
               </div>
-              <div className="flex gap-1">
-                <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Edit size={12} className={theme.iconColor} /></button>
-                <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Eye size={12} className={theme.iconColor} /></button>
-              </div>
-            </div>
-            <p className={`text-xs ${theme.iconColor} leading-relaxed`}>{d.message}</p>
-          </div>
-        ))}
+            );
+          })}
       </div>
     </div>
   );

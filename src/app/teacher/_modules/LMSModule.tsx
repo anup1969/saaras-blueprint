@@ -7,7 +7,8 @@ import {
   Upload, FileText, Video, Presentation, HelpCircle, Eye,
   Search, Plus, Clock, CheckCircle, BookOpen, BarChart3,
   Send, GripVertical, Trash2, Radio, Type, ToggleLeft,
-  MonitorPlay, Play, FileDown
+  MonitorPlay, Play, FileDown, Info, Database, Calendar,
+  Zap, ArrowRight, ChevronDown, ChevronUp, Link
 } from 'lucide-react';
 
 // ─── MOCK DATA ──────────────────────────────────────
@@ -65,6 +66,28 @@ const mockQuizQuestions = [
   },
 ];
 
+// ─── QUESTION BANK MOCK DATA ────────────────────────
+
+const questionBankData = [
+  { id: 'QB001', question: 'What is the value of sin 30 degrees?', subject: 'Mathematics', chapter: 'Trigonometry', type: 'MCQ' as const, difficulty: 'Easy' as const, blooms: 'Remember' as const, tags: 'Basic, Trig' },
+  { id: 'QB002', question: 'Prove that the sum of angles of a triangle is 180 degrees.', subject: 'Mathematics', chapter: 'Geometry', type: 'Long' as const, difficulty: 'Hard' as const, blooms: 'Apply' as const, tags: 'Proof, Theorem' },
+  { id: 'QB003', question: 'The square root of 144 is 12. True or False?', subject: 'Mathematics', chapter: 'Numbers', type: 'True-False' as const, difficulty: 'Easy' as const, blooms: 'Remember' as const, tags: 'Basic' },
+  { id: 'QB004', question: 'Define photosynthesis in one sentence.', subject: 'Science', chapter: 'Biology', type: 'Short' as const, difficulty: 'Easy' as const, blooms: 'Understand' as const, tags: 'Definition' },
+  { id: 'QB005', question: 'Solve: 2x + 3 = 11. Find x.', subject: 'Mathematics', chapter: 'Algebra', type: 'Short' as const, difficulty: 'Medium' as const, blooms: 'Apply' as const, tags: 'Equations' },
+  { id: 'QB006', question: 'Which planet is known as the Red Planet?', subject: 'Science', chapter: 'Solar System', type: 'MCQ' as const, difficulty: 'Easy' as const, blooms: 'Remember' as const, tags: 'Space' },
+  { id: 'QB007', question: 'Analyze the effect of temperature on enzyme activity with a graph.', subject: 'Science', chapter: 'Biology', type: 'Long' as const, difficulty: 'Hard' as const, blooms: 'Analyze' as const, tags: 'Graph, Analysis' },
+  { id: 'QB008', question: 'What is the LCM of 12 and 18?', subject: 'Mathematics', chapter: 'Numbers', type: 'MCQ' as const, difficulty: 'Medium' as const, blooms: 'Apply' as const, tags: 'LCM, HCF' },
+];
+
+// ─── ONLINE EXAMS MOCK DATA ─────────────────────────
+
+const onlineExamsData = [
+  { id: 'EX001', title: 'Mid-Term Mathematics Quiz', subject: 'Mathematics', cls: '10-A', date: '2026-03-05', duration: '45 min', questions: 25, status: 'Draft' as const },
+  { id: 'EX002', title: 'Science Chapter Test — Light', subject: 'Science', cls: '9-A', date: '2026-03-03', duration: '30 min', questions: 20, status: 'Published' as const },
+  { id: 'EX003', title: 'Algebra Practice Test', subject: 'Mathematics', cls: '10-B', date: '2026-02-28', duration: '60 min', questions: 30, status: 'Completed' as const },
+  { id: 'EX004', title: 'Biology Unit Assessment', subject: 'Science', cls: '9-B', date: '2026-02-25', duration: '40 min', questions: 22, status: 'Graded' as const },
+];
+
 // ─── COMPONENT ──────────────────────────────────────
 
 export default function LMSModule({ theme }: { theme: Theme }) {
@@ -72,6 +95,15 @@ export default function LMSModule({ theme }: { theme: Theme }) {
   const [showUpload, setShowUpload] = useState(false);
   const [subjectFilter, setSubjectFilter] = useState('All');
   const [librarySearch, setLibrarySearch] = useState('');
+  const [showAddQuestion, setShowAddQuestion] = useState(false);
+  const [showBulkImport, setShowBulkImport] = useState(false);
+  const [showCreateExam, setShowCreateExam] = useState(false);
+  const [showSchedule, setShowSchedule] = useState<string | null>(null);
+  const [showResults, setShowResults] = useState<string | null>(null);
+  const [qbDiffFilter, setQbDiffFilter] = useState('All');
+  const [qbTypeFilter, setQbTypeFilter] = useState('All');
+  const [qbSubjectFilter, setQbSubjectFilter] = useState('All');
+  const [qbSearch, setQbSearch] = useState('');
 
   const typeIcon = (type: string) => {
     switch (type) {
@@ -97,6 +129,8 @@ export default function LMSModule({ theme }: { theme: Theme }) {
     const map: Record<string, string> = {
       Published: 'bg-emerald-100 text-emerald-700',
       Draft: 'bg-slate-100 text-slate-600',
+      Completed: 'bg-blue-100 text-blue-700',
+      Graded: 'bg-purple-100 text-purple-700',
     };
     return map[s] || 'bg-slate-100 text-slate-600';
   };
@@ -122,10 +156,47 @@ export default function LMSModule({ theme }: { theme: Theme }) {
     return map[c] || 'bg-slate-100 text-slate-600';
   };
 
+  const difficultyBadge = (d: string) => {
+    const map: Record<string, string> = {
+      Easy: 'bg-emerald-100 text-emerald-700',
+      Medium: 'bg-amber-100 text-amber-700',
+      Hard: 'bg-red-100 text-red-700',
+    };
+    return map[d] || 'bg-slate-100 text-slate-600';
+  };
+
+  const bloomsBadge = (b: string) => {
+    const map: Record<string, string> = {
+      Remember: 'bg-sky-100 text-sky-700',
+      Understand: 'bg-blue-100 text-blue-700',
+      Apply: 'bg-indigo-100 text-indigo-700',
+      Analyze: 'bg-purple-100 text-purple-700',
+    };
+    return map[b] || 'bg-slate-100 text-slate-600';
+  };
+
+  const questionTypeBadge = (t: string) => {
+    const map: Record<string, string> = {
+      MCQ: 'bg-blue-100 text-blue-700',
+      'True-False': 'bg-amber-100 text-amber-700',
+      Short: 'bg-emerald-100 text-emerald-700',
+      Long: 'bg-purple-100 text-purple-700',
+    };
+    return map[t] || 'bg-slate-100 text-slate-600';
+  };
+
   const filteredLibrary = libraryContent.filter(c => {
     const matchSearch = librarySearch === '' || c.title.toLowerCase().includes(librarySearch.toLowerCase());
     const matchSubject = subjectFilter === 'All' || c.subject === subjectFilter;
     return matchSearch && matchSubject;
+  });
+
+  const filteredQuestions = questionBankData.filter(q => {
+    const matchSearch = qbSearch === '' || q.question.toLowerCase().includes(qbSearch.toLowerCase());
+    const matchDiff = qbDiffFilter === 'All' || q.difficulty === qbDiffFilter;
+    const matchType = qbTypeFilter === 'All' || q.type === qbTypeFilter;
+    const matchSubject = qbSubjectFilter === 'All' || q.subject === qbSubjectFilter;
+    return matchSearch && matchDiff && matchType && matchSubject;
   });
 
   return (
@@ -137,7 +208,7 @@ export default function LMSModule({ theme }: { theme: Theme }) {
         </button>
       </div>
 
-      <TabBar tabs={['My Content', 'Quiz Builder', 'Student Progress', 'Content Library']} active={section} onChange={setSection} theme={theme} />
+      <TabBar tabs={['My Content', 'Quiz Builder', 'Student Progress', 'Content Library', 'Question Bank', 'Online Exams']} active={section} onChange={setSection} theme={theme} />
 
       {/* ── TAB 1: MY CONTENT ── */}
       {section === 'My Content' && (
@@ -442,6 +513,443 @@ export default function LMSModule({ theme }: { theme: Theme }) {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── TAB 5: QUESTION BANK ── */}
+      {section === 'Question Bank' && (
+        <div className="space-y-4">
+          {/* Stats Bar */}
+          <div className={`flex items-center gap-4 px-4 py-3 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex items-center gap-2">
+              <Database size={14} className={theme.iconColor} />
+              <span className={`text-xs font-bold ${theme.highlight}`}>Total: 234</span>
+            </div>
+            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold bg-blue-100 text-blue-700`}>MCQ: 120</span>
+            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-700`}>Short: 64</span>
+            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold bg-purple-100 text-purple-700`}>Long: 50</span>
+            <div className="ml-auto flex items-center gap-2">
+              <span title="Reusable question bank across exams and quizzes. Questions tagged by Bloom's taxonomy"><Info size={14} className={theme.iconColor} /></span>
+            </div>
+          </div>
+
+          {/* Search + Filters */}
+          <div className="flex gap-3 flex-wrap items-center">
+            <div className="flex-1 relative">
+              <Search size={14} className={`absolute left-3 top-2.5 ${theme.iconColor}`} />
+              <input
+                type="text"
+                placeholder="Search questions..."
+                value={qbSearch}
+                onChange={e => setQbSearch(e.target.value)}
+                className={`w-full pl-9 pr-4 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}
+              />
+            </div>
+            <select value={qbSubjectFilter} onChange={e => setQbSubjectFilter(e.target.value)} className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight}`}>
+              <option value="All">All Subjects</option>
+              <option value="Mathematics">Mathematics</option>
+              <option value="Science">Science</option>
+            </select>
+            <select value={qbDiffFilter} onChange={e => setQbDiffFilter(e.target.value)} className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight}`}>
+              <option value="All">All Difficulty</option>
+              <option value="Easy">Easy</option>
+              <option value="Medium">Medium</option>
+              <option value="Hard">Hard</option>
+            </select>
+            <select value={qbTypeFilter} onChange={e => setQbTypeFilter(e.target.value)} className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight}`}>
+              <option value="All">All Types</option>
+              <option value="MCQ">MCQ</option>
+              <option value="True-False">True/False</option>
+              <option value="Short">Short</option>
+              <option value="Long">Long</option>
+            </select>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => { setShowAddQuestion(!showAddQuestion); setShowBulkImport(false); }}
+              className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold flex items-center gap-1`}
+            >
+              <Plus size={12} /> Add Question
+            </button>
+            <button
+              onClick={() => { setShowBulkImport(!showBulkImport); setShowAddQuestion(false); }}
+              className={`px-4 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold ${theme.iconColor} flex items-center gap-1`}
+            >
+              <Upload size={12} /> Bulk Import
+            </button>
+          </div>
+
+          {/* Add Question Form */}
+          {showAddQuestion && (
+            <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 space-y-3`}>
+              <div className="flex items-center justify-between">
+                <h3 className={`text-sm font-bold ${theme.highlight}`}>Add New Question</h3>
+                <button onClick={() => setShowAddQuestion(false)} className={`text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-2 py-1 rounded-lg`}>Close</button>
+              </div>
+              <div>
+                <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>Question Text</label>
+                <textarea rows={2} placeholder="Enter your question..." className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none resize-none`} />
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div>
+                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>Type</label>
+                  <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`}>
+                    <option>MCQ</option>
+                    <option>True/False</option>
+                    <option>Short Answer</option>
+                    <option>Long Answer</option>
+                  </select>
+                </div>
+                <div>
+                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>Difficulty</label>
+                  <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`}>
+                    <option>Easy</option>
+                    <option>Medium</option>
+                    <option>Hard</option>
+                  </select>
+                </div>
+                <div>
+                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>Subject</label>
+                  <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`}>
+                    <option>Mathematics</option>
+                    <option>Science</option>
+                    <option>English</option>
+                  </select>
+                </div>
+                <div>
+                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>Chapter</label>
+                  <input type="text" placeholder="e.g. Trigonometry" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`} />
+                </div>
+              </div>
+              {/* MCQ Options */}
+              <div>
+                <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>MCQ Options (select correct answer)</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {['Option A', 'Option B', 'Option C', 'Option D'].map((opt, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <input type="radio" name="correct" className="accent-emerald-500" defaultChecked={i === 0} />
+                      <input type="text" placeholder={opt} className={`flex-1 px-3 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>Marks</label>
+                  <input type="number" defaultValue={2} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                </div>
+                <div>
+                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>Explanation</label>
+                  <input type="text" placeholder="Why is this the correct answer?" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <button className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>Save Question</button>
+              </div>
+            </div>
+          )}
+
+          {/* Bulk Import */}
+          {showBulkImport && (
+            <div className={`${theme.cardBg} rounded-2xl border-2 border-dashed ${theme.border} p-5 space-y-3`}>
+              <div className="flex items-center justify-between">
+                <h3 className={`text-sm font-bold ${theme.highlight}`}>Bulk Import Questions</h3>
+                <button onClick={() => setShowBulkImport(false)} className={`text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-2 py-1 rounded-lg`}>Close</button>
+              </div>
+              <div className={`flex flex-col items-center justify-center py-8 rounded-xl ${theme.secondaryBg} border ${theme.border}`}>
+                <Upload size={28} className={theme.iconColor} />
+                <p className={`text-xs font-bold ${theme.highlight} mt-2`}>Drag & drop CSV file here</p>
+                <p className={`text-[10px] ${theme.iconColor} mt-1`}>Format: Question, Type, Difficulty, Subject, Chapter, Options, Correct Answer</p>
+              </div>
+              <div className="flex justify-end">
+                <button className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold flex items-center gap-1`}><Upload size={12} /> Upload CSV</button>
+              </div>
+            </div>
+          )}
+
+          {/* Question Table */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} overflow-hidden`}>
+            <table className="w-full text-sm">
+              <thead className={theme.secondaryBg}>
+                <tr>
+                  <th className={`text-left px-3 py-2.5 text-[10px] font-bold ${theme.iconColor} uppercase`}>ID</th>
+                  <th className={`text-left px-3 py-2.5 text-[10px] font-bold ${theme.iconColor} uppercase`}>Question</th>
+                  <th className={`text-left px-3 py-2.5 text-[10px] font-bold ${theme.iconColor} uppercase`}>Subject</th>
+                  <th className={`text-left px-3 py-2.5 text-[10px] font-bold ${theme.iconColor} uppercase`}>Chapter</th>
+                  <th className={`text-center px-3 py-2.5 text-[10px] font-bold ${theme.iconColor} uppercase`}>Type</th>
+                  <th className={`text-center px-3 py-2.5 text-[10px] font-bold ${theme.iconColor} uppercase`}>Difficulty</th>
+                  <th className={`text-center px-3 py-2.5 text-[10px] font-bold ${theme.iconColor} uppercase`}>Bloom{"'"}s</th>
+                  <th className={`text-left px-3 py-2.5 text-[10px] font-bold ${theme.iconColor} uppercase`}>Tags</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredQuestions.map((q, i) => (
+                  <tr key={i} className={`border-t ${theme.border}`}>
+                    <td className={`px-3 py-2 text-[10px] font-mono ${theme.primaryText}`}>{q.id}</td>
+                    <td className={`px-3 py-2 text-xs font-bold ${theme.highlight} max-w-[200px] truncate`}>{q.question}</td>
+                    <td className={`px-3 py-2 text-xs ${theme.iconColor}`}>{q.subject}</td>
+                    <td className={`px-3 py-2 text-xs ${theme.iconColor}`}>{q.chapter}</td>
+                    <td className="px-3 py-2 text-center">
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${questionTypeBadge(q.type)}`}>{q.type}</span>
+                    </td>
+                    <td className="px-3 py-2 text-center">
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${difficultyBadge(q.difficulty)}`}>{q.difficulty}</span>
+                    </td>
+                    <td className="px-3 py-2 text-center">
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${bloomsBadge(q.blooms)}`}>{q.blooms}</span>
+                    </td>
+                    <td className={`px-3 py-2 text-[10px] ${theme.iconColor}`}>{q.tags}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ── TAB 6: ONLINE EXAMS ── */}
+      {section === 'Online Exams' && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-50 border border-indigo-200">
+            <Info size={14} className="text-indigo-500" />
+            <p className="text-xs text-indigo-700 font-medium">Create and schedule online exams. Objective questions auto-graded. Results sync to Gradebook</p>
+          </div>
+
+          {/* Create Exam Button */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowCreateExam(!showCreateExam)}
+              className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}
+            >
+              <Plus size={14} /> Create Exam
+            </button>
+          </div>
+
+          {/* Create Exam Form */}
+          {showCreateExam && (
+            <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 space-y-3`}>
+              <div className="flex items-center justify-between">
+                <h3 className={`text-sm font-bold ${theme.highlight}`}>Create New Online Exam</h3>
+                <button onClick={() => setShowCreateExam(false)} className={`text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-2 py-1 rounded-lg`}>Close</button>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div>
+                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>Title</label>
+                  <input type="text" placeholder="Exam title" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                </div>
+                <div>
+                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>Subject</label>
+                  <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`}>
+                    <option>Mathematics</option>
+                    <option>Science</option>
+                    <option>English</option>
+                  </select>
+                </div>
+                <div>
+                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>Class</label>
+                  <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`}>
+                    <option>10-A</option>
+                    <option>10-B</option>
+                    <option>9-A</option>
+                    <option>9-B</option>
+                  </select>
+                </div>
+                <div>
+                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>Duration (min)</label>
+                  <input type="number" defaultValue={45} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div>
+                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>Total Marks</label>
+                  <input type="number" defaultValue={50} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                </div>
+                <div className="flex items-end gap-2 pb-1">
+                  <label className={`text-[10px] font-bold ${theme.iconColor}`}>Negative Marking:</label>
+                  <button className={`w-9 h-5 rounded-full relative transition-colors bg-gray-300`}>
+                    <div className="w-4 h-4 bg-white rounded-full absolute top-0.5 translate-x-0.5" />
+                  </button>
+                </div>
+                <div className="flex items-end">
+                  <button className={`px-3 py-2 rounded-xl ${theme.secondaryBg} text-xs font-bold ${theme.highlight} flex items-center gap-1`}>
+                    <Zap size={12} /> Auto-generate from bank
+                  </button>
+                </div>
+              </div>
+              {/* Manual Question Selection */}
+              <div>
+                <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>Select Questions Manually</label>
+                <div className={`p-3 rounded-xl ${theme.secondaryBg} border ${theme.border} space-y-1 max-h-32 overflow-y-auto`}>
+                  {questionBankData.slice(0, 5).map((q, i) => (
+                    <label key={i} className="flex items-center gap-2">
+                      <input type="checkbox" className="accent-emerald-500" defaultChecked={i < 3} />
+                      <span className={`text-xs ${theme.highlight}`}>{q.id}: {q.question.slice(0, 50)}...</span>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${questionTypeBadge(q.type)}`}>{q.type}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="flex justify-end gap-2">
+                <button onClick={() => setShowCreateExam(false)} className={`px-4 py-2 rounded-xl ${theme.secondaryBg} text-sm font-bold ${theme.iconColor}`}>Cancel</button>
+                <button className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>Save as Draft</button>
+              </div>
+            </div>
+          )}
+
+          {/* Exam Table */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} overflow-hidden`}>
+            <table className="w-full text-sm">
+              <thead className={theme.secondaryBg}>
+                <tr>
+                  <th className={`text-left px-3 py-2.5 text-[10px] font-bold ${theme.iconColor} uppercase`}>Title</th>
+                  <th className={`text-left px-3 py-2.5 text-[10px] font-bold ${theme.iconColor} uppercase`}>Subject</th>
+                  <th className={`text-center px-3 py-2.5 text-[10px] font-bold ${theme.iconColor} uppercase`}>Class</th>
+                  <th className={`text-center px-3 py-2.5 text-[10px] font-bold ${theme.iconColor} uppercase`}>Date</th>
+                  <th className={`text-center px-3 py-2.5 text-[10px] font-bold ${theme.iconColor} uppercase`}>Duration</th>
+                  <th className={`text-center px-3 py-2.5 text-[10px] font-bold ${theme.iconColor} uppercase`}>Qs</th>
+                  <th className={`text-center px-3 py-2.5 text-[10px] font-bold ${theme.iconColor} uppercase`}>Status</th>
+                  <th className={`text-center px-3 py-2.5 text-[10px] font-bold ${theme.iconColor} uppercase`}>Auto-Grade</th>
+                  <th className={`text-center px-3 py-2.5 text-[10px] font-bold ${theme.iconColor} uppercase`}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {onlineExamsData.map((exam, i) => (
+                  <React.Fragment key={i}>
+                    <tr className={`border-t ${theme.border}`}>
+                      <td className={`px-3 py-2.5`}>
+                        <span className={`text-xs font-bold ${theme.highlight}`}>{exam.title}</span>
+                        {exam.status === 'Published' && (
+                          <span className="block text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-bold mt-1 w-fit">Mobile</span>
+                        )}
+                      </td>
+                      <td className={`px-3 py-2.5 text-xs ${theme.iconColor}`}>{exam.subject}</td>
+                      <td className={`px-3 py-2.5 text-xs text-center ${theme.iconColor}`}>{exam.cls}</td>
+                      <td className={`px-3 py-2.5 text-xs text-center ${theme.iconColor}`}>{exam.date}</td>
+                      <td className={`px-3 py-2.5 text-xs text-center ${theme.iconColor}`}>{exam.duration}</td>
+                      <td className={`px-3 py-2.5 text-xs text-center font-bold ${theme.highlight}`}>{exam.questions}</td>
+                      <td className="px-3 py-2.5 text-center">
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${statusColor(exam.status)}`}>{exam.status}</span>
+                      </td>
+                      <td className="px-3 py-2.5 text-center">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-700">Objective</span>
+                      </td>
+                      <td className="px-3 py-2.5 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          {exam.status === 'Draft' && (
+                            <button className={`text-[10px] px-2 py-1 rounded-lg font-bold bg-emerald-100 text-emerald-700`}>Publish</button>
+                          )}
+                          {(exam.status === 'Draft' || exam.status === 'Published') && (
+                            <button
+                              onClick={() => setShowSchedule(showSchedule === exam.id ? null : exam.id)}
+                              className={`text-[10px] px-2 py-1 rounded-lg font-bold ${theme.secondaryBg} ${theme.iconColor} flex items-center gap-0.5`}
+                            >
+                              <Calendar size={10} /> Schedule
+                            </button>
+                          )}
+                          {(exam.status === 'Completed' || exam.status === 'Graded') && (
+                            <button
+                              onClick={() => setShowResults(showResults === exam.id ? null : exam.id)}
+                              className={`text-[10px] px-2 py-1 rounded-lg font-bold bg-blue-100 text-blue-700 flex items-center gap-0.5`}
+                            >
+                              <BarChart3 size={10} /> Results
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+
+                    {/* Schedule Inline Panel */}
+                    {showSchedule === exam.id && (
+                      <tr className={`border-t ${theme.border}`}>
+                        <td colSpan={9} className="px-4 py-3">
+                          <div className={`${theme.secondaryBg} rounded-xl p-3 space-y-2`}>
+                            <p className={`text-xs font-bold ${theme.highlight}`}>Schedule: {exam.title}</p>
+                            <div className="grid grid-cols-3 gap-3">
+                              <div>
+                                <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>Start Date/Time</label>
+                                <input type="datetime-local" className={`w-full px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs outline-none`} />
+                              </div>
+                              <div>
+                                <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>End Date/Time</label>
+                                <input type="datetime-local" className={`w-full px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs outline-none`} />
+                              </div>
+                              <div>
+                                <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>Eligible Students</label>
+                                <select className={`w-full px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`}>
+                                  <option>All Students</option>
+                                  <option>Section A only</option>
+                                  <option>Section B only</option>
+                                </select>
+                              </div>
+                            </div>
+                            <div className="flex justify-end gap-2">
+                              <button onClick={() => setShowSchedule(null)} className={`px-3 py-1.5 rounded-lg text-xs ${theme.secondaryBg} ${theme.iconColor}`}>Cancel</button>
+                              <button className={`px-3 py-1.5 ${theme.primary} text-white rounded-lg text-xs font-bold`}>Save Schedule</button>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+
+                    {/* Results Inline Panel */}
+                    {showResults === exam.id && (
+                      <tr className={`border-t ${theme.border}`}>
+                        <td colSpan={9} className="px-4 py-3">
+                          <div className={`${theme.secondaryBg} rounded-xl p-4 space-y-3`}>
+                            <div className="flex items-center justify-between">
+                              <p className={`text-xs font-bold ${theme.highlight}`}>Results: {exam.title}</p>
+                              <button onClick={() => setShowResults(null)} className={`text-xs ${theme.iconColor}`}>Close</button>
+                            </div>
+                            <div className="grid grid-cols-3 gap-3">
+                              <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-3 text-center`}>
+                                <p className={`text-lg font-bold ${theme.highlight}`}>72%</p>
+                                <p className={`text-[10px] ${theme.iconColor}`}>Class Average</p>
+                              </div>
+                              <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-3 text-center`}>
+                                <p className="text-lg font-bold text-emerald-600">88%</p>
+                                <p className={`text-[10px] ${theme.iconColor}`}>Pass Rate</p>
+                              </div>
+                              <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-3 text-center`}>
+                                <p className={`text-lg font-bold ${theme.highlight}`}>Isha Reddy</p>
+                                <p className={`text-[10px] ${theme.iconColor}`}>Topper (95%)</p>
+                              </div>
+                            </div>
+                            {/* Per-question analysis */}
+                            <div>
+                              <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-2`}>Per-Question Analysis</p>
+                              <div className="space-y-1.5">
+                                {['Q1 — sin 30', 'Q2 — Triangle angles', 'Q3 — Pythagorean', 'Q4 — Quadratic roots', 'Q5 — Circle area'].map((q, qi) => {
+                                  const pct = [92, 78, 65, 45, 88][qi];
+                                  return (
+                                    <div key={qi} className="flex items-center gap-2">
+                                      <span className={`text-[10px] w-28 ${theme.iconColor}`}>{q}</span>
+                                      <div className={`flex-1 h-2 rounded-full ${theme.cardBg} border ${theme.border} overflow-hidden`}>
+                                        <div className={`h-full rounded-full ${pct >= 70 ? 'bg-emerald-500' : pct >= 50 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${pct}%` }} />
+                                      </div>
+                                      <span className={`text-[10px] font-bold ${pct >= 70 ? 'text-emerald-600' : pct >= 50 ? 'text-amber-600' : 'text-red-600'}`}>{pct}%</span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Gradebook Sync Note */}
+          <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200">
+            <Link size={14} className="text-emerald-500" />
+            <ArrowRight size={12} className="text-emerald-400" />
+            <p className="text-xs text-emerald-700 font-medium">Results auto-sync to Gradebook module</p>
           </div>
         </div>
       )}

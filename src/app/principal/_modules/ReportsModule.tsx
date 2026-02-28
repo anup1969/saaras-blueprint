@@ -5,12 +5,16 @@ import { type Theme } from '@/lib/themes';
 import {
   Award, ClipboardCheck, IndianRupee, Briefcase, Bus,
   Download, FileText, ArrowRight, X, Monitor, TrendingUp,
-  Users, FileSpreadsheet, BarChart3, GraduationCap,
+  Users, FileSpreadsheet, BarChart3, GraduationCap, Info,
+  CalendarCheck, Smartphone, Eye,
 } from 'lucide-react';
 
 export default function ReportsModule({ theme }: { theme: Theme }) {
   const [expandedReport, setExpandedReport] = useState<string | null>(null);
   const [rankTrendExpanded, setRankTrendExpanded] = useState(false);
+  const [previewToggle, setPreviewToggle] = useState(true);
+  const [notifyToggle, setNotifyToggle] = useState(true);
+  const [scheduleDate, setScheduleDate] = useState('');
 
   // Student rank trend data (moved from DashboardHome)
   const rankTrendStudents = [
@@ -442,6 +446,215 @@ export default function ReportsModule({ theme }: { theme: Theme }) {
             </div>
           );
         })}
+      </div>
+
+      {/* ── Exam Result Publishing ── */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5 space-y-4`}>
+        <div className="flex items-center gap-2">
+          <CalendarCheck size={18} className={theme.primaryText} />
+          <h3 className={`text-sm font-bold ${theme.highlight}`}>Exam Result Publishing</h3>
+          <span title="Control when exam results go live to parents and students"><Info size={14} className={`${theme.iconColor} cursor-help`} /></span>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className={theme.secondaryBg}>
+                {['Exam Name', 'Class', 'Marks Status', 'Published Status', 'Action'].map(h => (
+                  <th key={h} className={`px-3 py-2 text-left text-[10px] font-bold ${theme.iconColor} uppercase`}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { exam: 'Term 1', cls: 'All Classes', marks: '100%', published: 'Published', canPublish: false },
+                { exam: 'Term 2', cls: 'Class 1-5', marks: '92%', published: 'Draft', canPublish: false },
+                { exam: 'Term 2', cls: 'Class 6-10', marks: '78%', published: 'Not Ready', canPublish: false },
+                { exam: 'Annual', cls: 'All Classes', marks: '0%', published: 'Upcoming', canPublish: false },
+              ].map((r, i) => (
+                <tr key={i} className={`border-t ${theme.border}`}>
+                  <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{r.exam}</td>
+                  <td className={`px-3 py-2 ${theme.iconColor}`}>{r.cls}</td>
+                  <td className={`px-3 py-2 font-bold ${r.marks === '100%' ? 'text-emerald-600' : r.marks === '0%' ? theme.iconColor : 'text-amber-600'}`}>{r.marks}</td>
+                  <td className="px-3 py-2">
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                      r.published === 'Published' ? 'bg-emerald-100 text-emerald-700' :
+                      r.published === 'Draft' ? 'bg-amber-100 text-amber-700' :
+                      r.published === 'Not Ready' ? 'bg-red-100 text-red-700' :
+                      'bg-gray-100 text-gray-600'
+                    }`}>{r.published === 'Published' ? '\u2705 ' : ''}{r.published}</span>
+                  </td>
+                  <td className="px-3 py-2">
+                    {r.marks === '100%' && r.published !== 'Published' ? (
+                      <button onClick={() => window.alert('Publishing results... (Blueprint demo)')} className={`px-2 py-1 rounded-lg ${theme.primary} text-white text-[10px] font-bold`}>Publish</button>
+                    ) : r.published === 'Published' ? (
+                      <span className={`text-[10px] ${theme.iconColor}`}>--</span>
+                    ) : (
+                      <button disabled className="px-2 py-1 rounded-lg bg-gray-100 text-gray-400 text-[10px] font-bold cursor-not-allowed">Publish</button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className={`flex items-center justify-between p-3 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex items-center gap-2">
+              <Eye size={14} className={theme.iconColor} />
+              <span className={`text-xs font-bold ${theme.highlight}`}>Preview before publish</span>
+            </div>
+            <button onClick={() => setPreviewToggle(!previewToggle)} className={`w-9 h-5 rounded-full relative transition-colors ${previewToggle ? theme.primary : 'bg-gray-300'}`}>
+              <div className={`w-4 h-4 bg-white rounded-full absolute top-0.5 transition-transform ${previewToggle ? 'translate-x-4' : 'translate-x-0.5'}`} />
+            </button>
+          </div>
+          <div className={`flex items-center justify-between p-3 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex items-center gap-2">
+              <Smartphone size={14} className={theme.iconColor} />
+              <span className={`text-xs font-bold ${theme.highlight}`}>Notify parents on publish</span>
+            </div>
+            <button onClick={() => setNotifyToggle(!notifyToggle)} className={`w-9 h-5 rounded-full relative transition-colors ${notifyToggle ? theme.primary : 'bg-gray-300'}`}>
+              <div className={`w-4 h-4 bg-white rounded-full absolute top-0.5 transition-transform ${notifyToggle ? 'translate-x-4' : 'translate-x-0.5'}`} />
+            </button>
+          </div>
+          <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+            <label className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1 block`}>Scheduled publish</label>
+            <input type="date" value={scheduleDate} onChange={e => setScheduleDate(e.target.value)} className={`w-full px-2 py-1 rounded-lg text-xs border ${theme.border} ${theme.inputBg} ${theme.highlight}`} />
+          </div>
+        </div>
+        <p className={`text-[10px] ${theme.iconColor} flex items-center gap-1`}>
+          <Smartphone size={10} /> Push + SMS + Email notification to parents when results are published
+        </p>
+      </div>
+
+      {/* ── Fee Collection: Year-over-Year ── */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5 space-y-4`}>
+        <div className="flex items-center gap-2">
+          <IndianRupee size={18} className="text-emerald-500" />
+          <h3 className={`text-sm font-bold ${theme.highlight}`}>Fee Collection: Year-over-Year</h3>
+          <span title="Compare fee collection trends across academic years"><Info size={14} className={`${theme.iconColor} cursor-help`} /></span>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className={theme.secondaryBg}>
+                {['Category', '2024-25', '2025-26', 'Change %'].map(h => (
+                  <th key={h} className={`px-3 py-2 text-left text-[10px] font-bold ${theme.iconColor} uppercase`}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { cat: 'Tuition', prev: '\u20B91.1 Cr', curr: '\u20B91.2 Cr', pct: '+9.1%', up: true },
+                { cat: 'Transport', prev: '\u20B915L', curr: '\u20B918L', pct: '+20%', up: true },
+                { cat: 'Activities', prev: '\u20B94L', curr: '\u20B95L', pct: '+25%', up: true },
+              ].map((r, i) => (
+                <tr key={i} className={`border-t ${theme.border}`}>
+                  <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{r.cat}</td>
+                  <td className={`px-3 py-2 ${theme.iconColor}`}>{r.prev}</td>
+                  <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{r.curr}</td>
+                  <td className={`px-3 py-2 font-bold ${r.up ? 'text-emerald-600' : 'text-red-600'}`}>{r.up ? '\u2191' : '\u2193'} {r.pct}</td>
+                </tr>
+              ))}
+              <tr className={`border-t-2 ${theme.border}`}>
+                <td className={`px-3 py-2 font-bold ${theme.highlight}`}>Total</td>
+                <td className={`px-3 py-2 font-bold ${theme.iconColor}`}>{'\u20B9'}1.34 Cr</td>
+                <td className={`px-3 py-2 font-bold ${theme.primaryText}`}>{'\u20B9'}1.48 Cr</td>
+                <td className="px-3 py-2 font-bold text-emerald-600">{'\u2191'} +10.4%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* ── Board Exam Result Analysis ── */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5 space-y-4`}>
+        <div className="flex items-center gap-2">
+          <GraduationCap size={18} className="text-purple-500" />
+          <h3 className={`text-sm font-bold ${theme.highlight}`}>Board Exam Result Analysis</h3>
+          <span title="Compare school performance against state and national board averages"><Info size={14} className={`${theme.iconColor} cursor-help`} /></span>
+        </div>
+        {/* School vs Board Average */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className={`p-3 rounded-xl ${theme.secondaryBg} text-center`}>
+            <p className="text-lg font-bold text-purple-600">82.4%</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>School Average</p>
+          </div>
+          <div className={`p-3 rounded-xl ${theme.secondaryBg} text-center`}>
+            <p className="text-lg font-bold text-blue-600">68.2%</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>State Average</p>
+          </div>
+          <div className={`p-3 rounded-xl ${theme.secondaryBg} text-center`}>
+            <p className="text-lg font-bold text-amber-600">71.5%</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>National Average</p>
+          </div>
+        </div>
+        {/* Subject-wise comparison */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className={theme.secondaryBg}>
+                {['Subject', 'School %', 'Board Avg %', 'Difference'].map(h => (
+                  <th key={h} className={`px-3 py-2 text-left text-[10px] font-bold ${theme.iconColor} uppercase`}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { sub: 'Mathematics', school: 78, board: 62 },
+                { sub: 'Science', school: 85, board: 65 },
+                { sub: 'English', school: 88, board: 72 },
+              ].map((r, i) => (
+                <tr key={i} className={`border-t ${theme.border}`}>
+                  <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{r.sub}</td>
+                  <td className={`px-3 py-2 font-bold text-emerald-600`}>{r.school}%</td>
+                  <td className={`px-3 py-2 ${theme.iconColor}`}>{r.board}%</td>
+                  <td className="px-3 py-2 font-bold text-emerald-600">+{r.school - r.board}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {/* Toppers */}
+        <div>
+          <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-2`}>Top Performers</p>
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { name: 'Ananya Sharma', marks: '97.4%', rank: 'School Rank #1' },
+              { name: 'Vivaan Mehta', marks: '96.8%', rank: 'School Rank #2' },
+              { name: 'Diya Reddy', marks: '95.2%', rank: 'School Rank #3' },
+            ].map((t, i) => (
+              <div key={i} className={`p-3 rounded-xl ${theme.secondaryBg} text-center`}>
+                <p className={`text-xs font-bold ${theme.highlight}`}>{t.name}</p>
+                <p className="text-sm font-bold text-purple-600">{t.marks}</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>{t.rank}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Pass Rate */}
+        <div className={`flex items-center justify-between p-3 rounded-xl ${theme.secondaryBg}`}>
+          <div>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Pass Rate</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>School vs State</p>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="text-center">
+              <p className="text-sm font-bold text-emerald-600">98.5%</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>School</p>
+            </div>
+            <span className={`text-xs ${theme.iconColor}`}>vs</span>
+            <div className="text-center">
+              <p className="text-sm font-bold text-blue-600">91.2%</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>State</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Cross-module connectivity banner */}
+      <div className={`px-4 py-2.5 rounded-xl border ${theme.border} ${theme.secondaryBg} flex items-center gap-2`}>
+        <Info size={14} className={theme.primaryText} />
+        <p className={`text-[10px] font-bold ${theme.iconColor}`}>{'\u2192'} Connected: ExamConfig (SSA) {'\u2192'} Gradebook (Teacher) {'\u2192'} Results (Student/Parent) {'\u2192'} Reports (Principal)</p>
       </div>
 
       {/* Report Generation Summary */}

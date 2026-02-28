@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import { StatCard, TabBar, DataTable } from '@/components/shared';
 import { type Theme } from '@/lib/themes';
 import {
-  Check, Download, Star, CheckCircle, AlertTriangle, TrendingUp
+  Check, Download, Star, CheckCircle, AlertTriangle, TrendingUp,
+  Info, Upload, History, Lock
 } from 'lucide-react';
 
 // ─── MOCK DATA ──────────────────────────────────────
@@ -26,10 +27,49 @@ const gradebookStudents = [
   { roll: 10, name: 'Pooja Sharma', ut1: 19, ut2: 19, halfYearly: 80, ut3: 19, annual: 0 },
 ];
 
+const skillColumns = ['Critical Thinking', 'Problem Solving', 'Creativity', 'Communication', 'Collaboration'];
+const skillGrades: Record<string, Record<string, string>> = {
+  'Aarav Mehta':       { 'Critical Thinking': 'A', 'Problem Solving': 'B', 'Creativity': 'A', 'Communication': 'B', 'Collaboration': 'A' },
+  'Ananya Iyer':       { 'Critical Thinking': 'A', 'Problem Solving': 'A', 'Creativity': 'B', 'Communication': 'A', 'Collaboration': 'A' },
+  'Arjun Nair':        { 'Critical Thinking': 'C', 'Problem Solving': 'C', 'Creativity': 'B', 'Communication': 'C', 'Collaboration': 'B' },
+  'Diya Kulkarni':     { 'Critical Thinking': 'A', 'Problem Solving': 'B', 'Creativity': 'A', 'Communication': 'A', 'Collaboration': 'B' },
+  'Harsh Patel':       { 'Critical Thinking': 'D', 'Problem Solving': 'C', 'Creativity': 'C', 'Communication': 'D', 'Collaboration': 'C' },
+  'Isha Reddy':        { 'Critical Thinking': 'A', 'Problem Solving': 'A', 'Creativity': 'A', 'Communication': 'A', 'Collaboration': 'A' },
+  'Karan Singh':       { 'Critical Thinking': 'B', 'Problem Solving': 'B', 'Creativity': 'C', 'Communication': 'B', 'Collaboration': 'B' },
+  'Meera Joshi':       { 'Critical Thinking': 'B', 'Problem Solving': 'A', 'Creativity': 'B', 'Communication': 'B', 'Collaboration': 'A' },
+  'Nikhil Verma':      { 'Critical Thinking': 'D', 'Problem Solving': 'D', 'Creativity': 'C', 'Communication': 'D', 'Collaboration': 'D' },
+  'Pooja Sharma':      { 'Critical Thinking': 'A', 'Problem Solving': 'A', 'Creativity': 'B', 'Communication': 'A', 'Collaboration': 'A' },
+};
+
+const activityData = [
+  { name: 'Science Project', maxMarks: 20, scores: [18, 20, 14, 19, 12, 20, 16, 17, 9, 19] },
+  { name: 'Oral Presentation', maxMarks: 10, scores: [8, 9, 6, 9, 5, 10, 7, 8, 4, 9] },
+  { name: 'Lab Work', maxMarks: 15, scores: [13, 14, 10, 13, 8, 15, 12, 13, 7, 14] },
+  { name: 'Group Discussion', maxMarks: 10, scores: [9, 8, 7, 9, 6, 10, 8, 9, 5, 8] },
+];
+
+const auditLogEntries = [
+  { timestamp: '2026-02-28 14:32', teacher: 'Mrs. Sharma', student: 'Aarav Mehta', subject: 'Mathematics', oldMark: 72, newMark: 75, reason: 'Revaluation — Q4 partial marks' },
+  { timestamp: '2026-02-27 10:15', teacher: 'Mrs. Sharma', student: 'Harsh Patel', subject: 'Mathematics', oldMark: 52, newMark: 55, reason: 'Grace marks applied' },
+  { timestamp: '2026-02-26 16:45', teacher: 'Mr. Verma', student: 'Nikhil Verma', subject: 'Science', oldMark: 38, newMark: 42, reason: 'Recount — answer sheet page missed' },
+  { timestamp: '2026-02-25 09:30', teacher: 'Mrs. Sharma', student: 'Diya Kulkarni', subject: 'Mathematics', oldMark: 78, newMark: 80, reason: 'Correction — Q7 diagram marks' },
+  { timestamp: '2026-02-24 11:00', teacher: 'Mr. Desai', student: 'Karan Singh', subject: 'English', oldMark: 65, newMark: 68, reason: 'Moderation — class average adjustment' },
+];
+
+const importPreviewRows = [
+  { student: 'Aarav Mehta', subject: 'Mathematics', marks: 78, status: 'valid' as const },
+  { student: 'Ananya Iyer', subject: 'Mathematics', marks: 85, status: 'valid' as const },
+  { student: 'Unknown Student', subject: 'Mathematics', marks: 92, status: 'error' as const },
+];
+
 export default function GradebookModule({ theme }: { theme: Theme }) {
   const [selectedClass, setSelectedClass] = useState('10-A');
   const [selectedExam, setSelectedExam] = useState('Half Yearly');
   const [tab, setTab] = useState('Enter Marks');
+  const [showActivities, setShowActivities] = useState(false);
+  const [showImport, setShowImport] = useState(false);
+  const [showAuditLog, setShowAuditLog] = useState(false);
+  const [marksLocked] = useState(true);
 
   const maxMarks: Record<string, number> = { 'UT-1': 20, 'UT-2': 20, 'Half Yearly': 100, 'UT-3': 20, 'Annual': 100 };
   const currentMax = maxMarks[selectedExam] || 100;
@@ -45,16 +85,34 @@ export default function GradebookModule({ theme }: { theme: Theme }) {
     }
   };
 
+  const skillGradeBadge = (grade: string) => {
+    const colors: Record<string, string> = {
+      A: 'bg-emerald-100 text-emerald-700',
+      B: 'bg-blue-100 text-blue-700',
+      C: 'bg-amber-100 text-amber-700',
+      D: 'bg-red-100 text-red-700',
+    };
+    return colors[grade] || 'bg-slate-100 text-slate-600';
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className={`text-2xl font-bold ${theme.highlight}`}>Gradebook</h1>
         <div className="flex gap-2">
+          {/* Audit Log Button */}
+          <button
+            onClick={() => setShowAuditLog(!showAuditLog)}
+            className={`px-4 py-2.5 rounded-xl border ${theme.border} ${theme.cardBg} text-sm font-bold ${theme.iconColor} flex items-center gap-1`}
+          >
+            <History size={14} /> Audit Log
+          </button>
           <button className={`px-4 py-2.5 rounded-xl border ${theme.border} ${theme.cardBg} text-sm font-bold ${theme.iconColor} flex items-center gap-1`}><Download size={14} /> Export</button>
           <button className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}><Check size={14} /> Save Marks</button>
         </div>
       </div>
-      <TabBar tabs={['Enter Marks', 'Overview', 'Analytics']} active={tab} onChange={setTab} theme={theme} />
+
+      <TabBar tabs={['Enter Marks', 'Skills', 'Overview', 'Analytics']} active={tab} onChange={setTab} theme={theme} />
 
       <div className="flex gap-3 flex-wrap">
         <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg}`}>
@@ -73,67 +131,295 @@ export default function GradebookModule({ theme }: { theme: Theme }) {
           <span className={`text-xs font-bold ${theme.iconColor}`}>Max Marks:</span>
           <span className={`text-xs font-bold ${theme.highlight}`}>{currentMax}</span>
         </div>
+        {/* Import Marks Button */}
+        {(tab === 'Enter Marks') && (
+          <button
+            onClick={() => setShowImport(!showImport)}
+            className={`flex items-center gap-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold ${theme.iconColor}`}
+          >
+            <Upload size={14} /> Import Marks
+            <span title="Upload marks from Excel instead of manual entry"><Info size={14} className={`${theme.iconColor} ml-1`} /></span>
+          </button>
+        )}
       </div>
 
-      {tab === 'Enter Marks' && (
-        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} overflow-hidden`}>
-          <table className="w-full text-sm">
-            <thead className={theme.secondaryBg}>
-              <tr>
-                <th className={`text-left px-4 py-3 text-xs font-bold ${theme.iconColor} uppercase`}>Roll</th>
-                <th className={`text-left px-4 py-3 text-xs font-bold ${theme.iconColor} uppercase`}>Student Name</th>
-                <th className={`text-center px-4 py-3 text-xs font-bold ${theme.iconColor} uppercase`}>Marks ({currentMax})</th>
-                <th className={`text-center px-4 py-3 text-xs font-bold ${theme.iconColor} uppercase`}>%</th>
-                <th className={`text-center px-4 py-3 text-xs font-bold ${theme.iconColor} uppercase`}>Grade</th>
-              </tr>
-            </thead>
-            <tbody>
-              {gradebookStudents.map(s => {
-                const marks = getMarks(s);
-                const pct = currentMax > 0 ? Math.round((marks / currentMax) * 100) : 0;
-                const grade = pct >= 90 ? 'A+' : pct >= 80 ? 'A' : pct >= 70 ? 'B+' : pct >= 60 ? 'B' : pct >= 50 ? 'C' : pct >= 33 ? 'D' : 'F';
-                return (
-                  <tr key={s.roll} className={`border-t ${theme.border}`}>
-                    <td className={`px-4 py-2 text-xs ${theme.iconColor}`}>{s.roll}</td>
-                    <td className={`px-4 py-2 text-xs font-bold ${theme.highlight}`}>{s.name}</td>
-                    <td className="px-4 py-2 text-center">
-                      <input
-                        type="number"
-                        defaultValue={marks}
-                        min={0}
-                        max={currentMax}
-                        className={`w-16 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-sm text-center outline-none focus:ring-2 focus:ring-blue-300`}
-                      />
-                    </td>
-                    <td className={`px-4 py-2 text-center text-xs font-bold ${
-                      pct >= 80 ? 'text-emerald-600' : pct >= 50 ? 'text-amber-600' : 'text-red-600'
-                    }`}>{pct}%</td>
-                    <td className="px-4 py-2 text-center">
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${
-                        grade === 'A+' || grade === 'A' ? 'bg-emerald-100 text-emerald-700' :
-                        grade === 'B+' || grade === 'B' ? 'bg-blue-100 text-blue-700' :
-                        grade === 'C' ? 'bg-amber-100 text-amber-700' :
-                        'bg-red-100 text-red-700'
-                      }`}>{grade}</span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-          <div className={`p-3 flex items-center justify-between border-t ${theme.border} ${theme.secondaryBg}`}>
-            <div className="flex gap-4">
-              <span className={`text-xs ${theme.iconColor}`}>Class Average: <span className={`font-bold ${theme.highlight}`}>
-                {Math.round(gradebookStudents.reduce((a, s) => a + getMarks(s), 0) / gradebookStudents.length)}/{currentMax}
-              </span></span>
-              <span className={`text-xs ${theme.iconColor}`}>Highest: <span className="font-bold text-emerald-600">
-                {Math.max(...gradebookStudents.map(s => getMarks(s)))}/{currentMax}
-              </span></span>
-              <span className={`text-xs ${theme.iconColor}`}>Lowest: <span className="font-bold text-red-600">
-                {Math.min(...gradebookStudents.map(s => getMarks(s)))}/{currentMax}
-              </span></span>
+      {/* ── AUDIT LOG MODAL ── */}
+      {showAuditLog && (
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 space-y-3`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>Mark Audit Trail</h3>
+              <span title="All mark changes are tracked with before/after values"><Info size={14} className={theme.iconColor} /></span>
             </div>
-            <button className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-sm font-bold`}>Save All</button>
+            <button onClick={() => setShowAuditLog(false)} className={`text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-2 py-1 rounded-lg`}>Close</button>
+          </div>
+          <div className={`${theme.cardBg} rounded-xl border ${theme.border} overflow-hidden`}>
+            <table className="w-full text-sm">
+              <thead className={theme.secondaryBg}>
+                <tr>
+                  <th className={`text-left px-3 py-2.5 text-[10px] font-bold ${theme.iconColor} uppercase`}>Timestamp</th>
+                  <th className={`text-left px-3 py-2.5 text-[10px] font-bold ${theme.iconColor} uppercase`}>Teacher</th>
+                  <th className={`text-left px-3 py-2.5 text-[10px] font-bold ${theme.iconColor} uppercase`}>Student</th>
+                  <th className={`text-left px-3 py-2.5 text-[10px] font-bold ${theme.iconColor} uppercase`}>Subject</th>
+                  <th className={`text-center px-3 py-2.5 text-[10px] font-bold ${theme.iconColor} uppercase`}>Old Mark</th>
+                  <th className={`text-center px-3 py-2.5 text-[10px] font-bold ${theme.iconColor} uppercase`}>New Mark</th>
+                  <th className={`text-left px-3 py-2.5 text-[10px] font-bold ${theme.iconColor} uppercase`}>Reason</th>
+                </tr>
+              </thead>
+              <tbody>
+                {auditLogEntries.map((entry, i) => (
+                  <tr key={i} className={`border-t ${theme.border}`}>
+                    <td className={`px-3 py-2 text-[10px] ${theme.iconColor} font-mono`}>{entry.timestamp}</td>
+                    <td className={`px-3 py-2 text-xs ${theme.iconColor}`}>{entry.teacher}</td>
+                    <td className={`px-3 py-2 text-xs font-bold ${theme.highlight}`}>{entry.student}</td>
+                    <td className={`px-3 py-2 text-xs ${theme.iconColor}`}>{entry.subject}</td>
+                    <td className="px-3 py-2 text-xs text-center font-bold text-red-600">{entry.oldMark}</td>
+                    <td className="px-3 py-2 text-xs text-center font-bold text-emerald-600">{entry.newMark}</td>
+                    <td className={`px-3 py-2 text-[10px] ${theme.iconColor}`}>{entry.reason}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ── IMPORT MARKS PANEL ── */}
+      {showImport && tab === 'Enter Marks' && (
+        <div className={`${theme.cardBg} rounded-2xl border-2 border-dashed ${theme.border} p-5 space-y-4`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>Bulk Excel Upload</h3>
+              <span title="Upload marks from Excel instead of manual entry"><Info size={14} className={theme.iconColor} /></span>
+            </div>
+            <button onClick={() => setShowImport(false)} className={`text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-2 py-1 rounded-lg`}>Close</button>
+          </div>
+          <div className={`flex flex-col items-center justify-center py-8 rounded-xl ${theme.secondaryBg} border ${theme.border}`}>
+            <Upload size={28} className={theme.iconColor} />
+            <p className={`text-xs font-bold ${theme.highlight} mt-2`}>Drag & drop your Excel file here</p>
+            <p className={`text-[10px] ${theme.iconColor} mt-1`}>Supports: .xlsx, .xls, .csv (Max 5MB)</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <button className={`px-3 py-2 rounded-xl ${theme.secondaryBg} text-xs font-bold ${theme.iconColor} flex items-center gap-1`}>
+              <Download size={12} /> Download Excel Template
+            </button>
+            <button className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold flex items-center gap-1`}>
+              <Upload size={12} /> Upload &amp; Validate
+            </button>
+          </div>
+          {/* Validation Preview */}
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-2`}>Validation Preview</p>
+            <div className={`rounded-xl border ${theme.border} overflow-hidden`}>
+              <table className="w-full text-sm">
+                <thead className={theme.secondaryBg}>
+                  <tr>
+                    <th className={`text-left px-3 py-2 text-[10px] font-bold ${theme.iconColor} uppercase`}>Student</th>
+                    <th className={`text-left px-3 py-2 text-[10px] font-bold ${theme.iconColor} uppercase`}>Subject</th>
+                    <th className={`text-center px-3 py-2 text-[10px] font-bold ${theme.iconColor} uppercase`}>Marks</th>
+                    <th className={`text-center px-3 py-2 text-[10px] font-bold ${theme.iconColor} uppercase`}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {importPreviewRows.map((r, i) => (
+                    <tr key={i} className={`border-t ${theme.border}`}>
+                      <td className={`px-3 py-2 text-xs font-bold ${r.status === 'error' ? 'text-red-600' : theme.highlight}`}>{r.student}</td>
+                      <td className={`px-3 py-2 text-xs ${theme.iconColor}`}>{r.subject}</td>
+                      <td className={`px-3 py-2 text-xs text-center font-bold ${theme.highlight}`}>{r.marks}</td>
+                      <td className="px-3 py-2 text-center">
+                        {r.status === 'valid'
+                          ? <span className="text-emerald-600 text-xs font-bold">&#10003;</span>
+                          : <span className="text-red-600 text-xs font-bold">&#10007; Student not found</span>
+                        }
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── TAB: ENTER MARKS ── */}
+      {tab === 'Enter Marks' && (
+        <div className="space-y-4">
+          {/* Mark Lock Banner */}
+          {marksLocked && selectedExam === 'Half Yearly' && (
+            <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-50 border border-red-200">
+              <Lock size={14} className="text-red-500" />
+              <p className="text-xs text-red-700 font-medium">
+                Marks locked for Term 1 Exam on Feb 28, 2026. Contact admin to unlock.
+              </p>
+            </div>
+          )}
+
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} overflow-hidden`}>
+            <table className="w-full text-sm">
+              <thead className={theme.secondaryBg}>
+                <tr>
+                  <th className={`text-left px-4 py-3 text-xs font-bold ${theme.iconColor} uppercase`}>Roll</th>
+                  <th className={`text-left px-4 py-3 text-xs font-bold ${theme.iconColor} uppercase`}>Student Name</th>
+                  <th className={`text-center px-4 py-3 text-xs font-bold ${theme.iconColor} uppercase`}>Marks ({currentMax})</th>
+                  <th className={`text-center px-4 py-3 text-xs font-bold ${theme.iconColor} uppercase`}>%</th>
+                  <th className={`text-center px-4 py-3 text-xs font-bold ${theme.iconColor} uppercase`}>Grade</th>
+                </tr>
+              </thead>
+              <tbody>
+                {gradebookStudents.map(s => {
+                  const marks = getMarks(s);
+                  const pct = currentMax > 0 ? Math.round((marks / currentMax) * 100) : 0;
+                  const grade = pct >= 90 ? 'A+' : pct >= 80 ? 'A' : pct >= 70 ? 'B+' : pct >= 60 ? 'B' : pct >= 50 ? 'C' : pct >= 33 ? 'D' : 'F';
+                  return (
+                    <tr key={s.roll} className={`border-t ${theme.border}`}>
+                      <td className={`px-4 py-2 text-xs ${theme.iconColor}`}>{s.roll}</td>
+                      <td className={`px-4 py-2 text-xs font-bold ${theme.highlight}`}>{s.name}</td>
+                      <td className="px-4 py-2 text-center">
+                        <input
+                          type="number"
+                          defaultValue={marks}
+                          min={0}
+                          max={currentMax}
+                          className={`w-16 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-sm text-center outline-none focus:ring-2 focus:ring-blue-300`}
+                        />
+                      </td>
+                      <td className={`px-4 py-2 text-center text-xs font-bold ${
+                        pct >= 80 ? 'text-emerald-600' : pct >= 50 ? 'text-amber-600' : 'text-red-600'
+                      }`}>{pct}%</td>
+                      <td className="px-4 py-2 text-center">
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${
+                          grade === 'A+' || grade === 'A' ? 'bg-emerald-100 text-emerald-700' :
+                          grade === 'B+' || grade === 'B' ? 'bg-blue-100 text-blue-700' :
+                          grade === 'C' ? 'bg-amber-100 text-amber-700' :
+                          'bg-red-100 text-red-700'
+                        }`}>{grade}</span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            <div className={`p-3 flex items-center justify-between border-t ${theme.border} ${theme.secondaryBg}`}>
+              <div className="flex gap-4">
+                <span className={`text-xs ${theme.iconColor}`}>Class Average: <span className={`font-bold ${theme.highlight}`}>
+                  {Math.round(gradebookStudents.reduce((a, s) => a + getMarks(s), 0) / gradebookStudents.length)}/{currentMax}
+                </span></span>
+                <span className={`text-xs ${theme.iconColor}`}>Highest: <span className="font-bold text-emerald-600">
+                  {Math.max(...gradebookStudents.map(s => getMarks(s)))}/{currentMax}
+                </span></span>
+                <span className={`text-xs ${theme.iconColor}`}>Lowest: <span className="font-bold text-red-600">
+                  {Math.min(...gradebookStudents.map(s => getMarks(s)))}/{currentMax}
+                </span></span>
+              </div>
+              <button className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-sm font-bold`}>Save All</button>
+            </div>
+          </div>
+
+          {/* ── ACTIVITY-BASED GRADING (expandable) ── */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} overflow-hidden`}>
+            <button
+              onClick={() => setShowActivities(!showActivities)}
+              className={`w-full flex items-center justify-between px-4 py-3 ${theme.secondaryBg}`}
+            >
+              <div className="flex items-center gap-2">
+                <span className={`text-xs font-bold ${theme.highlight}`}>Activities</span>
+                <span title="Activity marks contribute to internal assessment"><Info size={14} className={theme.iconColor} /></span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-bold">Mobile</span>
+              </div>
+              <span className={`text-xs ${theme.iconColor}`}>{showActivities ? '▲ Collapse' : '▼ Expand'}</span>
+            </button>
+            {showActivities && (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className={theme.secondaryBg}>
+                    <tr>
+                      <th className={`text-left px-3 py-2.5 text-[10px] font-bold ${theme.iconColor} uppercase`}>Activity</th>
+                      <th className={`text-center px-3 py-2.5 text-[10px] font-bold ${theme.iconColor} uppercase`}>Max</th>
+                      {gradebookStudents.map(s => (
+                        <th key={s.roll} className={`text-center px-2 py-2.5 text-[10px] font-bold ${theme.iconColor} uppercase whitespace-nowrap`}>{s.name.split(' ')[0]}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {activityData.map((act, ai) => (
+                      <tr key={ai} className={`border-t ${theme.border}`}>
+                        <td className={`px-3 py-2 text-xs font-bold ${theme.highlight}`}>{act.name}</td>
+                        <td className={`px-3 py-2 text-xs text-center ${theme.iconColor}`}>{act.maxMarks}</td>
+                        {act.scores.map((score, si) => (
+                          <td key={si} className="px-2 py-2 text-center">
+                            <input
+                              type="number"
+                              defaultValue={score}
+                              min={0}
+                              max={act.maxMarks}
+                              className={`w-12 px-1 py-0.5 rounded-lg border ${theme.border} ${theme.inputBg} text-[11px] text-center outline-none focus:ring-2 focus:ring-blue-300`}
+                            />
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <div className={`px-4 py-2 border-t ${theme.border} ${theme.secondaryBg} flex justify-end`}>
+                  <button className={`px-3 py-1.5 ${theme.primary} text-white rounded-xl text-xs font-bold`}>Save Activity Marks</button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── TAB: SKILLS ── */}
+      {tab === 'Skills' && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-50 border border-indigo-200">
+            <Info size={14} className="text-indigo-500" />
+            <p className="text-xs text-indigo-700 font-medium">Skill grades appear on NEP 2020 report card alongside subject marks</p>
+          </div>
+
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} overflow-hidden`}>
+            <div className="flex items-center gap-2 px-4 py-3">
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>Skill-Based Mark Entry</h3>
+              <span title="Skill grades appear on NEP 2020 report card alongside subject marks"><Info size={14} className={theme.iconColor} /></span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className={theme.secondaryBg}>
+                  <tr>
+                    <th className={`text-left px-4 py-2.5 text-[10px] font-bold ${theme.iconColor} uppercase`}>Student Name</th>
+                    {skillColumns.map(sk => (
+                      <th key={sk} className={`text-center px-3 py-2.5 text-[10px] font-bold ${theme.iconColor} uppercase`}>{sk}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {gradebookStudents.map(s => (
+                    <tr key={s.roll} className={`border-t ${theme.border}`}>
+                      <td className={`px-4 py-2 text-xs font-bold ${theme.highlight}`}>{s.name}</td>
+                      {skillColumns.map(sk => {
+                        const grade = skillGrades[s.name]?.[sk] || 'B';
+                        return (
+                          <td key={sk} className="px-3 py-2 text-center">
+                            <select
+                              defaultValue={grade}
+                              className={`px-2 py-1 rounded-lg border ${theme.border} text-xs font-bold text-center outline-none ${skillGradeBadge(grade)}`}
+                            >
+                              <option value="A">A</option>
+                              <option value="B">B</option>
+                              <option value="C">C</option>
+                              <option value="D">D</option>
+                            </select>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className={`p-3 flex justify-end border-t ${theme.border} ${theme.secondaryBg}`}>
+              <button className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-sm font-bold`}>Save Skill Grades</button>
+            </div>
           </div>
         </div>
       )}
