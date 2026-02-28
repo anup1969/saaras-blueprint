@@ -7,7 +7,7 @@ import {
   Calendar, Bus, Download, BookOpen, ArrowRight,
   MessageSquare, IndianRupee, CreditCard,
   ClipboardCheck, BookMarked, Camera, FileText, Info,
-  Mail, AlertTriangle, Bell,
+  Mail, AlertTriangle, Bell, User,
 } from 'lucide-react';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import type { ChildProfile } from '../_components/types';
@@ -332,6 +332,31 @@ export default function DashboardHome({ theme, child, onProfileClick }: { theme:
               ))}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      {/* ── Update Student Photo Request (Gap #77) ── */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <div className="flex items-center gap-4">
+          <div className={`w-16 h-16 rounded-2xl ${theme.secondaryBg} border-2 border-dashed ${theme.border} flex items-center justify-center shrink-0`}>
+            <User size={28} className={theme.iconColor} />
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <Camera size={14} className={theme.iconColor} />
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>Update Student Photo</h3>
+            </div>
+            <p className={`text-[10px] ${theme.iconColor} leading-relaxed mb-2`}>
+              Submit a new photo for school records. Requires admin approval.
+            </p>
+            <p className={`text-[10px] ${theme.iconColor}`}>Last updated: Aug 2025</p>
+          </div>
+          <button
+            onClick={() => alert('Photo update request submitted! Admin will review within 3 working days. (Blueprint demo)')}
+            className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold shrink-0 flex items-center gap-1.5`}
+          >
+            <Camera size={12} /> Request Photo Update
+          </button>
         </div>
       </div>
 

@@ -15,7 +15,7 @@ import {
   Eye, Edit, AlertTriangle, FileText, Send, BookOpen, ArrowRight,
   ClipboardCheck, Bell, CheckCircle, XCircle, Repeat, Gavel,
   LayoutGrid, Megaphone, UserMinus, MapPin, Coffee, Award, User, MessageSquare, Mail,
-  PanelLeftClose, PanelLeftOpen, Headphones
+  PanelLeftClose, PanelLeftOpen, Headphones, X, Save, Zap, Info
 } from 'lucide-react';
 
 // ─── MODULE SIDEBAR ────────────────────────────────
@@ -286,6 +286,9 @@ function SubstitutionsModule({ theme }: { theme: Theme }) {
           <div key="actions" className="flex gap-1">
             <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Eye size={12} className={theme.iconColor} /></button>
             <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Edit size={12} className={theme.iconColor} /></button>
+            {s.status === 'Assigned' && (
+              <button onClick={() => alert(`Cancel substitution ${s.id}: ${s.substitute} covering for ${s.absentTeacher} — ${s.period}, ${s.class}. (Blueprint demo)`)} className="p-1.5 rounded-lg bg-red-100"><XCircle size={12} className="text-red-500" /></button>
+            )}
           </div>
         ])}
         theme={theme}
@@ -299,7 +302,17 @@ function SubstitutionsModule({ theme }: { theme: Theme }) {
         </div>
       </div>
 
-      {/* Available Teachers for Substitution */}
+      {/* Gap #41-44 — Quick Assign Button */}
+      <div className="flex items-center justify-end">
+        <button
+          onClick={() => alert('Quick Assign: Automatically assigns the best available substitute based on subject match, workload balance, and free periods. (Blueprint demo)')}
+          className="flex items-center gap-1.5 px-4 py-2 bg-emerald-500 text-white rounded-xl text-xs font-bold hover:bg-emerald-600 transition-colors"
+        >
+          <Zap size={14} /> Quick Assign All Pending
+        </button>
+      </div>
+
+      {/* Available Teachers for Substitution — Gap #41-44 enhanced with action buttons */}
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
         <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Available Teachers — Free Periods Today</h3>
         <div className={`overflow-hidden rounded-xl border ${theme.border}`}>
@@ -319,7 +332,12 @@ function SubstitutionsModule({ theme }: { theme: Theme }) {
                   <td className={`p-2.5 ${theme.iconColor}`}>{t.subject}</td>
                   <td className={`p-2.5 ${theme.primaryText} font-medium`}>{t.freePeriods}</td>
                   <td className="p-2.5 text-center">
-                    <button className={`px-3 py-1 ${theme.primary} text-white rounded-lg text-[10px] font-bold`}>Assign</button>
+                    <button
+                      onClick={() => alert(`Assign Substitute: ${t.name} (${t.subject}) — select the absent teacher and period to confirm assignment. (Blueprint demo)`)}
+                      className={`px-3 py-1 ${theme.primary} text-white rounded-lg text-[10px] font-bold`}
+                    >
+                      Assign Substitute
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -453,11 +471,45 @@ const mockSwapRequests = [
   { id: 'SW003', requester: 'Ms. Kavita Desai', with: 'Mr. Manoj Tiwari', period: 'P6 (Mon)', date: '10 Feb 2026', reason: 'Art exhibition setup', status: 'Approved' },
 ];
 
+const mockAllClassesOverview = [
+  { classSection: 'Class 10-A', totalPeriods: 42, teachersAssigned: 8, conflicts: 1, status: 'Incomplete' as const },
+  { classSection: 'Class 10-B', totalPeriods: 42, teachersAssigned: 8, conflicts: 0, status: 'Complete' as const },
+  { classSection: 'Class 9-A', totalPeriods: 42, teachersAssigned: 8, conflicts: 0, status: 'Complete' as const },
+  { classSection: 'Class 9-B', totalPeriods: 42, teachersAssigned: 7, conflicts: 0, status: 'Incomplete' as const },
+  { classSection: 'Class 8-A', totalPeriods: 42, teachersAssigned: 8, conflicts: 0, status: 'Complete' as const },
+  { classSection: 'Class 8-B', totalPeriods: 42, teachersAssigned: 8, conflicts: 0, status: 'Complete' as const },
+  { classSection: 'Class 7-A', totalPeriods: 40, teachersAssigned: 7, conflicts: 2, status: 'Incomplete' as const },
+  { classSection: 'Class 7-B', totalPeriods: 40, teachersAssigned: 8, conflicts: 0, status: 'Complete' as const },
+];
+
 function TimetableModule({ theme }: { theme: Theme }) {
   const [tab, setTab] = useState('Class-wise');
   const [builderClass, setBuilderClass] = useState('Class 10-A');
+  const [selectedTerm, setSelectedTerm] = useState('Term 1 (Apr-Sep)');
+  const [classViewMode, setClassViewMode] = useState<'single' | 'all'>('single');
+  const [editingCell, setEditingCell] = useState<{ day: string; period: string } | null>(null);
+  const [editSubject, setEditSubject] = useState('Math');
+  const [editTeacher, setEditTeacher] = useState('Mr. Sharma');
+  const [editRoom, setEditRoom] = useState('Room 101');
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const periods = ['P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7'];
+
+  const subjectOptions = ['Math', 'English', 'Science', 'Hindi', 'Social Studies', 'Art', 'PT', 'Library'];
+  const teacherOptions = ['Mr. Sharma', 'Mrs. Patel', 'Ms. Gupta', 'Mr. Khan', 'Mrs. Reddy'];
+  const roomOptions = ['Room 101', 'Room 102', 'Lab A', 'Lab B', 'Auditorium'];
+
+  const handleCellClick = (day: string, period: string, cell: { subj: string; teacher: string } | undefined) => {
+    setEditingCell({ day, period });
+    setEditSubject(cell?.subj || 'Math');
+    setEditTeacher(teacherOptions[0]);
+    setEditRoom(roomOptions[0]);
+  };
+
+  const handleEditSave = () => {
+    alert(`Saved: ${editingCell?.day} ${editingCell?.period} — ${editSubject} / ${editTeacher} / ${editRoom} (Blueprint demo)`);
+    setEditingCell(null);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -468,29 +520,128 @@ function TimetableModule({ theme }: { theme: Theme }) {
           <button className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold ${theme.iconColor} flex items-center gap-1`}><Download size={12} /> Download Template</button>
         </div>
       </div>
+
+      {/* Gap #31 — Term Selector */}
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <Calendar size={14} className={theme.iconColor} />
+          <span className={`text-xs font-bold ${theme.iconColor}`}>Term:</span>
+          <select
+            value={selectedTerm}
+            onChange={e => setSelectedTerm(e.target.value)}
+            className={`px-3 py-1.5 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold ${theme.highlight} outline-none`}
+          >
+            <option>Term 1 (Apr-Sep)</option>
+            <option>Term 2 (Oct-Mar)</option>
+            <option>Full Year</option>
+          </select>
+        </div>
+        <span className={`text-[10px] px-2 py-0.5 rounded-full ${theme.secondaryBg} ${theme.primaryText} font-medium`}>
+          Viewing: {selectedTerm}
+        </span>
+      </div>
+
       <TabBar tabs={['Class-wise', 'Teacher-wise', 'Room Allocation', 'Timetable Builder', 'Swap Requests']} active={tab} onChange={setTab} theme={theme} />
 
       {tab === 'Class-wise' && (
         <>
-          <div className="flex gap-3">
-            <SearchBar placeholder="Search by class..." theme={theme} icon={Search} />
-            <button className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold ${theme.iconColor} flex items-center gap-1`}><Filter size={12} /> Filter</button>
+          {/* Gap #30 — View Toggle: Single Class / All Classes */}
+          <div className="flex items-center justify-between">
+            <div className="flex gap-3">
+              <SearchBar placeholder="Search by class..." theme={theme} icon={Search} />
+              <button className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-xs font-bold ${theme.iconColor} flex items-center gap-1`}><Filter size={12} /> Filter</button>
+            </div>
+            <div className={`flex items-center gap-1 p-0.5 rounded-xl ${theme.secondaryBg}`}>
+              <button
+                onClick={() => setClassViewMode('single')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${classViewMode === 'single' ? `${theme.primary} text-white` : `${theme.iconColor}`}`}
+              >
+                Single Class
+              </button>
+              <button
+                onClick={() => setClassViewMode('all')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${classViewMode === 'all' ? `${theme.primary} text-white` : `${theme.iconColor}`}`}
+              >
+                All Classes Overview
+              </button>
+            </div>
           </div>
-          <DataTable
-            headers={['Class', 'P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7', 'P8']}
-            rows={mockTimetable.classWise.map(t => [
-              <span key="cls" className={`font-bold ${theme.highlight}`}>{t.class}</span>,
-              <span key="p1" className={`text-xs ${theme.iconColor}`}>{t.p1}</span>,
-              <span key="p2" className={`text-xs ${theme.iconColor}`}>{t.p2}</span>,
-              <span key="p3" className={`text-xs ${theme.iconColor}`}>{t.p3}</span>,
-              <span key="p4" className={`text-xs ${theme.iconColor}`}>{t.p4}</span>,
-              <span key="p5" className={`text-xs ${theme.iconColor}`}>{t.p5}</span>,
-              <span key="p6" className={`text-xs ${theme.iconColor}`}>{t.p6}</span>,
-              <span key="p7" className={`text-xs ${theme.iconColor}`}>{t.p7}</span>,
-              <span key="p8" className={`text-xs ${theme.iconColor}`}>{t.p8}</span>,
-            ])}
-            theme={theme}
-          />
+
+          {classViewMode === 'single' ? (
+            <DataTable
+              headers={['Class', 'P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7', 'P8']}
+              rows={mockTimetable.classWise.map(t => [
+                <span key="cls" className={`font-bold ${theme.highlight}`}>{t.class}</span>,
+                <span key="p1" className={`text-xs ${theme.iconColor}`}>{t.p1}</span>,
+                <span key="p2" className={`text-xs ${theme.iconColor}`}>{t.p2}</span>,
+                <span key="p3" className={`text-xs ${theme.iconColor}`}>{t.p3}</span>,
+                <span key="p4" className={`text-xs ${theme.iconColor}`}>{t.p4}</span>,
+                <span key="p5" className={`text-xs ${theme.iconColor}`}>{t.p5}</span>,
+                <span key="p6" className={`text-xs ${theme.iconColor}`}>{t.p6}</span>,
+                <span key="p7" className={`text-xs ${theme.iconColor}`}>{t.p7}</span>,
+                <span key="p8" className={`text-xs ${theme.iconColor}`}>{t.p8}</span>,
+              ])}
+              theme={theme}
+            />
+          ) : (
+            /* Gap #30 — All Classes Overview Table */
+            <div className={`${theme.cardBg} rounded-2xl border ${theme.border} overflow-hidden`}>
+              <div className="p-3 flex items-center justify-between">
+                <h3 className={`text-sm font-bold ${theme.highlight}`}>All Classes Overview &mdash; {selectedTerm}</h3>
+                <span className={`text-[10px] ${theme.iconColor}`}>Click a row to view class timetable</span>
+              </div>
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className={theme.secondaryBg}>
+                    <th className={`p-2.5 text-left font-bold ${theme.iconColor}`}>Class-Section</th>
+                    <th className={`p-2.5 text-center font-bold ${theme.iconColor}`}>Total Periods</th>
+                    <th className={`p-2.5 text-center font-bold ${theme.iconColor}`}>Teachers Assigned</th>
+                    <th className={`p-2.5 text-center font-bold ${theme.iconColor}`}>Conflicts</th>
+                    <th className={`p-2.5 text-center font-bold ${theme.iconColor}`}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {mockAllClassesOverview.map((row, i) => (
+                    <tr
+                      key={i}
+                      onClick={() => { setClassViewMode('single'); setBuilderClass(row.classSection); }}
+                      className={`border-t ${theme.border} cursor-pointer hover:${theme.accentBg} transition-colors`}
+                    >
+                      <td className={`p-2.5 font-bold ${theme.highlight}`}>{row.classSection}</td>
+                      <td className={`p-2.5 text-center ${theme.iconColor}`}>{row.totalPeriods}</td>
+                      <td className={`p-2.5 text-center ${theme.iconColor}`}>{row.teachersAssigned}</td>
+                      <td className="p-2.5 text-center">
+                        {row.conflicts > 0 ? (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700">{row.conflicts} conflict{row.conflicts > 1 ? 's' : ''}</span>
+                        ) : (
+                          <span className={`text-[10px] ${theme.iconColor}`}>None</span>
+                        )}
+                      </td>
+                      <td className="p-2.5 text-center">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${row.status === 'Complete' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                          {row.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="p-3 flex items-center gap-4">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span className={`text-[10px] ${theme.iconColor}`}>Complete: {mockAllClassesOverview.filter(r => r.status === 'Complete').length}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2 h-2 rounded-full bg-amber-500" />
+                  <span className={`text-[10px] ${theme.iconColor}`}>Incomplete: {mockAllClassesOverview.filter(r => r.status === 'Incomplete').length}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2 h-2 rounded-full bg-red-500" />
+                  <span className={`text-[10px] ${theme.iconColor}`}>Total Conflicts: {mockAllClassesOverview.reduce((acc, r) => acc + r.conflicts, 0)}</span>
+                </div>
+              </div>
+            </div>
+          )}
         </>
       )}
 
@@ -567,8 +718,8 @@ function TimetableModule({ theme }: { theme: Theme }) {
             <button className="ml-auto px-2 py-1 text-[10px] rounded-lg bg-red-600 text-white font-bold shrink-0">Resolve</button>
           </div>
 
-          {/* Grid Timetable */}
-          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} overflow-hidden`}>
+          {/* Gap #32/#36 — Editable Grid Timetable */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} overflow-hidden relative`}>
             <table className="w-full text-xs">
               <thead>
                 <tr className={theme.secondaryBg}>
@@ -583,14 +734,62 @@ function TimetableModule({ theme }: { theme: Theme }) {
                     {periods.map(p => {
                       const cell = timetableBuilderData[day]?.[p];
                       const isConflict = day === 'Tue' && p === 'P3';
+                      const isEditing = editingCell?.day === day && editingCell?.period === p;
                       return (
-                        <td key={p} className="p-1">
+                        <td key={p} className="p-1 relative">
                           {cell ? (
-                            <div className={`px-2 py-1.5 rounded-lg text-center font-bold ${isConflict ? 'bg-red-100 text-red-700 ring-2 ring-red-400' : cell.color}`}>
+                            <div
+                              onClick={() => handleCellClick(day, p, cell)}
+                              className={`px-2 py-1.5 rounded-lg text-center font-bold cursor-pointer hover:ring-2 hover:ring-blue-300 transition-all ${isConflict ? 'bg-red-100 text-red-700 ring-2 ring-red-400' : cell.color}`}
+                              title="Click to edit"
+                            >
                               {cell.subj} - {cell.teacher}
                             </div>
                           ) : (
-                            <div className={`px-2 py-1.5 rounded-lg text-center ${theme.secondaryBg} ${theme.iconColor}`}>--</div>
+                            <div
+                              onClick={() => handleCellClick(day, p, undefined)}
+                              className={`px-2 py-1.5 rounded-lg text-center cursor-pointer hover:ring-2 hover:ring-blue-300 transition-all ${theme.secondaryBg} ${theme.iconColor}`}
+                              title="Click to assign"
+                            >
+                              --
+                            </div>
+                          )}
+                          {/* Inline Edit Popup */}
+                          {isEditing && (
+                            <div className={`absolute z-50 top-full left-1/2 -translate-x-1/2 mt-1 ${theme.cardBg} rounded-xl border ${theme.border} shadow-xl p-3 min-w-[220px]`}>
+                              <div className="flex items-center justify-between mb-2">
+                                <span className={`text-[10px] font-bold ${theme.primaryText}`}>Edit {day} / {p}</span>
+                                <button onClick={() => setEditingCell(null)} className="p-0.5 rounded hover:bg-red-100"><X size={12} className="text-red-500" /></button>
+                              </div>
+                              <div className="space-y-2">
+                                <div>
+                                  <label className={`text-[10px] font-bold ${theme.iconColor} block mb-0.5`}>Subject</label>
+                                  <select value={editSubject} onChange={e => setEditSubject(e.target.value)} className={`w-full px-2 py-1.5 rounded-lg border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight} outline-none`}>
+                                    {subjectOptions.map(s => <option key={s}>{s}</option>)}
+                                  </select>
+                                </div>
+                                <div>
+                                  <label className={`text-[10px] font-bold ${theme.iconColor} block mb-0.5`}>Teacher</label>
+                                  <select value={editTeacher} onChange={e => setEditTeacher(e.target.value)} className={`w-full px-2 py-1.5 rounded-lg border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight} outline-none`}>
+                                    {teacherOptions.map(t => <option key={t}>{t}</option>)}
+                                  </select>
+                                </div>
+                                <div>
+                                  <label className={`text-[10px] font-bold ${theme.iconColor} block mb-0.5`}>Room</label>
+                                  <select value={editRoom} onChange={e => setEditRoom(e.target.value)} className={`w-full px-2 py-1.5 rounded-lg border ${theme.border} ${theme.secondaryBg} text-xs ${theme.highlight} outline-none`}>
+                                    {roomOptions.map(r => <option key={r}>{r}</option>)}
+                                  </select>
+                                </div>
+                                <div className="flex gap-1.5 pt-1">
+                                  <button onClick={handleEditSave} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-emerald-500 text-white rounded-lg text-[10px] font-bold">
+                                    <Save size={10} /> Save
+                                  </button>
+                                  <button onClick={() => setEditingCell(null)} className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-bold ${theme.secondaryBg} ${theme.iconColor}`}>
+                                    Cancel
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
                           )}
                         </td>
                       );
@@ -599,6 +798,17 @@ function TimetableModule({ theme }: { theme: Theme }) {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Gap #69 — Holiday Auto-Adjust Banner */}
+          <div className="flex items-start gap-3 p-3 rounded-xl bg-amber-50 border border-amber-200">
+            <Info size={16} className="text-amber-600 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-xs text-amber-800 font-medium">2 upcoming holidays detected (Mar 14 &mdash; Holi, Mar 29 &mdash; Good Friday). Timetable auto-adjusted &mdash; affected periods redistributed.</p>
+            </div>
+            <button onClick={() => alert('Holiday adjustments:\n\n1. Mar 14 (Holi) — 7 periods redistributed to Mar 13 (Fri extra class) + Mar 15 (Sat make-up)\n2. Mar 29 (Good Friday) — 7 periods redistributed to Mar 28 (Thu extra) + Mar 31 (Mon adjusted)\n\n(Blueprint demo)')} className="px-2 py-1 text-[10px] rounded-lg bg-amber-600 text-white font-bold shrink-0 whitespace-nowrap">
+              View Adjustments
+            </button>
           </div>
 
           {/* Subject Legend */}

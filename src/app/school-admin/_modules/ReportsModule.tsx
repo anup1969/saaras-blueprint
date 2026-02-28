@@ -6,7 +6,8 @@ import { TabBar } from '@/components/shared';
 import {
   Users, Award, ClipboardCheck, TrendingUp, Calendar, Star,
   Banknote, AlertTriangle, DollarSign, CreditCard,
-  Briefcase, Shield, Bus, UserPlus, Download, PieChart, UserMinus, MessageSquare
+  Briefcase, Shield, Bus, UserPlus, Download, PieChart, UserMinus, MessageSquare,
+  List, BarChart3
 } from 'lucide-react';
 
 export default function ReportsModule({ theme }: { theme: Theme }) {
@@ -27,6 +28,8 @@ export default function ReportsModule({ theme }: { theme: Theme }) {
           { title: 'Student Demographics', desc: 'Gender split, category distribution, age analysis', icon: PieChart },
           { title: 'Student Attrition Report', desc: 'Left, transferred, dropout trends year-over-year', icon: UserMinus },
           { title: 'Remark Submission Status', desc: 'Per-class teacher remark compliance tracking', icon: MessageSquare },
+          { title: 'Batch-wise Student List', desc: 'Class & section-wise student count with gender split', icon: List },
+          { title: 'Grade-wise Student Count', desc: 'Grade-level enrollment with bar visualization', icon: BarChart3 },
         ] : tab === 'Financial' ? [
           { title: 'Fee Collection Summary', desc: 'Monthly/yearly collection vs outstanding', icon: Banknote },
           { title: 'Defaulters Report', desc: 'Student-wise fee dues with aging analysis', icon: AlertTriangle },
@@ -171,6 +174,98 @@ export default function ReportsModule({ theme }: { theme: Theme }) {
                 <span className={`text-xs font-bold ${theme.highlight} w-10 text-right`}>{c.pct}%</span>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Gap #9 — Batch-wise Student List */}
+      {expandedReport === 'Batch-wise Student List' && (
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5 space-y-4`}>
+          <div className="flex items-center justify-between">
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>Batch-wise Student List</h3>
+            <button onClick={() => window.alert('Downloading PDF... (Blueprint demo)')} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl ${theme.primary} text-white text-[10px] font-bold`}>
+              <Download size={10} /> Download as PDF
+            </button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className={theme.secondaryBg}>
+                  {['Class', 'Section', 'Total', 'Boys', 'Girls', 'New Admissions'].map(h => (
+                    <th key={h} className={`px-3 py-2 text-left text-[10px] font-bold ${theme.iconColor} uppercase`}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { cls: 'Grade 1', section: 'A / B / C', total: 120, boys: 65, girls: 55, newAdm: 18 },
+                  { cls: 'Grade 2', section: 'A / B / C', total: 115, boys: 60, girls: 55, newAdm: 8 },
+                  { cls: 'Grade 5', section: 'A / B', total: 90, boys: 48, girls: 42, newAdm: 5 },
+                  { cls: 'Grade 8', section: 'A / B', total: 80, boys: 42, girls: 38, newAdm: 3 },
+                  { cls: 'Grade 10', section: 'A / B', total: 72, boys: 38, girls: 34, newAdm: 2 },
+                ].map((r, i) => (
+                  <tr key={i} className={`border-t ${theme.border}`}>
+                    <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{r.cls}</td>
+                    <td className={`px-3 py-2 ${theme.iconColor}`}>{r.section}</td>
+                    <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{r.total}</td>
+                    <td className="px-3 py-2 font-bold text-blue-600">{r.boys}</td>
+                    <td className="px-3 py-2 font-bold text-pink-600">{r.girls}</td>
+                    <td className="px-3 py-2 font-bold text-emerald-600">{r.newAdm}</td>
+                  </tr>
+                ))}
+                <tr className={`border-t-2 ${theme.border}`}>
+                  <td className={`px-3 py-2 font-bold ${theme.highlight}`} colSpan={2}>Total</td>
+                  <td className={`px-3 py-2 font-bold ${theme.primaryText}`}>477</td>
+                  <td className="px-3 py-2 font-bold text-blue-600">253</td>
+                  <td className="px-3 py-2 font-bold text-pink-600">224</td>
+                  <td className="px-3 py-2 font-bold text-emerald-600">36</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Gap #13 — Grade-wise Student Count */}
+      {expandedReport === 'Grade-wise Student Count' && (
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5 space-y-4`}>
+          <div className="flex items-center justify-between">
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>Grade-wise Student Count</h3>
+            <button onClick={() => window.alert('Exporting... (Blueprint demo)')} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl ${theme.primary} text-white text-[10px] font-bold`}>
+              <Download size={10} /> Export
+            </button>
+          </div>
+          <div className="space-y-2">
+            {[
+              { grade: 'Grade 1', count: 120 },
+              { grade: 'Grade 2', count: 115 },
+              { grade: 'Grade 3', count: 110 },
+              { grade: 'Grade 4', count: 105 },
+              { grade: 'Grade 5', count: 90 },
+              { grade: 'Grade 6', count: 88 },
+              { grade: 'Grade 7', count: 85 },
+              { grade: 'Grade 8', count: 80 },
+              { grade: 'Grade 9', count: 75 },
+              { grade: 'Grade 10', count: 72 },
+              { grade: 'Grade 11', count: 55 },
+              { grade: 'Grade 12', count: 45 },
+            ].map(g => (
+              <div key={g.grade} className="flex items-center gap-3">
+                <span className={`text-xs ${theme.highlight} w-20 font-medium`}>{g.grade}</span>
+                <div className={`flex-1 h-6 rounded-lg ${theme.secondaryBg} overflow-hidden relative`}>
+                  <div
+                    className={`h-full rounded-lg ${theme.primary}`}
+                    style={{ width: `${(g.count / 120) * 100}%` }}
+                  />
+                  <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white mix-blend-difference">{g.count} students</span>
+                </div>
+                <span className={`text-xs font-bold ${theme.highlight} w-8 text-right`}>{g.count}</span>
+              </div>
+            ))}
+          </div>
+          <div className={`flex justify-between pt-3 border-t ${theme.border}`}>
+            <span className={`text-sm font-bold ${theme.highlight}`}>Total Enrollment</span>
+            <span className={`text-sm font-bold ${theme.primaryText}`}>1,040 students</span>
           </div>
         </div>
       )}

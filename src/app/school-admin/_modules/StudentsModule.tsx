@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { type Theme } from '@/lib/themes';
 import { StatusBadge, TabBar, SearchBar, DataTable } from '@/components/shared';
 import { mockStudents } from '@/lib/mock-data';
-import { Plus, GraduationCap, Search, Filter, Download, Eye, Edit, AlertTriangle, XCircle } from 'lucide-react';
+import { Plus, GraduationCap, Search, Filter, Download, Eye, Edit, AlertTriangle, XCircle, ArrowRightLeft, X, UserCheck, Merge, RefreshCw } from 'lucide-react';
 import StudentAddForm from './StudentAddForm';
 import StudentProfileView from './StudentProfileView';
 import PromotionWizard from './PromotionWizard';
@@ -17,6 +17,24 @@ export default function StudentsModule({ theme }: { theme: Theme }) {
 
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [showDuplicateDetail, setShowDuplicateDetail] = useState(false);
+
+  // Gap #21 — Mid-Year Section Transfer
+  const [transferStudent, setTransferStudent] = useState<typeof mockStudents[0] | null>(null);
+  const [transferSection, setTransferSection] = useState('');
+  const [transferDate, setTransferDate] = useState('2026-02-28');
+  const [transferReason, setTransferReason] = useState('');
+
+  // Gap #8 — Re-Admission Detection
+  const [showReAdmission, setShowReAdmission] = useState(true);
+
+  // Gap #62/#95 — Batch Graduation
+  const [showBatchGrad, setShowBatchGrad] = useState(false);
+
+  // Gap #146 — Duplicate Merge Modal
+  const [showMergeModal, setShowMergeModal] = useState(false);
+  const [mergeSelections, setMergeSelections] = useState<Record<string, 'A' | 'B'>>({
+    name: 'A', class: 'A', phone: 'A', parent: 'A', dob: 'A', address: 'A',
+  });
 
   // Archived / Alumni mock data
   const archivedStudents = [
@@ -60,6 +78,23 @@ export default function StudentsModule({ theme }: { theme: Theme }) {
           <button onClick={() => setShowAddStudent(true)} className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}><Plus size={14} /> Add Student</button>
         </div>
       </div>
+      {/* Gap #8 — Re-Admission Detection Banner */}
+      {showReAdmission && (
+        <div className="p-3 rounded-2xl border border-amber-300 bg-amber-50">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
+              <RefreshCw size={14} className="text-amber-600" />
+            </div>
+            <div className="flex-1">
+              <p className="text-xs font-bold text-amber-800">Re-admission detected: Rahul Mehta (previously enrolled 2023-24, left due to relocation) is applying again.</p>
+            </div>
+            <button onClick={() => window.alert('Viewing previous record for Rahul Mehta (2023-24). (Blueprint demo)')} className="px-3 py-1.5 rounded-lg bg-blue-100 text-blue-700 text-[10px] font-bold">View Previous Record</button>
+            <button onClick={() => window.alert('Records linked for Rahul Mehta. (Blueprint demo)')} className="px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-700 text-[10px] font-bold">Link Records</button>
+            <button onClick={() => setShowReAdmission(false)} className="p-1 rounded-lg hover:bg-amber-100"><X size={14} className="text-amber-600" /></button>
+          </div>
+        </div>
+      )}
+
       <TabBar tabs={['All Students', 'Class-wise', 'Fee Status', 'TC Requests', 'Archived / Alumni']} active={tab} onChange={setTab} theme={theme} />
 
       {(tab === 'All Students' || tab === 'Class-wise' || tab === 'Fee Status') && (
@@ -110,7 +145,7 @@ export default function StudentsModule({ theme }: { theme: Theme }) {
                     <span className={`text-[10px] ${theme.iconColor}`}>&harr;</span>
                     <span className={`text-xs font-bold ${theme.highlight}`}>{dup.studentB}</span>
                     <span className={`text-[10px] ${theme.iconColor} flex-1`}>({dup.reason})</span>
-                    <button className="px-2 py-1 rounded-lg bg-blue-100 text-blue-700 text-[10px] font-bold">Merge</button>
+                    <button onClick={() => setShowMergeModal(true)} className="px-2 py-1 rounded-lg bg-blue-100 text-blue-700 text-[10px] font-bold flex items-center gap-1"><Merge size={10} /> Merge</button>
                     <button className="px-2 py-1 rounded-lg bg-slate-100 text-slate-600 text-[10px] font-bold">Dismiss</button>
                   </div>
                 ))}
@@ -129,8 +164,9 @@ export default function StudentsModule({ theme }: { theme: Theme }) {
               <span key="parent" className={theme.iconColor}>{s.parent}</span>,
               <span key="phone" className={theme.iconColor}>{s.phone}</span>,
               <div key="actions" className="flex gap-1">
-                <button onClick={() => setSelectedStudent(s)} className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Eye size={12} className={theme.iconColor} /></button>
-                <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Edit size={12} className={theme.iconColor} /></button>
+                <button onClick={() => setSelectedStudent(s)} className={`p-1.5 rounded-lg ${theme.secondaryBg}`} title="View"><Eye size={12} className={theme.iconColor} /></button>
+                <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`} title="Edit"><Edit size={12} className={theme.iconColor} /></button>
+                <button onClick={() => { setTransferStudent(s); setTransferSection(''); setTransferReason(''); }} className={`p-1.5 rounded-lg ${theme.secondaryBg}`} title="Transfer Section"><ArrowRightLeft size={12} className={theme.iconColor} /></button>
               </div>
             ])}
             theme={theme}
@@ -174,7 +210,32 @@ export default function StudentsModule({ theme }: { theme: Theme }) {
 
       {tab === 'Archived / Alumni' && (
         <div className="space-y-3">
-          <p className={`text-xs ${theme.iconColor}`}>Students who have left, transferred, or graduated from the school.</p>
+          <div className="flex items-center justify-between">
+            <p className={`text-xs ${theme.iconColor}`}>Students who have left, transferred, or graduated from the school.</p>
+            <button onClick={() => setShowBatchGrad(true)} className={`px-3 py-2 rounded-xl border ${theme.border} text-xs font-bold ${theme.highlight} ${theme.buttonHover} flex items-center gap-1.5`}>
+              <GraduationCap size={14} /> Batch Graduation
+            </button>
+          </div>
+
+          {/* Gap #62/#95 — Batch Graduation Confirmation */}
+          {showBatchGrad && (
+            <div className={`p-4 rounded-2xl border border-blue-300 ${theme.cardBg} space-y-3`}>
+              <div className="flex items-center gap-2">
+                <GraduationCap size={16} className="text-blue-600" />
+                <h3 className={`text-sm font-bold ${theme.highlight}`}>Batch Graduation — Class 12 (2025-26)</h3>
+              </div>
+              <p className={`text-xs ${theme.iconColor}`}>45 students will be moved to <strong>Alumni</strong> status. Alumni IDs will be auto-generated (ALM-2026-XXXX).</p>
+              <div className={`p-3 rounded-xl ${theme.secondaryBg} space-y-1`}>
+                <div className="flex justify-between text-xs"><span className={theme.iconColor}>Class 12-A</span><span className={`font-bold ${theme.highlight}`}>23 students</span></div>
+                <div className="flex justify-between text-xs"><span className={theme.iconColor}>Class 12-B</span><span className={`font-bold ${theme.highlight}`}>22 students</span></div>
+                <div className={`flex justify-between text-xs pt-1 border-t ${theme.border}`}><span className={`font-bold ${theme.highlight}`}>Total</span><span className={`font-bold ${theme.primaryText}`}>45 students</span></div>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={() => setShowBatchGrad(false)} className={`flex-1 py-2 rounded-xl ${theme.secondaryBg} text-xs font-bold ${theme.highlight} ${theme.buttonHover}`}>Cancel</button>
+                <button onClick={() => { window.alert('45 students graduated to Alumni status! Alumni IDs generated. (Blueprint demo)'); setShowBatchGrad(false); }} className="flex-1 py-2 rounded-xl bg-blue-500 text-white text-xs font-bold">Proceed</button>
+              </div>
+            </div>
+          )}
           <DataTable
             headers={['ID', 'Name', 'Last Class', 'Status', 'Year', 'Reason']}
             rows={archivedStudents.map(s => [
@@ -187,6 +248,125 @@ export default function StudentsModule({ theme }: { theme: Theme }) {
             ])}
             theme={theme}
           />
+        </div>
+      )}
+
+      {/* Gap #21 — Mid-Year Section Transfer Modal */}
+      {transferStudent && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setTransferStudent(null)}>
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} shadow-2xl w-full max-w-md p-6 space-y-4`} onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ArrowRightLeft size={16} className={theme.primaryText} />
+                <h2 className={`text-lg font-bold ${theme.highlight}`}>Transfer Section</h2>
+              </div>
+              <button onClick={() => setTransferStudent(null)} className={`p-1.5 rounded-lg ${theme.buttonHover}`}><X size={16} className={theme.iconColor} /></button>
+            </div>
+            <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+              <p className={`text-xs ${theme.iconColor}`}>Student: <strong className={theme.highlight}>{transferStudent.name}</strong></p>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>Current Section</label>
+                <input value={transferStudent.class} readOnly className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} opacity-50 cursor-not-allowed`} />
+              </div>
+              <div>
+                <label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>New Section <span className="text-red-500">*</span></label>
+                <select value={transferSection} onChange={e => setTransferSection(e.target.value)} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`}>
+                  <option value="">Select section</option>
+                  <option>A</option><option>B</option><option>C</option><option>D</option>
+                </select>
+              </div>
+              <div>
+                <label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>Effective Date <span className="text-red-500">*</span></label>
+                <input type="date" value={transferDate} onChange={e => setTransferDate(e.target.value)} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`} />
+              </div>
+              <div>
+                <label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>Reason <span className="text-red-500">*</span></label>
+                <select value={transferReason} onChange={e => setTransferReason(e.target.value)} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`}>
+                  <option value="">Select reason</option>
+                  <option>Parent request</option><option>Performance</option><option>Capacity balancing</option><option>Other</option>
+                </select>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => setTransferStudent(null)} className={`flex-1 py-2.5 rounded-xl ${theme.secondaryBg} text-xs font-bold ${theme.highlight} ${theme.buttonHover}`}>Cancel</button>
+              <button
+                onClick={() => { window.alert(`${transferStudent.name} transferred to Section ${transferSection} effective ${transferDate}. (Blueprint demo)`); setTransferStudent(null); }}
+                disabled={!transferSection || !transferReason}
+                className={`flex-1 py-2.5 rounded-xl ${theme.primary} text-white text-sm font-bold disabled:opacity-40`}
+              >
+                Confirm Transfer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Gap #146 — Duplicate Merge Modal */}
+      {showMergeModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowMergeModal(false)}>
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} shadow-2xl w-full max-w-2xl p-6 space-y-4 max-h-[85vh] overflow-y-auto`} onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Merge size={16} className={theme.primaryText} />
+                <h2 className={`text-lg font-bold ${theme.highlight}`}>Merge Student Records</h2>
+              </div>
+              <button onClick={() => setShowMergeModal(false)} className={`p-1.5 rounded-lg ${theme.buttonHover}`}><X size={16} className={theme.iconColor} /></button>
+            </div>
+            <p className={`text-xs ${theme.iconColor}`}>Select which value to keep for each field. The other record will be archived.</p>
+            <div className="space-y-2">
+              <div className={`grid grid-cols-4 gap-2 px-3 py-2 rounded-xl ${theme.secondaryBg}`}>
+                <span className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Field</span>
+                <span className={`text-[10px] font-bold ${theme.iconColor} uppercase text-center`}>Student A</span>
+                <span className={`text-[10px] font-bold ${theme.iconColor} uppercase text-center`}>Student B</span>
+                <span className={`text-[10px] font-bold ${theme.iconColor} uppercase text-center`}>Keep</span>
+              </div>
+              {[
+                { field: 'name', label: 'Name', a: 'Aarav Patel', b: 'Aarav R. Patel' },
+                { field: 'class', label: 'Class', a: '10-A', b: '10-B' },
+                { field: 'phone', label: 'Phone', a: '98765 43210', b: '98765 43210' },
+                { field: 'parent', label: 'Parent Name', a: 'Rajesh Patel', b: 'Rajesh R. Patel' },
+                { field: 'dob', label: 'Date of Birth', a: '15-Mar-2012', b: '15-Mar-2012' },
+                { field: 'address', label: 'Address', a: 'Satellite Rd, Ahmedabad', b: '12 Satellite Rd, AHD' },
+              ].map(row => (
+                <div key={row.field} className={`grid grid-cols-4 gap-2 px-3 py-2.5 rounded-xl ${theme.accentBg} items-center`}>
+                  <span className={`text-xs font-bold ${theme.highlight}`}>{row.label}</span>
+                  <label className="flex items-center justify-center gap-1.5 cursor-pointer">
+                    <input
+                      type="radio"
+                      name={`merge-${row.field}`}
+                      checked={mergeSelections[row.field] === 'A'}
+                      onChange={() => setMergeSelections(p => ({ ...p, [row.field]: 'A' }))}
+                      className="accent-slate-600"
+                    />
+                    <span className={`text-xs ${theme.highlight}`}>{row.a}</span>
+                  </label>
+                  <label className="flex items-center justify-center gap-1.5 cursor-pointer">
+                    <input
+                      type="radio"
+                      name={`merge-${row.field}`}
+                      checked={mergeSelections[row.field] === 'B'}
+                      onChange={() => setMergeSelections(p => ({ ...p, [row.field]: 'B' }))}
+                      className="accent-slate-600"
+                    />
+                    <span className={`text-xs ${theme.highlight}`}>{row.b}</span>
+                  </label>
+                  <div className="flex justify-center">
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${mergeSelections[row.field] === 'A' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+                      {mergeSelections[row.field] === 'A' ? 'Student A' : 'Student B'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => setShowMergeModal(false)} className={`flex-1 py-2.5 rounded-xl ${theme.secondaryBg} text-xs font-bold ${theme.highlight} ${theme.buttonHover}`}>Cancel</button>
+              <button onClick={() => { window.alert('Records merged successfully! Duplicate archived. (Blueprint demo)'); setShowMergeModal(false); }} className={`flex-1 py-2.5 rounded-xl ${theme.primary} text-white text-sm font-bold flex items-center justify-center gap-1.5`}>
+                <Merge size={14} /> Merge Records
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

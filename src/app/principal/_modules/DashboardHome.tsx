@@ -9,9 +9,11 @@ import {
   ClipboardCheck, Star, FileText, ShieldCheck, Award, User, Sparkles,
   Radio, Cake, Heart, Moon, Sun, Image, LayoutGrid, X, Eye, EyeOff,
   Timer, Phone, Stethoscope, ChevronDown, ChevronUp, Shield, MessageSquare,
+  HelpCircle,
 } from 'lucide-react';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import RecurringTasksCard from '@/components/RecurringTasksCard';
+import OnboardingTour from '@/components/OnboardingTour';
 import DrillDownPanel from './DrillDownPanel';
 
 export default function DashboardHome({ theme, onProfileClick, isPreschool }: { theme: Theme; onProfileClick: () => void; isPreschool?: boolean }) {
@@ -37,6 +39,12 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
   {/* Gap 22 — Mini-Profile Popup state */}
   const [miniProfile, setMiniProfile] = useState<{name: string; class?: string; role?: string} | null>(null);
 
+  {/* Gap 10 — Onboarding Tour state */}
+  const [showTour, setShowTour] = useState(false);
+
+  {/* Gap 18 — Sensitive Data Masking state */}
+  const [dataMasked, setDataMasked] = useState(false);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -46,6 +54,14 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
           <p className={`text-[10px] ${theme.iconColor} flex items-center gap-1`}><Clock size={10} /> Last refreshed: 2 min ago</p>
         </div>
         <div className="flex items-center gap-2">
+          {/* Gap 10 — Take a Tour Button */}
+          <button onClick={() => setShowTour(true)} title="Take a Tour" className={`relative w-9 h-9 rounded-full ${theme.secondaryBg} flex items-center justify-center ${theme.buttonHover} transition-all`}>
+            <HelpCircle size={16} className={theme.iconColor} />
+          </button>
+          {/* Gap 18 — Sensitive Data Masking Toggle */}
+          <button onClick={() => setDataMasked(!dataMasked)} title="Toggle sensitive data masking" className={`relative w-9 h-9 rounded-full ${theme.secondaryBg} flex items-center justify-center ${theme.buttonHover} transition-all`}>
+            {dataMasked ? <EyeOff size={16} className="text-red-500" /> : <Eye size={16} className={theme.iconColor} />}
+          </button>
           {/* Gap 12 — Browse Dashlets Button */}
           <button onClick={() => setShowGallery(true)} title="Browse Dashlets" className={`relative w-9 h-9 rounded-full ${theme.secondaryBg} flex items-center justify-center ${theme.buttonHover} transition-all`}>
             <LayoutGrid size={16} className={theme.iconColor} />
@@ -63,6 +79,26 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
           <button onClick={onProfileClick} title="My Profile" className={`w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white flex items-center justify-center hover:opacity-90 transition-opacity ring-2 ring-white shadow-sm`}>
             <User size={16} />
           </button>
+        </div>
+      </div>
+
+      {/* Gap 16 — Force-Push Mandatory Dashlet */}
+      <div className="rounded-2xl border-l-4 border-amber-500 bg-amber-50 border border-amber-200 p-4">
+        <div className="flex items-start gap-3">
+          <AlertTriangle size={18} className="text-amber-600 shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <h3 className="text-sm font-bold text-amber-800 mb-1">Required Action</h3>
+            <p className="text-xs text-amber-700">Fee Collection Drive — All class teachers must verify student fee status by March 5, 2026.</p>
+            <p className="text-[10px] text-amber-600 mt-1 italic">This dashlet will remain visible until the task is completed.</p>
+            <div className="flex items-center gap-2 mt-3">
+              <button onClick={() => alert('Marked as complete')} className="px-3 py-1.5 rounded-xl bg-amber-600 text-white text-[10px] font-bold hover:bg-amber-700 transition-colors">
+                Mark as Done
+              </button>
+              <button className="px-3 py-1.5 rounded-xl bg-white border border-amber-300 text-amber-700 text-[10px] font-bold hover:bg-amber-100 transition-colors">
+                View Details
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -182,8 +218,8 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
                 <h3 className={`text-xs font-bold ${theme.highlight}`}>Students</h3>
                 <ChevronRight size={10} className={`${theme.iconColor} ${drillDown === 'students' ? 'rotate-90' : ''} transition-transform`} />
               </div>
-              <p className={`text-2xl font-bold ${theme.highlight}`}>2,598 / 2,847</p>
-              <p className={`text-xs ${theme.iconColor} mt-0.5`}>Enrolled: 3,000</p>
+              <p className={`text-2xl font-bold ${theme.highlight}`}>{dataMasked ? '*** / ***' : '2,598 / 2,847'}</p>
+              <p className={`text-xs ${theme.iconColor} mt-0.5`}>Enrolled: {dataMasked ? '***' : '3,000'}</p>
             </div>
             <div className="w-20 h-20 ml-2 shrink-0">
               <svg viewBox="0 0 36 36" className="w-full h-full">
@@ -210,8 +246,8 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
                 <h3 className={`text-xs font-bold ${theme.highlight}`}>Academic Staff</h3>
                 <ChevronRight size={10} className={`${theme.iconColor} ${drillDown === 'academic' ? 'rotate-90' : ''} transition-transform`} />
               </div>
-              <p className={`text-2xl font-bold ${theme.highlight}`}>72 / 78</p>
-              <p className={`text-xs text-emerald-600 mt-0.5`}>92% Present</p>
+              <p className={`text-2xl font-bold ${theme.highlight}`}>{dataMasked ? '*** / ***' : '72 / 78'}</p>
+              <p className={`text-xs text-emerald-600 mt-0.5`}>{dataMasked ? '**% Present' : '92% Present'}</p>
             </div>
             <div className="w-20 h-20 ml-2 shrink-0">
               <svg viewBox="0 0 36 36" className="w-full h-full">
@@ -236,8 +272,8 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
                 <h3 className={`text-xs font-bold ${theme.highlight}`}>Non-Academic</h3>
                 <ChevronRight size={10} className={`${theme.iconColor} ${drillDown === 'non-academic' ? 'rotate-90' : ''} transition-transform`} />
               </div>
-              <p className={`text-2xl font-bold ${theme.highlight}`}>56 / 64</p>
-              <p className={`text-xs text-emerald-600 mt-0.5`}>88% Present</p>
+              <p className={`text-2xl font-bold ${theme.highlight}`}>{dataMasked ? '*** / ***' : '56 / 64'}</p>
+              <p className={`text-xs text-emerald-600 mt-0.5`}>{dataMasked ? '**% Present' : '88% Present'}</p>
             </div>
             <div className="w-20 h-20 ml-2 shrink-0">
               <svg viewBox="0 0 36 36" className="w-full h-full">
@@ -262,13 +298,13 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
       {/* Stat Cards + Quick Actions — same row */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <button onClick={() => setShowFeeDrillDown(!showFeeDrillDown)} className="text-left">
-          <StatCard icon={Banknote} label="Fee This Month" value={`\u20B912.4L / \u20B918L`} color="bg-emerald-500" sub="Click for breakdown" theme={theme} />
+          <StatCard icon={Banknote} label="Fee This Month" value={dataMasked ? '\u20B9 **** / \u20B9 ****' : '\u20B912.4L / \u20B918L'} color="bg-emerald-500" sub="Click for breakdown" theme={theme} />
         </button>
         <button onClick={() => setShowEnquiryPipeline(!showEnquiryPipeline)} className="text-left">
-          <StatCard icon={Users} label="New Enquiries" value="12" color="bg-purple-500" sub="Click to view pipeline | 45 seats open" theme={theme} />
+          <StatCard icon={Users} label="New Enquiries" value={dataMasked ? '***' : '12'} color="bg-purple-500" sub={dataMasked ? 'Click to view pipeline | *** seats open' : 'Click to view pipeline | 45 seats open'} theme={theme} />
         </button>
         <StatCard icon={Clock} label="Pending Approvals" value="8" color="bg-amber-500" theme={theme} />
-        <StatCard icon={Banknote} label="Today's Collection" value={`\u20B92,45,000`} color="bg-green-500" sub="Outstanding: \u20B918.5L" theme={theme} />
+        <StatCard icon={Banknote} label="Today's Collection" value={dataMasked ? '\u20B9 ****' : '\u20B92,45,000'} color="bg-green-500" sub={dataMasked ? 'Outstanding: \u20B9 ****' : 'Outstanding: \u20B918.5L'} theme={theme} />
         {/* Quick Actions — compact icon row */}
         <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-3 flex flex-col justify-center`}>
           <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-2`}>Quick Actions</p>
@@ -368,9 +404,9 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
           {/* Summary Stats */}
           <div className="grid grid-cols-4 gap-2 mb-4">
             {[
-              { label: 'Total Collected', value: '\u20B912.4L', color: 'text-emerald-600', bgColor: 'bg-emerald-50 border-emerald-200' },
-              { label: 'Outstanding', value: '\u20B95.6L', color: 'text-red-600', bgColor: 'bg-red-50 border-red-200' },
-              { label: 'Defaulters', value: '45 students', color: 'text-amber-600', bgColor: 'bg-amber-50 border-amber-200' },
+              { label: 'Total Collected', value: dataMasked ? '\u20B9 ****' : '\u20B912.4L', color: 'text-emerald-600', bgColor: 'bg-emerald-50 border-emerald-200' },
+              { label: 'Outstanding', value: dataMasked ? '\u20B9 ****' : '\u20B95.6L', color: 'text-red-600', bgColor: 'bg-red-50 border-red-200' },
+              { label: 'Defaulters', value: dataMasked ? '*** students' : '45 students', color: 'text-amber-600', bgColor: 'bg-amber-50 border-amber-200' },
               { label: 'Online vs Cash', value: '68% / 32%', color: 'text-blue-600', bgColor: 'bg-blue-50 border-blue-200' },
             ].map(s => (
               <div key={s.label} className={`${s.bgColor} border rounded-xl p-3 text-center`}>
@@ -404,9 +440,9 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
                 ].map((r, i) => (
                   <tr key={i} className={`border-b ${theme.border} ${theme.buttonHover}`}>
                     <td className={`py-2 px-2 ${theme.highlight} font-bold`}>{r.cls}</td>
-                    <td className={`py-2 px-2 ${theme.iconColor}`}>{r.due}</td>
-                    <td className={`py-2 px-2 ${theme.iconColor}`}>{r.collected}</td>
-                    <td className={`py-2 px-2 ${theme.iconColor}`}>{r.outstanding}</td>
+                    <td className={`py-2 px-2 ${theme.iconColor}`}>{dataMasked ? '\u20B9 ****' : r.due}</td>
+                    <td className={`py-2 px-2 ${theme.iconColor}`}>{dataMasked ? '\u20B9 ****' : r.collected}</td>
+                    <td className={`py-2 px-2 ${theme.iconColor}`}>{dataMasked ? '\u20B9 ****' : r.outstanding}</td>
                     <td className={`py-2 px-2 font-bold ${r.pct >= 90 ? 'text-emerald-600' : r.pct >= 75 ? 'text-amber-600' : 'text-red-600'}`}>{r.pct}%</td>
                   </tr>
                 ))}
@@ -790,6 +826,11 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
             </div>
           </div>
         </div>
+      )}
+
+      {/* Gap 10 — Onboarding Tour */}
+      {showTour && (
+        <OnboardingTour theme={theme} onDismiss={() => setShowTour(false)} />
       )}
 
       {/* Gap 22 — Widget Inter-Linking / Mini-Profile Popup */}

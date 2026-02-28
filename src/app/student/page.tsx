@@ -12,7 +12,7 @@ import {
   GraduationCap, User, ArrowRight, MessageSquare,
   PanelLeftClose, PanelLeftOpen, Headphones,
   CalendarOff, FileBadge, LayoutGrid, X, Send, Copy,
-  FolderOpen, Trophy, Medal
+  FolderOpen, Trophy, Medal, Plus, Pencil, Trash2, Shield
 } from 'lucide-react';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
@@ -1359,12 +1359,12 @@ function NoticesModule({ theme }: { theme: Theme }) {
 // ─── PORTFOLIO MODULE ─────────────────────────────────
 function PortfolioModule({ theme }: { theme: Theme }) {
   const portfolioItems = [
-    { title: 'Science Fair Project — Solar Water Purifier', type: 'Project', date: 'Nov 2025', endorsement: 'Excellent innovation! — Mrs. Iyer', thumbnail: 'bg-emerald-500' },
-    { title: 'Art Competition Winner — Landscape Painting', type: 'Artwork', date: 'Oct 2025', endorsement: 'Beautiful composition! — Mrs. Kulkarni', thumbnail: 'bg-pink-500' },
-    { title: 'Basketball Tournament — District MVP', type: 'Certificate', date: 'Sep 2025', endorsement: 'Outstanding performance! — Mr. Singh', thumbnail: 'bg-amber-500' },
-    { title: 'Coding Workshop — Python Web Scraping', type: 'Certificate', date: 'Aug 2025', endorsement: 'Great learning spirit! — Mr. Joshi', thumbnail: 'bg-indigo-500' },
-    { title: 'Essay Competition — Digital India', type: 'Project', date: 'Jul 2025', endorsement: 'Well-articulated thoughts — Ms. D\'Souza', thumbnail: 'bg-purple-500' },
-    { title: 'Community Service — Tree Plantation Drive', type: 'Certificate', date: 'Jun 2025', endorsement: 'Wonderful initiative! — Mr. Reddy', thumbnail: 'bg-teal-500' },
+    { title: 'Science Fair Project — Solar Water Purifier', type: 'Project', date: 'Nov 2025', endorsement: 'Excellent innovation! — Mrs. Iyer', thumbnail: 'bg-emerald-500', skills: ['Critical Thinking', 'Creativity', 'Problem Solving'] },
+    { title: 'Art Competition Winner — Landscape Painting', type: 'Artwork', date: 'Oct 2025', endorsement: 'Beautiful composition! — Mrs. Kulkarni', thumbnail: 'bg-pink-500', skills: ['Creativity', 'Communication'] },
+    { title: 'Basketball Tournament — District MVP', type: 'Certificate', date: 'Sep 2025', endorsement: 'Outstanding performance! — Mr. Singh', thumbnail: 'bg-amber-500', skills: ['Leadership', 'Collaboration'] },
+    { title: 'Coding Workshop — Python Web Scraping', type: 'Certificate', date: 'Aug 2025', endorsement: 'Great learning spirit! — Mr. Joshi', thumbnail: 'bg-indigo-500', skills: ['Critical Thinking', 'Problem Solving'] },
+    { title: 'Essay Competition — Digital India', type: 'Project', date: 'Jul 2025', endorsement: 'Well-articulated thoughts — Ms. D\'Souza', thumbnail: 'bg-purple-500', skills: ['Communication', 'Critical Thinking', 'Creativity'] },
+    { title: 'Community Service — Tree Plantation Drive', type: 'Certificate', date: 'Jun 2025', endorsement: 'Wonderful initiative! — Mr. Reddy', thumbnail: 'bg-teal-500', skills: ['Collaboration', 'Leadership'] },
   ];
 
   const typeBadgeColors: Record<string, string> = {
@@ -1374,14 +1374,23 @@ function PortfolioModule({ theme }: { theme: Theme }) {
     Video: 'bg-purple-100 text-purple-700',
   };
 
+  const skillColors: Record<string, string> = {
+    'Critical Thinking': 'bg-blue-100 text-blue-700',
+    'Creativity': 'bg-pink-100 text-pink-700',
+    'Collaboration': 'bg-emerald-100 text-emerald-700',
+    'Communication': 'bg-purple-100 text-purple-700',
+    'Problem Solving': 'bg-amber-100 text-amber-700',
+    'Leadership': 'bg-indigo-100 text-indigo-700',
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className={`text-2xl font-bold ${theme.highlight}`}>My Portfolio</h1>
         <div className="flex items-center gap-2">
           <span className={`text-xs px-2.5 py-1 rounded-lg ${theme.secondaryBg} ${theme.iconColor} font-bold`}>{portfolioItems.length} items</span>
-          <button className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl ${theme.primary} text-white text-xs font-bold`}>
-            <Upload size={12} /> Upload New
+          <button onClick={() => alert('Add New Portfolio Item (Blueprint demo)')} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl ${theme.primary} text-white text-xs font-bold`}>
+            <Plus size={12} /> Add New Item
           </button>
         </div>
       </div>
@@ -1390,8 +1399,17 @@ function PortfolioModule({ theme }: { theme: Theme }) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {portfolioItems.map((item, i) => (
           <div key={i} className={`${theme.cardBg} rounded-2xl border ${theme.border} overflow-hidden hover:shadow-md transition-all`}>
-            <div className={`h-24 ${item.thumbnail} flex items-center justify-center text-white`}>
+            <div className={`h-24 ${item.thumbnail} flex items-center justify-center text-white relative`}>
               <FolderOpen size={28} />
+              {/* Edit / Delete buttons */}
+              <div className="absolute top-2 right-2 flex gap-1">
+                <button onClick={() => alert(`Edit "${item.title}" (Blueprint demo)`)} className="w-7 h-7 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/40 transition-all" title="Edit">
+                  <Pencil size={12} className="text-white" />
+                </button>
+                <button onClick={() => alert(`Delete "${item.title}" (Blueprint demo)`)} className="w-7 h-7 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-red-500/60 transition-all" title="Delete">
+                  <Trash2 size={12} className="text-white" />
+                </button>
+              </div>
             </div>
             <div className="p-4">
               <div className="flex items-center gap-2 mb-1">
@@ -1399,9 +1417,15 @@ function PortfolioModule({ theme }: { theme: Theme }) {
                 <span className={`text-[10px] ${theme.iconColor}`}>{item.date}</span>
               </div>
               <p className={`text-xs font-bold ${theme.highlight} mb-2`}>{item.title}</p>
-              <div className={`flex items-start gap-1.5 p-2 rounded-lg ${theme.accentBg}`}>
+              <div className={`flex items-start gap-1.5 p-2 rounded-lg ${theme.accentBg} mb-2`}>
                 <Star size={10} className="text-amber-500 mt-0.5 shrink-0" />
                 <p className={`text-[10px] ${theme.iconColor} italic`}>{item.endorsement}</p>
+              </div>
+              {/* Skill Tags */}
+              <div className="flex flex-wrap gap-1">
+                {item.skills.map(skill => (
+                  <span key={skill} className={`text-[9px] px-2 py-0.5 rounded-full font-bold ${skillColors[skill] || 'bg-slate-100 text-slate-600'}`}>{skill}</span>
+                ))}
               </div>
             </div>
           </div>
@@ -1496,6 +1520,75 @@ function AchievementsModule({ theme }: { theme: Theme }) {
             <span className={`text-xs px-3 py-1 rounded-full font-bold border ${medalColors[ach.medal]}`}>{ach.medal}</span>
           </div>
         ))}
+      </div>
+
+      {/* ── NCC / Scouts / NSS Activity Log ── */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5 space-y-4`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Shield size={16} className="text-emerald-600" />
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>Activity Log (NCC / Scouts / NSS)</h3>
+          </div>
+          <button onClick={() => alert('Log New Activity (Blueprint demo)')} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl ${theme.primary} text-white text-xs font-bold`}>
+            <Plus size={12} /> Log New Activity
+          </button>
+        </div>
+
+        <div className={`overflow-hidden rounded-xl border ${theme.border}`}>
+          <table className="w-full text-xs">
+            <thead>
+              <tr className={theme.secondaryBg}>
+                <th className={`p-2.5 text-left font-bold ${theme.iconColor} uppercase`}>Date</th>
+                <th className={`p-2.5 text-left font-bold ${theme.iconColor} uppercase`}>Activity</th>
+                <th className={`p-2.5 text-center font-bold ${theme.iconColor} uppercase`}>Program</th>
+                <th className={`p-2.5 text-center font-bold ${theme.iconColor} uppercase`}>Hours</th>
+                <th className={`p-2.5 text-left font-bold ${theme.iconColor} uppercase`}>Instructor</th>
+                <th className={`p-2.5 text-center font-bold ${theme.iconColor} uppercase`}>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { date: '2026-02-22', activity: 'Republic Day Parade Rehearsal', program: 'NCC', hours: 3, instructor: 'Lt. Col. Rathore', status: 'Completed' },
+                { date: '2026-02-15', activity: 'Community Clean-up Drive', program: 'NSS', hours: 4, instructor: 'Mr. Reddy', status: 'Completed' },
+                { date: '2026-02-08', activity: 'First Aid Training Camp', program: 'Scouts', hours: 6, instructor: 'Mr. Singh', status: 'Completed' },
+                { date: '2026-01-26', activity: 'Republic Day Flag Hoisting & Parade', program: 'NCC', hours: 4, instructor: 'Lt. Col. Rathore', status: 'Completed' },
+                { date: '2026-01-18', activity: 'Tree Plantation at Village School', program: 'NSS', hours: 5, instructor: 'Mr. Reddy', status: 'Verified' },
+              ].map((a, i) => (
+                <tr key={i} className={`border-t ${theme.border}`}>
+                  <td className={`p-2.5 ${theme.iconColor}`}>{a.date}</td>
+                  <td className={`p-2.5 font-bold ${theme.highlight}`}>{a.activity}</td>
+                  <td className="p-2.5 text-center">
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                      a.program === 'NCC' ? 'bg-blue-100 text-blue-700' : a.program === 'Scouts' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
+                    }`}>{a.program}</span>
+                  </td>
+                  <td className={`p-2.5 text-center font-bold ${theme.highlight}`}>{a.hours}h</td>
+                  <td className={`p-2.5 ${theme.iconColor}`}>{a.instructor}</td>
+                  <td className="p-2.5 text-center">
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${a.status === 'Verified' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}`}>{a.status}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Total Hours Summary */}
+        <div className="flex gap-4">
+          {[
+            { program: 'NCC', hours: 7, color: 'bg-blue-500' },
+            { program: 'Scouts', hours: 6, color: 'bg-amber-500' },
+            { program: 'NSS', hours: 9, color: 'bg-emerald-500' },
+          ].map(p => (
+            <div key={p.program} className={`flex items-center gap-2 px-3 py-2 rounded-xl ${theme.secondaryBg}`}>
+              <div className={`w-2.5 h-2.5 rounded-full ${p.color}`} />
+              <span className={`text-[10px] font-bold ${theme.highlight}`}>{p.program}: {p.hours} hours</span>
+            </div>
+          ))}
+          <div className={`flex items-center gap-2 px-3 py-2 rounded-xl ${theme.secondaryBg} border ${theme.border}`}>
+            <span className={`text-[10px] font-bold ${theme.highlight}`}>Total: 22 hours</span>
+          </div>
+        </div>
       </div>
     </div>
   );

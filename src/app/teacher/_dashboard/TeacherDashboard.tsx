@@ -5,7 +5,7 @@ import { type Theme } from '@/lib/themes';
 import {
   Home, BookOpen, ClipboardCheck, FileText, Award, Calendar,
   CalendarDays, Notebook, BarChart3, MessageSquare, Headphones,
-  PanelLeftClose, PanelLeftOpen, MessageSquareText
+  PanelLeftClose, PanelLeftOpen, MessageSquareText, MonitorPlay
 } from 'lucide-react';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import SupportModule from '@/components/SupportModule';
@@ -24,6 +24,7 @@ import ReportsModule from '../_modules/ReportsModule';
 import CommunicationModule from '../_modules/CommunicationModule';
 import LessonPlanModule from '../_modules/LessonPlanModule';
 import RemarksModule from '../_modules/RemarksModule';
+import LMSModule from '../_modules/LMSModule';
 
 // ─── TEACHER PROFILE (for top bar) ──────────────────
 const teacherProfile = {
@@ -44,6 +45,7 @@ const modules = [
   { id: 'communication', label: 'Communication', icon: MessageSquare },
   { id: 'lesson-plans', label: 'Lesson Plans', icon: BookOpen },
   { id: 'remarks', label: 'Student Remarks', icon: MessageSquareText },
+  { id: 'lms', label: 'LMS / E-Learning', icon: MonitorPlay },
   { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
   { id: 'support', label: 'Support', icon: Headphones },
 ];
@@ -104,6 +106,7 @@ export default function TeacherDashboard({ theme, themeIdx, onThemeChange, isPre
           {activeModule === 'communication' && <CommunicationModule theme={theme} />}
           {activeModule === 'lesson-plans' && <LessonPlanModule theme={theme} />}
           {activeModule === 'remarks' && <RemarksModule theme={theme} />}
+          {activeModule === 'lms' && <LMSModule theme={theme} />}
           {activeModule === 'your-inputs' && <YourInputsModule theme={theme} userName={currentUser?.name || ''} />}
           {activeModule === 'support' && <SupportModule theme={theme} role="teacher" />}
           {activeModule === 'profile' && <StakeholderProfile role="teacher" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}

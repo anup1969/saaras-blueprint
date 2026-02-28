@@ -64,6 +64,7 @@ export default function AttendanceModule({ theme }: { theme: Theme }) {
   const [markingMode, setMarkingMode] = useState<'Day-wise' | 'Subject-wise'>('Day-wise');
   const [selectedPeriod, setSelectedPeriod] = useState('P3');
   const [showCorrectionForm, setShowCorrectionForm] = useState(false);
+  const [attendanceReasons, setAttendanceReasons] = useState<Record<number, string>>({});
 
   const presentCount = attendanceData.filter(s => s.status === 'P').length;
   const absentCount = attendanceData.filter(s => s.status === 'A').length;
@@ -164,6 +165,7 @@ export default function AttendanceModule({ theme }: { theme: Theme }) {
                   <th className={`text-left px-4 py-2 text-xs font-bold ${theme.iconColor} uppercase`}>Roll</th>
                   <th className={`text-left px-4 py-2 text-xs font-bold ${theme.iconColor} uppercase`}>Student Name</th>
                   <th className={`text-center px-4 py-2 text-xs font-bold ${theme.iconColor} uppercase`}>Status</th>
+                  <th className={`text-center px-4 py-2 text-xs font-bold ${theme.iconColor} uppercase`}>Reason</th>
                 </tr>
               </thead>
               <tbody>
@@ -180,6 +182,9 @@ export default function AttendanceModule({ theme }: { theme: Theme }) {
                               setAttendanceData(prev => prev.map((st, idx) =>
                                 idx === i ? { ...st, status } : st
                               ));
+                              if (status === 'P') {
+                                setAttendanceReasons(prev => { const n = { ...prev }; delete n[s.roll]; return n; });
+                              }
                             }}
                             className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
                               s.status === status
@@ -195,6 +200,24 @@ export default function AttendanceModule({ theme }: { theme: Theme }) {
                           </button>
                         ))}
                       </div>
+                    </td>
+                    <td className="px-4 py-2">
+                      {(s.status === 'L' || s.status === 'A') ? (
+                        <select
+                          value={attendanceReasons[s.roll] || ''}
+                          onChange={e => setAttendanceReasons(prev => ({ ...prev, [s.roll]: e.target.value }))}
+                          className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] font-bold ${theme.highlight} w-full min-w-[110px]`}
+                        >
+                          <option value="">Select reason...</option>
+                          <option value="Medical">Medical</option>
+                          <option value="Family Emergency">Family Emergency</option>
+                          <option value="Transport Issue">Transport Issue</option>
+                          <option value="Unexcused">Unexcused</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      ) : (
+                        <span className={`text-[10px] ${theme.iconColor}`}>--</span>
+                      )}
                     </td>
                   </tr>
                 ))}

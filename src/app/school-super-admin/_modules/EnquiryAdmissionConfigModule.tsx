@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Plus, CheckCircle, ChevronUp, ChevronDown, Copy, CheckSquare, Square } from 'lucide-react';
+import { X, Plus, CheckCircle, ChevronUp, ChevronDown, Copy, CheckSquare, Square, Globe, Link, QrCode, Bell, ArrowRight, FileText, Upload, Settings } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
 
@@ -48,6 +48,48 @@ export default function EnquiryAdmissionConfigModule({ theme }: { theme: Theme }
   // ─── APAAR / ABC ID ───
   const [enableAPAAR, setEnableAPAAR] = useState(false);
   const [apaarFormat, setApaarFormat] = useState('XXXX-XXXX-XXXX');
+
+  // ─── Gap #14: Embeddable Enquiry Form ───
+  const [enableOnlineForm, setEnableOnlineForm] = useState(true);
+  const embedCode = '<iframe src="https://school.saaras.app/apply/demo-school" width="100%" height="700" frameBorder="0"></iframe>';
+  const directLink = 'https://school.saaras.app/apply/demo-school';
+
+  // ─── Gap #15-Tab3: Custom Enquiry Fields ───
+  const [customFields, setCustomFields] = useState([
+    { label: 'Student Name', type: 'Text', required: true, builtin: true },
+    { label: 'Phone Number', type: 'Number', required: true, builtin: true },
+    { label: 'Email', type: 'Text', required: true, builtin: true },
+    { label: 'Class Applied For', type: 'Dropdown', required: true, builtin: true },
+    { label: 'Date of Birth', type: 'Date', required: true, builtin: true },
+    { label: 'Previous School', type: 'Text', required: false, builtin: false },
+    { label: 'Sibling Studying Here', type: 'Dropdown', required: false, builtin: false },
+  ]);
+  const [showAddField, setShowAddField] = useState(false);
+  const [newFieldLabel, setNewFieldLabel] = useState('');
+  const [newFieldType, setNewFieldType] = useState('Text');
+  const [newFieldRequired, setNewFieldRequired] = useState(false);
+
+  // ─── Gap #6-Tab3: Auto Batch Allotment ───
+  const [autoAssignSection, setAutoAssignSection] = useState(false);
+  const [sectionMethod, setSectionMethod] = useState('Round Robin');
+  const [balanceSections, setBalanceSections] = useState(true);
+
+  // ─── Gap #9/#19-Tab3: Notification Triggers ───
+  const [enquiryNotifications, setEnquiryNotifications] = useState<Record<string, boolean>>({
+    'Email on new enquiry': true,
+    'SMS on status change': true,
+    'Notify counselor on assignment': true,
+    'Parent notification on admission offer': false,
+  });
+
+  // ─── Gap #24-Tab3: Admission Flow Steps ───
+  const admissionSteps = [
+    { step: 1, name: 'Online Application', desc: 'Parent fills application form online or in person', status: 'active' },
+    { step: 2, name: 'Document Upload', desc: 'Upload birth certificate, photos, previous school records', status: 'active' },
+    { step: 3, name: 'Entrance Test', desc: 'Optional entrance/aptitude test for the student', status: 'optional' },
+    { step: 4, name: 'Fee Payment', desc: 'Pay admission fee and first term fee online or offline', status: 'active' },
+    { step: 5, name: 'Confirmation', desc: 'Admission confirmed, student ID and class assigned', status: 'active' },
+  ];
 
   return (
     <div className="space-y-4">
@@ -220,22 +262,228 @@ export default function EnquiryAdmissionConfigModule({ theme }: { theme: Theme }
         </div>
       </SectionCard>
 
-      {/* ─── D) Website Integration ─── */}
-      <SectionCard title="Website Integration" subtitle="Embed the admission form on your school website" theme={theme}>
-        <div className={`p-3 rounded-xl ${theme.secondaryBg} mb-3`}>
-          <p className={`text-[10px] font-bold ${theme.iconColor} mb-2 uppercase tracking-wide`}>Embed Code for School Website</p>
-          <div className={`p-2.5 rounded-lg bg-gray-900 text-green-400 text-[10px] font-mono mb-2 overflow-x-auto`}>
-            {`<iframe src="https://your-school.saaras.app/apply" width="100%" height="700" frameBorder="0"></iframe>`}
+      {/* ─── Gap #14: Website Integration (Enhanced) ─── */}
+      <SectionCard title="Website Integration" subtitle="Embed enquiry form on your school website, share direct link, or generate QR code" theme={theme}>
+        <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg} mb-3`}>
+          <div>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Enable Online Application Form</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>Parents can apply online from your website or via direct link</p>
           </div>
-          <button className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl ${theme.primary} text-white text-xs font-bold`}>
-            <Copy size={12} /> Copy Code
-          </button>
+          <SSAToggle on={enableOnlineForm} onChange={() => setEnableOnlineForm(!enableOnlineForm)} theme={theme} />
         </div>
-        <div className={`p-3 rounded-xl ${theme.accentBg} border ${theme.border}`}>
-          <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Preview</p>
-          <div className={`h-20 rounded-lg ${theme.secondaryBg} flex items-center justify-center`}>
-            <span className={`text-[10px] ${theme.iconColor}`}>Application form preview thumbnail</span>
+        {enableOnlineForm && (
+          <>
+            <div className={`p-3 rounded-xl ${theme.secondaryBg} mb-3`}>
+              <div className="flex items-center gap-1.5 mb-2">
+                <Globe size={12} className={theme.iconColor} />
+                <p className={`text-[10px] font-bold ${theme.iconColor} uppercase tracking-wide`}>Embed Code for School Website</p>
+              </div>
+              <div className={`p-2.5 rounded-lg bg-gray-900 text-green-400 text-[10px] font-mono mb-2 overflow-x-auto`}>
+                {embedCode}
+              </div>
+              <button className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl ${theme.primary} text-white text-xs font-bold`}>
+                <Copy size={12} /> Copy Embed Code
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+                <div className="flex items-center gap-1.5 mb-2">
+                  <Link size={12} className={theme.iconColor} />
+                  <p className={`text-[10px] font-bold ${theme.iconColor} uppercase tracking-wide`}>Direct Link</p>
+                </div>
+                <div className={`px-2.5 py-2 rounded-lg ${theme.cardBg} border ${theme.border} text-[10px] ${theme.highlight} font-mono mb-2 break-all`}>
+                  {directLink}
+                </div>
+                <button className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl ${theme.primary} text-white text-xs font-bold`}>
+                  <Copy size={12} /> Copy Link
+                </button>
+              </div>
+              <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+                <div className="flex items-center gap-1.5 mb-2">
+                  <QrCode size={12} className={theme.iconColor} />
+                  <p className={`text-[10px] font-bold ${theme.iconColor} uppercase tracking-wide`}>QR Code</p>
+                </div>
+                <div className={`h-24 w-24 rounded-lg ${theme.cardBg} border-2 border-dashed ${theme.border} flex items-center justify-center mx-auto mb-2`}>
+                  <div className="text-center">
+                    <QrCode size={32} className={theme.iconColor} />
+                    <p className={`text-[8px] ${theme.iconColor} mt-1`}>QR Preview</p>
+                  </div>
+                </div>
+                <button className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border ${theme.border} ${theme.buttonHover} text-xs font-bold ${theme.highlight} w-full justify-center`}>
+                  Download QR
+                </button>
+              </div>
+            </div>
+            <div className={`p-3 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Preview</p>
+              <div className={`h-20 rounded-lg ${theme.secondaryBg} flex items-center justify-center`}>
+                <span className={`text-[10px] ${theme.iconColor}`}>Application form preview thumbnail</span>
+              </div>
+            </div>
+          </>
+        )}
+      </SectionCard>
+
+      {/* ─── Gap #15-Tab3: Custom Enquiry Fields ─── */}
+      <SectionCard title="Custom Form Fields" subtitle="Configure which fields appear on the enquiry/application form and add custom fields" theme={theme}>
+        <div className="overflow-x-auto mb-3">
+          <table className="w-full text-xs">
+            <thead><tr className={theme.secondaryBg}>
+              {['Field Label', 'Type', 'Required', ''].map(h => (
+                <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
+              ))}
+            </tr></thead>
+            <tbody>
+              {customFields.map((f, i) => (
+                <tr key={i} className={`border-t ${theme.border}`}>
+                  <td className={`px-3 py-2 font-bold ${theme.highlight}`}>
+                    {f.label}
+                    {f.builtin && <span className={`ml-1.5 text-[8px] px-1 py-0.5 rounded ${theme.accentBg} ${theme.iconColor} font-bold`}>BUILT-IN</span>}
+                  </td>
+                  <td className={`px-3 py-2 ${theme.iconColor}`}>{f.type}</td>
+                  <td className="px-3 py-2">
+                    <SSAToggle on={f.required} onChange={() => {
+                      const n = [...customFields]; n[i] = { ...n[i], required: !n[i].required }; setCustomFields(n);
+                    }} theme={theme} />
+                  </td>
+                  <td className="px-3 py-2">
+                    {!f.builtin && (
+                      <button onClick={() => setCustomFields(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={12} /></button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {showAddField ? (
+          <div className={`p-3 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+            <div className="flex items-center justify-between mb-2">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Add Custom Field</p>
+              <button onClick={() => setShowAddField(false)} className="text-gray-400 hover:text-gray-600"><X size={14} /></button>
+            </div>
+            <div className="grid grid-cols-3 gap-3 mb-3">
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Field Label</p>
+                <InputField value={newFieldLabel} onChange={setNewFieldLabel} theme={theme} placeholder="e.g. Father&apos;s Occupation" />
+              </div>
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Type</p>
+                <SelectField options={['Text', 'Number', 'Date', 'Dropdown', 'File Upload']} value={newFieldType} onChange={setNewFieldType} theme={theme} />
+              </div>
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Required</p>
+                <SSAToggle on={newFieldRequired} onChange={() => setNewFieldRequired(!newFieldRequired)} theme={theme} />
+              </div>
+            </div>
+            <button onClick={() => {
+              if (newFieldLabel.trim()) {
+                setCustomFields(p => [...p, { label: newFieldLabel.trim(), type: newFieldType, required: newFieldRequired, builtin: false }]);
+                setNewFieldLabel(''); setNewFieldType('Text'); setNewFieldRequired(false); setShowAddField(false);
+              }
+            }} className={`flex items-center gap-1.5 px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}>
+              <Plus size={12} /> Add Field
+            </button>
           </div>
+        ) : (
+          <button onClick={() => setShowAddField(true)}
+            className={`flex items-center gap-1.5 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl border ${theme.border}`}>
+            <Plus size={12} /> Add Custom Field
+          </button>
+        )}
+      </SectionCard>
+
+      {/* ─── Gap #6-Tab3: Auto Batch Allotment ─── */}
+      <SectionCard title="Auto-assign Section on Admission" subtitle="Automatically assign sections to students when admitted" theme={theme}>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Enable Auto-assign Section</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Automatically place admitted students into a section</p>
+            </div>
+            <SSAToggle on={autoAssignSection} onChange={() => setAutoAssignSection(!autoAssignSection)} theme={theme} />
+          </div>
+          {autoAssignSection && (
+            <>
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Assignment Method</p>
+                <SelectField options={['Round Robin', 'Alphabetical', 'Manual']} value={sectionMethod} onChange={setSectionMethod} theme={theme} />
+              </div>
+              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <div>
+                  <p className={`text-xs font-bold ${theme.highlight}`}>Balance sections equally</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>Keep student count balanced across all sections in a grade</p>
+                </div>
+                <SSAToggle on={balanceSections} onChange={() => setBalanceSections(!balanceSections)} theme={theme} />
+              </div>
+              <div className={`p-2.5 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+                <p className={`text-[10px] ${theme.iconColor}`}>
+                  <strong>Current method:</strong> {sectionMethod} {balanceSections ? '(with balancing)' : ''}
+                </p>
+              </div>
+            </>
+          )}
+        </div>
+      </SectionCard>
+
+      {/* ─── Gap #9/#19-Tab3: Enquiry Notifications ─── */}
+      <SectionCard title="Enquiry Notifications" subtitle="Configure notification triggers for enquiry and admission events" theme={theme}>
+        <div className="space-y-2">
+          {Object.entries(enquiryNotifications).map(([notif, enabled]) => (
+            <div key={notif} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <div className="flex items-center gap-2">
+                <Bell size={12} className={enabled ? 'text-emerald-500' : theme.iconColor} />
+                <span className={`text-xs font-bold ${theme.highlight}`}>{notif}</span>
+              </div>
+              <SSAToggle on={enabled} onChange={() => setEnquiryNotifications(p => ({ ...p, [notif]: !p[notif] }))} theme={theme} />
+            </div>
+          ))}
+        </div>
+        <div className={`mt-3 p-2.5 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+          <p className={`text-[10px] ${theme.iconColor}`}>
+            <strong>Active notifications:</strong> {Object.entries(enquiryNotifications).filter(([, v]) => v).map(([k]) => k).join(', ') || 'None'}
+          </p>
+        </div>
+      </SectionCard>
+
+      {/* ─── Gap #24-Tab3: Online Admission Flow Preview ─── */}
+      <SectionCard title="Admission Flow Steps" subtitle="Visual overview of the online admission process from application to confirmation" theme={theme}>
+        <div className="flex items-start gap-0 overflow-x-auto pb-2">
+          {admissionSteps.map((step, i) => (
+            <React.Fragment key={step.step}>
+              <div className={`flex-shrink-0 w-40 p-3 rounded-xl ${theme.secondaryBg} border ${
+                step.status === 'optional' ? 'border-dashed border-amber-300' : theme.border
+              }`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white ${
+                    step.status === 'optional' ? 'bg-amber-400' : theme.primary
+                  }`}>{step.step}</span>
+                  {step.status === 'optional' && (
+                    <span className="text-[8px] px-1 py-0.5 rounded bg-amber-100 text-amber-700 font-bold">OPTIONAL</span>
+                  )}
+                </div>
+                <p className={`text-xs font-bold ${theme.highlight} mb-1`}>{step.name}</p>
+                <p className={`text-[9px] ${theme.iconColor} leading-relaxed`}>{step.desc}</p>
+                <div className="mt-2">
+                  <span className={`text-[8px] px-1.5 py-0.5 rounded-full font-bold ${
+                    step.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                  }`}>
+                    {step.status === 'active' ? 'ENABLED' : 'OPTIONAL'}
+                  </span>
+                </div>
+              </div>
+              {i < admissionSteps.length - 1 && (
+                <div className="flex items-center px-1 pt-6 shrink-0">
+                  <ArrowRight size={16} className={theme.iconColor} />
+                </div>
+              )}
+            </React.Fragment>
+          ))}
+        </div>
+        <div className={`mt-3 p-2.5 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+          <p className={`text-[10px] ${theme.iconColor}`}>
+            <strong>Flow summary:</strong> {admissionSteps.filter(s => s.status === 'active').length} required steps + {admissionSteps.filter(s => s.status === 'optional').length} optional step(s). Parents progress through each step sequentially.
+          </p>
         </div>
       </SectionCard>
 

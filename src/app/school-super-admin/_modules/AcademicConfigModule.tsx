@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, X, Upload, Download, Copy, CheckSquare, Square } from 'lucide-react';
+import { Plus, X, Upload, Download, Copy, CheckSquare, Square, Filter, BookOpen, FileSpreadsheet, ArrowRight } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
 
@@ -155,12 +155,108 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
     { classSection: '9-C', teacher: 'Mr. Reddy', since: 'Apr 2025', status: 'Active' },
   ]);
 
+  // ─── Gap #4: Copy from Previous Year ───
+  const [showCopyModal, setShowCopyModal] = useState(false);
+  const [copyChecks, setCopyChecks] = useState<Record<string, boolean>>({
+    'Grades & Sections': true, 'Subjects & Electives': true, 'Fee Structure': false, 'Staff Assignments': false,
+  });
+
+  // ─── Gap #6: Class Teacher per Section (inline dropdown) ───
+  const mockTeachers = ['Mrs. Sharma', 'Mr. Patel', 'Ms. Gupta', 'Mr. Reddy', 'Mrs. Iyer', 'Ms. Desai', 'Mr. Kumar', 'Mrs. Joshi'];
+  const [sectionTeachers, setSectionTeachers] = useState<Record<string, string>>({
+    'Grade 1-A': 'Mrs. Sharma', 'Grade 1-B': 'Mr. Patel', 'Grade 1-C': 'Ms. Gupta',
+    'Grade 2-A': 'Mr. Reddy', 'Grade 2-B': 'Mrs. Iyer', 'Grade 2-C': 'Ms. Desai',
+  });
+
+  // ─── Gap #12/#23: Max Strength + Admission Status ───
+  const [gradeAdmission, setGradeAdmission] = useState<Record<string, { maxStrength: string; current: number; admissionOpen: boolean }>>({
+    'Grade 1': { maxStrength: '40', current: 38, admissionOpen: true },
+    'Grade 2': { maxStrength: '40', current: 40, admissionOpen: false },
+    'Grade 3': { maxStrength: '40', current: 35, admissionOpen: true },
+    'Grade 4': { maxStrength: '40', current: 37, admissionOpen: true },
+    'Grade 5': { maxStrength: '40', current: 40, admissionOpen: false },
+    'Grade 6': { maxStrength: '45', current: 42, admissionOpen: true },
+    'Grade 7': { maxStrength: '45', current: 44, admissionOpen: true },
+    'Grade 8': { maxStrength: '45', current: 38, admissionOpen: true },
+    'Grade 9': { maxStrength: '40', current: 36, admissionOpen: true },
+    'Grade 10': { maxStrength: '40', current: 39, admissionOpen: true },
+    'Grade 11': { maxStrength: '40', current: 36, admissionOpen: true },
+    'Grade 12': { maxStrength: '40', current: 34, admissionOpen: true },
+  });
+
+  // ─── Gap #17: Subject-Teacher Mapping ───
+  const [subjectTeacherMap] = useState([
+    { grade: 'Grade 9', section: 'A', subject: 'Mathematics', teacher: 'Mr. Patel', periods: '6' },
+    { grade: 'Grade 9', section: 'A', subject: 'Science', teacher: 'Mrs. Sharma', periods: '6' },
+    { grade: 'Grade 9', section: 'B', subject: 'Mathematics', teacher: 'Mr. Patel', periods: '6' },
+    { grade: 'Grade 10', section: 'A', subject: 'English', teacher: 'Ms. Gupta', periods: '5' },
+    { grade: 'Grade 10', section: 'B', subject: 'Hindi', teacher: 'Mrs. Joshi', periods: '5' },
+    { grade: 'Grade 10', section: 'C', subject: 'Science', teacher: 'Mr. Kumar', periods: '6' },
+  ]);
+
+  // ─── Gap #18: Elective Subject Type ───
+  const [subjectTypes, setSubjectTypes] = useState<Record<string, { type: 'Compulsory' | 'Elective'; maxSeats: string; studentSelection: boolean }>>({
+    'English': { type: 'Compulsory', maxSeats: '', studentSelection: false },
+    'Hindi': { type: 'Compulsory', maxSeats: '', studentSelection: false },
+    'Mathematics': { type: 'Compulsory', maxSeats: '', studentSelection: false },
+    'Science': { type: 'Compulsory', maxSeats: '', studentSelection: false },
+    'Social Science': { type: 'Compulsory', maxSeats: '', studentSelection: false },
+    'Sanskrit': { type: 'Elective', maxSeats: '30', studentSelection: true },
+    'IT': { type: 'Elective', maxSeats: '25', studentSelection: true },
+    'Art': { type: 'Elective', maxSeats: '20', studentSelection: true },
+    'Computer': { type: 'Compulsory', maxSeats: '', studentSelection: false },
+    'Physical Ed.': { type: 'Compulsory', maxSeats: '', studentSelection: false },
+  });
+
+  // ─── Gap #22: Streams for 11-12 (enhanced) ───
+  const [streamConfig, setStreamConfig] = useState([
+    { name: 'Science', core: 'Physics, Chemistry, English', optional: 'Mathematics, Biology, Computer Science', maxSeats: '120' },
+    { name: 'Commerce', core: 'Accountancy, Business Studies, English', optional: 'Economics, Mathematics, Informatics Practices', maxSeats: '80' },
+    { name: 'Arts', core: 'History, Political Science, English', optional: 'Geography, Economics, Psychology, Sociology', maxSeats: '40' },
+    { name: 'Humanities', core: 'Sociology, Psychology, English', optional: 'History, Political Science, Economics', maxSeats: '30' },
+  ]);
+
+  // ─── Gap #83: Promotion Rules ───
+  const [promotionRules, setPromotionRules] = useState({
+    minAttendance: '75',
+    minMarks: '33',
+    allSubjectsPass: true,
+    autoPromote: false,
+  });
+
+  // ─── Gap #67: Term-wise Scoping ───
+  const [activeTerm, setActiveTerm] = useState('Full Year');
+
   return (
     <div className="space-y-4">
       <ModuleHeader title="Academic Configuration" subtitle="Subjects, sections, houses, holidays, and academic calendar" theme={theme} />
 
+      {/* ─── Gap #67: Term-wise Scoping + Gap #25/#27: Import/Export quick buttons ─── */}
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-2">
+          <Filter size={14} className={theme.iconColor} />
+          <span className={`text-xs font-bold ${theme.highlight}`}>Academic Term:</span>
+          {['Term 1', 'Term 2', 'Full Year'].map(t => (
+            <button key={t} onClick={() => setActiveTerm(t)}
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
+                activeTerm === t ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.highlight} hover:ring-1 hover:ring-slate-300`
+              }`}>
+              {t}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-2">
+          <button className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border ${theme.border} ${theme.buttonHover} text-xs font-bold ${theme.highlight}`}>
+            <Upload size={12} className={theme.iconColor} /> Import from CSV
+          </button>
+          <button className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border ${theme.border} ${theme.buttonHover} text-xs font-bold ${theme.highlight}`}>
+            <FileSpreadsheet size={12} className={theme.iconColor} /> Export as Excel
+          </button>
+        </div>
+      </div>
+
       <SectionCard title="Academic Year" subtitle="Set start and end dates" theme={theme}>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4 mb-3">
           <div>
             <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Start Date</p>
             <InputField value={academicYear.start} onChange={v => setAcademicYear(p => ({ ...p, start: v }))} theme={theme} type="date" />
@@ -170,6 +266,34 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
             <InputField value={academicYear.end} onChange={v => setAcademicYear(p => ({ ...p, end: v }))} theme={theme} type="date" />
           </div>
         </div>
+        {/* Gap #4: Copy from Previous Year */}
+        <button onClick={() => setShowCopyModal(!showCopyModal)}
+          className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border ${theme.border} ${theme.buttonHover} text-xs font-bold ${theme.highlight}`}>
+          <Copy size={12} /> Copy from Previous Year
+        </button>
+        {showCopyModal && (
+          <div className={`mt-3 p-4 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <p className={`text-xs font-bold ${theme.highlight}`}>Copy 2024-25 Structure to 2025-26</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Select which structures to copy forward</p>
+              </div>
+              <button onClick={() => setShowCopyModal(false)} className="text-gray-400 hover:text-gray-600"><X size={14} /></button>
+            </div>
+            <div className="space-y-2 mb-3">
+              {Object.entries(copyChecks).map(([item, checked]) => (
+                <button key={item} onClick={() => setCopyChecks(p => ({ ...p, [item]: !p[item] }))}
+                  className={`flex items-center gap-2 w-full text-left p-2 rounded-lg ${theme.secondaryBg} transition-all`}>
+                  {checked ? <CheckSquare size={14} className="text-emerald-500" /> : <Square size={14} className={theme.iconColor} />}
+                  <span className={`text-xs font-medium ${theme.highlight}`}>{item}</span>
+                </button>
+              ))}
+            </div>
+            <button className={`flex items-center gap-1.5 px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}>
+              <Copy size={12} /> Start Copy
+            </button>
+          </div>
+        )}
       </SectionCard>
 
       <SectionCard title="Subject Master List" subtitle="Add subjects per grade — subjects from other grades appear as quick-add suggestions" theme={theme}>
@@ -208,6 +332,39 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
               className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
             <button onClick={() => { if (newSubject.trim()) { setSubjects(p => ({ ...p, [activeGrade]: [...(p[activeGrade] || []), newSubject.trim()] })); setNewSubject(''); } }}
               className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}><Plus size={14} /></button>
+          </div>
+          {/* Gap #18: Elective Subject Type */}
+          <div className={`p-2.5 rounded-lg ${theme.cardBg} border ${theme.border} mb-2`}>
+            <p className={`text-[9px] font-bold ${theme.iconColor} mb-1.5 uppercase tracking-wide`}>Subject Type (Compulsory / Elective)</p>
+            <div className="space-y-1">
+              {(subjects[activeGrade] || []).map(s => {
+                const st = subjectTypes[s] || { type: 'Compulsory' as const, maxSeats: '', studentSelection: false };
+                return (
+                  <div key={s} className={`flex items-center gap-2 p-1.5 rounded-lg ${theme.secondaryBg}`}>
+                    <span className={`text-[10px] font-bold ${theme.highlight} w-24 truncate`}>{s}</span>
+                    <select value={st.type} onChange={e => setSubjectTypes(p => ({ ...p, [s]: { ...st, type: e.target.value as 'Compulsory' | 'Elective' } }))}
+                      className={`px-1.5 py-0.5 rounded-lg border ${theme.border} ${theme.inputBg} text-[9px] font-bold ${theme.highlight}`}>
+                      <option value="Compulsory">Compulsory</option>
+                      <option value="Elective">Elective</option>
+                    </select>
+                    {st.type === 'Elective' && (
+                      <>
+                        <div className="flex items-center gap-1">
+                          <span className={`text-[8px] ${theme.iconColor}`}>Max:</span>
+                          <input type="number" value={st.maxSeats} onChange={e => setSubjectTypes(p => ({ ...p, [s]: { ...st, maxSeats: e.target.value } }))}
+                            className={`w-10 px-1 py-0.5 rounded border ${theme.border} ${theme.inputBg} text-[9px] text-center ${theme.highlight} outline-none`} placeholder="--" />
+                        </div>
+                        <label className="flex items-center gap-1 cursor-pointer">
+                          <input type="checkbox" checked={st.studentSelection} onChange={() => setSubjectTypes(p => ({ ...p, [s]: { ...st, studentSelection: !st.studentSelection } }))}
+                            className="w-3 h-3 rounded" />
+                          <span className={`text-[8px] ${theme.iconColor}`}>Student Select</span>
+                        </label>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
           {/* Subject pool — quick-add from other grades */}
           {(() => {
@@ -275,7 +432,7 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
                     {gradeSecs.length} {gradeSecs.length === 1 ? 'section' : 'sections'}
                   </span>
                 </div>
-                <div className="flex flex-wrap gap-1">
+                <div className="flex flex-wrap gap-1 mb-2">
                   {globalSectionNames.map(name => {
                     const isActive = gradeSecs.includes(name);
                     return (
@@ -293,6 +450,24 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
                     );
                   })}
                 </div>
+                {/* Gap #6: Class Teacher per section */}
+                {gradeSecs.length > 0 && (
+                  <div className="space-y-1">
+                    {gradeSecs.map(sec => {
+                      const key = `${grade}-${sec}`;
+                      return (
+                        <div key={key} className="flex items-center gap-1.5">
+                          <span className={`text-[9px] font-bold ${theme.iconColor} w-5`}>{sec}:</span>
+                          <select value={sectionTeachers[key] || ''} onChange={e => setSectionTeachers(p => ({ ...p, [key]: e.target.value }))}
+                            className={`flex-1 px-1.5 py-0.5 rounded-lg border ${theme.border} ${theme.inputBg} text-[9px] ${theme.highlight} outline-none`}>
+                            <option value="">-- Class Teacher --</option>
+                            {mockTeachers.map(t => <option key={t} value={t}>{t}</option>)}
+                          </select>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             );
           })}
@@ -539,28 +714,45 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
-      {/* ─── A) Streams / Subject Groups (Class 11-12) ─── */}
-      <SectionCard title="Streams for Class 11-12" subtitle="Configure streams with subject groups and seat limits for higher secondary" theme={theme}>
+      {/* ─── Gap #22: Streams Configuration (Class 11-12) — Enhanced ─── */}
+      <SectionCard title="Streams Configuration (Class 11-12)" subtitle="Define streams with core & optional subjects and seat limits for higher secondary" theme={theme}>
         <div className="overflow-x-auto mb-3">
           <table className="w-full text-xs">
             <thead><tr className={theme.secondaryBg}>
-              {['Stream Name', 'Subjects', 'Max Seats'].map(h => (
+              {['Stream Name', 'Core Subjects', 'Optional Subjects', 'Max Seats', ''].map(h => (
                 <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
               ))}
             </tr></thead>
             <tbody>
-              {streams.map((s, i) => (
+              {streamConfig.map((s, i) => (
                 <tr key={i} className={`border-t ${theme.border}`}>
-                  <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{s.name}</td>
-                  <td className={`px-3 py-2 ${theme.iconColor}`}>{s.subjects}</td>
-                  <td className={`px-3 py-2 ${theme.highlight}`}>{s.maxSeats}</td>
+                  <td className={`px-3 py-2`}>
+                    <input value={s.name} onChange={e => { const n = [...streamConfig]; n[i] = { ...n[i], name: e.target.value }; setStreamConfig(n); }}
+                      className={`w-24 px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} />
+                  </td>
+                  <td className={`px-3 py-2`}>
+                    <input value={s.core} onChange={e => { const n = [...streamConfig]; n[i] = { ...n[i], core: e.target.value }; setStreamConfig(n); }}
+                      className={`w-full px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight} outline-none`} />
+                  </td>
+                  <td className={`px-3 py-2`}>
+                    <input value={s.optional} onChange={e => { const n = [...streamConfig]; n[i] = { ...n[i], optional: e.target.value }; setStreamConfig(n); }}
+                      className={`w-full px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.iconColor} outline-none`} />
+                  </td>
+                  <td className={`px-3 py-2`}>
+                    <input type="number" value={s.maxSeats} onChange={e => { const n = [...streamConfig]; n[i] = { ...n[i], maxSeats: e.target.value }; setStreamConfig(n); }}
+                      className={`w-16 px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none`} />
+                  </td>
+                  <td className="px-3 py-2">
+                    <button onClick={() => setStreamConfig(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={12} /></button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
         <div className="flex items-center justify-between">
-          <button className={`flex items-center gap-1.5 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl border ${theme.border}`}>
+          <button onClick={() => setStreamConfig(p => [...p, { name: '', core: '', optional: '', maxSeats: '40' }])}
+            className={`flex items-center gap-1.5 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl border ${theme.border}`}>
             <Plus size={12} /> Add Stream
           </button>
           <div className={`flex items-center gap-3 p-2.5 rounded-xl ${theme.secondaryBg}`}>
@@ -568,6 +760,77 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
             <SSAToggle on={allowStreamChoice} onChange={() => setAllowStreamChoice(!allowStreamChoice)} theme={theme} />
           </div>
         </div>
+      </SectionCard>
+
+      {/* ─── Gap #12/#23: Max Strength + Admission Status per Grade ─── */}
+      <SectionCard title="Grade Strength & Admission Status" subtitle="Maximum strength per section, current fill, and admission open/closed toggle" theme={theme}>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead><tr className={theme.secondaryBg}>
+              {['Grade', 'Max Strength', 'Current', 'Available', 'Admission Status'].map(h => (
+                <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
+              ))}
+            </tr></thead>
+            <tbody>
+              {Object.entries(gradeAdmission).map(([grade, data]) => {
+                const available = Math.max(0, parseInt(data.maxStrength || '0') - data.current);
+                return (
+                  <tr key={grade} className={`border-t ${theme.border}`}>
+                    <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{grade}</td>
+                    <td className="px-3 py-2">
+                      <input type="number" value={data.maxStrength}
+                        onChange={e => setGradeAdmission(p => ({ ...p, [grade]: { ...p[grade], maxStrength: e.target.value } }))}
+                        className={`w-16 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none`} />
+                    </td>
+                    <td className={`px-3 py-2 ${data.current >= parseInt(data.maxStrength || '0') ? 'text-red-600 font-bold' : theme.iconColor}`}>{data.current}</td>
+                    <td className={`px-3 py-2 ${available === 0 ? 'text-red-600 font-bold' : 'text-emerald-600 font-bold'}`}>{available}</td>
+                    <td className="px-3 py-2">
+                      <button onClick={() => setGradeAdmission(p => ({ ...p, [grade]: { ...p[grade], admissionOpen: !p[grade].admissionOpen } }))}
+                        className={`px-2.5 py-1 rounded-full text-[10px] font-bold transition-colors ${
+                          data.admissionOpen ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+                        }`}>
+                        {data.admissionOpen ? 'Open' : 'Closed'}
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <p className={`text-[10px] ${theme.iconColor} mt-2 italic`}>Note: When a grade reaches max strength and admission is closed, new applicants are automatically added to the waitlist.</p>
+      </SectionCard>
+
+      {/* ─── Gap #17: Subject-Teacher Allocation ─── */}
+      <SectionCard title="Subject-Teacher Allocation" subtitle="Map subjects to teachers per grade and section with period counts" theme={theme}>
+        <div className="overflow-x-auto mb-3">
+          <table className="w-full text-xs">
+            <thead><tr className={theme.secondaryBg}>
+              {['Grade', 'Section', 'Subject', 'Assigned Teacher', 'Periods/Week'].map(h => (
+                <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
+              ))}
+            </tr></thead>
+            <tbody>
+              {subjectTeacherMap.map((row, i) => (
+                <tr key={i} className={`border-t ${theme.border}`}>
+                  <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{row.grade}</td>
+                  <td className={`px-3 py-2 ${theme.iconColor}`}>{row.section}</td>
+                  <td className={`px-3 py-2 ${theme.highlight}`}>{row.subject}</td>
+                  <td className="px-3 py-2">
+                    <select defaultValue={row.teacher}
+                      className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight} outline-none`}>
+                      {mockTeachers.map(t => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                  </td>
+                  <td className={`px-3 py-2 ${theme.iconColor}`}>{row.periods}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <button className={`flex items-center gap-1.5 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl border ${theme.border}`}>
+          <Plus size={12} /> Add Allocation
+        </button>
       </SectionCard>
 
       {/* ─── B) Class Capacity & Waitlist ─── */}
@@ -725,6 +988,43 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
               ))}
             </tbody>
           </table>
+        </div>
+      </SectionCard>
+
+      {/* ─── Gap #83: Promotion Rules ─── */}
+      <SectionCard title="Promotion Rules" subtitle="Configure minimum criteria for student promotion to the next grade" theme={theme}>
+        <div className="grid grid-cols-2 gap-4 mb-3">
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Minimum Attendance %</p>
+            <InputField value={promotionRules.minAttendance} onChange={v => setPromotionRules(p => ({ ...p, minAttendance: v }))} theme={theme} type="number" />
+          </div>
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Minimum Marks %</p>
+            <InputField value={promotionRules.minMarks} onChange={v => setPromotionRules(p => ({ ...p, minMarks: v }))} theme={theme} type="number" />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>All subjects must pass</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Student must score above minimum in every subject to be promoted</p>
+            </div>
+            <SSAToggle on={promotionRules.allSubjectsPass} onChange={() => setPromotionRules(p => ({ ...p, allSubjectsPass: !p.allSubjectsPass }))} theme={theme} />
+          </div>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Auto-promote if criteria met</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Automatically promote students who meet all criteria without manual approval</p>
+            </div>
+            <SSAToggle on={promotionRules.autoPromote} onChange={() => setPromotionRules(p => ({ ...p, autoPromote: !p.autoPromote }))} theme={theme} />
+          </div>
+        </div>
+        <div className={`mt-3 p-2.5 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+          <p className={`text-[10px] ${theme.iconColor}`}>
+            <strong>Current Rules:</strong> Min {promotionRules.minAttendance}% attendance, Min {promotionRules.minMarks}% marks
+            {promotionRules.allSubjectsPass ? ', all subjects must pass' : ''}
+            {promotionRules.autoPromote ? ', auto-promotion enabled' : ', manual approval required'}
+          </p>
         </div>
       </SectionCard>
     </div>

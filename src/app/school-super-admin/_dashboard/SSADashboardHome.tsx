@@ -1,21 +1,62 @@
 'use client';
 
+import { useState } from 'react';
 import { StatCard } from '@/components/shared';
 
 import {
   Settings, CheckCircle, Clock, AlertTriangle, Lock, ShieldCheck,
   Banknote, Calendar, Briefcase, Bus, ClipboardCheck, FileText,
-  MessageSquare, Shield, Award, Upload
+  MessageSquare, Shield, Award, Upload, Eye, X, User
 } from 'lucide-react';
 import type { Theme } from '../_helpers/types';
 
 export default function SSADashboardHome({ theme, onNavigate }: { theme: Theme; onNavigate: (moduleId: string) => void }) {
+  const [previewRole, setPreviewRole] = useState<string | null>(null);
+  const previewRoles = ['Principal', 'Teacher', 'Parent', 'Student', 'Accountant'];
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h1 className={`text-2xl font-bold ${theme.highlight}`}>School Super Admin</h1>
           <p className={`text-xs ${theme.iconColor}`}>Deep module configuration &mdash; all changes are audit-logged</p>
+        </div>
+      </div>
+
+      {/* ─── Preview Dashboard As (Gap #15) ─── */}
+      {previewRole && (
+        <div className="bg-blue-50 border-2 border-blue-300 rounded-2xl p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Eye size={20} className="text-blue-500 shrink-0" />
+            <div>
+              <p className="text-sm font-bold text-blue-800">Previewing dashboard as {previewRole}</p>
+              <p className="text-xs text-blue-600">This is a read-only preview</p>
+            </div>
+          </div>
+          <button onClick={() => setPreviewRole(null)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition-colors">
+            <X size={12} /> Exit Preview
+          </button>
+        </div>
+      )}
+
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <div className="flex items-center gap-2 mb-1">
+          <Eye size={14} className={theme.iconColor} />
+          <h3 className={`text-sm font-bold ${theme.highlight}`}>Preview Dashboard As</h3>
+        </div>
+        <p className={`text-[10px] ${theme.iconColor} mb-3`}>See what each role&apos;s dashboard looks like in read-only mode</p>
+        <div className="flex flex-wrap gap-2">
+          {previewRoles.map(role => (
+            <button key={role} onClick={() => setPreviewRole(role)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                previewRole === role
+                  ? `${theme.primary} text-white`
+                  : `${theme.secondaryBg} ${theme.highlight} hover:ring-2 hover:ring-blue-300`
+              }`}>
+              <User size={12} /> {role}
+            </button>
+          ))}
         </div>
       </div>
 

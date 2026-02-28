@@ -5,7 +5,8 @@ import { type Theme } from '@/lib/themes';
 import { TabBar, Toggle } from '@/components/shared';
 import {
   Users, MapPin, Bus, FileText, Heart, Building, Landmark,
-  ArrowLeft, Save, UserPlus, Plus, Trash2, Award, Activity, ShieldCheck
+  ArrowLeft, Save, UserPlus, Plus, Trash2, Award, Activity, ShieldCheck,
+  Key, Eye, EyeOff, Send, Link, CheckCircle, Zap
 } from 'lucide-react';
 import { FormField, InputField, SelectField, TextAreaField, PhotoUpload, FileUploadArea, FormSection } from '../_components/FormHelpers';
 import BulkUploadTab from './BulkUploadTab';
@@ -42,6 +43,17 @@ export default function StudentAddForm({ theme, onBack }: { theme: Theme; onBack
   const [apaarId, setApaarId] = useState('');
   const [transferReason, setTransferReason] = useState('');
   const [destinationSchool, setDestinationSchool] = useState('');
+
+  // Sibling auto-detection
+  const [siblingDetected, setSiblingDetected] = useState(true);
+  const [siblingLinked, setSiblingLinked] = useState(false);
+  const [siblingDismissed, setSiblingDismissed] = useState(false);
+
+  // Login credentials (Gap #76)
+  const [credentialsGenerated, setCredentialsGenerated] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [generatedUsername] = useState('');
+  const [generatedPassword] = useState('');
 
   // Achievements
   const [achievements, setAchievements] = useState([
@@ -197,7 +209,22 @@ export default function StudentAddForm({ theme, onBack }: { theme: Theme; onBack
                   <InputField type="date" value={admissionDate} onChange={setAdmissionDate} theme={theme} />
                 </FormField>
                 <FormField label="Roll Number" theme={theme}>
-                  <InputField placeholder="Auto / Manual" value={rollNo} onChange={setRollNo} theme={theme} />
+                  <div className="flex gap-1.5">
+                    <input
+                      type="number"
+                      placeholder="Roll No."
+                      value={rollNo}
+                      onChange={e => setRollNo(e.target.value)}
+                      className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none focus:ring-2 focus:ring-slate-300`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setRollNo('42')}
+                      className={`px-2.5 py-2 rounded-xl ${theme.primary} text-white text-[10px] font-bold flex items-center gap-1 whitespace-nowrap`}
+                    >
+                      <Zap size={10} /> Auto-Assign
+                    </button>
+                  </div>
                 </FormField>
                 <FormField label="Status" required theme={theme}>
                   <SelectField options={['Active', 'Inactive', 'Left', 'Transferred', 'Alumni']} value={status} onChange={setStatus} theme={theme} />
@@ -380,6 +407,39 @@ export default function StudentAddForm({ theme, onBack }: { theme: Theme; onBack
 
           {/* ─── SIBLINGS ─────────────────────────────── */}
           <FormSection title="Sibling Information" icon={Users} theme={theme} collapsible defaultOpen={false}>
+            {/* Gap #74 — Sibling Auto-Detection Banner */}
+            {siblingDetected && !siblingLinked && !siblingDismissed && (
+              <div className="mb-4 p-3 rounded-xl border border-amber-300 bg-amber-50 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
+                  <Link size={14} className="text-amber-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs font-bold text-amber-800">Sibling Match Found: Priya Sharma (Class 5-A)</p>
+                  <p className="text-[10px] text-amber-600">Same parent phone number detected</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setSiblingLinked(true); setHasSibling(true); setSiblings([{ name: 'Priya Sharma', rollNo: '18', admNo: 'ADM-2024-0032', className: '5th' }]); }}
+                  className="px-3 py-1.5 rounded-lg bg-amber-500 text-white text-[10px] font-bold flex items-center gap-1"
+                >
+                  <Link size={10} /> Link Sibling
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSiblingDismissed(true)}
+                  className="px-3 py-1.5 rounded-lg bg-white border border-amber-300 text-amber-700 text-[10px] font-bold"
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
+            {siblingLinked && (
+              <div className="mb-4 p-3 rounded-xl border border-emerald-300 bg-emerald-50 flex items-center gap-2">
+                <CheckCircle size={14} className="text-emerald-600" />
+                <p className="text-xs font-bold text-emerald-700">Sibling linked: Priya Sharma (Class 5-A)</p>
+              </div>
+            )}
+
             <div className="flex items-center gap-3 mb-4">
               <span className={`text-xs ${theme.highlight} font-bold`}>Sibling studying in this school?</span>
               <Toggle on={hasSibling} onChange={() => setHasSibling(!hasSibling)} theme={theme} />
@@ -413,6 +473,14 @@ export default function StudentAddForm({ theme, onBack }: { theme: Theme; onBack
                 <button type="button" onClick={addSibling} className={`flex items-center gap-1.5 px-3 py-2 rounded-xl ${theme.secondaryBg} ${theme.buttonHover} text-xs font-bold ${theme.primaryText}`}>
                   <Plus size={12} /> Add Sibling
                 </button>
+
+                {/* Gap #134 — Sibling Fee Discount Auto-Link */}
+                {siblingLinked && (
+                  <div className="p-3 rounded-xl border border-emerald-300 bg-emerald-50 flex items-center gap-2">
+                    <CheckCircle size={14} className="text-emerald-600 shrink-0" />
+                    <p className="text-xs font-bold text-emerald-700">Sibling discount eligible: 10% on tuition fee (as per Fee Config)</p>
+                  </div>
+                )}
               </div>
             )}
           </FormSection>
@@ -678,6 +746,66 @@ export default function StudentAddForm({ theme, onBack }: { theme: Theme; onBack
               </div>
               <p className={`text-[10px] ${theme.iconColor}`}>Last updated: Feb 15, 2026</p>
             </div>
+          </FormSection>
+
+          {/* ─── LOGIN CREDENTIALS (Gap #76) ────────────── */}
+          <FormSection title="Login Credentials" icon={Key} theme={theme} collapsible defaultOpen={false}>
+            {!credentialsGenerated ? (
+              <div className="space-y-3">
+                <p className={`text-xs ${theme.iconColor}`}>Generate student login credentials for the parent/student portal.</p>
+                <button
+                  type="button"
+                  onClick={() => setCredentialsGenerated(true)}
+                  className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-xs font-bold flex items-center gap-1.5`}
+                >
+                  <Key size={12} /> Generate Credentials
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField label="Username (Auto-generated)" theme={theme}>
+                    <InputField
+                      value={generatedUsername || `${(firstName || 'first').toLowerCase()}.${(lastName || 'last').toLowerCase()}.2026`}
+                      onChange={() => {}}
+                      theme={theme}
+                      readOnly
+                    />
+                  </FormField>
+                  <FormField label="Temporary Password" theme={theme}>
+                    <div className="flex gap-1.5">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={generatedPassword || 'Temp@2026#Xy'}
+                        readOnly
+                        className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none cursor-default`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className={`px-2.5 py-2 rounded-xl border ${theme.border} ${theme.buttonHover}`}
+                      >
+                        {showPassword ? <EyeOff size={12} className={theme.iconColor} /> : <Eye size={12} className={theme.iconColor} />}
+                      </button>
+                    </div>
+                  </FormField>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200">
+                    <CheckCircle size={12} className="text-emerald-600" />
+                    <span className="text-[10px] font-bold text-emerald-700">Credentials generated</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => window.alert('SMS sent to parent with login credentials! (Blueprint demo)')}
+                    className="px-3 py-2 rounded-xl bg-blue-500 text-white text-[10px] font-bold flex items-center gap-1.5"
+                  >
+                    <Send size={10} /> Send to Parent via SMS
+                  </button>
+                </div>
+                <p className={`text-[10px] ${theme.iconColor}`}>Password must be changed on first login. Credentials will be sent to the registered parent phone number.</p>
+              </div>
+            )}
           </FormSection>
 
           {/* ─── BOTTOM ACTIONS ───────────────────────── */}

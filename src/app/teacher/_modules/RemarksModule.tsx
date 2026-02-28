@@ -72,6 +72,8 @@ export default function RemarksModule({ theme }: { theme: Theme }) {
   const [bankSearch, setBankSearch] = useState('');
   const [bankCategory, setBankCategory] = useState('All');
   const [remarkHistoryTab, setRemarkHistoryTab] = useState('All');
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const [selectedHistoryStudent, setSelectedHistoryStudent] = useState('Aarav Mehta');
 
   const selectAll = Object.values(studentSelection).filter(Boolean).length === studentsOf10A.length;
 
@@ -107,12 +109,30 @@ export default function RemarksModule({ theme }: { theme: Theme }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className={`text-2xl font-bold ${theme.highlight}`}>Student Remarks</h1>
-        <button className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}>
-          <Download size={14} /> Export PDF
-        </button>
+        <div className="relative">
+          <button
+            onClick={() => setShowExportMenu(!showExportMenu)}
+            className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}
+          >
+            <Download size={14} /> Export <ChevronRight size={12} className={`transition-transform ${showExportMenu ? 'rotate-90' : ''}`} />
+          </button>
+          {showExportMenu && (
+            <div className={`absolute right-0 top-full mt-1 ${theme.cardBg} rounded-xl border ${theme.border} shadow-lg z-10 overflow-hidden min-w-[160px]`}>
+              <button onClick={() => { alert('Exporting as PDF... (Blueprint demo)'); setShowExportMenu(false); }} className={`w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold ${theme.highlight} ${theme.buttonHover} transition-all`}>
+                <FileText size={12} /> Export as PDF
+              </button>
+              <button onClick={() => { alert('Exporting as CSV... (Blueprint demo)'); setShowExportMenu(false); }} className={`w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold ${theme.highlight} ${theme.buttonHover} transition-all border-t ${theme.border}`}>
+                <Download size={12} /> Export as CSV
+              </button>
+              <button onClick={() => { alert('Sending to printer... (Blueprint demo)'); setShowExportMenu(false); }} className={`w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold ${theme.highlight} ${theme.buttonHover} transition-all border-t ${theme.border}`}>
+                <Eye size={12} /> Print
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
-      <TabBar tabs={['Remark Entry', 'Remark Bank', 'My Submitted', 'Compliance']} active={section} onChange={setSection} theme={theme} />
+      <TabBar tabs={['Remark Entry', 'Remark Bank', 'My Submitted', 'Compliance', 'Student History']} active={section} onChange={setSection} theme={theme} />
 
       {/* ── E) NOTIFICATION INDICATOR ── */}
       <div className={`flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-50 border border-blue-200`}>
@@ -407,6 +427,84 @@ export default function RemarksModule({ theme }: { theme: Theme }) {
               <p className="text-xs font-bold text-amber-800">Deadline: March 15, 2026</p>
               <p className="text-[10px] text-amber-600 mt-0.5">{overallPct}% complete -- {totalStudents - totalDone} students remaining across {classComplianceData.filter(c => c.done < c.total).length} classes. Incomplete remarks will be flagged to administration.</p>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── E) STUDENT HISTORY ── */}
+      {section === 'Student History' && (
+        <div className="space-y-4">
+          <div className={`flex items-center gap-3 px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg} w-full md:w-96`}>
+            <Search size={14} className={theme.iconColor} />
+            <select
+              value={selectedHistoryStudent}
+              onChange={e => setSelectedHistoryStudent(e.target.value)}
+              className={`flex-1 text-xs font-bold ${theme.highlight} bg-transparent outline-none`}
+            >
+              {studentsOf10A.map(s => <option key={s.roll} value={s.name}>{s.name} (Roll #{s.roll})</option>)}
+            </select>
+          </div>
+
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5`}>
+            <h3 className={`text-sm font-bold ${theme.highlight} mb-1`}>Remark History — {selectedHistoryStudent}</h3>
+            <p className={`text-[10px] ${theme.iconColor} mb-4`}>All remarks across academic years</p>
+
+            {/* 2025-26 Remarks */}
+            <div className="mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <div className={`w-2 h-2 rounded-full bg-blue-500`} />
+                <span className={`text-xs font-bold ${theme.highlight}`}>2025-26</span>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold bg-blue-100 text-blue-700`}>3 remarks</span>
+              </div>
+              <div className="ml-3 border-l-2 border-blue-200 pl-4 space-y-3">
+                {[
+                  { date: '2026-02-15', type: 'Common', text: 'Good improvement in overall classroom participation and homework completion.', by: 'Ms. Priya Sharma', status: 'Published' },
+                  { date: '2026-01-20', type: 'Subject', text: 'Math — needs more practice in trigonometry. Recommend extra coaching sessions.', by: 'Ms. Priya Sharma', status: 'Published' },
+                  { date: '2025-10-30', type: 'Exam', text: 'Term 1 — satisfactory performance. Scored above class average in 4/6 subjects.', by: 'Ms. Priya Sharma', status: 'Published' },
+                ].map((r, i) => (
+                  <div key={i} className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`text-[10px] ${theme.iconColor}`}>{r.date}</span>
+                      <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold ${
+                        r.type === 'Common' ? 'bg-blue-100 text-blue-700' : r.type === 'Subject' ? 'bg-purple-100 text-purple-700' : 'bg-teal-100 text-teal-700'
+                      }`}>{r.type}</span>
+                      <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold ${statusColor(r.status)}`}>{r.status}</span>
+                    </div>
+                    <p className={`text-xs ${theme.highlight} leading-relaxed`}>{r.text}</p>
+                    <p className={`text-[10px] ${theme.iconColor} mt-1`}>Submitted by: {r.by}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 2024-25 Remarks */}
+            <div className="mb-4">
+              <div className="flex items-center gap-2 mb-3">
+                <div className={`w-2 h-2 rounded-full bg-slate-400`} />
+                <span className={`text-xs font-bold ${theme.highlight}`}>2024-25</span>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${theme.secondaryBg} ${theme.iconColor}`}>2 remarks</span>
+              </div>
+              <div className="ml-3 border-l-2 border-slate-200 pl-4 space-y-3">
+                {[
+                  { date: '2025-03-15', type: 'Common', text: 'Excellent conduct throughout the year. Role model for peers.', by: 'Mr. Vikram Desai', status: 'Published' },
+                  { date: '2024-10-28', type: 'Exam', text: 'Half Yearly — outstanding result. Class rank improved from 8th to 3rd.', by: 'Mr. Vikram Desai', status: 'Published' },
+                ].map((r, i) => (
+                  <div key={i} className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`text-[10px] ${theme.iconColor}`}>{r.date}</span>
+                      <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold ${
+                        r.type === 'Common' ? 'bg-blue-100 text-blue-700' : r.type === 'Subject' ? 'bg-purple-100 text-purple-700' : 'bg-teal-100 text-teal-700'
+                      }`}>{r.type}</span>
+                      <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold ${statusColor(r.status)}`}>{r.status}</span>
+                    </div>
+                    <p className={`text-xs ${theme.highlight} leading-relaxed`}>{r.text}</p>
+                    <p className={`text-[10px] ${theme.iconColor} mt-1`}>Submitted by: {r.by}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <button className={`text-xs font-bold ${theme.primaryText} underline`}>View Full History</button>
           </div>
         </div>
       )}

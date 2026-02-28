@@ -2,11 +2,12 @@
 
 import React, { useState } from 'react';
 import { type Theme } from '@/lib/themes';
-import { X, Settings, Bell } from 'lucide-react';
+import { X, Settings, Bell, History } from 'lucide-react';
 import { SelectField } from '../_components/FormHelpers';
 
 export default function PromotionWizard({ theme, onClose }: { theme: Theme; onClose: () => void }) {
   const [step, setStep] = useState(1);
+  const [showHistory, setShowHistory] = useState(false);
   const [sourceClass, setSourceClass] = useState('');
   const [promotionMode, setPromotionMode] = useState<'auto' | 'manual' | 'rule-based'>('manual');
   const [minAttendance, setMinAttendance] = useState('75');
@@ -42,10 +43,53 @@ export default function PromotionWizard({ theme, onClose }: { theme: Theme; onCl
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} shadow-2xl w-full max-w-xl p-6 space-y-4 max-h-[85vh] overflow-y-auto`} onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between">
-          <h2 className={`text-lg font-bold ${theme.highlight}`}>Promote Students — Step {step}/4</h2>
-          <button onClick={onClose} className={`p-1.5 rounded-lg ${theme.buttonHover}`}><X size={16} className={theme.iconColor} /></button>
+          <h2 className={`text-lg font-bold ${theme.highlight}`}>{showHistory ? 'Promotion History' : `Promote Students — Step ${step}/4`}</h2>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setShowHistory(!showHistory)} className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 ${showHistory ? theme.primary + ' text-white' : theme.secondaryBg + ' ' + theme.highlight + ' ' + theme.buttonHover}`}>
+              <History size={12} /> {showHistory ? 'Back to Wizard' : 'View History'}
+            </button>
+            <button onClick={onClose} className={`p-1.5 rounded-lg ${theme.buttonHover}`}><X size={16} className={theme.iconColor} /></button>
+          </div>
         </div>
 
+        {/* Gap #47 — Promotion History */}
+        {showHistory ? (
+          <div className="space-y-3">
+            <p className={`text-xs ${theme.iconColor}`}>Historical promotion records for all classes.</p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className={theme.secondaryBg}>
+                    {['Year', 'From Class', 'To Class', 'Total Students', 'Promoted', 'Detained', 'TC Issued'].map(h => (
+                      <th key={h} className={`px-3 py-2 text-left text-[10px] font-bold ${theme.iconColor} uppercase`}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { year: '2025-26', from: '10th', to: '11th', total: 36, promoted: 32, detained: 2, tc: 2 },
+                    { year: '2025-26', from: '5th', to: '6th', total: 45, promoted: 44, detained: 1, tc: 0 },
+                    { year: '2024-25', from: '10th', to: '11th', total: 38, promoted: 35, detained: 1, tc: 2 },
+                    { year: '2024-25', from: '12th', to: 'Passed Out', total: 28, promoted: 28, detained: 0, tc: 0 },
+                    { year: '2023-24', from: '10th', to: '11th', total: 40, promoted: 36, detained: 3, tc: 1 },
+                    { year: '2023-24', from: '12th', to: 'Passed Out', total: 30, promoted: 30, detained: 0, tc: 0 },
+                  ].map((row, i) => (
+                    <tr key={i} className={`border-t ${theme.border}`}>
+                      <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{row.year}</td>
+                      <td className={`px-3 py-2 ${theme.iconColor}`}>{row.from}</td>
+                      <td className={`px-3 py-2 font-bold ${theme.primaryText}`}>{row.to}</td>
+                      <td className={`px-3 py-2 ${theme.iconColor}`}>{row.total}</td>
+                      <td className="px-3 py-2 font-bold text-emerald-600">{row.promoted}</td>
+                      <td className={`px-3 py-2 font-bold ${row.detained > 0 ? 'text-amber-600' : theme.iconColor}`}>{row.detained}</td>
+                      <td className={`px-3 py-2 font-bold ${row.tc > 0 ? 'text-red-500' : theme.iconColor}`}>{row.tc}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : (
+        <>
         {/* Progress bar */}
         <div className="flex gap-1">
           {[1,2,3,4].map(s => (
@@ -181,7 +225,7 @@ export default function PromotionWizard({ theme, onClose }: { theme: Theme; onCl
           <div className="space-y-4">
             <p className={`text-xs ${theme.iconColor}`}>Review and confirm the promotion batch:</p>
             <div className={`p-4 rounded-xl ${theme.secondaryBg} space-y-2`}>
-              <div className="flex justify-between"><span className={`text-xs ${theme.iconColor}`}>Promoted</span><span className="text-sm font-bold text-emerald-600">{promoted} students → {nextClassMap[sourceClass]}</span></div>
+              <div className="flex justify-between"><span className={`text-xs ${theme.iconColor}`}>Promoted</span><span className="text-sm font-bold text-emerald-600">{promoted} students &rarr; {nextClassMap[sourceClass]}</span></div>
               <div className="flex justify-between"><span className={`text-xs ${theme.iconColor}`}>Detained</span><span className="text-sm font-bold text-amber-600">{detained} students (remain in {sourceClass})</span></div>
               <div className="flex justify-between"><span className={`text-xs ${theme.iconColor}`}>TC Issued</span><span className="text-sm font-bold text-red-500">{tcIssued} students</span></div>
               <div className={`flex justify-between pt-2 border-t ${theme.border}`}><span className={`text-xs font-bold ${theme.highlight}`}>Total Processed</span><span className={`text-sm font-bold ${theme.highlight}`}>{promoted + detained + tcIssued}</span></div>
@@ -191,6 +235,8 @@ export default function PromotionWizard({ theme, onClose }: { theme: Theme; onCl
               <button onClick={() => { window.alert(`Promotion processed! ${promoted} promoted to ${nextClassMap[sourceClass]}, ${detained} detained, ${tcIssued} TC issued. (Blueprint demo)`); onClose(); }} className={`flex-1 py-2.5 rounded-xl ${theme.primary} text-white text-sm font-bold`}>Process Promotion</button>
             </div>
           </div>
+        )}
+        </>
         )}
       </div>
     </div>
