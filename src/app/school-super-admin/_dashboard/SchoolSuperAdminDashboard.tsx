@@ -53,6 +53,11 @@ import YearEndOperationsModule from '../_modules/YearEndOperationsModule';
 import IDCardConfigModule from '../_modules/IDCardConfigModule';
 import DocumentMgmtConfigModule from '../_modules/DocumentMgmtConfigModule';
 import HealthInfirmaryConfigModule from '../_modules/HealthInfirmaryConfigModule';
+import BiometricHardwareConfigModule from '../_modules/BiometricHardwareConfigModule';
+import WorkflowApprovalConfigModule from '../_modules/WorkflowApprovalConfigModule';
+import AccreditationQualityConfigModule from '../_modules/AccreditationQualityConfigModule';
+import ConsentESignatureConfigModule from '../_modules/ConsentESignatureConfigModule';
+import FormBuilderConfigModule from '../_modules/FormBuilderConfigModule';
 
 // ─── Module ID → Component mapping ──────────────────
 const MODULE_COMPONENTS: Record<string, React.ComponentType<{ theme: Theme }>> = {
@@ -99,6 +104,11 @@ const MODULE_COMPONENTS: Record<string, React.ComponentType<{ theme: Theme }>> =
   'id-card-config': IDCardConfigModule,
   'doc-mgmt-config': DocumentMgmtConfigModule,
   'health-config': HealthInfirmaryConfigModule,
+  'biometric-config': BiometricHardwareConfigModule,
+  'workflow-config': WorkflowApprovalConfigModule,
+  'accreditation-config': AccreditationQualityConfigModule,
+  'consent-config': ConsentESignatureConfigModule,
+  'form-builder-config': FormBuilderConfigModule,
 };
 
 export default function SchoolSuperAdminDashboard({ theme, currentUser }: { theme?: Theme; currentUser?: TeamMember }) {

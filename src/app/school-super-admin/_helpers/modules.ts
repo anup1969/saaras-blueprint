@@ -5,7 +5,8 @@ import {
   UtensilsCrossed, Building, Package, Notebook, UserPlus, CreditCard,
   UserCircle, BarChart3, FileBarChart, Plug, Palette, School, Globe,
   Database, Smartphone, MessageSquareText, MonitorPlay,
-  CalendarCog, FolderOpen, Heart
+  CalendarCog, FolderOpen, Heart,
+  Fingerprint, GitBranch, BadgeCheck, FileSignature, FileInput
 } from 'lucide-react';
 
 export const modules = [
@@ -53,6 +54,11 @@ export const modules = [
   { id: 'id-card-config', label: 'ID Cards', icon: CreditCard },
   { id: 'doc-mgmt-config', label: 'Documents', icon: FolderOpen },
   { id: 'health-config', label: 'Health & Infirmary', icon: Heart },
+  { id: 'biometric-config', label: 'Biometric & Devices', icon: Fingerprint },
+  { id: 'workflow-config', label: 'Workflow Engine', icon: GitBranch },
+  { id: 'accreditation-config', label: 'Accreditation', icon: BadgeCheck },
+  { id: 'consent-config', label: 'Consent & E-Sign', icon: FileSignature },
+  { id: 'form-builder-config', label: 'Form Builder', icon: FileInput },
   { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
   { id: 'support', label: 'Support', icon: Headphones },
 ];

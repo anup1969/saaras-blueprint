@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Download, Upload, AlertTriangle } from 'lucide-react';
+import { Download, Upload, AlertTriangle, Cloud, HardDrive, Shield, Trash2, Bell, ScanLine } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
 
@@ -21,6 +21,24 @@ export default function BackupExportModule({ theme }: { theme: Theme }) {
   const [restoreFile, setRestoreFile] = useState('');
   const [restoreConfirm, setRestoreConfirm] = useState(false);
   const [restoreProgress, setRestoreProgress] = useState<number | null>(null);
+  // Storage Management - Cloud Storage Settings
+  const [storageProvider, setStorageProvider] = useState('AWS S3');
+  const [storageRegion, setStorageRegion] = useState('ap-south-1 (Mumbai)');
+  const [encryptionAtRest, setEncryptionAtRest] = useState(true);
+  const [encryptionInTransit, setEncryptionInTransit] = useState(true);
+  const [cdnIntegration, setCdnIntegration] = useState(false);
+  const [cdnProvider, setCdnProvider] = useState('CloudFront');
+  const [cdnCacheDuration, setCdnCacheDuration] = useState('24hr');
+
+  // Storage Management - Storage Quota & Cleanup
+  const [tempFileCleanup, setTempFileCleanup] = useState(true);
+  const [tempCleanupFreq, setTempCleanupFreq] = useState('Daily');
+  const [archiveOldData, setArchiveOldData] = useState(false);
+  const [archiveAfter, setArchiveAfter] = useState('2yr');
+  const [storageAlerts, setStorageAlerts] = useState(true);
+  const [storageAlertThreshold, setStorageAlertThreshold] = useState('80%');
+  const [virusScanOnUpload, setVirusScanOnUpload] = useState(true);
+
   const backupHistory = [
     { date: '25 Feb 2026 02:00', type: 'Auto', size: '2.3 GB', status: 'Complete' },
     { date: '24 Feb 2026 02:00', type: 'Auto', size: '2.3 GB', status: 'Complete' },
@@ -241,6 +259,135 @@ export default function BackupExportModule({ theme }: { theme: Theme }) {
           </table>
         </div>
       </SectionCard>
+
+      {/* ─── Storage Management (Gap Feature) ─── */}
+      <div className="grid grid-cols-2 gap-4">
+        <SectionCard title="Cloud Storage Settings" subtitle="Configure primary cloud storage provider and security" theme={theme}>
+          <div className="space-y-3">
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Primary Storage Provider</p>
+              <SelectField options={['AWS S3', 'Google Cloud', 'Azure Blob', 'Local Server']} value={storageProvider} onChange={setStorageProvider} theme={theme} />
+            </div>
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Storage Region</p>
+              <SelectField options={['ap-south-1 (Mumbai)', 'ap-south-2 (Hyderabad)', 'us-east-1 (N. Virginia)', 'us-west-2 (Oregon)', 'eu-west-1 (Ireland)', 'eu-central-1 (Frankfurt)', 'ap-southeast-1 (Singapore)']} value={storageRegion} onChange={setStorageRegion} theme={theme} />
+            </div>
+            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <div className="flex-1 mr-3">
+                <p className={`text-xs font-bold ${theme.highlight}`}><Shield size={12} className="inline mr-1" />Encryption at Rest (AES-256)</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>All stored data is encrypted using AES-256 encryption</p>
+              </div>
+              <SSAToggle on={encryptionAtRest} onChange={() => setEncryptionAtRest(!encryptionAtRest)} theme={theme} />
+            </div>
+            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <div className="flex-1 mr-3">
+                <p className={`text-xs font-bold ${theme.highlight}`}><Shield size={12} className="inline mr-1" />Encryption in Transit (TLS 1.3)</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>All data transfers use TLS 1.3 encryption</p>
+              </div>
+              <SSAToggle on={encryptionInTransit} onChange={() => setEncryptionInTransit(!encryptionInTransit)} theme={theme} />
+            </div>
+            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <div className="flex-1 mr-3">
+                <p className={`text-xs font-bold ${theme.highlight}`}><Cloud size={12} className="inline mr-1" />CDN Integration</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Enable CDN for faster static asset delivery</p>
+              </div>
+              <SSAToggle on={cdnIntegration} onChange={() => setCdnIntegration(!cdnIntegration)} theme={theme} />
+            </div>
+            {cdnIntegration && (
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>CDN Provider</p>
+                  <SelectField options={['CloudFront', 'Cloud CDN', 'Azure CDN']} value={cdnProvider} onChange={setCdnProvider} theme={theme} />
+                </div>
+                <div>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Cache Duration</p>
+                  <SelectField options={['1hr', '6hr', '24hr', '7days']} value={cdnCacheDuration} onChange={setCdnCacheDuration} theme={theme} />
+                </div>
+              </div>
+            )}
+          </div>
+        </SectionCard>
+
+        <SectionCard title="Storage Quota &amp; Cleanup" subtitle="Monitor storage usage, cleanup, and archival policies" theme={theme}>
+          <div className="space-y-3">
+            {/* Total Storage Progress Bar */}
+            <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+              <div className="flex items-center justify-between mb-1.5">
+                <p className={`text-xs font-bold ${theme.highlight}`}><HardDrive size={12} className="inline mr-1" />Total Storage: 50 GB</p>
+                <span className={`text-[10px] font-bold ${theme.iconColor}`}>18.5 GB used (37%)</span>
+              </div>
+              <div className="w-full h-3 rounded-full bg-slate-200 overflow-hidden">
+                <div className={`h-full rounded-full ${theme.primary}`} style={{ width: '37%' }} />
+              </div>
+            </div>
+            {/* Breakdown Mini-bars */}
+            <div className="space-y-2">
+              {[
+                { label: 'Documents', size: '8.2 GB', pct: 16.4, color: 'bg-blue-500' },
+                { label: 'Media / Photos', size: '6.1 GB', pct: 12.2, color: 'bg-purple-500' },
+                { label: 'Backups', size: '3.4 GB', pct: 6.8, color: 'bg-amber-500' },
+                { label: 'System', size: '0.8 GB', pct: 1.6, color: 'bg-slate-400' },
+              ].map(item => (
+                <div key={item.label}>
+                  <div className="flex items-center justify-between mb-0.5">
+                    <span className={`text-[10px] font-medium ${theme.highlight}`}>{item.label}</span>
+                    <span className={`text-[10px] ${theme.iconColor}`}>{item.size}</span>
+                  </div>
+                  <div className="w-full h-1.5 rounded-full bg-slate-200 overflow-hidden">
+                    <div className={`h-full rounded-full ${item.color}`} style={{ width: `${(item.pct / 50) * 100}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <div className="flex-1 mr-3">
+                <p className={`text-xs font-bold ${theme.highlight}`}><Trash2 size={12} className="inline mr-1" />Temp File Auto-Cleanup</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Automatically remove temporary and orphaned files</p>
+              </div>
+              <SSAToggle on={tempFileCleanup} onChange={() => setTempFileCleanup(!tempFileCleanup)} theme={theme} />
+            </div>
+            {tempFileCleanup && (
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Cleanup Frequency</p>
+                <SelectField options={['Daily', 'Weekly']} value={tempCleanupFreq} onChange={setTempCleanupFreq} theme={theme} />
+              </div>
+            )}
+            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <div className="flex-1 mr-3">
+                <p className={`text-xs font-bold ${theme.highlight}`}>Archive Old Data</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Move old records to cold storage to free space</p>
+              </div>
+              <SSAToggle on={archiveOldData} onChange={() => setArchiveOldData(!archiveOldData)} theme={theme} />
+            </div>
+            {archiveOldData && (
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Archive After</p>
+                <SelectField options={['1yr', '2yr', '3yr', '5yr']} value={archiveAfter} onChange={setArchiveAfter} theme={theme} />
+              </div>
+            )}
+            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <div className="flex-1 mr-3">
+                <p className={`text-xs font-bold ${theme.highlight}`}><Bell size={12} className="inline mr-1" />Storage Alerts</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Get notified when storage usage exceeds threshold</p>
+              </div>
+              <SSAToggle on={storageAlerts} onChange={() => setStorageAlerts(!storageAlerts)} theme={theme} />
+            </div>
+            {storageAlerts && (
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Alert at</p>
+                <SelectField options={['80%', '90%', '95%']} value={storageAlertThreshold} onChange={setStorageAlertThreshold} theme={theme} />
+              </div>
+            )}
+            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <div className="flex-1 mr-3">
+                <p className={`text-xs font-bold ${theme.highlight}`}><ScanLine size={12} className="inline mr-1" />Virus/Malware Scanning</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Scan all uploaded files for viruses and malware</p>
+              </div>
+              <SSAToggle on={virusScanOnUpload} onChange={() => setVirusScanOnUpload(!virusScanOnUpload)} theme={theme} />
+            </div>
+          </div>
+        </SectionCard>
+      </div>
     </div>
   );
 }

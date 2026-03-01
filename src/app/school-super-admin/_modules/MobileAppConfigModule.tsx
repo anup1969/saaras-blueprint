@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Smartphone, Wifi, WifiOff, RefreshCw, Palette, Layout, Globe } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
 
@@ -51,6 +51,32 @@ export default function MobileAppConfigModule({ theme }: { theme: Theme }) {
   const [parentalControlsEnabled, setParentalControlsEnabled] = useState(false);
   const [screenTimeLimit, setScreenTimeLimit] = useState('60');
   const [contentFiltering, setContentFiltering] = useState(true);
+
+  // PWA & Installation - Progressive Web App
+  const [pwaEnabled, setPwaEnabled] = useState(true);
+  const [pwaAppName, setPwaAppName] = useState('Saaras School ERP');
+  const [pwaShortName, setPwaShortName] = useState('Saaras');
+  const [pwaThemeColor, setPwaThemeColor] = useState('#4F46E5');
+  const [pwaBgColor, setPwaBgColor] = useState('#FFFFFF');
+  const [pwaDisplayMode, setPwaDisplayMode] = useState('Standalone');
+  const [pwaOrientation, setPwaOrientation] = useState('Any');
+  const [pwaStartUrl, setPwaStartUrl] = useState('/');
+  const [pwaCacheStrategy, setPwaCacheStrategy] = useState('Network-first');
+
+  // PWA & Installation - Offline Capabilities
+  const [enhancedOffline, setEnhancedOffline] = useState(true);
+  const [offlineDataLimit, setOfflineDataLimit] = useState('100MB');
+  const [autoSyncOnReconnect, setAutoSyncOnReconnect] = useState(true);
+  const [syncPriority, setSyncPriority] = useState('Attendance first');
+  const [offlineFeatures, setOfflineFeatures] = useState<Record<string, boolean>>({
+    'View timetable': true,
+    'Mark attendance': true,
+    'View notices': true,
+    'View student info': true,
+    'Chat (queue messages)': false,
+  });
+  const [backgroundSync, setBackgroundSync] = useState(true);
+  const [offlineIndicatorStyle, setOfflineIndicatorStyle] = useState('Banner');
 
   return (
     <div className="space-y-4">
@@ -265,6 +291,118 @@ export default function MobileAppConfigModule({ theme }: { theme: Theme }) {
           )}
         </div>
       </SectionCard>
+
+      {/* ─── PWA & Installation (Gap Feature) ─── */}
+      <div className="grid grid-cols-2 gap-4">
+        <SectionCard title="Progressive Web App" subtitle="Configure PWA manifest and service worker settings" theme={theme}>
+          <div className="space-y-3">
+            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <div className="flex-1 mr-3">
+                <p className={`text-xs font-bold ${theme.highlight}`}><Smartphone size={12} className="inline mr-1" />Enable PWA</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Allow users to install the app from browser to home screen</p>
+              </div>
+              <SSAToggle on={pwaEnabled} onChange={() => setPwaEnabled(!pwaEnabled)} theme={theme} />
+            </div>
+            {pwaEnabled && (
+              <>
+                <div>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>App Name (Home Screen)</p>
+                  <InputField value={pwaAppName} onChange={setPwaAppName} theme={theme} placeholder="Saaras School ERP" />
+                </div>
+                <div>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>App Short Name</p>
+                  <InputField value={pwaShortName} onChange={setPwaShortName} theme={theme} placeholder="Saaras" />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}><Palette size={10} className="inline mr-1" />Theme Color</p>
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-lg border border-slate-300" style={{ backgroundColor: pwaThemeColor }} />
+                      <InputField value={pwaThemeColor} onChange={setPwaThemeColor} theme={theme} placeholder="#4F46E5" />
+                    </div>
+                  </div>
+                  <div>
+                    <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}><Palette size={10} className="inline mr-1" />Background Color</p>
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-lg border border-slate-300" style={{ backgroundColor: pwaBgColor }} />
+                      <InputField value={pwaBgColor} onChange={setPwaBgColor} theme={theme} placeholder="#FFFFFF" />
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}><Layout size={10} className="inline mr-1" />Display Mode</p>
+                  <SelectField options={['Standalone', 'Fullscreen', 'Minimal-UI']} value={pwaDisplayMode} onChange={setPwaDisplayMode} theme={theme} />
+                </div>
+                <div>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Orientation</p>
+                  <SelectField options={['Portrait', 'Landscape', 'Any']} value={pwaOrientation} onChange={setPwaOrientation} theme={theme} />
+                </div>
+                <div>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}><Globe size={10} className="inline mr-1" />Start URL</p>
+                  <InputField value={pwaStartUrl} onChange={setPwaStartUrl} theme={theme} placeholder="/ (default)" />
+                </div>
+                <div>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Service Worker Cache Strategy</p>
+                  <SelectField options={['Cache-first', 'Network-first', 'Stale-while-revalidate']} value={pwaCacheStrategy} onChange={setPwaCacheStrategy} theme={theme} />
+                </div>
+              </>
+            )}
+          </div>
+        </SectionCard>
+
+        <SectionCard title="Offline Capabilities" subtitle="Configure offline data access, sync, and indicators" theme={theme}>
+          <div className="space-y-3">
+            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <div className="flex-1 mr-3">
+                <p className={`text-xs font-bold ${theme.highlight}`}><WifiOff size={12} className="inline mr-1" />Enhanced Offline Mode</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Allow users to access key features without internet connectivity</p>
+              </div>
+              <SSAToggle on={enhancedOffline} onChange={() => setEnhancedOffline(!enhancedOffline)} theme={theme} />
+            </div>
+            {enhancedOffline && (
+              <>
+                <div>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Offline Data Limit</p>
+                  <SelectField options={['50MB', '100MB', '250MB', '500MB']} value={offlineDataLimit} onChange={setOfflineDataLimit} theme={theme} />
+                </div>
+                <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                  <div className="flex-1 mr-3">
+                    <p className={`text-xs font-bold ${theme.highlight}`}><RefreshCw size={12} className="inline mr-1" />Auto-Sync on Reconnect</p>
+                    <p className={`text-[10px] ${theme.iconColor}`}>Automatically sync queued changes when internet is restored</p>
+                  </div>
+                  <SSAToggle on={autoSyncOnReconnect} onChange={() => setAutoSyncOnReconnect(!autoSyncOnReconnect)} theme={theme} />
+                </div>
+                <div>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Sync Priority</p>
+                  <SelectField options={['Attendance first', 'Messages first', 'All equal']} value={syncPriority} onChange={setSyncPriority} theme={theme} />
+                </div>
+                <div>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Offline Features Available</p>
+                  <div className="space-y-1.5">
+                    {Object.entries(offlineFeatures).map(([feat, enabled]) => (
+                      <div key={feat} className={`flex items-center justify-between p-2 rounded-xl ${theme.secondaryBg}`}>
+                        <span className={`text-xs font-medium ${theme.highlight}`}>{feat}</span>
+                        <SSAToggle on={enabled} onChange={() => setOfflineFeatures(p => ({ ...p, [feat]: !p[feat] }))} theme={theme} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                  <div className="flex-1 mr-3">
+                    <p className={`text-xs font-bold ${theme.highlight}`}><Wifi size={12} className="inline mr-1" />Background Sync</p>
+                    <p className={`text-[10px] ${theme.iconColor}`}>Continue syncing data in the background even when app is minimized</p>
+                  </div>
+                  <SSAToggle on={backgroundSync} onChange={() => setBackgroundSync(!backgroundSync)} theme={theme} />
+                </div>
+                <div>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Offline Indicator Style</p>
+                  <SelectField options={['Banner', 'Toast', 'Icon only']} value={offlineIndicatorStyle} onChange={setOfflineIndicatorStyle} theme={theme} />
+                </div>
+              </>
+            )}
+          </div>
+        </SectionCard>
+      </div>
     </div>
   );
 }

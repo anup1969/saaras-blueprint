@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { AlertTriangle, Download, Upload, FileText, X, CheckCircle } from 'lucide-react';
+import { AlertTriangle, Download, Upload, FileText, X, CheckCircle, GraduationCap, MessageSquare } from 'lucide-react';
 import { SectionCard, ModuleHeader } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
 
@@ -45,6 +45,29 @@ export default function DataMigrationModule({ theme }: { theme: Theme }) {
   const rollbackImport = (type: string) => {
     setRecentImports(p => p.filter(r => r.type !== type));
     setImports(p => p.map(imp => imp.type === type ? { ...imp, status: 'not-started', step: 0, records: 0, errors: 0, fileName: '' } : imp));
+  };
+
+  // Additional template data
+  const academicTemplates = [
+    { name: 'Timetable Import', fields: 'Class, Section, Day, Period, Subject, Teacher', file: 'timetable-template.csv' },
+    { name: 'Marks/Grades Import', fields: 'Student ID, Subject, Exam Type, Marks, Grade, Remarks', file: 'marks-grades-template.csv' },
+    { name: 'Homework Import', fields: 'Class, Subject, Title, Description, Due Date, Marks', file: 'homework-template.csv' },
+  ];
+
+  const communicationTemplates = [
+    { name: 'Parent Contact Import', fields: 'Student ID, Father Name, Mother Name, Phone 1, Phone 2, Email, Address', file: 'parent-contacts-template.csv' },
+    { name: 'Bulk SMS/Email Recipients', fields: 'Name, Phone, Email, Group, Type', file: 'recipients-template.csv' },
+    { name: 'Library Books Import', fields: 'Title, Author, ISBN, Category, Copies, Shelf Location', file: 'library-books-template.csv' },
+  ];
+
+  const downloadTemplate = (name: string, fields: string, file: string) => {
+    const header = fields;
+    const sampleRow = fields.split(', ').map(f => `Sample ${f}`).join(',');
+    const csv = `${header}\n${sampleRow}\n`;
+    const link = document.createElement('a');
+    link.href = `data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`;
+    link.download = file;
+    link.click();
   };
 
   return (
@@ -181,6 +204,61 @@ export default function DataMigrationModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
       )}
+
+      {/* ─── NEW: Additional Import Templates ──────────────── */}
+      <SectionCard title="Additional Import Templates" subtitle="Download pre-formatted templates for academic, communication, and other data types" theme={theme}>
+        <div className="grid grid-cols-2 gap-4">
+          {/* Left: Academic Data Templates */}
+          <div className="space-y-3">
+            <p className={`text-[10px] font-bold ${theme.iconColor} uppercase tracking-wider flex items-center gap-1.5`}><GraduationCap size={12} /> Academic Data Templates</p>
+
+            {academicTemplates.map((tmpl, i) => (
+              <div key={i} className={`p-3 rounded-xl ${theme.secondaryBg} space-y-2`}>
+                <div className="flex items-center justify-between">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{tmpl.name}</p>
+                  <FileText size={14} className={theme.iconColor} />
+                </div>
+                <div>
+                  <p className={`text-[9px] font-bold ${theme.iconColor} uppercase mb-0.5`}>Fields</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{tmpl.fields}</p>
+                </div>
+                <button
+                  onClick={() => downloadTemplate(tmpl.name, tmpl.fields, tmpl.file)}
+                  className={`w-full flex items-center justify-center gap-2 p-2 rounded-xl border ${theme.border} ${theme.buttonHover} transition-all`}
+                >
+                  <Download size={12} className={theme.iconColor} />
+                  <span className={`text-[10px] font-bold ${theme.iconColor}`}>Download Template</span>
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* Right: Communication & Other Templates */}
+          <div className="space-y-3">
+            <p className={`text-[10px] font-bold ${theme.iconColor} uppercase tracking-wider flex items-center gap-1.5`}><MessageSquare size={12} /> Communication & Other Templates</p>
+
+            {communicationTemplates.map((tmpl, i) => (
+              <div key={i} className={`p-3 rounded-xl ${theme.secondaryBg} space-y-2`}>
+                <div className="flex items-center justify-between">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{tmpl.name}</p>
+                  <FileText size={14} className={theme.iconColor} />
+                </div>
+                <div>
+                  <p className={`text-[9px] font-bold ${theme.iconColor} uppercase mb-0.5`}>Fields</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{tmpl.fields}</p>
+                </div>
+                <button
+                  onClick={() => downloadTemplate(tmpl.name, tmpl.fields, tmpl.file)}
+                  className={`w-full flex items-center justify-center gap-2 p-2 rounded-xl border ${theme.border} ${theme.buttonHover} transition-all`}
+                >
+                  <Download size={12} className={theme.iconColor} />
+                  <span className={`text-[10px] font-bold ${theme.iconColor}`}>Download Template</span>
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </SectionCard>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Plus, CheckCircle, Edit } from 'lucide-react';
+import { X, Plus, CheckCircle, Edit, Send, Users, Clock, BarChart3, ShieldCheck } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import { MasterPermissionGrid } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
@@ -95,6 +95,26 @@ export default function CommunicationConfigModule({ theme }: { theme: Theme }) {
   const [notifRetention, setNotifRetention] = useState('90 days');
   const [notifCriticalBypass, setNotifCriticalBypass] = useState(true);
   const [notifAutoReport, setNotifAutoReport] = useState(true);
+
+  // Bulk Communication Settings
+  const [bulkEmailEnabled, setBulkEmailEnabled] = useState(true);
+  const [bulkEmailMaxRecipients, setBulkEmailMaxRecipients] = useState('500');
+  const [bulkSmsEnabled, setBulkSmsEnabled] = useState(true);
+  const [bulkSmsMaxRecipients, setBulkSmsMaxRecipients] = useState('500');
+  const [bulkWhatsappEnabled, setBulkWhatsappEnabled] = useState(false);
+  const [bulkWhatsappMaxRecipients, setBulkWhatsappMaxRecipients] = useState('250');
+  const [bulkRateLimit, setBulkRateLimit] = useState('50');
+  const [bulkScheduleEnabled, setBulkScheduleEnabled] = useState(true);
+  const [bulkDeliveryTracking, setBulkDeliveryTracking] = useState(true);
+  const [bulkBounceHandling, setBulkBounceHandling] = useState(true);
+  const [bulkOptOutManagement, setBulkOptOutManagement] = useState(true);
+  const [bulkRecipientGroups, setBulkRecipientGroups] = useState<Record<string, boolean>>({
+    'All Parents': true,
+    'All Staff': true,
+    'Class-wise': true,
+    'Section-wise': true,
+    'Custom List': false,
+  });
 
   return (
     <div className="space-y-4">
@@ -448,6 +468,109 @@ export default function CommunicationConfigModule({ theme }: { theme: Theme }) {
               <p className={`text-[10px] ${theme.iconColor}`}>Automatically generate delivery reports after each batch notification</p>
             </div>
             <SSAToggle on={notifAutoReport} onChange={() => setNotifAutoReport(!notifAutoReport)} theme={theme} />
+          </div>
+        </div>
+      </SectionCard>
+
+      {/* ─── Bulk Communication (Gap Feature) ─── */}
+      <SectionCard title="Bulk Communication" subtitle="Configure mass messaging via Email, SMS, and WhatsApp channels" theme={theme}>
+        <div className="space-y-3">
+          {/* Channel toggles with max recipients */}
+          <div className="space-y-2">
+            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <div className="flex-1 mr-3">
+                <p className={`text-xs font-bold ${theme.highlight}`}><Send size={12} className="inline mr-1" />Bulk Email Sending</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Send bulk emails to selected recipient groups</p>
+              </div>
+              <SSAToggle on={bulkEmailEnabled} onChange={() => setBulkEmailEnabled(!bulkEmailEnabled)} theme={theme} />
+            </div>
+            {bulkEmailEnabled && (
+              <div className="ml-4">
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Max Recipients per Batch</p>
+                <SelectField options={['100', '500', '1000', 'All']} value={bulkEmailMaxRecipients} onChange={setBulkEmailMaxRecipients} theme={theme} />
+              </div>
+            )}
+
+            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <div className="flex-1 mr-3">
+                <p className={`text-xs font-bold ${theme.highlight}`}><Send size={12} className="inline mr-1" />Bulk SMS Sending</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Send bulk SMS messages to parents and staff</p>
+              </div>
+              <SSAToggle on={bulkSmsEnabled} onChange={() => setBulkSmsEnabled(!bulkSmsEnabled)} theme={theme} />
+            </div>
+            {bulkSmsEnabled && (
+              <div className="ml-4">
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Max Recipients per Batch</p>
+                <SelectField options={['100', '500', '1000', 'All']} value={bulkSmsMaxRecipients} onChange={setBulkSmsMaxRecipients} theme={theme} />
+              </div>
+            )}
+
+            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <div className="flex-1 mr-3">
+                <p className={`text-xs font-bold ${theme.highlight}`}><Send size={12} className="inline mr-1" />Bulk WhatsApp</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Send bulk WhatsApp messages via approved templates</p>
+              </div>
+              <SSAToggle on={bulkWhatsappEnabled} onChange={() => setBulkWhatsappEnabled(!bulkWhatsappEnabled)} theme={theme} />
+            </div>
+            {bulkWhatsappEnabled && (
+              <div className="ml-4">
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Max Recipients per Batch</p>
+                <SelectField options={['100', '250', '500']} value={bulkWhatsappMaxRecipients} onChange={setBulkWhatsappMaxRecipients} theme={theme} />
+              </div>
+            )}
+          </div>
+
+          {/* Rate Limiting */}
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}><Clock size={10} className="inline mr-1" />Rate Limiting (Messages per Minute)</p>
+            <SelectField options={['10', '50', '100']} value={bulkRateLimit} onChange={setBulkRateLimit} theme={theme} />
+          </div>
+
+          {/* Scheduling */}
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex-1 mr-3">
+              <p className={`text-xs font-bold ${theme.highlight}`}><Clock size={12} className="inline mr-1" />Allow Scheduled Bulk Messages</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Schedule bulk messages for future delivery at a specific date and time</p>
+            </div>
+            <SSAToggle on={bulkScheduleEnabled} onChange={() => setBulkScheduleEnabled(!bulkScheduleEnabled)} theme={theme} />
+          </div>
+
+          {/* Recipient Groups */}
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}><Users size={10} className="inline mr-1" />Recipient Groups</p>
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(bulkRecipientGroups).map(([group, enabled]) => (
+                <div key={group} className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border ${enabled ? 'border-emerald-300 bg-emerald-50' : `${theme.border} ${theme.cardBg}`}`}>
+                  <span className={`text-[10px] font-medium ${enabled ? 'text-emerald-700' : theme.iconColor}`}>{group}</span>
+                  <SSAToggle on={enabled} onChange={() => setBulkRecipientGroups(p => ({ ...p, [group]: !p[group] }))} theme={theme} />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Tracking & Management */}
+          <div className="space-y-2">
+            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <div className="flex-1 mr-3">
+                <p className={`text-xs font-bold ${theme.highlight}`}><BarChart3 size={12} className="inline mr-1" />Delivery Tracking</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Track sent, delivered, opened, and failed message counts</p>
+              </div>
+              <SSAToggle on={bulkDeliveryTracking} onChange={() => setBulkDeliveryTracking(!bulkDeliveryTracking)} theme={theme} />
+            </div>
+            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <div className="flex-1 mr-3">
+                <p className={`text-xs font-bold ${theme.highlight}`}><ShieldCheck size={12} className="inline mr-1" />Bounce Handling</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Auto-remove invalid email addresses and phone numbers after bounces</p>
+              </div>
+              <SSAToggle on={bulkBounceHandling} onChange={() => setBulkBounceHandling(!bulkBounceHandling)} theme={theme} />
+            </div>
+            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <div className="flex-1 mr-3">
+                <p className={`text-xs font-bold ${theme.highlight}`}><ShieldCheck size={12} className="inline mr-1" />Opt-out Management</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Respect unsubscribe requests and maintain opt-out lists automatically</p>
+              </div>
+              <SSAToggle on={bulkOptOutManagement} onChange={() => setBulkOptOutManagement(!bulkOptOutManagement)} theme={theme} />
+            </div>
           </div>
         </div>
       </SectionCard>

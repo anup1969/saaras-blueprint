@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
-import { Upload } from 'lucide-react';
-import { SSAToggle, SectionCard, ModuleHeader, InputField } from '../_helpers/components';
+import { Upload, Globe, ShieldCheck, CheckCircle, AlertTriangle, Clock, Mail } from 'lucide-react';
+import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
 
 export default function BrandingWhitelabelConfigModule({ theme }: { theme: Theme }) {
@@ -12,6 +12,23 @@ export default function BrandingWhitelabelConfigModule({ theme }: { theme: Theme
   const [loginPageCustomization, setLoginPageCustomization] = useState(true);
   const [primaryColor, setPrimaryColor] = useState('#4F46E5');
   const [logoUploaded] = useState(false);
+
+  // Custom Domain Setup (Gap Feature)
+  const [setupDomainName, setSetupDomainName] = useState('erp.myschool.edu');
+  const [sslCertMode, setSslCertMode] = useState('Auto-provision (Let\u2019s Encrypt)');
+  const [sslStatus, setSslStatus] = useState<'valid' | 'pending' | 'expired'>('pending');
+  const [dnsVerified, setDnsVerified] = useState(false);
+  const [dnsVerifying, setDnsVerifying] = useState(false);
+  const [customEmailDomain, setCustomEmailDomain] = useState(false);
+
+  const verifyDns = () => {
+    setDnsVerifying(true);
+    setTimeout(() => {
+      setDnsVerifying(false);
+      setDnsVerified(true);
+      setSslStatus('valid');
+    }, 2000);
+  };
 
   return (
     <div className="space-y-4">
@@ -83,6 +100,112 @@ export default function BrandingWhitelabelConfigModule({ theme }: { theme: Theme
         </SectionCard>
       </div>
 
+      {/* ─── Custom Domain Setup (Gap Feature) ─── */}
+      <SectionCard title="Custom Domain Setup" subtitle="Configure your own domain with DNS verification, SSL, and custom email" theme={theme}>
+        <div className="space-y-4">
+          {/* Domain Name Input */}
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}><Globe size={10} className="inline mr-1" />Domain Name</p>
+            <InputField value={setupDomainName} onChange={setSetupDomainName} theme={theme} placeholder="e.g., erp.myschool.edu" />
+          </div>
+
+          {/* DNS Configuration Instructions */}
+          <div className={`p-3 rounded-xl ${theme.secondaryBg} space-y-2`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>DNS Configuration</p>
+            <p className={`text-[10px] ${theme.iconColor} mb-2`}>Add the following records to your domain DNS settings:</p>
+            <div className="space-y-1.5">
+              <div className={`p-2 rounded-lg border ${theme.border} bg-white/50`}>
+                <div className="flex items-center gap-2">
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-bold">CNAME</span>
+                  <code className={`text-[10px] font-mono ${theme.highlight}`}>{setupDomainName || 'erp.myschool.edu'} &rarr; schools.saaras.app</code>
+                </div>
+              </div>
+              <div className={`p-2 rounded-lg border ${theme.border} bg-white/50`}>
+                <div className="flex items-center gap-2">
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 font-bold">A</span>
+                  <code className={`text-[10px] font-mono ${theme.highlight}`}>76.76.21.21 <span className={`${theme.iconColor}`}>(if CNAME not supported)</span></code>
+                </div>
+              </div>
+              <div className={`p-2 rounded-lg border ${theme.border} bg-white/50`}>
+                <div className="flex items-center gap-2">
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-bold">TXT</span>
+                  <code className={`text-[10px] font-mono ${theme.highlight}`}>saaras-verify=abc123xyz</code>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* SSL Certificate */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}><ShieldCheck size={10} className="inline mr-1" />SSL Certificate</p>
+              <SelectField options={["Auto-provision (Let\u2019s Encrypt)", 'Upload custom certificate']} value={sslCertMode} onChange={setSslCertMode} theme={theme} />
+            </div>
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>SSL Status</p>
+              <div className={`flex items-center gap-2 p-2 rounded-xl ${theme.secondaryBg}`}>
+                {sslStatus === 'valid' && <><CheckCircle size={14} className="text-emerald-500" /><span className="text-xs font-bold text-emerald-600">Valid</span></>}
+                {sslStatus === 'pending' && <><Clock size={14} className="text-amber-500" /><span className="text-xs font-bold text-amber-600">Pending</span></>}
+                {sslStatus === 'expired' && <><AlertTriangle size={14} className="text-red-500" /><span className="text-xs font-bold text-red-600">Expired</span></>}
+              </div>
+            </div>
+          </div>
+
+          {/* Verify DNS Button */}
+          <div className="flex items-center gap-3">
+            <button onClick={verifyDns} disabled={dnsVerifying}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white ${theme.primary} hover:opacity-90 transition-all disabled:opacity-50`}>
+              {dnsVerifying ? (
+                <><Clock size={14} className="animate-spin" /> Verifying DNS...</>
+              ) : (
+                <><Globe size={14} /> Verify DNS</>
+              )}
+            </button>
+            {dnsVerified && (
+              <span className="flex items-center gap-1 text-xs font-bold text-emerald-600">
+                <CheckCircle size={14} /> DNS verified successfully!
+              </span>
+            )}
+          </div>
+
+          {/* Custom Email Domain */}
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex-1 mr-3">
+              <p className={`text-xs font-bold ${theme.highlight}`}><Mail size={12} className="inline mr-1" />Custom Email Domain</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Send emails from noreply@{setupDomainName || 'myschool.edu'} instead of default Saaras domain</p>
+            </div>
+            <SSAToggle on={customEmailDomain} onChange={() => setCustomEmailDomain(!customEmailDomain)} theme={theme} />
+          </div>
+
+          {/* Email SPF/DKIM Instructions */}
+          {customEmailDomain && (
+            <div className={`p-3 rounded-xl ${theme.secondaryBg} space-y-2`}>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Email SPF/DKIM Setup</p>
+              <p className={`text-[10px] ${theme.iconColor} mb-2`}>Add these DNS records for email authentication:</p>
+              <div className="space-y-1.5">
+                <div className={`p-2 rounded-lg border ${theme.border} bg-white/50`}>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-bold">SPF</span>
+                    <code className={`text-[10px] font-mono ${theme.highlight}`}>v=spf1 include:saaras.app ~all</code>
+                  </div>
+                </div>
+                <div className={`p-2 rounded-lg border ${theme.border} bg-white/50`}>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 font-bold">DKIM</span>
+                    <code className={`text-[10px] font-mono ${theme.highlight}`}>saaras._domainkey.{setupDomainName || 'myschool.edu'} &rarr; CNAME dkim.saaras.app</code>
+                  </div>
+                </div>
+                <div className={`p-2 rounded-lg border ${theme.border} bg-white/50`}>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-bold">DMARC</span>
+                    <code className={`text-[10px] font-mono ${theme.highlight}`}>v=DMARC1; p=quarantine; rua=mailto:dmarc@saaras.app</code>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </SectionCard>
     </div>
   );
 }
