@@ -4,7 +4,8 @@ import {
   Download, BookOpen, Users, Lock, Key,
   UtensilsCrossed, Building, Package, Notebook, UserPlus, CreditCard,
   UserCircle, BarChart3, FileBarChart, Plug, Palette, School, Globe,
-  Database, Smartphone, MessageSquareText, MonitorPlay
+  Database, Smartphone, MessageSquareText, MonitorPlay,
+  CalendarCog, FolderOpen, Heart
 } from 'lucide-react';
 
 export const modules = [
@@ -48,6 +49,10 @@ export const modules = [
   { id: 'mobile-app-config', label: 'Mobile App', icon: Smartphone },
   { id: 'remark-bank-config', label: 'Remark Bank', icon: MessageSquareText },
   { id: 'lms-config', label: 'LMS / E-Learning', icon: MonitorPlay },
+  { id: 'year-end-ops', label: 'Year-End Operations', icon: CalendarCog },
+  { id: 'id-card-config', label: 'ID Cards', icon: CreditCard },
+  { id: 'doc-mgmt-config', label: 'Documents', icon: FolderOpen },
+  { id: 'health-config', label: 'Health & Infirmary', icon: Heart },
   { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
   { id: 'support', label: 'Support', icon: Headphones },
 ];

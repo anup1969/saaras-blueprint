@@ -2,12 +2,14 @@
 
 import React, { useState } from 'react';
 import { type Theme } from '@/lib/themes';
-import { TabBar, MobileFrame, MobilePreviewToggle } from '@/components/shared';
+import { TabBar, MobileFrame, MobilePreviewToggle, SearchBar, DataTable } from '@/components/shared';
 import {
   Users, Award, ClipboardCheck, TrendingUp, Calendar, Star,
   Banknote, AlertTriangle, DollarSign, CreditCard,
   Briefcase, Shield, Bus, UserPlus, Download, PieChart, UserMinus, MessageSquare,
-  List, BarChart3, Info, FileCheck, Printer, Smartphone
+  List, BarChart3, Info, FileCheck, Printer, Smartphone,
+  Bookmark, Search, Share2, Trash2, Edit, Play, Eye, Save, Filter,
+  Database, Columns, SlidersHorizontal, BarChart, Table, FileSpreadsheet
 } from 'lucide-react';
 
 export default function ReportsModule({ theme }: { theme: Theme }) {
@@ -19,10 +21,42 @@ export default function ReportsModule({ theme }: { theme: Theme }) {
   const [bulkExam, setBulkExam] = useState('Term 1');
   const [qrToggle, setQrToggle] = useState(true);
   const [signToggle, setSignToggle] = useState(true);
+
+  // Saved Filters
+  const [showSaveFilter, setShowSaveFilter] = useState(false);
+  const savedFilters = [
+    { id: 'SF1', name: 'Monthly Fee Defaulters', type: 'Financial', createdBy: 'School Admin', lastUsed: '28-Feb-2026', isPublic: true },
+    { id: 'SF2', name: 'Class 10 Attendance < 75%', type: 'Academic', createdBy: 'Principal', lastUsed: '25-Feb-2026', isPublic: true },
+    { id: 'SF3', name: 'Staff Leave Summary (Feb)', type: 'Administrative', createdBy: 'HR Manager', lastUsed: '01-Mar-2026', isPublic: false },
+    { id: 'SF4', name: 'Transport Utilization — Zone 3', type: 'Administrative', createdBy: 'Transport Head', lastUsed: '20-Feb-2026', isPublic: true },
+    { id: 'SF5', name: 'New Admissions This Term', type: 'Academic', createdBy: 'Admissions', lastUsed: '15-Feb-2026', isPublic: false },
+  ];
+
+  // Report Builder
+  const [builderStep, setBuilderStep] = useState(1);
+  const [builderSource, setBuilderSource] = useState('Students');
+  const [builderFields, setBuilderFields] = useState<string[]>(['Name', 'Class', 'Roll No']);
+  const [builderViz, setBuilderViz] = useState('Table');
+
+  const dataSources = ['Students', 'Staff', 'Fees', 'Attendance', 'Transport', 'Visitors'];
+  const fieldsBySource: Record<string, string[]> = {
+    Students: ['Name', 'Class', 'Section', 'Roll No', 'Gender', 'Category', 'Fee Status', 'Parent Name', 'Phone', 'Admission Date'],
+    Staff: ['Name', 'Designation', 'Department', 'Join Date', 'Qualification', 'Phone', 'Salary Band'],
+    Fees: ['Student Name', 'Class', 'Total Fee', 'Paid Amount', 'Balance', 'Last Payment Date', 'Payment Mode'],
+    Attendance: ['Student Name', 'Class', 'Total Days', 'Present', 'Absent', 'Late', 'Attendance %'],
+    Transport: ['Student Name', 'Route', 'Stop', 'Bus No', 'Driver', 'Monthly Fee', 'Status'],
+    Visitors: ['Visitor Name', 'Date', 'Purpose', 'Whom to Meet', 'Check-in', 'Check-out', 'ID Type'],
+  };
+  const vizOptions = ['Table', 'Bar Chart', 'Pie Chart', 'Line Graph'];
+
+  const toggleField = (field: string) => {
+    setBuilderFields(prev => prev.includes(field) ? prev.filter(f => f !== field) : [...prev, field]);
+  };
+
   return (
     <div className="space-y-4">
       <h1 className={`text-2xl font-bold ${theme.highlight}`}>Reports & Analytics</h1>
-      <TabBar tabs={['Academic', 'Financial', 'Administrative']} active={tab} onChange={setTab} theme={theme} />
+      <TabBar tabs={['Academic', 'Financial', 'Administrative', 'Saved Filters', 'Report Builder']} active={tab} onChange={setTab} theme={theme} />
 
       {/* ─── MOBILE APP PREVIEW ─── */}
       <MobilePreviewToggle theme={theme} mobileContent={
@@ -507,6 +541,283 @@ export default function ReportsModule({ theme }: { theme: Theme }) {
         </div>
       )}
 
+
+      {/* ── Saved Filters Tab ── */}
+      {tab === 'Saved Filters' && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <p className={`text-xs ${theme.iconColor}`}>{savedFilters.length} saved report filters</p>
+            <button onClick={() => setShowSaveFilter(!showSaveFilter)} className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}><Save size={14} /> Save Current Filter</button>
+          </div>
+          {showSaveFilter && (
+            <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 space-y-3`}>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Save Current Filter</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Filter Name</label>
+                  <input placeholder="e.g. Monthly Fee Defaulters" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`} />
+                </div>
+                <div>
+                  <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Visibility</label>
+                  <div className="flex gap-3 items-center mt-1">
+                    <label className="flex items-center gap-1"><input type="radio" name="filterVis" defaultChecked className="accent-slate-600" /><span className={`text-xs ${theme.iconColor}`}>Private</span></label>
+                    <label className="flex items-center gap-1"><input type="radio" name="filterVis" className="accent-slate-600" /><span className={`text-xs ${theme.iconColor}`}>Public (all admins)</span></label>
+                  </div>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={() => setShowSaveFilter(false)} className={`px-4 py-2 rounded-xl ${theme.secondaryBg} text-xs font-bold ${theme.highlight} ${theme.buttonHover}`}>Cancel</button>
+                <button onClick={() => { window.alert('Filter saved! (Blueprint demo)'); setShowSaveFilter(false); }} className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}>Save Filter</button>
+              </div>
+            </div>
+          )}
+          <div className="space-y-2">
+            {savedFilters.map(f => (
+              <div key={f.id} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 flex items-center justify-between`}>
+                <div className="flex items-center gap-3">
+                  <Bookmark size={16} className={theme.primaryText} />
+                  <div>
+                    <p className={`text-xs font-bold ${theme.highlight}`}>{f.name}</p>
+                    <p className={`text-[10px] ${theme.iconColor}`}>{f.type} &middot; Created by: {f.createdBy} &middot; Last used: {f.lastUsed}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${f.isPublic ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>{f.isPublic ? 'Public' : 'Private'}</span>
+                  <button onClick={() => window.alert(`Loading filter "${f.name}"... (Blueprint demo)`)} className={`p-1.5 rounded-lg ${theme.secondaryBg}`} title="Load"><Play size={12} className={theme.iconColor} /></button>
+                  <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`} title="Edit"><Edit size={12} className={theme.iconColor} /></button>
+                  <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`} title="Share"><Share2 size={12} className={theme.iconColor} /></button>
+                  <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`} title="Delete"><Trash2 size={12} className="text-red-400" /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Report Builder Tab ── */}
+      {tab === 'Report Builder' && (
+        <div className="space-y-4">
+          {/* Step indicator */}
+          <div className="flex items-center gap-2">
+            {[
+              { step: 1, label: 'Data Source', icon: Database },
+              { step: 2, label: 'Fields', icon: Columns },
+              { step: 3, label: 'Filters', icon: SlidersHorizontal },
+              { step: 4, label: 'Visualization', icon: BarChart },
+              { step: 5, label: 'Export', icon: Download },
+            ].map((s, i) => (
+              <React.Fragment key={s.step}>
+                <button
+                  onClick={() => setBuilderStep(s.step)}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${builderStep === s.step ? `${theme.primary} text-white` : builderStep > s.step ? 'bg-emerald-100 text-emerald-700' : `${theme.secondaryBg} ${theme.iconColor}`}`}
+                >
+                  <s.icon size={14} />
+                  {s.label}
+                </button>
+                {i < 4 && <div className={`w-6 h-0.5 ${builderStep > s.step ? 'bg-emerald-400' : theme.secondaryBg}`} />}
+              </React.Fragment>
+            ))}
+          </div>
+
+          {/* Step 1: Data Source */}
+          {builderStep === 1 && (
+            <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5 space-y-3`}>
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>Step 1: Select Data Source</h3>
+              <div className="grid grid-cols-3 gap-3">
+                {dataSources.map(ds => (
+                  <button
+                    key={ds}
+                    onClick={() => { setBuilderSource(ds); setBuilderFields(fieldsBySource[ds].slice(0, 3)); }}
+                    className={`p-4 rounded-xl text-center transition-all border ${builderSource === ds ? `${theme.primary} text-white border-transparent` : `${theme.border} ${theme.highlight} ${theme.buttonHover}`}`}
+                  >
+                    <Database size={20} className={`mx-auto mb-1 ${builderSource === ds ? 'text-white' : theme.iconColor}`} />
+                    <p className="text-xs font-bold">{ds}</p>
+                  </button>
+                ))}
+              </div>
+              <div className="flex justify-end">
+                <button onClick={() => setBuilderStep(2)} className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>Next: Select Fields</button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 2: Fields */}
+          {builderStep === 2 && (
+            <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5 space-y-3`}>
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>Step 2: Select Fields ({builderSource})</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                {(fieldsBySource[builderSource] || []).map(field => (
+                  <label key={field} className={`flex items-center gap-2 p-2.5 rounded-xl cursor-pointer transition-all ${builderFields.includes(field) ? `${theme.secondaryBg} border ${theme.border}` : `${theme.cardBg} border border-transparent`}`}>
+                    <input type="checkbox" checked={builderFields.includes(field)} onChange={() => toggleField(field)} className="accent-slate-600" />
+                    <span className={`text-xs font-bold ${theme.highlight}`}>{field}</span>
+                  </label>
+                ))}
+              </div>
+              <p className={`text-[10px] ${theme.iconColor}`}>{builderFields.length} field(s) selected</p>
+              <div className="flex justify-between">
+                <button onClick={() => setBuilderStep(1)} className={`px-4 py-2 rounded-xl ${theme.secondaryBg} text-xs font-bold ${theme.highlight} ${theme.buttonHover}`}>Back</button>
+                <button onClick={() => setBuilderStep(3)} className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>Next: Apply Filters</button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Filters */}
+          {builderStep === 3 && (
+            <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5 space-y-3`}>
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>Step 3: Apply Filters</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Date Range</label>
+                  <div className="flex gap-2">
+                    <input type="date" defaultValue="2025-06-01" className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`} />
+                    <input type="date" defaultValue="2026-03-01" className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`} />
+                  </div>
+                </div>
+                <div>
+                  <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Class</label>
+                  <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`}>
+                    <option>All Classes</option>
+                    {Array.from({ length: 12 }, (_, i) => <option key={i}>Class {i + 1}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Section</label>
+                  <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`}>
+                    <option>All Sections</option>
+                    <option>A</option><option>B</option><option>C</option><option>D</option>
+                  </select>
+                </div>
+                <div>
+                  <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Status</label>
+                  <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`}>
+                    <option>All</option><option>Active</option><option>Inactive</option><option>Pending</option>
+                  </select>
+                </div>
+              </div>
+              <div className="flex justify-between">
+                <button onClick={() => setBuilderStep(2)} className={`px-4 py-2 rounded-xl ${theme.secondaryBg} text-xs font-bold ${theme.highlight} ${theme.buttonHover}`}>Back</button>
+                <button onClick={() => setBuilderStep(4)} className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>Next: Visualization</button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 4: Visualization */}
+          {builderStep === 4 && (
+            <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5 space-y-3`}>
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>Step 4: Choose Visualization</h3>
+              <div className="grid grid-cols-4 gap-3">
+                {vizOptions.map(v => {
+                  const VizIcon = v === 'Table' ? Table : v === 'Bar Chart' ? BarChart : v === 'Pie Chart' ? PieChart : TrendingUp;
+                  return (
+                    <button
+                      key={v}
+                      onClick={() => setBuilderViz(v)}
+                      className={`p-4 rounded-xl text-center transition-all border ${builderViz === v ? `${theme.primary} text-white border-transparent` : `${theme.border} ${theme.highlight} ${theme.buttonHover}`}`}
+                    >
+                      <VizIcon size={24} className={`mx-auto mb-1 ${builderViz === v ? 'text-white' : theme.iconColor}`} />
+                      <p className="text-xs font-bold">{v}</p>
+                    </button>
+                  );
+                })}
+              </div>
+              {/* Preview area */}
+              <div className={`p-4 rounded-xl ${theme.secondaryBg} space-y-2`}>
+                <p className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Preview — {builderViz} ({builderSource})</p>
+                {builderViz === 'Table' && (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead><tr className={theme.secondaryBg}>{builderFields.map(f => <th key={f} className={`px-2 py-1 text-left text-[10px] ${theme.iconColor}`}>{f}</th>)}</tr></thead>
+                      <tbody>
+                        {[1, 2, 3].map(i => (
+                          <tr key={i} className={`border-t ${theme.border}`}>
+                            {builderFields.map(f => <td key={f} className={`px-2 py-1 ${theme.iconColor}`}>Sample {i}</td>)}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+                {builderViz === 'Bar Chart' && (
+                  <div className="flex items-end gap-3 h-24">
+                    {[65, 82, 45, 90, 72].map((v, i) => (
+                      <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                        <span className={`text-[9px] font-bold ${theme.highlight}`}>{v}</span>
+                        <div className={`w-full rounded-t-lg ${theme.primary}`} style={{ height: `${v}%` }} />
+                        <span className={`text-[8px] ${theme.iconColor}`}>G{i + 1}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {builderViz === 'Pie Chart' && (
+                  <div className="flex items-center gap-4">
+                    <div className="w-20 h-20 rounded-full bg-gradient-conic border-4 border-blue-500 relative">
+                      <div className="absolute inset-2 rounded-full bg-white flex items-center justify-center">
+                        <span className={`text-[10px] font-bold ${theme.highlight}`}>100%</span>
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      {['Segment A (40%)', 'Segment B (35%)', 'Segment C (25%)'].map(s => (
+                        <div key={s} className="flex items-center gap-1.5">
+                          <div className="w-2 h-2 rounded-full bg-blue-500" />
+                          <span className={`text-[10px] ${theme.iconColor}`}>{s}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {builderViz === 'Line Graph' && (
+                  <div className="flex items-end gap-2 h-24">
+                    {[40, 55, 48, 72, 65, 85].map((v, i) => (
+                      <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                        <div className={`w-2 h-2 rounded-full ${theme.primary}`} style={{ marginBottom: `${v - 10}%` }} />
+                        <span className={`text-[8px] ${theme.iconColor}`}>M{i + 1}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="flex justify-between">
+                <button onClick={() => setBuilderStep(3)} className={`px-4 py-2 rounded-xl ${theme.secondaryBg} text-xs font-bold ${theme.highlight} ${theme.buttonHover}`}>Back</button>
+                <button onClick={() => setBuilderStep(5)} className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>Next: Export</button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 5: Export */}
+          {builderStep === 5 && (
+            <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5 space-y-4`}>
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>Step 5: Export Options</h3>
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { format: 'PDF', icon: FileCheck, desc: 'Formatted report with headers' },
+                  { format: 'Excel', icon: FileSpreadsheet, desc: 'Editable spreadsheet (.xlsx)' },
+                  { format: 'CSV', icon: Table, desc: 'Raw data for import/analysis' },
+                ].map(e => (
+                  <button
+                    key={e.format}
+                    onClick={() => window.alert(`Exporting as ${e.format}... (Blueprint demo)`)}
+                    className={`p-4 rounded-xl border ${theme.border} text-center ${theme.buttonHover} transition-all`}
+                  >
+                    <e.icon size={24} className={`${theme.iconColor} mx-auto mb-2`} />
+                    <p className={`text-xs font-bold ${theme.highlight}`}>{e.format}</p>
+                    <p className={`text-[10px] ${theme.iconColor}`}>{e.desc}</p>
+                  </button>
+                ))}
+              </div>
+              <div className={`p-3 rounded-xl ${theme.secondaryBg} flex items-center justify-between`}>
+                <span className={`text-xs ${theme.iconColor}`}>Source: {builderSource} | Fields: {builderFields.length} | Viz: {builderViz}</span>
+                <button onClick={() => window.alert('Report template saved! (Blueprint demo)')} className={`px-3 py-1.5 rounded-lg text-xs font-bold ${theme.primaryText} flex items-center gap-1 ${theme.buttonHover}`}>
+                  <Save size={12} /> Save as Template
+                </button>
+              </div>
+              <div className="flex justify-between">
+                <button onClick={() => setBuilderStep(4)} className={`px-4 py-2 rounded-xl ${theme.secondaryBg} text-xs font-bold ${theme.highlight} ${theme.buttonHover}`}>Back</button>
+                <button onClick={() => window.alert('Generating report... (Blueprint demo)')} className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold flex items-center gap-1`}><Download size={14} /> Generate Report</button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
     </div>
   );

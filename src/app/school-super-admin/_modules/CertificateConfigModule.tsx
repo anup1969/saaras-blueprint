@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Award, Upload, X, Plus } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader } from '../_helpers/components';
+import { MasterPermissionGrid, BulkImportWizard } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
 
 export default function CertificateConfigModule({ theme }: { theme: Theme }) {
@@ -96,6 +97,16 @@ export default function CertificateConfigModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
       </div>
+
+      <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
+        <div className="space-y-4">
+          <MasterPermissionGrid masterName="Certificate Templates" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Bulk Import" subtitle="Import data from Excel templates" theme={theme}>
+        <BulkImportWizard entityName="Certificate Records" templateFields={['Student Name', 'Class', 'Certificate Type', 'Issue Date', 'Serial No']} sampleData={[['Aarav Patel', 'Grade 10', 'Transfer Certificate', '2026-03-15', 'TC-2026-001']]} theme={theme} />
+      </SectionCard>
     </div>
   );
 }

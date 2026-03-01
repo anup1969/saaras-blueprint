@@ -15,7 +15,8 @@ import {
   Search, Plus, Filter, Download, Eye, Edit, Phone, Clock,
   AlertTriangle, CheckCircle, Baby, MapPin, Heart,
   User, Bell, ChevronDown, Check, X, CircleDot,
-  PanelLeftClose, PanelLeftOpen, Headphones
+  PanelLeftClose, PanelLeftOpen, Headphones,
+  Siren, Camera, ShieldAlert, UserCheck, Building2
 } from 'lucide-react';
 
 // ─── MODULE SIDEBAR ────────────────────────────────
@@ -116,6 +117,14 @@ function BusNannyDashboard({ theme, themeIdx, onThemeChange, isPreschool, curren
 
 // ─── DASHBOARD HOME ──────────────────────────────────
 function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick: () => void }) {
+  const [handoverLog, setHandoverLog] = useState([
+    { stop: 'Jodhpur Cross Roads', child: 'Aarav Patel', handedTo: 'Rajesh Patel (Father)', time: '03:40 PM', photo: true, verified: true },
+    { stop: 'Satellite Circle', child: 'Priya Sharma', handedTo: 'Vikram Sharma (Father)', time: '03:45 PM', photo: true, verified: true },
+    { stop: 'Shyamal Cross Roads', child: 'Rohan Desai', handedTo: '', time: '', photo: false, verified: false },
+    { stop: 'Prernatirth Derasar', child: 'Ananya Mehta', handedTo: '', time: '', photo: false, verified: false },
+    { stop: 'Judges Bungalow', child: 'Vivaan Shah', handedTo: '', time: '', photo: false, verified: false },
+  ]);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -123,7 +132,29 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
           <h1 className={`text-2xl font-bold ${theme.highlight}`}>Bus Nanny Dashboard</h1>
           <p className={`text-xs ${theme.iconColor}`}>Trip overview for today &mdash; {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
         </div>
-        <button onClick={onProfileClick} title="My Profile" className={`w-9 h-9 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold hover:opacity-90 transition-opacity`}>SG</button>
+        <div className="flex items-center gap-3">
+          <button onClick={() => window.alert('SOS ALERT TRIGGERED! GPS location shared with driver, school office, and transport head. (Blueprint demo)')}
+            className="px-5 py-3 bg-red-500 text-white rounded-xl text-sm font-black flex items-center gap-2 animate-pulse shadow-lg shadow-red-300 hover:bg-red-600 transition-all">
+            <Siren size={18} /> SOS EMERGENCY
+          </button>
+          <button onClick={onProfileClick} title="My Profile" className={`w-9 h-9 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold hover:opacity-90 transition-opacity`}>SG</button>
+        </div>
+      </div>
+
+      {/* Real-time Communication Quick Buttons */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-3`}>
+        <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-2`}>Quick Contact</p>
+        <div className="flex gap-2">
+          <button onClick={() => window.alert('Calling Driver... (Blueprint demo)')} className="flex-1 py-2.5 rounded-xl bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center gap-1.5">
+            <Phone size={12} /> Call Driver
+          </button>
+          <button onClick={() => window.alert('Calling School Office... (Blueprint demo)')} className="flex-1 py-2.5 rounded-xl bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center gap-1.5">
+            <Building2 size={12} /> School Office
+          </button>
+          <button onClick={() => window.alert('Select parent to call... (Blueprint demo)')} className="flex-1 py-2.5 rounded-xl bg-amber-100 text-amber-700 text-xs font-bold flex items-center justify-center gap-1.5">
+            <User size={12} /> Call Parent
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -207,6 +238,86 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
                   )}
                 </div>
               </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Child Handover Log */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Child Handover Log — Current Trip</h3>
+        <div className="space-y-2">
+          {handoverLog.map((h, i) => (
+            <div key={i} className={`flex items-center gap-3 p-3 rounded-xl ${h.verified ? theme.accentBg : `${theme.cardBg} border ${theme.border}`}`}>
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold ${h.verified ? 'bg-emerald-500' : 'bg-amber-500'}`}>
+                {h.verified ? <CheckCircle size={14} /> : <Clock size={14} />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{h.child}</p>
+                  <span className={`text-[10px] ${theme.iconColor}`}>@ {h.stop}</span>
+                </div>
+                {h.verified ? (
+                  <p className={`text-[10px] ${theme.iconColor}`}>Handed to: <span className="font-bold">{h.handedTo}</span> at {h.time}</p>
+                ) : (
+                  <div className="flex gap-2 mt-1">
+                    <input
+                      placeholder="Authorized person name..."
+                      className={`flex-1 px-2 py-1 rounded-lg border ${theme.border} ${theme.secondaryBg} text-[10px] ${theme.highlight}`}
+                      onChange={(e) => {
+                        const updated = [...handoverLog]; updated[i] = { ...h, handedTo: e.target.value }; setHandoverLog(updated);
+                      }}
+                    />
+                    <button
+                      onClick={() => {
+                        const updated = [...handoverLog];
+                        updated[i] = { ...h, verified: true, time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }) };
+                        setHandoverLog(updated);
+                      }}
+                      className="px-2 py-1 rounded-lg bg-emerald-100 text-emerald-700 text-[10px] font-bold flex items-center gap-0.5"
+                    >
+                      <UserCheck size={10} /> Confirm
+                    </button>
+                  </div>
+                )}
+              </div>
+              {/* Photo Verification */}
+              <button
+                onClick={() => window.alert(`${h.photo ? 'Photo already captured' : 'Camera opened for handover photo'} — ${h.child} at ${h.stop} (Blueprint demo)`)}
+                className={`p-2 rounded-lg ${h.photo ? 'bg-emerald-100 text-emerald-600' : `${theme.secondaryBg} ${theme.iconColor}`}`}
+                title={h.photo ? 'Photo captured' : 'Capture handover photo'}
+              >
+                <Camera size={14} />
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Health Alerts for Assigned Children */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Health Alerts</h3>
+        <div className="space-y-2">
+          {mockStudentsAssigned.filter(s => s.allergies !== 'None' || s.special !== '-').map((s, i) => (
+            <div key={i} className="flex items-center gap-3 p-2.5 rounded-xl bg-red-50 border border-red-100">
+              <div className="w-8 h-8 rounded-lg bg-red-500 flex items-center justify-center text-white">
+                <ShieldAlert size={14} />
+              </div>
+              <div className="flex-1">
+                <p className={`text-xs font-bold text-red-800`}>{s.name} <span className="font-normal text-red-500">({s.class})</span></p>
+                <div className="flex flex-wrap gap-1.5 mt-0.5">
+                  {s.allergies !== 'None' && (
+                    <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold bg-red-200 text-red-700">Allergy: {s.allergies}</span>
+                  )}
+                  {s.special !== '-' && (
+                    <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold bg-blue-200 text-blue-700">{s.special}</span>
+                  )}
+                </div>
+              </div>
+              <button onClick={() => window.alert(`Calling ${s.parent} at ${s.phone} for ${s.name}... (Blueprint demo)`)}
+                className="px-2 py-1 rounded-lg bg-red-100 text-red-600 text-[10px] font-bold flex items-center gap-0.5">
+                <Phone size={10} /> Parent
+              </button>
             </div>
           ))}
         </div>

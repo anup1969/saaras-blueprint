@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { X, Plus } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField } from '../_helpers/components';
+import { MasterPermissionGrid, BulkImportWizard } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
 
 export default function InventoryConfigModule({ theme }: { theme: Theme }) {
@@ -89,6 +90,17 @@ export default function InventoryConfigModule({ theme }: { theme: Theme }) {
             <InputField value={autoApproveThreshold} onChange={setAutoApproveThreshold} theme={theme} type="number" placeholder="e.g. 5000" />
           </div>
         </div>
+      </SectionCard>
+
+      <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
+        <div className="space-y-4">
+          <MasterPermissionGrid masterName="Asset Categories" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+          <MasterPermissionGrid masterName="Vendor List" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Bulk Import" subtitle="Import data from Excel templates" theme={theme}>
+        <BulkImportWizard entityName="Assets" templateFields={['Asset Name', 'Category', 'Serial No', 'Location', 'Purchase Date', 'Value']} sampleData={[['Projector BenQ MX535', 'Electronics', 'PRJ-2026-001', 'Room 204', '2026-01-15', '45000']]} theme={theme} />
       </SectionCard>
     </div>
   );

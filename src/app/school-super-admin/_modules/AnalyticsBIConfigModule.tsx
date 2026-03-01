@@ -8,6 +8,33 @@ export default function AnalyticsBIConfigModule({ theme }: { theme: Theme }) {
   const [comparativeAnalysis, setComparativeAnalysis] = useState(true);
   const [autoMonthlyReports, setAutoMonthlyReports] = useState(true);
   const [dataRetention, setDataRetention] = useState('5 years');
+
+  // Subject Performance Heatmap
+  const [heatmapEnabled, setHeatmapEnabled] = useState(false);
+  const [heatmapColorScheme, setHeatmapColorScheme] = useState('Green-Yellow-Red');
+  const [heatmapCompPeriod, setHeatmapCompPeriod] = useState('Term-wise');
+  // Teacher Effectiveness Metrics
+  const [teacherMetricsEnabled, setTeacherMetricsEnabled] = useState(false);
+  const [teacherMetrics, setTeacherMetrics] = useState<Record<string, boolean>>({ 'Attendance': true, 'Results': true, 'Feedback': true });
+  // Cohort Analysis
+  const [cohortEnabled, setCohortEnabled] = useState(false);
+  const [cohortDefinition, setCohortDefinition] = useState('Admission Year');
+  // Revenue Forecasting
+  const [revForecastEnabled, setRevForecastEnabled] = useState(false);
+  const [forecastPeriod, setForecastPeriod] = useState('Quarterly');
+  // Cost Per Student Analysis
+  const [costPerStudentEnabled, setCostPerStudentEnabled] = useState(false);
+  const [costCategories, setCostCategories] = useState<Record<string, boolean>>({ 'Salaries': true, 'Infrastructure': true, 'Transport': false, 'Technology': true, 'Canteen': false });
+  // Resource Utilization
+  const [resourceUtilEnabled, setResourceUtilEnabled] = useState(false);
+  const [resourceTypes, setResourceTypes] = useState<Record<string, boolean>>({ 'Rooms': true, 'Labs': true, 'Buses': false, 'Library': true });
+  // Custom Dashboard Builder
+  const [customDashEnabled, setCustomDashEnabled] = useState(false);
+  const [maxWidgets, setMaxWidgets] = useState('8');
+  const [widgetTypes, setWidgetTypes] = useState<Record<string, boolean>>({ 'Chart': true, 'Table': true, 'KPI Card': true, 'Calendar': false, 'List': true });
+  // AI Summary Generation
+  const [aiSummaryEnabled, setAiSummaryEnabled] = useState(false);
+  const [aiSummaryFrequency, setAiSummaryFrequency] = useState('Weekly');
   const [widgets, setWidgets] = useState<Record<string, boolean>>({
     'Attendance Trends': true, 'Fee Collection': true, 'Exam Performance': true, 'Staff Metrics': false,
   });
@@ -141,6 +168,190 @@ export default function AnalyticsBIConfigModule({ theme }: { theme: Theme }) {
             </div>
           ))}
           <p className={`text-[10px] ${theme.iconColor} mt-2`}>KPIs falling below red threshold will trigger automatic alerts to the Principal and School Admin dashboards.</p>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Subject Performance Heatmap" subtitle="Visual heatmap of subject-wise performance across classes" theme={theme}>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex-1 mr-3">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Enable Heatmap</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Show color-coded subject performance grid on analytics dashboard</p>
+            </div>
+            <SSAToggle on={heatmapEnabled} onChange={() => setHeatmapEnabled(!heatmapEnabled)} theme={theme} />
+          </div>
+          {heatmapEnabled && (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Color Scheme</p>
+                <SelectField options={['Green-Yellow-Red', 'Blue-White-Red', 'Cool-Warm', 'Monochrome']} value={heatmapColorScheme} onChange={setHeatmapColorScheme} theme={theme} />
+              </div>
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Comparison Period</p>
+                <SelectField options={['Monthly', 'Term-wise', 'Yearly']} value={heatmapCompPeriod} onChange={setHeatmapCompPeriod} theme={theme} />
+              </div>
+            </div>
+          )}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Teacher Effectiveness Metrics" subtitle="Track and visualize teacher performance indicators" theme={theme}>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex-1 mr-3">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Enable Teacher Metrics</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Aggregate teacher performance data across multiple dimensions</p>
+            </div>
+            <SSAToggle on={teacherMetricsEnabled} onChange={() => setTeacherMetricsEnabled(!teacherMetricsEnabled)} theme={theme} />
+          </div>
+          {teacherMetricsEnabled && (
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Metrics to Track</p>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(teacherMetrics).map(([metric, on]) => (
+                  <label key={metric} className={`flex items-center gap-2 p-2 rounded-lg ${theme.secondaryBg} cursor-pointer`}>
+                    <input type="checkbox" checked={on} onChange={() => setTeacherMetrics(p => ({ ...p, [metric]: !p[metric] }))} className="accent-emerald-500 w-3.5 h-3.5" />
+                    <span className={`text-[10px] font-medium ${theme.highlight}`}>{metric}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Cohort Analysis" subtitle="Analyze student groups over time based on shared characteristics" theme={theme}>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex-1 mr-3">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Enable Cohort Analysis</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Group students by shared traits and track outcomes over time</p>
+            </div>
+            <SSAToggle on={cohortEnabled} onChange={() => setCohortEnabled(!cohortEnabled)} theme={theme} />
+          </div>
+          {cohortEnabled && (
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Cohort Definition</p>
+              <SelectField options={['Admission Year', 'Class', 'Section', 'Gender', 'Category']} value={cohortDefinition} onChange={setCohortDefinition} theme={theme} />
+            </div>
+          )}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Revenue Forecasting" subtitle="Predict future revenue based on historical fee collection data" theme={theme}>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex-1 mr-3">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Enable Revenue Forecasting</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>AI-powered revenue prediction based on enrollment and fee patterns</p>
+            </div>
+            <SSAToggle on={revForecastEnabled} onChange={() => setRevForecastEnabled(!revForecastEnabled)} theme={theme} />
+          </div>
+          {revForecastEnabled && (
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Forecast Period</p>
+              <SelectField options={['Monthly', 'Quarterly', 'Yearly']} value={forecastPeriod} onChange={setForecastPeriod} theme={theme} />
+            </div>
+          )}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Cost Per Student Analysis" subtitle="Calculate and track per-student operational costs" theme={theme}>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex-1 mr-3">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Enable Cost Analysis</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Break down total school expenses per student across categories</p>
+            </div>
+            <SSAToggle on={costPerStudentEnabled} onChange={() => setCostPerStudentEnabled(!costPerStudentEnabled)} theme={theme} />
+          </div>
+          {costPerStudentEnabled && (
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Cost Categories</p>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(costCategories).map(([cat, on]) => (
+                  <label key={cat} className={`flex items-center gap-2 p-2 rounded-lg ${theme.secondaryBg} cursor-pointer`}>
+                    <input type="checkbox" checked={on} onChange={() => setCostCategories(p => ({ ...p, [cat]: !p[cat] }))} className="accent-emerald-500 w-3.5 h-3.5" />
+                    <span className={`text-[10px] font-medium ${theme.highlight}`}>{cat}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Resource Utilization" subtitle="Track how efficiently school resources are being used" theme={theme}>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex-1 mr-3">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Enable Resource Tracking</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Monitor utilization rates of rooms, labs, buses, and other facilities</p>
+            </div>
+            <SSAToggle on={resourceUtilEnabled} onChange={() => setResourceUtilEnabled(!resourceUtilEnabled)} theme={theme} />
+          </div>
+          {resourceUtilEnabled && (
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Resources to Track</p>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(resourceTypes).map(([res, on]) => (
+                  <label key={res} className={`flex items-center gap-2 p-2 rounded-lg ${theme.secondaryBg} cursor-pointer`}>
+                    <input type="checkbox" checked={on} onChange={() => setResourceTypes(p => ({ ...p, [res]: !p[res] }))} className="accent-emerald-500 w-3.5 h-3.5" />
+                    <span className={`text-[10px] font-medium ${theme.highlight}`}>{res}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Custom Dashboard Builder" subtitle="Allow users to create personalized analytics dashboards" theme={theme}>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex-1 mr-3">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Enable Custom Dashboards</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Users can build their own dashboards by dragging widgets</p>
+            </div>
+            <SSAToggle on={customDashEnabled} onChange={() => setCustomDashEnabled(!customDashEnabled)} theme={theme} />
+          </div>
+          {customDashEnabled && (
+            <>
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Max Widgets per Dashboard</p>
+                <InputField value={maxWidgets} onChange={setMaxWidgets} theme={theme} type="number" />
+              </div>
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Widget Types</p>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(widgetTypes).map(([wt, on]) => (
+                    <label key={wt} className={`flex items-center gap-2 p-2 rounded-lg ${theme.secondaryBg} cursor-pointer`}>
+                      <input type="checkbox" checked={on} onChange={() => setWidgetTypes(p => ({ ...p, [wt]: !p[wt] }))} className="accent-emerald-500 w-3.5 h-3.5" />
+                      <span className={`text-[10px] font-medium ${theme.highlight}`}>{wt}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="AI Summary Generation" subtitle="Auto-generate natural language summaries of analytics data" theme={theme}>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex-1 mr-3">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Enable AI Summaries</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>AI generates plain-language summaries of key metrics and trends</p>
+            </div>
+            <SSAToggle on={aiSummaryEnabled} onChange={() => setAiSummaryEnabled(!aiSummaryEnabled)} theme={theme} />
+          </div>
+          {aiSummaryEnabled && (
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Summary Frequency</p>
+              <SelectField options={['Daily', 'Weekly', 'Monthly']} value={aiSummaryFrequency} onChange={setAiSummaryFrequency} theme={theme} />
+            </div>
+          )}
         </div>
       </SectionCard>
 

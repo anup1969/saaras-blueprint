@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField } from '../_helpers/components';
+import { MasterPermissionGrid, BulkImportWizard } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
 
 export default function LMSConfigModule({ theme }: { theme: Theme }) {
@@ -217,6 +218,16 @@ export default function LMSConfigModule({ theme }: { theme: Theme }) {
             <SSAToggle on={adaptiveQuiz} onChange={() => setAdaptiveQuiz(!adaptiveQuiz)} theme={theme} />
           </div>
         </div>
+      </SectionCard>
+
+      <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
+        <div className="space-y-4">
+          <MasterPermissionGrid masterName="Course Categories" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Bulk Import" subtitle="Import data from Excel templates" theme={theme}>
+        <BulkImportWizard entityName="Courses" templateFields={['Course Name', 'Category', 'Instructor', 'Duration', 'Target Class']} sampleData={[['Advanced Mathematics', 'STEM', 'Mr. Patel', '12 weeks', 'Grade 10']]} theme={theme} />
       </SectionCard>
     </div>
   );

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Plus, X, CheckCircle, AlertTriangle } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
+import { MasterPermissionGrid, BulkImportWizard } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
 
 export default function TransportConfigModule({ theme }: { theme: Theme }) {
@@ -474,6 +475,17 @@ export default function TransportConfigModule({ theme }: { theme: Theme }) {
             </div>
           )}
         </div>
+      </SectionCard>
+
+      <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
+        <div className="space-y-4">
+          <MasterPermissionGrid masterName="Routes" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+          <MasterPermissionGrid masterName="Vehicles" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Bulk Import" subtitle="Import data from Excel templates" theme={theme}>
+        <BulkImportWizard entityName="Routes" templateFields={['Route Name', 'Start Point', 'End Point', 'Vehicle No', 'Driver', 'Stops']} sampleData={[['Route A - Satellite', 'Satellite Circle', 'Saaras School', 'GJ-01-AB-1234', 'Ramesh Kumar', '8']]} theme={theme} />
       </SectionCard>
     </div>
   );

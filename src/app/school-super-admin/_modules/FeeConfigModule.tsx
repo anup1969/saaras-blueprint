@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Lock, Plus, X, Info, Eye } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
+import { MasterPermissionGrid, BulkImportWizard } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
 
 function InfoIcon({ tip }: { tip: string }) {
@@ -750,6 +751,17 @@ export default function FeeConfigModule({ theme }: { theme: Theme }) {
             <SSAToggle on={feeEstOptional} onChange={() => setFeeEstOptional(!feeEstOptional)} theme={theme} />
           </div>
         </div>
+      </SectionCard>
+
+      <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
+        <div className="space-y-4">
+          <MasterPermissionGrid masterName="Fee Heads" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+          <MasterPermissionGrid masterName="Concession Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Bulk Import" subtitle="Import data from Excel templates" theme={theme}>
+        <BulkImportWizard entityName="Fee Structure" templateFields={['Fee Head', 'Class', 'Amount', 'Due Date', 'Concession Type']} sampleData={[['Tuition Fee', 'Grade 5', '3600', '2026-04-10', 'None']]} theme={theme} />
       </SectionCard>
 
     </div>

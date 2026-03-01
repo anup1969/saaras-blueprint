@@ -6,7 +6,8 @@ import { dashboardStats } from '@/lib/mock-data';
 import {
   Home, Users, UserPlus, Briefcase, Calendar, Shield, Bus,
   Banknote, CheckCircle, BarChart3, Settings, ClipboardCheck, Award, Megaphone,
-  PanelLeftClose, PanelLeftOpen, Headphones
+  PanelLeftClose, PanelLeftOpen, Headphones,
+  Heart, AlertTriangle, CreditCard, FolderOpen
 } from 'lucide-react';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import SupportModule from '@/components/SupportModule';
@@ -28,6 +29,10 @@ import AttendanceModule from '../_modules/AttendanceModule';
 import ReportsModule from '../_modules/ReportsModule';
 import HRManagementModule from '../_modules/HRManagementModule';
 import ConfigModule from '../_modules/ConfigModule';
+import HealthInfirmaryModule from '../_modules/HealthInfirmaryModule';
+import IncidentReportModule from '../_modules/IncidentReportModule';
+import IDCardModule from '../_modules/IDCardModule';
+import DocumentMgmtModule from '../_modules/DocumentMgmtModule';
 
 // ─── MODULE SIDEBAR ────────────────────────────────
 const modules = [
@@ -46,6 +51,10 @@ const modules = [
   { id: 'reports', label: 'Reports', icon: BarChart3 },
   { id: 'hr', label: 'HR Management', icon: Briefcase },
   { id: 'config', label: 'Configuration', icon: Settings },
+  { id: 'health', label: 'Health & Infirmary', icon: Heart },
+  { id: 'incidents', label: 'Incidents', icon: AlertTriangle },
+  { id: 'id-cards', label: 'ID Cards', icon: CreditCard },
+  { id: 'documents', label: 'Documents', icon: FolderOpen },
   { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
   { id: 'support', label: 'Support', icon: Headphones },
 ];
@@ -97,6 +106,10 @@ export default function SchoolAdminDashboard({ theme, themeIdx, onThemeChange, c
         {activeModule === 'reports' && <ReportsModule theme={theme} />}
         {activeModule === 'hr' && <HRManagementModule theme={theme} />}
         {activeModule === 'config' && <ConfigModule theme={theme} />}
+        {activeModule === 'health' && <HealthInfirmaryModule theme={theme} />}
+        {activeModule === 'incidents' && <IncidentReportModule theme={theme} />}
+        {activeModule === 'id-cards' && <IDCardModule theme={theme} />}
+        {activeModule === 'documents' && <DocumentMgmtModule theme={theme} />}
         {activeModule === 'your-inputs' && <YourInputsModule theme={theme} userName={currentUser?.name || ''} />}
         {activeModule === 'support' && <SupportModule theme={theme} role="school-admin" />}
         {activeModule === 'profile' && <StakeholderProfile role="school-admin" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}

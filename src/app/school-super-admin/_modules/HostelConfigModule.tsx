@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { X, Plus } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField } from '../_helpers/components';
+import { MasterPermissionGrid, BulkImportWizard } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
 
 export default function HostelConfigModule({ theme }: { theme: Theme }) {
@@ -58,6 +59,17 @@ export default function HostelConfigModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
       </div>
+
+      <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
+        <div className="space-y-4">
+          <MasterPermissionGrid masterName="Hostel Blocks" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+          <MasterPermissionGrid masterName="Room Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Bulk Import" subtitle="Import data from Excel templates" theme={theme}>
+        <BulkImportWizard entityName="Hostel Students" templateFields={['Student Name', 'Class', 'Block', 'Room No', 'Bed No', 'Guardian Phone']} sampleData={[['Arjun Mehta', 'Grade 9', 'Block A', '102', 'B1', '9876543210']]} theme={theme} />
+      </SectionCard>
     </div>
   );
 }

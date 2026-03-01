@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { type Theme } from '@/lib/themes';
 import { StatusBadge, TabBar, SearchBar, DataTable, MobileFrame, MobilePreviewToggle } from '@/components/shared';
 import { mockStudents } from '@/lib/mock-data';
-import { Plus, GraduationCap, Search, Filter, Download, Eye, Edit, AlertTriangle, XCircle, ArrowRightLeft, X, UserCheck, Merge, RefreshCw } from 'lucide-react';
+import { Plus, GraduationCap, Search, Filter, Download, Eye, Edit, AlertTriangle, XCircle, ArrowRightLeft, X, UserCheck, Merge, RefreshCw, Heart, TrendingUp, TrendingDown, Minus, Activity } from 'lucide-react';
 import StudentAddForm from './StudentAddForm';
 import StudentProfileView from './StudentProfileView';
 import PromotionWizard from './PromotionWizard';
@@ -35,6 +35,21 @@ export default function StudentsModule({ theme }: { theme: Theme }) {
   const [mergeSelections, setMergeSelections] = useState<Record<string, 'A' | 'B'>>({
     name: 'A', class: 'A', phone: 'A', parent: 'A', dob: 'A', address: 'A',
   });
+
+  // Student Wellbeing Index data
+  const wellbeingData = [
+    { name: 'Aarav Patel', class: '10-A', academic: 92, attendance: 96, behavioral: 88, health: 'Good', index: 9.2, trend: 'up' },
+    { name: 'Saanvi Sharma', class: '8-B', academic: 85, attendance: 89, behavioral: 90, health: 'Good', index: 8.6, trend: 'up' },
+    { name: 'Vivaan Mehta', class: '6-A', academic: 78, attendance: 82, behavioral: 75, health: 'Fair', index: 7.1, trend: 'stable' },
+    { name: 'Diya Reddy', class: '9-C', academic: 72, attendance: 68, behavioral: 65, health: 'Good', index: 5.8, trend: 'down' },
+    { name: 'Kabir Joshi', class: '5-B', academic: 45, attendance: 55, behavioral: 50, health: 'Fair', index: 3.2, trend: 'down' },
+    { name: 'Ananya Gupta', class: '7-A', academic: 88, attendance: 94, behavioral: 85, health: 'Good', index: 8.4, trend: 'up' },
+    { name: 'Rohan Singh', class: '4-C', academic: 62, attendance: 70, behavioral: 58, health: 'Concern', index: 4.5, trend: 'down' },
+    { name: 'Priya Nair', class: '3-A', academic: 90, attendance: 92, behavioral: 95, health: 'Good', index: 9.0, trend: 'stable' },
+  ];
+
+  const atRiskStudents = wellbeingData.filter(s => s.index < 5);
+  const referralsThisMonth = 3;
 
   // Archived / Alumni mock data
   const archivedStudents = [
@@ -95,7 +110,7 @@ export default function StudentsModule({ theme }: { theme: Theme }) {
         </div>
       )}
 
-      <TabBar tabs={['All Students', 'Class-wise', 'Fee Status', 'TC Requests', 'Archived / Alumni']} active={tab} onChange={setTab} theme={theme} />
+      <TabBar tabs={['All Students', 'Class-wise', 'Fee Status', 'TC Requests', 'Archived / Alumni', 'Wellbeing']} active={tab} onChange={setTab} theme={theme} />
 
       {/* ─── MOBILE APP PREVIEW ─── */}
       <MobilePreviewToggle theme={theme} mobileContent={
@@ -270,6 +285,118 @@ export default function StudentsModule({ theme }: { theme: Theme }) {
             ])}
             theme={theme}
           />
+        </div>
+      )}
+
+      {/* ── Student Wellbeing Index ── */}
+      {tab === 'Wellbeing' && (
+        <div className="space-y-4">
+          {/* Summary stats */}
+          <div className="grid grid-cols-4 gap-4">
+            <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 text-center`}>
+              <p className={`text-2xl font-bold ${theme.highlight}`}>{wellbeingData.length}</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Total Students Tracked</p>
+            </div>
+            <div className={`${theme.cardBg} rounded-2xl border border-red-200 p-4 text-center`}>
+              <p className="text-2xl font-bold text-red-600">{atRiskStudents.length}</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>At-Risk Students</p>
+            </div>
+            <div className={`${theme.cardBg} rounded-2xl border border-amber-200 p-4 text-center`}>
+              <p className="text-2xl font-bold text-amber-600">{referralsThisMonth}</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Referrals This Month</p>
+            </div>
+            <div className={`${theme.cardBg} rounded-2xl border border-emerald-200 p-4 text-center`}>
+              <p className="text-2xl font-bold text-emerald-600">{wellbeingData.filter(s => s.index >= 8).length}</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Thriving (8+)</p>
+            </div>
+          </div>
+
+          {/* At-risk alert */}
+          {atRiskStudents.length > 0 && (
+            <div className="p-3 rounded-2xl border border-red-300 bg-red-50">
+              <div className="flex items-center gap-2 mb-2">
+                <AlertTriangle size={14} className="text-red-600" />
+                <p className="text-xs font-bold text-red-700">At-Risk Students (Wellbeing Index below 5)</p>
+              </div>
+              <div className="space-y-1.5">
+                {atRiskStudents.map(s => (
+                  <div key={s.name} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.cardBg}`}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center text-red-600 text-[10px] font-bold">{s.name.split(' ').map(n => n[0]).join('')}</div>
+                      <div>
+                        <p className={`text-xs font-bold ${theme.highlight}`}>{s.name} ({s.class})</p>
+                        <p className={`text-[10px] ${theme.iconColor}`}>Academic: {s.academic}% | Attendance: {s.attendance}% | Behavioral: {s.behavioral}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-red-600">{s.index}</span>
+                      <TrendingDown size={14} className="text-red-500" />
+                      <button onClick={() => window.alert(`Counselor referral sent for ${s.name}. (Blueprint demo)`)} className="px-2.5 py-1 rounded-lg bg-blue-100 text-blue-700 text-[10px] font-bold">Refer to Counselor</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Wellbeing cards */}
+          <div className="space-y-2">
+            {wellbeingData.map(s => {
+              const indexColor = s.index >= 8 ? 'text-emerald-600' : s.index >= 5 ? 'text-amber-600' : 'text-red-600';
+              const indexBg = s.index >= 8 ? 'bg-emerald-100' : s.index >= 5 ? 'bg-amber-100' : 'bg-red-100';
+              const TrendIcon = s.trend === 'up' ? TrendingUp : s.trend === 'down' ? TrendingDown : Minus;
+              const trendColor = s.trend === 'up' ? 'text-emerald-500' : s.trend === 'down' ? 'text-red-500' : 'text-slate-400';
+
+              return (
+                <div key={s.name} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+                  <div className="flex items-center gap-4">
+                    {/* Student info */}
+                    <div className="flex items-center gap-3 w-48">
+                      <div className={`w-10 h-10 rounded-xl ${indexBg} flex items-center justify-center ${indexColor} text-sm font-bold`}>{s.name.split(' ').map(n => n[0]).join('')}</div>
+                      <div>
+                        <p className={`text-xs font-bold ${theme.highlight}`}>{s.name}</p>
+                        <p className={`text-[10px] ${theme.iconColor}`}>{s.class}</p>
+                      </div>
+                    </div>
+
+                    {/* Score bars */}
+                    <div className="flex-1 grid grid-cols-4 gap-3">
+                      {[
+                        { label: 'Academic', value: s.academic, color: 'bg-blue-500' },
+                        { label: 'Attendance', value: s.attendance, color: 'bg-emerald-500' },
+                        { label: 'Behavioral', value: s.behavioral, color: 'bg-purple-500' },
+                        { label: 'Health', value: s.health === 'Good' ? 90 : s.health === 'Fair' ? 60 : 30, color: s.health === 'Good' ? 'bg-emerald-500' : s.health === 'Fair' ? 'bg-amber-500' : 'bg-red-500' },
+                      ].map(metric => (
+                        <div key={metric.label}>
+                          <div className="flex justify-between mb-0.5">
+                            <span className={`text-[9px] ${theme.iconColor}`}>{metric.label}</span>
+                            <span className={`text-[9px] font-bold ${theme.highlight}`}>{metric.label === 'Health' ? s.health : `${metric.value}%`}</span>
+                          </div>
+                          <div className={`w-full h-1.5 rounded-full ${theme.secondaryBg} overflow-hidden`}>
+                            <div className={`h-full rounded-full ${metric.color}`} style={{ width: `${metric.value}%` }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Overall index */}
+                    <div className="flex items-center gap-2 w-28 justify-end">
+                      <div className={`px-3 py-1.5 rounded-xl ${indexBg} text-center`}>
+                        <p className={`text-lg font-bold ${indexColor}`}>{s.index}</p>
+                        <p className={`text-[8px] ${indexColor}`}>/ 10</p>
+                      </div>
+                      <TrendIcon size={16} className={trendColor} />
+                    </div>
+
+                    {/* Actions */}
+                    <button onClick={() => window.alert(`Counselor referral sent for ${s.name}. (Blueprint demo)`)} className={`p-2 rounded-lg ${theme.secondaryBg} ${theme.buttonHover}`} title="Refer to Counselor">
+                      <Heart size={14} className={theme.iconColor} />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 

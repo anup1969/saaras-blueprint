@@ -1,13 +1,14 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { type Theme } from '@/lib/themes';
-import { StatCard, StatusBadge, MobileFrame, MobilePreviewToggle } from '@/components/shared';
+import { StatCard, StatusBadge, MobileFrame, MobilePreviewToggle, SearchBar } from '@/components/shared';
 import {
   Calendar, Bus, Download, BookOpen, ArrowRight,
   MessageSquare, IndianRupee, CreditCard,
   ClipboardCheck, BookMarked, Camera, FileText, Info,
   Mail, AlertTriangle, Bell, User,
+  Send, Users, Bot, Phone, Sparkles, Search, Shield,
 } from 'lucide-react';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import type { ChildProfile } from '../_components/types';
@@ -395,8 +396,199 @@ export default function DashboardHome({ theme, child, onProfileClick }: { theme:
         </div>
       </div>
 
+      {/* ── AI School Assistant ── */}
+      <AISchoolAssistant theme={theme} child={child} />
+
+      {/* ── Parent Community Directory ── */}
+      <ParentDirectory theme={theme} child={child} />
+
       {/* Task Tracker */}
       <TaskTrackerPanel theme={theme} role="parent" />
+    </div>
+  );
+}
+
+// ─── AI School Assistant Component ──────────────────
+function AISchoolAssistant({ theme, child }: { theme: Theme; child: ChildProfile }) {
+  const [chatInput, setChatInput] = useState('');
+  const [messages, setMessages] = useState([
+    { role: 'assistant' as const, text: `Hello! I'm your AI School Assistant. Ask me anything about ${child.name}'s school life. How can I help you today?` },
+    { role: 'user' as const, text: 'What\'s today\'s homework?' },
+    { role: 'assistant' as const, text: `${child.name} has 2 pending homework items:\n1. Mathematics — Ch-12 Surface Areas (due Feb 13)\n2. Science — Experiment report on Magnetic Effects (due Feb 12)\nWould you like me to show more details?` },
+  ]);
+
+  const quickQuestions = [
+    "What's today's homework?",
+    'Fee due date?',
+    'Next PTM date?',
+    'Bus arrival time?',
+  ];
+
+  const handleSend = () => {
+    if (!chatInput.trim()) return;
+    setMessages(prev => [
+      ...prev,
+      { role: 'user', text: chatInput },
+      { role: 'assistant', text: 'Let me look that up for you... (AI response would appear here in the live system)' },
+    ]);
+    setChatInput('');
+  };
+
+  return (
+    <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white">
+            <Bot size={14} />
+          </div>
+          <div>
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>AI School Assistant</h3>
+            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center gap-0.5 w-fit">
+              <Sparkles size={8} /> Powered by AI
+            </span>
+          </div>
+        </div>
+        <button onClick={() => alert('Connecting to school office... (Blueprint demo)')} className={`text-[10px] px-3 py-1.5 rounded-lg ${theme.secondaryBg} ${theme.iconColor} font-bold flex items-center gap-1`}>
+          <Phone size={10} /> Connect with School Office
+        </button>
+      </div>
+
+      {/* Quick Questions */}
+      <div className="flex gap-1.5 mb-3 flex-wrap">
+        {quickQuestions.map((q, i) => (
+          <button
+            key={i}
+            onClick={() => {
+              setMessages(prev => [...prev, { role: 'user', text: q }]);
+              setTimeout(() => {
+                setMessages(prev => [...prev, { role: 'assistant', text: 'Looking that up for you... (AI response in live system)' }]);
+              }, 500);
+            }}
+            className={`text-[10px] px-2.5 py-1.5 rounded-lg ${theme.secondaryBg} ${theme.iconColor} font-bold ${theme.buttonHover} transition-all`}
+          >
+            {q}
+          </button>
+        ))}
+      </div>
+
+      {/* Chat Messages */}
+      <div className={`${theme.secondaryBg} rounded-xl p-3 space-y-2.5 max-h-52 overflow-y-auto mb-3`}>
+        {messages.map((msg, i) => (
+          <div key={i} className={`flex gap-2 ${msg.role === 'user' ? 'justify-end' : ''}`}>
+            {msg.role === 'assistant' && (
+              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white shrink-0">
+                <Bot size={10} />
+              </div>
+            )}
+            <div className={`max-w-[75%] px-3 py-2 rounded-xl text-[10px] leading-relaxed ${
+              msg.role === 'user' ? `${theme.primary} text-white` : `${theme.cardBg} border ${theme.border} ${theme.highlight}`
+            }`}>
+              {msg.text.split('\n').map((line, li) => <p key={li}>{line}</p>)}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Input */}
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={chatInput}
+          onChange={e => setChatInput(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && handleSend()}
+          placeholder="Ask about homework, fees, attendance, events..."
+          className={`flex-1 text-xs p-2.5 rounded-xl border ${theme.border} ${theme.cardBg} ${theme.highlight}`}
+        />
+        <button onClick={handleSend} className={`px-3 py-2 rounded-xl ${theme.primary} text-white`}>
+          <Send size={14} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Parent Community Directory Component ───────────
+function ParentDirectory({ theme, child }: { theme: Theme; child: ChildProfile }) {
+  const [optedIn, setOptedIn] = useState(true);
+  const [searchClass, setSearchClass] = useState(`${child.class}-${child.section}`);
+
+  const mockParents = [
+    { parentName: 'Mrs. Priya Nair', childName: 'Aditya Nair', class: `${child.class}-${child.section}`, contact: '+91 98765 XXXXX', optedIn: true, isClassRep: true },
+    { parentName: 'Mr. Suresh Kumar', childName: 'Kavya Kumar', class: `${child.class}-${child.section}`, contact: '+91 87654 XXXXX', optedIn: true, isClassRep: false },
+    { parentName: 'Mrs. Deepa Sharma', childName: 'Arjun Sharma', class: `${child.class}-${child.section}`, contact: '+91 76543 XXXXX', optedIn: true, isClassRep: false },
+    { parentName: 'Mr. Rajesh Patel', childName: 'Ishaan Patel', class: `${child.class}-${child.section}`, contact: '+91 65432 XXXXX', optedIn: true, isClassRep: false },
+    { parentName: 'Mrs. Anita Desai', childName: 'Meera Desai', class: `${child.class}-${child.section}`, contact: 'Hidden', optedIn: false, isClassRep: false },
+    { parentName: 'Mr. Vikram Singh', childName: 'Aarav Singh', class: `${child.class}-${child.section}`, contact: '+91 54321 XXXXX', optedIn: true, isClassRep: false },
+  ];
+
+  return (
+    <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <Users size={14} className={theme.iconColor} />
+          <h3 className={`text-sm font-bold ${theme.highlight}`}>Parent Community Directory</h3>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <span className={`text-[10px] ${theme.iconColor}`}>Show my contact:</span>
+            <button
+              onClick={() => setOptedIn(!optedIn)}
+              className={`w-10 h-5 rounded-full transition-all ${optedIn ? 'bg-emerald-500' : 'bg-gray-300'} relative`}
+            >
+              <div className={`w-4 h-4 rounded-full bg-white absolute top-0.5 transition-all ${optedIn ? 'left-5' : 'left-0.5'}`} />
+            </button>
+          </div>
+          <select value={searchClass} onChange={e => setSearchClass(e.target.value)} className={`text-xs p-1.5 rounded-lg border ${theme.border} ${theme.cardBg} ${theme.highlight}`}>
+            <option>{child.class}-{child.section}</option>
+            <option>All Classes</option>
+          </select>
+        </div>
+      </div>
+
+      <div className={`overflow-hidden rounded-xl border ${theme.border}`}>
+        <table className="w-full text-xs">
+          <thead>
+            <tr className={theme.secondaryBg}>
+              <th className={`p-2.5 text-left font-bold ${theme.iconColor}`}>Parent Name</th>
+              <th className={`p-2.5 text-left font-bold ${theme.iconColor}`}>Child</th>
+              <th className={`p-2.5 text-left font-bold ${theme.iconColor}`}>Class</th>
+              <th className={`p-2.5 text-left font-bold ${theme.iconColor}`}>Contact</th>
+              <th className={`p-2.5 text-center font-bold ${theme.iconColor}`}>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {mockParents.map((p, i) => (
+              <tr key={i} className={`border-t ${theme.border}`}>
+                <td className={`p-2.5 ${theme.highlight}`}>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-bold">{p.parentName}</span>
+                    {p.isClassRep && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 font-bold flex items-center gap-0.5">
+                        <Shield size={8} /> Class Rep
+                      </span>
+                    )}
+                  </div>
+                </td>
+                <td className={`p-2.5 ${theme.iconColor}`}>{p.childName}</td>
+                <td className={`p-2.5 ${theme.iconColor}`}>{p.class}</td>
+                <td className={`p-2.5 ${p.optedIn ? theme.iconColor : 'text-gray-400 italic'}`}>
+                  {p.optedIn ? p.contact : 'Not shared'}
+                </td>
+                <td className="p-2.5 text-center">
+                  {p.optedIn ? (
+                    <button onClick={() => alert(`Opening chat with ${p.parentName}... (Blueprint demo)`)} className={`text-[10px] px-2 py-1 rounded-lg ${theme.primary} text-white font-bold flex items-center gap-1 mx-auto`}>
+                      <MessageSquare size={9} /> Message
+                    </button>
+                  ) : (
+                    <span className={`text-[10px] ${theme.iconColor}`}>—</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className={`text-[10px] ${theme.iconColor} mt-2`}>Only parents who opt-in are visible. Contact info is masked for privacy.</p>
     </div>
   );
 }

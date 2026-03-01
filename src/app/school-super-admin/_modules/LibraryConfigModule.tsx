@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { X, Plus } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField } from '../_helpers/components';
+import { MasterPermissionGrid, BulkImportWizard } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
 
 export default function LibraryConfigModule({ theme }: { theme: Theme }) {
@@ -68,6 +69,16 @@ export default function LibraryConfigModule({ theme }: { theme: Theme }) {
           <button onClick={() => { if (newCategory.trim()) { setCategories(p => [...p, newCategory.trim()]); setNewCategory(''); } }}
             className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}><Plus size={14} /></button>
         </div>
+      </SectionCard>
+
+      <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
+        <div className="space-y-4">
+          <MasterPermissionGrid masterName="Book Categories" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Bulk Import" subtitle="Import data from Excel templates" theme={theme}>
+        <BulkImportWizard entityName="Books" templateFields={['ISBN', 'Title', 'Author', 'Publisher', 'Category', 'Copies', 'Location']} sampleData={[['978-0-13-468599-1', 'Clean Code', 'Robert C. Martin', 'Pearson', 'Reference', '5', 'Shelf A-12']]} theme={theme} />
       </SectionCard>
     </div>
   );

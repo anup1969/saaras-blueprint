@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { X, Plus, CheckCircle, Info, Upload } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, SelectField, InputField } from '../_helpers/components';
+import { MasterPermissionGrid, BulkImportWizard } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
 
 function InfoIcon({ tip }: { tip: string }) {
@@ -518,6 +519,17 @@ export default function HRConfigModule({ theme }: { theme: Theme }) {
             <SSAToggle on={ptChallan} onChange={() => setPtChallan(!ptChallan)} theme={theme} />
           </div>
         </div>
+      </SectionCard>
+
+      <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
+        <div className="space-y-4">
+          <MasterPermissionGrid masterName="Departments" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+          <MasterPermissionGrid masterName="Designations" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Bulk Import" subtitle="Import data from Excel templates" theme={theme}>
+        <BulkImportWizard entityName="Staff" templateFields={['Employee ID', 'Name', 'Department', 'Designation', 'Date of Joining', 'Salary', 'Phone', 'Email']} sampleData={[['EMP001', 'Rajesh Sharma', 'Teaching - Secondary', 'PGT', '2024-04-01', '45000', '9876543210', 'rajesh@school.com']]} theme={theme} />
       </SectionCard>
     </div>
   );

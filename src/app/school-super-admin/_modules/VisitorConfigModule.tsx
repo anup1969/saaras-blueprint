@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField } from '../_helpers/components';
+import { MasterPermissionGrid } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
 
 type VisitorTypeRules = {
@@ -240,6 +241,12 @@ export default function VisitorConfigModule({ theme }: { theme: Theme }) {
             <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>CCTV Recording Retention (days)</p>
             <InputField value={cctvRetentionDays} onChange={setCctvRetentionDays} theme={theme} type="number" placeholder="e.g. 30" />
           </div>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
+        <div className="space-y-4">
+          <MasterPermissionGrid masterName="Visitor Categories" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
         </div>
       </SectionCard>
     </div>

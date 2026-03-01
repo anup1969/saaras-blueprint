@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { X, Plus, CheckCircle, Edit } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField } from '../_helpers/components';
+import { MasterPermissionGrid } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
 
 export default function CommunicationConfigModule({ theme }: { theme: Theme }) {
@@ -262,6 +263,12 @@ export default function CommunicationConfigModule({ theme }: { theme: Theme }) {
             </div>
             <SSAToggle on={notifySender} onChange={() => setNotifySender(!notifySender)} theme={theme} />
           </div>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
+        <div className="space-y-4">
+          <MasterPermissionGrid masterName="Communication Templates" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
         </div>
       </SectionCard>
     </div>

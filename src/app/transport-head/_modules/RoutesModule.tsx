@@ -5,7 +5,7 @@ import { StatCard, TabBar, StatusBadge, SearchBar, DataTable } from '@/component
 import { type Theme } from '@/lib/themes';
 import {
   Route, Users, MapPin, Search, Plus, Filter, Download,
-  Eye, Edit, Phone, Clock, MapPinned, X
+  Eye, Edit, Phone, Clock, MapPinned, X, Zap, TrendingDown, Fuel, Merge, ArrowRight, CheckCircle, RotateCcw
 } from 'lucide-react';
 
 // ─── MOCK DATA ──────────────────────────────────────
@@ -105,10 +105,29 @@ const mockStudentsByRoute = [
   ]},
 ];
 
+// ─── ROUTE OPTIMIZATION DATA ────────────────────────
+const mockOptimizationData = [
+  { route: 'Route A', currentDist: 18.5, optimizedDist: 14.2, currentTime: 52, optimizedTime: 40, fuelCost: 285, optimizedFuel: 220, applied: false },
+  { route: 'Route B', currentDist: 24.3, optimizedDist: 19.8, currentTime: 65, optimizedTime: 50, fuelCost: 375, optimizedFuel: 305, applied: false },
+  { route: 'Route C', currentDist: 12.8, optimizedDist: 11.1, currentTime: 38, optimizedTime: 32, fuelCost: 198, optimizedFuel: 172, applied: false },
+  { route: 'Route D', currentDist: 16.2, optimizedDist: 13.5, currentTime: 45, optimizedTime: 37, fuelCost: 250, optimizedFuel: 209, applied: false },
+  { route: 'Route E', currentDist: 10.5, optimizedDist: 9.2, currentTime: 30, optimizedTime: 26, fuelCost: 162, optimizedFuel: 142, applied: false },
+  { route: 'Route F', currentDist: 22.1, optimizedDist: 17.6, currentTime: 58, optimizedTime: 44, fuelCost: 341, optimizedFuel: 272, applied: false },
+];
+
+const mockRouteSuggestions = [
+  { suggestion: 'Merge Route A and Route E', reason: 'Overlapping coverage in Satellite-Navrangpura area. Combined route saves 6.8 km daily.', savings: '6.8 km/day', priority: 'High' },
+  { suggestion: 'Reorder stops on Route B', reason: 'Thaltej stop before Prahlad Nagar reduces backtracking by 2.1 km.', savings: '2.1 km/day', priority: 'Medium' },
+  { suggestion: 'Split Route F into two', reason: 'Route F covers 22 km with 9 stops. Splitting at Chandkheda reduces max travel time to 30 min.', savings: '14 min/trip', priority: 'High' },
+  { suggestion: 'Add Bodakdev stop to Route C', reason: 'Nearby student on Route D can be shifted, reducing Route D load by 3 students.', savings: '1.2 km/day', priority: 'Low' },
+];
+
 export default function RoutesModule({ theme }: { theme: Theme }) {
   const [tab, setTab] = useState('All Routes');
   const [showAddRoute, setShowAddRoute] = useState(false);
   const [selectedRouteStudents, setSelectedRouteStudents] = useState('Route A');
+  const [optimizationData, setOptimizationData] = useState(mockOptimizationData);
+  const [optimized, setOptimized] = useState(false);
   const [formData, setFormData] = useState({
     name: '', area: '', type: 'both' as 'pickup' | 'drop' | 'both',
     vehicle: '', driver: '', ladyAttendant: '', driverAssistant: '',
@@ -122,9 +141,169 @@ export default function RoutesModule({ theme }: { theme: Theme }) {
         <h1 className={`text-2xl font-bold ${theme.highlight}`}>Route Management</h1>
         <button onClick={() => setShowAddRoute(true)} className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}><Plus size={14} /> Add Route</button>
       </div>
-      <TabBar tabs={['All Routes', 'Active', 'Under Maintenance', 'Students by Route']} active={tab} onChange={setTab} theme={theme} />
+      <TabBar tabs={['All Routes', 'Active', 'Under Maintenance', 'Students by Route', 'Route Optimization']} active={tab} onChange={setTab} theme={theme} />
 
-      {tab === 'Students by Route' ? (
+      {tab === 'Route Optimization' ? (
+        <div className="space-y-4">
+          {/* Route Map Visualization */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>Route Optimization Visualization</h3>
+              <button
+                onClick={() => {
+                  setOptimized(true);
+                  setOptimizationData(prev => prev.map(r => ({ ...r })));
+                }}
+                className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold flex items-center gap-1.5`}
+              >
+                <Zap size={12} /> Optimize Routes
+              </button>
+            </div>
+            <div className={`w-full h-56 rounded-xl ${theme.secondaryBg} border ${theme.border} relative overflow-hidden`}>
+              {/* Simulated map with route paths */}
+              <svg className="w-full h-full" viewBox="0 0 500 220" fill="none">
+                {/* School marker */}
+                <circle cx="250" cy="110" r="8" fill="#3b82f6" stroke="white" strokeWidth="2" />
+                <text x="250" y="135" textAnchor="middle" fontSize="8" fill="#6b7280" fontWeight="bold">SCHOOL</text>
+                {/* Route lines */}
+                <path d="M250 110 L120 40 L60 55 L30 30" stroke="#ef4444" strokeWidth="2.5" strokeDasharray={optimized ? '' : '4 2'} opacity="0.8" />
+                <circle cx="120" cy="40" r="4" fill="#ef4444" /><circle cx="60" cy="55" r="4" fill="#ef4444" /><circle cx="30" cy="30" r="4" fill="#ef4444" />
+                <text x="30" y="22" fontSize="7" fill="#ef4444" fontWeight="bold">Route A</text>
+                <path d="M250 110 L350 40 L420 50 L470 25" stroke="#f59e0b" strokeWidth="2.5" strokeDasharray={optimized ? '' : '4 2'} opacity="0.8" />
+                <circle cx="350" cy="40" r="4" fill="#f59e0b" /><circle cx="420" cy="50" r="4" fill="#f59e0b" /><circle cx="470" cy="25" r="4" fill="#f59e0b" />
+                <text x="470" y="17" fontSize="7" fill="#f59e0b" fontWeight="bold">Route B</text>
+                <path d="M250 110 L180 160 L100 180 L40 195" stroke="#10b981" strokeWidth="2.5" strokeDasharray={optimized ? '' : '4 2'} opacity="0.8" />
+                <circle cx="180" cy="160" r="4" fill="#10b981" /><circle cx="100" cy="180" r="4" fill="#10b981" /><circle cx="40" cy="195" r="4" fill="#10b981" />
+                <text x="40" y="210" fontSize="7" fill="#10b981" fontWeight="bold">Route C</text>
+                <path d="M250 110 L330 160 L400 175 L460 195" stroke="#8b5cf6" strokeWidth="2.5" strokeDasharray={optimized ? '' : '4 2'} opacity="0.8" />
+                <circle cx="330" cy="160" r="4" fill="#8b5cf6" /><circle cx="400" cy="175" r="4" fill="#8b5cf6" /><circle cx="460" cy="195" r="4" fill="#8b5cf6" />
+                <text x="460" y="210" fontSize="7" fill="#8b5cf6" fontWeight="bold">Route D</text>
+                <path d="M250 110 L200 80 L140 95" stroke="#06b6d4" strokeWidth="2.5" strokeDasharray={optimized ? '' : '4 2'} opacity="0.8" />
+                <circle cx="200" cy="80" r="4" fill="#06b6d4" /><circle cx="140" cy="95" r="4" fill="#06b6d4" />
+                <text x="140" y="115" fontSize="7" fill="#06b6d4" fontWeight="bold">Route E</text>
+                <path d="M250 110 L310 85 L380 105 L450 90" stroke="#ec4899" strokeWidth="2.5" strokeDasharray={optimized ? '' : '4 2'} opacity="0.8" />
+                <circle cx="310" cy="85" r="4" fill="#ec4899" /><circle cx="380" cy="105" r="4" fill="#ec4899" /><circle cx="450" cy="90" r="4" fill="#ec4899" />
+                <text x="450" y="82" fontSize="7" fill="#ec4899" fontWeight="bold">Route F</text>
+              </svg>
+              {optimized && (
+                <div className="absolute top-2 right-2 px-2 py-1 rounded-lg bg-emerald-500 text-white text-[10px] font-bold flex items-center gap-1">
+                  <CheckCircle size={10} /> Optimized
+                </div>
+              )}
+              {!optimized && (
+                <div className="absolute top-2 right-2 px-2 py-1 rounded-lg bg-amber-100 text-amber-700 text-[10px] font-bold">
+                  Dashed = Unoptimized
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Before/After Comparison */}
+          {optimized && (
+            <div className="grid grid-cols-3 gap-4">
+              <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 text-center`}>
+                <TrendingDown size={20} className="text-emerald-500 mx-auto mb-1" />
+                <p className={`text-lg font-bold ${theme.highlight}`}>
+                  {(optimizationData.reduce((s, r) => s + r.currentDist, 0) - optimizationData.reduce((s, r) => s + r.optimizedDist, 0)).toFixed(1)} km
+                </p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Total Distance Saved</p>
+              </div>
+              <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 text-center`}>
+                <Clock size={20} className="text-blue-500 mx-auto mb-1" />
+                <p className={`text-lg font-bold ${theme.highlight}`}>
+                  {optimizationData.reduce((s, r) => s + r.currentTime, 0) - optimizationData.reduce((s, r) => s + r.optimizedTime, 0)} min
+                </p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Total Time Saved</p>
+              </div>
+              <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 text-center`}>
+                <Fuel size={20} className="text-amber-500 mx-auto mb-1" />
+                <p className={`text-lg font-bold ${theme.highlight}`}>
+                  {'\u20B9'}{optimizationData.reduce((s, r) => s + r.fuelCost, 0) - optimizationData.reduce((s, r) => s + r.optimizedFuel, 0)}/day
+                </p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Fuel Cost Savings</p>
+              </div>
+            </div>
+          )}
+
+          {/* Optimization Table */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+            <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Route-wise Optimization</h3>
+            <DataTable
+              headers={['Route', 'Current Distance', 'Optimized Distance', 'Time Saved', 'Fuel Savings', 'Status', '']}
+              rows={optimizationData.map((r, idx) => [
+                <span key="name" className={`font-bold ${theme.highlight}`}>{r.route}</span>,
+                <span key="curr" className={theme.iconColor}>{r.currentDist} km ({r.currentTime} min)</span>,
+                <span key="opt" className={`font-bold text-emerald-600`}>{r.optimizedDist} km ({r.optimizedTime} min)</span>,
+                <span key="time" className="text-xs font-bold text-blue-600">{r.currentTime - r.optimizedTime} min</span>,
+                <span key="fuel" className="text-xs font-bold text-amber-600">{'\u20B9'}{r.fuelCost - r.optimizedFuel}</span>,
+                r.applied ? (
+                  <span key="status" className="text-xs px-2 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-700">Applied</span>
+                ) : optimized ? (
+                  <span key="status" className="text-xs px-2 py-0.5 rounded-full font-bold bg-amber-100 text-amber-700">Ready</span>
+                ) : (
+                  <span key="status" className={`text-xs ${theme.iconColor}`}>-</span>
+                ),
+                <div key="actions">
+                  {optimized && !r.applied && (
+                    <button
+                      onClick={() => {
+                        const updated = [...optimizationData];
+                        updated[idx] = { ...updated[idx], applied: true };
+                        setOptimizationData(updated);
+                      }}
+                      className="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-700 text-[10px] font-bold flex items-center gap-1"
+                    >
+                      <CheckCircle size={10} /> Apply
+                    </button>
+                  )}
+                  {r.applied && (
+                    <button
+                      onClick={() => {
+                        const updated = [...optimizationData];
+                        updated[idx] = { ...updated[idx], applied: false };
+                        setOptimizationData(updated);
+                      }}
+                      className={`px-2.5 py-1 rounded-lg ${theme.secondaryBg} text-[10px] font-bold ${theme.iconColor} flex items-center gap-1`}
+                    >
+                      <RotateCcw size={10} /> Revert
+                    </button>
+                  )}
+                </div>,
+              ])}
+              theme={theme}
+            />
+          </div>
+
+          {/* Route Suggestions */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+            <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Route Recommendations</h3>
+            <div className="space-y-2">
+              {mockRouteSuggestions.map((s, i) => (
+                <div key={i} className={`flex items-center gap-3 p-3 rounded-xl ${theme.accentBg}`}>
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white shrink-0 ${
+                    s.priority === 'High' ? 'bg-red-500' : s.priority === 'Medium' ? 'bg-amber-500' : 'bg-blue-500'
+                  }`}>
+                    <Merge size={14} />
+                  </div>
+                  <div className="flex-1">
+                    <p className={`text-xs font-bold ${theme.highlight}`}>{s.suggestion}</p>
+                    <p className={`text-[10px] ${theme.iconColor}`}>{s.reason}</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <span className="text-xs font-bold text-emerald-600">{s.savings}</span>
+                    <p className={`text-[10px] px-2 py-0.5 rounded-full font-bold mt-0.5 ${
+                      s.priority === 'High' ? 'bg-red-100 text-red-700' : s.priority === 'Medium' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
+                    }`}>{s.priority}</p>
+                  </div>
+                  <button className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold ${theme.primary} text-white flex items-center gap-1 shrink-0`}>
+                    <ArrowRight size={10} /> Review
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : tab === 'Students by Route' ? (
         <div className="space-y-4">
           <div className={`flex gap-1 p-1 ${theme.secondaryBg} rounded-xl overflow-x-auto`}>
             {mockStudentsByRoute.map(r => (

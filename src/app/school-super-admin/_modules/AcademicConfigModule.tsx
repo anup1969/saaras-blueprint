@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Plus, X, Upload, Download, Copy, CheckSquare, Square, Filter, BookOpen, FileSpreadsheet, ArrowRight } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
+import { MasterPermissionGrid, BulkImportWizard } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
 
 export default function AcademicConfigModule({ theme }: { theme: Theme }) {
@@ -1026,6 +1027,17 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
             {promotionRules.autoPromote ? ', auto-promotion enabled' : ', manual approval required'}
           </p>
         </div>
+      </SectionCard>
+
+      <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
+        <div className="space-y-4">
+          <MasterPermissionGrid masterName="Subjects" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+          <MasterPermissionGrid masterName="Classes & Sections" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Bulk Import" subtitle="Import data from Excel templates" theme={theme}>
+        <BulkImportWizard entityName="Subject Allocation" templateFields={['Class', 'Section', 'Subject', 'Teacher', 'Periods/Week']} sampleData={[['Grade 9', 'A', 'Mathematics', 'Mr. Patel', '6']]} theme={theme} />
       </SectionCard>
     </div>
   );

@@ -9,7 +9,7 @@ import { type TeamMember } from '@/lib/auth';
 import {
   Home, Route, Car, Users, MapPinned, Wrench, Navigation, IndianRupee,
   MessageSquare, Headphones, UserCheck, UserPlus, GraduationCap,
-  PanelLeftClose, PanelLeftOpen, ClipboardCheck
+  PanelLeftClose, PanelLeftOpen, ClipboardCheck, CreditCard
 } from 'lucide-react';
 
 import DashboardHome from '../_modules/DashboardHome';
@@ -24,6 +24,7 @@ import DriverAssistantModule from '../_modules/DriverAssistantModule';
 import TransportStudentsModule from '../_modules/TransportStudentsModule';
 import FeesModule from '../_modules/FeesModule';
 import CommunicationModule from '../_modules/CommunicationModule';
+import BusPassModule from '../_modules/BusPassModule';
 
 // ─── MODULE SIDEBAR ────────────────────────────────
 const modules = [
@@ -37,6 +38,7 @@ const modules = [
   { id: 'students', label: 'Students', icon: GraduationCap },
   { id: 'gps-tracking', label: 'GPS Tracking', icon: Navigation },
   { id: 'maintenance', label: 'Maintenance', icon: Wrench },
+  { id: 'bus-pass', label: 'Bus Pass', icon: CreditCard },
   { id: 'fees', label: 'Fees', icon: IndianRupee },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
   { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
@@ -85,6 +87,7 @@ export default function TransportHeadDashboard({ theme, themeIdx, onThemeChange,
         {activeModule === 'driver-assistant' && <DriverAssistantModule theme={theme} />}
         {activeModule === 'students' && <TransportStudentsModule theme={theme} />}
         {activeModule === 'maintenance' && <MaintenanceModule theme={theme} showLogMaintenance={showLogMaintenance} setShowLogMaintenance={setShowLogMaintenance} />}
+        {activeModule === 'bus-pass' && <BusPassModule theme={theme} />}
         {activeModule === 'fees' && <FeesModule theme={theme} />}
         {activeModule === 'communication' && <CommunicationModule theme={theme} />}
         {activeModule === 'your-inputs' && <YourInputsModule theme={theme} userName={currentUser?.name || ''} />}

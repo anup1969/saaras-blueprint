@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { X, Plus, Upload, AlertCircle, Trash2 } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
+import { MasterPermissionGrid } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
 
 export default function TimetableConfigModule({ theme }: { theme: Theme }) {
@@ -389,6 +390,13 @@ export default function TimetableConfigModule({ theme }: { theme: Theme }) {
           className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl mt-2`}>
           <Plus size={12} /> Add Room
         </button>
+      </SectionCard>
+
+      <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
+        <div className="space-y-4">
+          <MasterPermissionGrid masterName="Periods" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+          <MasterPermissionGrid masterName="Room Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+        </div>
       </SectionCard>
     </div>
   );

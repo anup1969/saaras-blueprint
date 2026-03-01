@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { SSAToggle, SectionCard, ModuleHeader, SelectField } from '../_helpers/components';
+import { SSAToggle, SectionCard, ModuleHeader, SelectField, InputField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
 
 export default function ParentPortalConfigModule({ theme }: { theme: Theme }) {
@@ -13,6 +13,15 @@ export default function ParentPortalConfigModule({ theme }: { theme: Theme }) {
   const [commMode, setCommMode] = useState('Full Two-Way');
   const [reportCardAccess, setReportCardAccess] = useState(true);
   const [reportCardVisibility, setReportCardVisibility] = useState('After Principal Approval');
+  // AI Chatbot
+  const [aiChatbotEnabled, setAiChatbotEnabled] = useState(false);
+  const [chatbotLanguage, setChatbotLanguage] = useState('English');
+  const [chatbotEscalation, setChatbotEscalation] = useState('5');
+  // Parent Directory
+  const [parentDirectoryEnabled, setParentDirectoryEnabled] = useState(false);
+  const [directoryFields, setDirectoryFields] = useState<Record<string, boolean>>({ 'Name': true, 'Phone': true, 'Email': false, 'Child Class': true });
+  const [optInRequired, setOptInRequired] = useState(true);
+
   const [moduleToggles, setModuleToggles] = useState<Record<string, boolean>>({
     Fees: true, Attendance: true, Exams: true, LMS: false, Enquiry: true, Visitor: true,
     Transport: true, Library: false, Hostel: false, Canteen: false, Alumni: false,
@@ -80,6 +89,64 @@ export default function ParentPortalConfigModule({ theme }: { theme: Theme }) {
               <SSAToggle on={enabled} onChange={() => setModuleToggles(p => ({ ...p, [mod]: !p[mod] }))} theme={theme} />
             </div>
           ))}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="AI Chatbot" subtitle="AI-powered chatbot for common parent queries" theme={theme}>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex-1 mr-3">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Enable AI Chatbot</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Parents can ask questions about fees, attendance, schedules via AI assistant</p>
+            </div>
+            <SSAToggle on={aiChatbotEnabled} onChange={() => setAiChatbotEnabled(!aiChatbotEnabled)} theme={theme} />
+          </div>
+          {aiChatbotEnabled && (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Response Language</p>
+                <SelectField options={['English', 'Hindi', 'Gujarati', 'Marathi', 'Auto-detect']} value={chatbotLanguage} onChange={setChatbotLanguage} theme={theme} />
+              </div>
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Escalate to Human After (messages)</p>
+                <InputField value={chatbotEscalation} onChange={setChatbotEscalation} theme={theme} type="number" />
+              </div>
+            </div>
+          )}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Parent Directory" subtitle="Allow parents to view other parents in same class" theme={theme}>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex-1 mr-3">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Enable Parent Directory</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Parents can see other parents in the same class for coordination</p>
+            </div>
+            <SSAToggle on={parentDirectoryEnabled} onChange={() => setParentDirectoryEnabled(!parentDirectoryEnabled)} theme={theme} />
+          </div>
+          {parentDirectoryEnabled && (
+            <>
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Visible Fields</p>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(directoryFields).map(([field, on]) => (
+                    <label key={field} className={`flex items-center gap-2 p-2 rounded-lg ${theme.secondaryBg} cursor-pointer`}>
+                      <input type="checkbox" checked={on} onChange={() => setDirectoryFields(p => ({ ...p, [field]: !p[field] }))} className="accent-emerald-500 w-3.5 h-3.5" />
+                      <span className={`text-[10px] font-medium ${theme.highlight}`}>{field}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <div className="flex-1 mr-3">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>Opt-in Required</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>Parents must opt-in before their info is visible to others</p>
+                </div>
+                <SSAToggle on={optInRequired} onChange={() => setOptInRequired(!optInRequired)} theme={theme} />
+              </div>
+            </>
+          )}
         </div>
       </SectionCard>
 

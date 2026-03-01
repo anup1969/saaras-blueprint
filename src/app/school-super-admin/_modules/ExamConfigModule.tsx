@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { X, Plus, AlertTriangle, Eye, UserCircle, Info, Download } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, SelectField, InputField } from '../_helpers/components';
+import { MasterPermissionGrid, BulkImportWizard } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
 
 function InfoIcon({ tip }: { tip: string }) {
@@ -716,6 +717,17 @@ export default function ExamConfigModule({ theme }: { theme: Theme }) {
             </>
           )}
         </div>
+      </SectionCard>
+
+      <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
+        <div className="space-y-4">
+          <MasterPermissionGrid masterName="Exam Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+          <MasterPermissionGrid masterName="Grade Scales" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Bulk Import" subtitle="Import data from Excel templates" theme={theme}>
+        <BulkImportWizard entityName="Exam Schedule" templateFields={['Exam Name', 'Class', 'Subject', 'Date', 'Time', 'Duration', 'Max Marks']} sampleData={[['Unit Test 1', 'Grade 9', 'Mathematics', '2026-06-15', '09:00 AM', '2 hrs', '100']]} theme={theme} />
       </SectionCard>
     </div>
   );

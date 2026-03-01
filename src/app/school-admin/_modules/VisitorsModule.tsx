@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { type Theme } from '@/lib/themes';
 import { StatCard, StatusBadge, TabBar, DataTable } from '@/components/shared';
 import { mockVisitors } from '@/lib/mock-data';
-import { Users, UserCheck, Clock, AlertTriangle, Plus, X, ThumbsUp, ThumbsDown, Link2 } from 'lucide-react';
+import { Users, UserCheck, Clock, AlertTriangle, Plus, X, ThumbsUp, ThumbsDown, Link2, Download, Edit, Trash2, ShieldOff, ShieldCheck, BarChart3, PieChart, Ban, Eye } from 'lucide-react';
 import { FormField, InputField, SelectField, TextAreaField } from '../_components/FormHelpers';
 
 export default function VisitorsModule({ theme }: { theme: Theme }) {
@@ -39,6 +39,17 @@ export default function VisitorsModule({ theme }: { theme: Theme }) {
     { student: 'Rohan Gupta', class: '6-A', reason: 'Unwell', requestedTime: '11:45 AM', approval: 'Approved' as string },
   ]);
 
+  // Add visitor form
+  const [showAddVisitor, setShowAddVisitor] = useState(false);
+  const [editingVisitor, setEditingVisitor] = useState<string | null>(null);
+
+  // Blacklist
+  const [blacklist, setBlacklist] = useState([
+    { name: 'Ravi Chauhan', reason: 'Aggressive behavior at gate', blockedBy: 'Admin Officer', date: '2026-01-15' },
+    { name: 'Sunil Yadav', reason: 'Attempted unauthorized entry', blockedBy: 'Principal', date: '2026-02-03' },
+    { name: 'Unknown Vendor', reason: 'Fake ID presented', blockedBy: 'Security Head', date: '2025-12-20' },
+  ]);
+
   // Pre-registration mock
   const [preRegForm, setPreRegForm] = useState({ name: '', phone: '', purpose: '', date: '', personToMeet: '', idType: '', vehicleNo: '' });
   const preRegistered = [
@@ -49,8 +60,11 @@ export default function VisitorsModule({ theme }: { theme: Theme }) {
 
   return (
     <div className="space-y-4">
-      <h1 className={`text-2xl font-bold ${theme.highlight}`}>Visitor Management</h1>
-      <TabBar tabs={['Visitor Log', 'Check-in', 'Approvals', 'Student Pickup', 'Pre-Register']} active={tab} onChange={setTab} theme={theme} />
+      <div className="flex items-center justify-between">
+        <h1 className={`text-2xl font-bold ${theme.highlight}`}>Visitor Management</h1>
+        <button onClick={() => setShowAddVisitor(true)} className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}><Plus size={14} /> Add Visitor</button>
+      </div>
+      <TabBar tabs={['Visitor Log', 'Check-in', 'Approvals', 'Student Pickup', 'Pre-Register', 'Analytics', 'Blacklist', 'Reports']} active={tab} onChange={setTab} theme={theme} />
       <div className="grid grid-cols-4 gap-4">
         <StatCard icon={Users} label="Today's Visitors" value="12" color="bg-blue-500" theme={theme} />
         <StatCard icon={UserCheck} label="Checked In" value="3" color="bg-emerald-500" theme={theme} />
@@ -206,6 +220,175 @@ export default function VisitorsModule({ theme }: { theme: Theme }) {
         </div>
       )}
 
+      {/* Analytics Tab */}
+      {tab === 'Analytics' && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Visits Per Day Bar Chart (simulated) */}
+            <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+              <div className="flex items-center gap-2 mb-3">
+                <BarChart3 size={16} className={theme.primaryText} />
+                <h3 className={`text-sm font-bold ${theme.highlight}`}>Visits Per Day (This Week)</h3>
+              </div>
+              <div className="flex items-end gap-2 h-40 px-2">
+                {[
+                  { day: 'Mon', visits: 18 },
+                  { day: 'Tue', visits: 24 },
+                  { day: 'Wed', visits: 12 },
+                  { day: 'Thu', visits: 20 },
+                  { day: 'Fri', visits: 15 },
+                  { day: 'Sat', visits: 8 },
+                ].map((d, i) => (
+                  <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                    <span className={`text-[10px] font-bold ${theme.primaryText}`}>{d.visits}</span>
+                    <div className={`w-full rounded-t-lg ${theme.primary}`} style={{ height: `${(d.visits / 24) * 100}%`, minHeight: '8px' }} />
+                    <span className={`text-[9px] ${theme.iconColor}`}>{d.day}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Purpose Distribution (simulated pie chart) */}
+            <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+              <div className="flex items-center gap-2 mb-3">
+                <PieChart size={16} className={theme.primaryText} />
+                <h3 className={`text-sm font-bold ${theme.highlight}`}>Visit Purpose Distribution</h3>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="w-32 h-32 rounded-full border-8 border-blue-500 relative" style={{ background: 'conic-gradient(#3b82f6 0% 35%, #10b981 35% 55%, #f59e0b 55% 75%, #8b5cf6 75% 88%, #ef4444 88% 100%)' }}>
+                  <div className={`absolute inset-3 rounded-full ${theme.cardBg} flex items-center justify-center`}>
+                    <span className={`text-xs font-bold ${theme.highlight}`}>97</span>
+                  </div>
+                </div>
+                <div className="flex-1 space-y-1.5">
+                  {[
+                    { label: 'Parent Meeting', pct: '35%', color: 'bg-blue-500' },
+                    { label: 'Fee Payment', pct: '20%', color: 'bg-emerald-500' },
+                    { label: 'Delivery', pct: '20%', color: 'bg-amber-500' },
+                    { label: 'Maintenance', pct: '13%', color: 'bg-purple-500' },
+                    { label: 'Other', pct: '12%', color: 'bg-red-500' },
+                  ].map((p, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <div className={`w-2.5 h-2.5 rounded-full ${p.color}`} />
+                      <span className={`text-[10px] ${theme.iconColor} flex-1`}>{p.label}</span>
+                      <span className={`text-[10px] font-bold ${theme.highlight}`}>{p.pct}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Peak Hours */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+            <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Peak Visitor Hours</h3>
+            <div className="flex items-end gap-1 h-24">
+              {[
+                { hour: '8AM', val: 3 }, { hour: '9AM', val: 8 }, { hour: '10AM', val: 12 },
+                { hour: '11AM', val: 10 }, { hour: '12PM', val: 5 }, { hour: '1PM', val: 3 },
+                { hour: '2PM', val: 7 }, { hour: '3PM', val: 9 }, { hour: '4PM', val: 4 },
+              ].map((h, i) => (
+                <div key={i} className="flex-1 flex flex-col items-center gap-0.5">
+                  <span className={`text-[8px] font-bold ${theme.primaryText}`}>{h.val}</span>
+                  <div className={`w-full rounded-t ${h.val >= 10 ? 'bg-red-400' : h.val >= 7 ? 'bg-amber-400' : 'bg-blue-400'}`} style={{ height: `${(h.val / 12) * 100}%`, minHeight: '4px' }} />
+                  <span className={`text-[7px] ${theme.iconColor}`}>{h.hour}</span>
+                </div>
+              ))}
+            </div>
+            <p className={`text-[10px] ${theme.iconColor} mt-2`}>Peak hours: 10:00 AM - 11:00 AM (avg 11 visitors)</p>
+          </div>
+        </div>
+      )}
+
+      {/* Blacklist Tab */}
+      {tab === 'Blacklist' && (
+        <div className="space-y-4">
+          <div className={`p-3 rounded-xl bg-red-50 border border-red-200 flex items-center gap-3`}>
+            <Ban size={18} className="text-red-500" />
+            <div className="flex-1">
+              <p className="text-xs font-bold text-red-700">{blacklist.length} visitor(s) on blacklist</p>
+              <p className="text-[10px] text-red-500">These persons will be flagged at security gate</p>
+            </div>
+          </div>
+          <DataTable
+            headers={['Visitor Name', 'Reason', 'Blocked By', 'Date', '']}
+            rows={blacklist.map((b, idx) => [
+              <span key="name" className={`font-bold ${theme.highlight}`}>{b.name}</span>,
+              <span key="reason" className="text-xs text-red-600">{b.reason}</span>,
+              <span key="by" className={theme.iconColor}>{b.blockedBy}</span>,
+              <span key="date" className={`text-xs font-mono ${theme.iconColor}`}>{b.date}</span>,
+              <button key="action" onClick={() => {
+                setBlacklist(blacklist.filter((_, i) => i !== idx));
+                window.alert(`${b.name} removed from blacklist. (Blueprint demo)`);
+              }} className="px-2 py-1 rounded-lg bg-emerald-100 text-emerald-700 text-[10px] font-bold flex items-center gap-0.5">
+                <ShieldCheck size={10} /> Unblock
+              </button>,
+            ])}
+            theme={theme}
+          />
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+            <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Add to Blacklist</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={`text-xs ${theme.iconColor} block mb-1`}>Visitor Name</label>
+                <input placeholder="Full name" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none`} />
+              </div>
+              <div>
+                <label className={`text-xs ${theme.iconColor} block mb-1`}>Reason</label>
+                <input placeholder="Reason for blocking" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none`} />
+              </div>
+            </div>
+            <button onClick={() => window.alert('Visitor added to blacklist! (Blueprint demo)')} className="mt-3 px-4 py-2 bg-red-500 text-white rounded-xl text-xs font-bold flex items-center gap-1">
+              <Ban size={12} /> Add to Blacklist
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Reports Tab */}
+      {tab === 'Reports' && (
+        <div className="space-y-4">
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-6`}>
+            <h3 className={`text-sm font-bold ${theme.highlight} mb-4`}>Download Visitor Report</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className={`text-xs ${theme.iconColor} block mb-1`}>From Date</label>
+                <input type="date" defaultValue="2026-03-01" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none`} />
+              </div>
+              <div>
+                <label className={`text-xs ${theme.iconColor} block mb-1`}>To Date</label>
+                <input type="date" defaultValue="2026-03-01" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none`} />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-4">
+              <button onClick={() => window.alert('Visitor log Excel downloaded! (Blueprint demo)')} className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}>
+                <Download size={14} /> Download Excel
+              </button>
+              <button onClick={() => window.alert('Visitor log PDF downloaded! (Blueprint demo)')} className={`px-4 py-2.5 rounded-xl border ${theme.border} text-sm font-bold ${theme.iconColor} flex items-center gap-1`}>
+                <Download size={14} /> Download PDF
+              </button>
+            </div>
+          </div>
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+            <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Quick Reports</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              {[
+                { label: 'Today\'s Log', desc: '12 visitors', icon: Users },
+                { label: 'This Week', desc: '97 visitors', icon: BarChart3 },
+                { label: 'Overstay Report', desc: '3 incidents', icon: Clock },
+                { label: 'Blacklist Activity', desc: '0 flagged', icon: Ban },
+              ].map((r, i) => (
+                <button key={i} onClick={() => window.alert(`Downloading ${r.label} report... (Blueprint demo)`)} className={`p-3 rounded-xl ${theme.accentBg} ${theme.buttonHover} transition-all text-left`}>
+                  <r.icon size={16} className={theme.primaryText} />
+                  <p className={`text-xs font-bold ${theme.highlight} mt-1`}>{r.label}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{r.desc}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Pre-Register Tab */}
       {tab === 'Pre-Register' && (
         <div className="space-y-4">
@@ -249,6 +432,48 @@ export default function VisitorsModule({ theme }: { theme: Theme }) {
               ])}
               theme={theme}
             />
+          </div>
+        </div>
+      )}
+
+      {/* Add / Edit Visitor Modal */}
+      {showAddVisitor && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowAddVisitor(false)}>
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} shadow-2xl w-full max-w-lg p-6 space-y-4`} onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <h2 className={`text-lg font-bold ${theme.highlight}`}>Add Visitor</h2>
+              <button onClick={() => setShowAddVisitor(false)} className={`p-1.5 rounded-lg ${theme.buttonHover}`}><X size={16} className={theme.iconColor} /></button>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <FormField label="Visitor Name" required theme={theme}>
+                <InputField placeholder="Full name" value="" onChange={() => {}} theme={theme} />
+              </FormField>
+              <FormField label="Phone Number" required theme={theme}>
+                <InputField placeholder="+91 98765 43210" value="" onChange={() => {}} theme={theme} />
+              </FormField>
+              <FormField label="Purpose" required theme={theme}>
+                <SelectField options={['Parent Meeting', 'Fee Payment', 'Delivery', 'Maintenance', 'Admission Enquiry', 'Interview', 'Other']} value="" onChange={() => {}} theme={theme} placeholder="Select purpose" />
+              </FormField>
+              <FormField label="Host / Person to Meet" required theme={theme}>
+                <InputField placeholder="Search teacher, office..." value="" onChange={() => {}} theme={theme} />
+              </FormField>
+              <FormField label="ID Type" theme={theme}>
+                <SelectField options={['Aadhaar Card', 'PAN Card', 'Driving License', 'Voter ID', 'Company ID']} value="" onChange={() => {}} theme={theme} placeholder="Select ID type" />
+              </FormField>
+              <FormField label="ID Number" theme={theme}>
+                <InputField placeholder="ID number" value="" onChange={() => {}} theme={theme} />
+              </FormField>
+              <FormField label="Vehicle Details" theme={theme}>
+                <InputField placeholder="e.g. Car - GJ01AB1234" value="" onChange={() => {}} theme={theme} />
+              </FormField>
+              <FormField label="Expected Duration" theme={theme}>
+                <SelectField options={['30 min', '1 hour', '2 hours', '3 hours', 'Half day']} value="" onChange={() => {}} theme={theme} placeholder="Select duration" />
+              </FormField>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => setShowAddVisitor(false)} className={`flex-1 py-2 rounded-xl ${theme.secondaryBg} text-xs font-bold ${theme.highlight}`}>Cancel</button>
+              <button onClick={() => { setShowAddVisitor(false); window.alert('Visitor added and checked in! Badge printed. (Blueprint demo)'); }} className={`flex-1 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}>Check In + Print Badge</button>
+            </div>
           </div>
         </div>
       )}

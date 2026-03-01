@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
-import { SSAToggle, SectionCard, ModuleHeader } from '../_helpers/components';
+import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
 
 export default function StudentPortalConfigModule({ theme }: { theme: Theme }) {
@@ -11,6 +11,25 @@ export default function StudentPortalConfigModule({ theme }: { theme: Theme }) {
   const [digitalLibrary, setDigitalLibrary] = useState(false);
   const [timetableView, setTimetableView] = useState(true);
   const [resultsView, setResultsView] = useState(true);
+
+  // Elective Selection
+  const [electiveEnabled, setElectiveEnabled] = useState(false);
+  const [electiveWindowStart, setElectiveWindowStart] = useState('2026-04-01');
+  const [electiveWindowEnd, setElectiveWindowEnd] = useState('2026-04-15');
+  const [maxElectives, setMaxElectives] = useState('2');
+  // Gamification
+  const [gamificationEnabled, setGamificationEnabled] = useState(false);
+  const [badgeTypes] = useState(['Academic Star', 'Attendance Champion', 'Sports Achiever', 'Helper Badge', 'Reading Wizard']);
+  const [streakTracking, setStreakTracking] = useState(true);
+  const [leaderboardVisible, setLeaderboardVisible] = useState(false);
+  // AI Study Planner
+  const [aiStudyEnabled, setAiStudyEnabled] = useState(false);
+  const [subjectPriority, setSubjectPriority] = useState('Equal');
+  const [examAwareScheduling, setExamAwareScheduling] = useState(true);
+  // Mood Tracker
+  const [moodTrackerEnabled, setMoodTrackerEnabled] = useState(false);
+  const [dailyCheckInTime, setDailyCheckInTime] = useState('08:30');
+  const [moodAlertThreshold, setMoodAlertThreshold] = useState('3');
 
   return (
     <div className="space-y-4">
@@ -41,6 +60,117 @@ export default function StudentPortalConfigModule({ theme }: { theme: Theme }) {
         <AlertTriangle size={16} className="text-amber-500 mt-0.5 shrink-0" />
         <p className="text-xs text-amber-700">Enabling &quot;Show class rank&quot; may be sensitive. Many schools disable this to reduce peer pressure. Consider your school policy before turning it on.</p>
       </div>
+
+      <SectionCard title="Elective Selection" subtitle="Allow students to choose elective subjects through the portal" theme={theme}>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex-1 mr-3">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Enable Elective Selection</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Students can browse and choose elective subjects during the selection window</p>
+            </div>
+            <SSAToggle on={electiveEnabled} onChange={() => setElectiveEnabled(!electiveEnabled)} theme={theme} />
+          </div>
+          {electiveEnabled && (
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Window Start</p>
+                <InputField value={electiveWindowStart} onChange={setElectiveWindowStart} theme={theme} type="date" />
+              </div>
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Window End</p>
+                <InputField value={electiveWindowEnd} onChange={setElectiveWindowEnd} theme={theme} type="date" />
+              </div>
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Max Electives</p>
+                <InputField value={maxElectives} onChange={setMaxElectives} theme={theme} type="number" />
+              </div>
+            </div>
+          )}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Gamification" subtitle="Motivate students with badges, streaks, and leaderboards" theme={theme}>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex-1 mr-3">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Enable Gamification</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Award badges and track streaks to encourage student engagement</p>
+            </div>
+            <SSAToggle on={gamificationEnabled} onChange={() => setGamificationEnabled(!gamificationEnabled)} theme={theme} />
+          </div>
+          {gamificationEnabled && (
+            <>
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Badge Types</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {badgeTypes.map(b => (
+                    <span key={b} className={`px-2.5 py-1 rounded-lg ${theme.secondaryBg} text-xs font-medium ${theme.highlight}`}>{b}</span>
+                  ))}
+                </div>
+              </div>
+              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <p className={`text-xs font-bold ${theme.highlight}`}>Streak Tracking</p>
+                <SSAToggle on={streakTracking} onChange={() => setStreakTracking(!streakTracking)} theme={theme} />
+              </div>
+              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <div className="flex-1 mr-3">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>Leaderboard Visibility</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>Show class-level leaderboard to students</p>
+                </div>
+                <SSAToggle on={leaderboardVisible} onChange={() => setLeaderboardVisible(!leaderboardVisible)} theme={theme} />
+              </div>
+            </>
+          )}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="AI Study Planner" subtitle="AI-powered personalized study schedule for students" theme={theme}>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex-1 mr-3">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Enable AI Study Planner</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>AI creates personalized study plans based on student performance and upcoming exams</p>
+            </div>
+            <SSAToggle on={aiStudyEnabled} onChange={() => setAiStudyEnabled(!aiStudyEnabled)} theme={theme} />
+          </div>
+          {aiStudyEnabled && (
+            <>
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Subject Priority Weighting</p>
+                <SelectField options={['Equal', 'Weak Subjects First', 'Exam Proximity', 'Custom']} value={subjectPriority} onChange={setSubjectPriority} theme={theme} />
+              </div>
+              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <p className={`text-xs font-bold ${theme.highlight}`}>Exam-Aware Scheduling</p>
+                <SSAToggle on={examAwareScheduling} onChange={() => setExamAwareScheduling(!examAwareScheduling)} theme={theme} />
+              </div>
+            </>
+          )}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Mood Tracker" subtitle="Daily emotional check-in for student wellbeing monitoring" theme={theme}>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex-1 mr-3">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Enable Mood Tracker</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Students log their mood daily; counselors are alerted on concerning patterns</p>
+            </div>
+            <SSAToggle on={moodTrackerEnabled} onChange={() => setMoodTrackerEnabled(!moodTrackerEnabled)} theme={theme} />
+          </div>
+          {moodTrackerEnabled && (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Daily Check-in Time</p>
+                <InputField value={dailyCheckInTime} onChange={setDailyCheckInTime} theme={theme} type="time" />
+              </div>
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Alert Threshold (consecutive low days)</p>
+                <InputField value={moodAlertThreshold} onChange={setMoodAlertThreshold} theme={theme} type="number" />
+              </div>
+            </div>
+          )}
+        </div>
+      </SectionCard>
 
     </div>
   );

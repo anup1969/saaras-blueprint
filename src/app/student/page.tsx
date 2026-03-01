@@ -15,6 +15,8 @@ import {
   FolderOpen, Trophy, Medal, Plus, Pencil, Trash2, Shield,
   FileCheck, Info, Smartphone, Play, ChevronLeft,
   Camera, Share2, QrCode, Fingerprint, Wifi, MapPin,
+  Heart, Flame, Brain, Smile, Frown, Meh, ThumbsUp, ThumbsDown,
+  Target, Zap, Lock, Unlock, Sparkles, NotebookPen,
 } from 'lucide-react';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
@@ -264,7 +266,10 @@ const modules = [
   { id: 'notices', label: 'Notices', icon: Megaphone },
   { id: 'portfolio', label: 'Portfolio', icon: FolderOpen },
   { id: 'my-exams', label: 'My Exams', icon: FileCheck },
+  { id: 'electives', label: 'Electives', icon: BookMarked },
   { id: 'achievements', label: 'Achievements', icon: Trophy },
+  { id: 'study-planner', label: 'Study Planner', icon: Calendar },
+  { id: 'wellness', label: 'Wellness', icon: Heart },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
   { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
   { id: 'support', label: 'Support', icon: Headphones },
@@ -314,7 +319,10 @@ function StudentDashboard({ theme, themeIdx, onThemeChange, currentUser }: { the
         {activeModule === 'notices' && <NoticesModule theme={theme} />}
         {activeModule === 'my-exams' && <MyExamsModule theme={theme} />}
         {activeModule === 'portfolio' && <PortfolioModule theme={theme} />}
+        {activeModule === 'electives' && <ElectivesModule theme={theme} />}
         {activeModule === 'achievements' && <AchievementsModule theme={theme} />}
+        {activeModule === 'study-planner' && <StudyPlannerModule theme={theme} />}
+        {activeModule === 'wellness' && <WellnessModule theme={theme} />}
         {activeModule === 'communication' && <CommunicationModule theme={theme} />}
         {activeModule === 'your-inputs' && <YourInputsModule theme={theme} userName={currentUser?.name || ''} />}
         {activeModule === 'support' && <SupportModule theme={theme} role="student" />}
@@ -1757,6 +1765,99 @@ function PortfolioModule({ theme }: { theme: Theme }) {
 }
 
 // ─── ACHIEVEMENTS MODULE ────────────────────────────
+// ─── ELECTIVES MODULE ───────────────────────────────
+function ElectivesModule({ theme }: { theme: Theme }) {
+  const [showConfirm, setShowConfirm] = useState<string | null>(null);
+
+  const availableElectives = [
+    { id: 'E1', name: 'French (Foreign Language)', area: 'Language', teacher: 'Ms. Dubois', schedule: 'Mon & Wed, P7', seats: { available: 8, total: 30 }, status: 'Open' as const, prereq: '', desc: 'Basic French language — greetings, grammar, conversation.' },
+    { id: 'E2', name: 'Artificial Intelligence', area: 'Computer Science', teacher: 'Mr. Joshi', schedule: 'Tue & Thu, P7', seats: { available: 3, total: 25 }, status: 'Open' as const, prereq: 'Computer Science', desc: 'Introduction to AI, ML concepts with Python.' },
+    { id: 'E3', name: 'Hindustani Classical Music', area: 'Performing Arts', teacher: 'Pt. Shukla', schedule: 'Fri, P7-P8', seats: { available: 12, total: 20 }, status: 'Open' as const, prereq: '', desc: 'Learn ragas, taals, and vocal techniques in Indian classical music.' },
+    { id: 'E4', name: 'Robotics & IoT Lab', area: 'STEM', teacher: 'Mr. Mehta', schedule: 'Wed & Fri, P7', seats: { available: 0, total: 20 }, status: 'Closed' as const, prereq: 'Science, CS', desc: 'Build robots and IoT projects with Arduino and Raspberry Pi.' },
+    { id: 'E5', name: 'Creative Writing Workshop', area: 'Language', teacher: 'Ms. D\'Souza', schedule: 'Tue, P7-P8', seats: { available: 5, total: 20 }, status: 'Open' as const, prereq: '', desc: 'Short stories, poetry, screenwriting, and journaling.' },
+  ];
+
+  const enrolledElectives = [
+    { id: 'E2', name: 'Artificial Intelligence', teacher: 'Mr. Joshi', schedule: 'Tue & Thu, P7', status: 'Enrolled' },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className={`text-2xl font-bold ${theme.highlight}`}>Elective Selection</h1>
+        <span className={`text-xs px-2.5 py-1 rounded-lg bg-blue-100 text-blue-700 font-bold`}>Selection Window: Feb 15 - Mar 1, 2026</span>
+      </div>
+
+      {/* Currently Enrolled */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Currently Enrolled Electives</h3>
+        {enrolledElectives.length > 0 ? (
+          <div className="space-y-2">
+            {enrolledElectives.map(e => (
+              <div key={e.id} className={`flex items-center gap-3 p-3 rounded-xl ${theme.secondaryBg} border ${theme.border}`}>
+                <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center text-white"><CheckCircle size={14} /></div>
+                <div className="flex-1">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{e.name}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{e.teacher} | {e.schedule}</p>
+                </div>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold">Enrolled</span>
+                <button onClick={() => alert('Elective dropped (Blueprint demo)')} className="text-[10px] px-2 py-1 rounded-lg bg-red-100 text-red-600 font-bold">Drop</button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className={`text-xs ${theme.iconColor}`}>No electives enrolled yet.</p>
+        )}
+      </div>
+
+      {/* Available Electives */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Available Electives</h3>
+        <div className="space-y-3">
+          {availableElectives.map(el => (
+            <div key={el.id} className={`p-4 rounded-xl ${theme.secondaryBg} border ${theme.border}`}>
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{el.name}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{el.area} | {el.teacher} | {el.schedule}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${el.status === 'Open' ? 'bg-emerald-100 text-emerald-700' : el.status === 'Closed' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>{el.status}</span>
+                  {el.status === 'Open' ? (
+                    <button onClick={() => setShowConfirm(el.id)} className={`text-[10px] px-3 py-1.5 rounded-lg ${theme.primary} text-white font-bold`}>Enroll</button>
+                  ) : (
+                    <button disabled className="text-[10px] px-3 py-1.5 rounded-lg bg-gray-200 text-gray-400 font-bold cursor-not-allowed">Full</button>
+                  )}
+                </div>
+              </div>
+              <p className={`text-[10px] ${theme.iconColor} mb-1`}>{el.desc}</p>
+              <div className="flex items-center gap-3">
+                <span className={`text-[10px] ${theme.iconColor}`}>Seats: <span className={`font-bold ${el.seats.available < 5 ? 'text-red-600' : 'text-emerald-600'}`}>{el.seats.available}</span>/{el.seats.total}</span>
+                {el.prereq && <span className={`text-[10px] ${theme.iconColor}`}>Prereq: <span className="font-bold">{el.prereq}</span></span>}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Enrollment Confirmation Modal */}
+      {showConfirm && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => setShowConfirm(null)}>
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-6 w-full max-w-sm shadow-xl`} onClick={e => e.stopPropagation()}>
+            <h3 className={`text-sm font-bold ${theme.highlight} mb-2`}>Confirm Enrollment</h3>
+            <p className={`text-xs ${theme.iconColor} mb-4`}>Are you sure you want to enroll in <span className="font-bold">{availableElectives.find(e => e.id === showConfirm)?.name}</span>?</p>
+            <div className="flex gap-2">
+              <button onClick={() => { alert('Enrolled successfully! (Blueprint demo)'); setShowConfirm(null); }} className={`flex-1 text-xs py-2 rounded-xl ${theme.primary} text-white font-bold`}>Confirm</button>
+              <button onClick={() => setShowConfirm(null)} className={`flex-1 text-xs py-2 rounded-xl ${theme.secondaryBg} ${theme.iconColor} font-bold`}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── ACHIEVEMENTS MODULE ────────────────────────────
 function AchievementsModule({ theme }: { theme: Theme }) {
   const achievements = [
     { title: 'Science Fair — 1st Prize (Solar Water Purifier)', level: 'School', date: 'Nov 2025', medal: 'Gold' as const },
@@ -1873,6 +1974,133 @@ function AchievementsModule({ theme }: { theme: Theme }) {
           ))}
           <div className={`flex items-center gap-2 px-3 py-2 rounded-xl ${theme.secondaryBg} border ${theme.border}`}>
             <span className={`text-[10px] font-bold ${theme.highlight}`}>Total: 22 hours</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Gamification / XP System ── */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5 space-y-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight}`}>Gamification &amp; Badges</h3>
+
+        {/* Profile Card */}
+        <div className={`${theme.secondaryBg} rounded-xl p-4 flex items-center gap-4`}>
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white text-xl font-bold shadow">5</div>
+          <div className="flex-1">
+            <p className={`text-sm font-bold ${theme.highlight}`}>Scholar Level 5</p>
+            <div className="flex items-center gap-2 mt-1">
+              <div className={`flex-1 h-2.5 rounded-full ${theme.accentBg}`}>
+                <div className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500" style={{ width: '72%' }} />
+              </div>
+              <span className={`text-[10px] font-bold ${theme.iconColor}`}>720/1000 XP</span>
+            </div>
+            <p className={`text-[10px] ${theme.iconColor} mt-0.5`}>280 XP to Level 6 | Total Badges: 7/10</p>
+          </div>
+          <div className="flex items-center gap-1 text-amber-500">
+            <Flame size={16} />
+            <span className="text-sm font-bold">12</span>
+            <span className={`text-[10px] ${theme.iconColor}`}>day streak</span>
+          </div>
+        </div>
+
+        {/* Badges Grid */}
+        <div>
+          <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Badges</p>
+          <div className="grid grid-cols-5 gap-2">
+            {[
+              { name: 'First Homework', icon: '📝', earned: true, date: 'Apr 5, 2025', desc: 'Submit your first homework' },
+              { name: 'Perfect Week', icon: '🌟', earned: true, date: 'Sep 15, 2025', desc: 'Full attendance for a week' },
+              { name: 'Top Scorer', icon: '🏆', earned: true, date: 'Oct 22, 2025', desc: 'Score highest in any exam' },
+              { name: 'Library Lover', icon: '📚', earned: true, date: 'Nov 10, 2025', desc: 'Issue 10+ books in a term' },
+              { name: 'Sports Star', icon: '⚽', earned: true, date: 'Sep 25, 2025', desc: 'Win a sports competition' },
+              { name: 'Helping Hand', icon: '🤝', earned: true, date: 'Dec 5, 2025', desc: 'Help classmates in studies' },
+              { name: 'Science Whiz', icon: '🔬', earned: true, date: 'Nov 28, 2025', desc: 'Win Science Fair' },
+              { name: 'Math Master', icon: '🧮', earned: false, date: '', desc: 'Score 95%+ in 3 math tests' },
+              { name: 'Consistent', icon: '📈', earned: false, date: '', desc: 'Maintain 90%+ attendance all year' },
+              { name: '30-Day Streak', icon: '🔥', earned: false, date: '', desc: '30 consecutive active days' },
+            ].map((b, i) => (
+              <div key={i} title={b.earned ? `Earned: ${b.date}` : `Keep going! — ${b.desc}`} className={`p-2.5 rounded-xl border ${theme.border} text-center ${b.earned ? theme.secondaryBg : 'opacity-40 grayscale'}`}>
+                <div className="text-2xl mb-1">{b.icon}</div>
+                <p className={`text-[9px] font-bold ${theme.highlight} leading-tight`}>{b.name}</p>
+                <p className={`text-[8px] ${theme.iconColor} mt-0.5`}>{b.earned ? b.date : 'Keep going!'}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Streaks */}
+        <div className="flex gap-3">
+          <div className={`flex-1 ${theme.secondaryBg} rounded-xl p-3 text-center border ${theme.border}`}>
+            <Flame size={20} className="text-amber-500 mx-auto mb-1" />
+            <p className={`text-lg font-bold ${theme.highlight}`}>12</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>Current Streak</p>
+          </div>
+          <div className={`flex-1 ${theme.secondaryBg} rounded-xl p-3 text-center border ${theme.border}`}>
+            <Flame size={20} className="text-red-500 mx-auto mb-1" />
+            <p className={`text-lg font-bold ${theme.highlight}`}>21</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>Longest Streak</p>
+          </div>
+          <div className={`flex-1 ${theme.secondaryBg} rounded-xl p-3 text-center border ${theme.border}`}>
+            <Zap size={20} className="text-blue-500 mx-auto mb-1" />
+            <p className={`text-lg font-bold ${theme.highlight}`}>720</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>Total XP</p>
+          </div>
+        </div>
+
+        {/* Class Leaderboard */}
+        <div>
+          <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Class Leaderboard — Top 10</p>
+          <div className={`overflow-hidden rounded-xl border ${theme.border}`}>
+            <table className="w-full text-xs">
+              <thead>
+                <tr className={theme.secondaryBg}>
+                  <th className={`p-2 text-center font-bold ${theme.iconColor}`}>Rank</th>
+                  <th className={`p-2 text-left font-bold ${theme.iconColor}`}>Student</th>
+                  <th className={`p-2 text-center font-bold ${theme.iconColor}`}>Level</th>
+                  <th className={`p-2 text-center font-bold ${theme.iconColor}`}>XP</th>
+                  <th className={`p-2 text-center font-bold ${theme.iconColor}`}>Badges</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { rank: 1, name: 'Priya Nair', level: 7, xp: 1250, badges: 9 },
+                  { rank: 2, name: 'Rohan Desai', level: 6, xp: 1100, badges: 8 },
+                  { rank: 3, name: 'Aarav Patel (You)', level: 5, xp: 720, badges: 7 },
+                  { rank: 4, name: 'Siya Mehta', level: 5, xp: 680, badges: 6 },
+                  { rank: 5, name: 'Vivaan Shah', level: 4, xp: 520, badges: 5 },
+                ].map((s, i) => (
+                  <tr key={i} className={`border-t ${theme.border} ${s.rank === 3 ? 'bg-amber-50/50' : ''}`}>
+                    <td className="p-2 text-center">
+                      <span className={`w-5 h-5 inline-flex items-center justify-center rounded-full text-white text-[9px] font-bold ${s.rank <= 3 ? 'bg-amber-500' : 'bg-gray-300'}`}>{s.rank}</span>
+                    </td>
+                    <td className={`p-2 font-bold ${s.rank === 3 ? theme.primaryText : theme.highlight}`}>{s.name}</td>
+                    <td className={`p-2 text-center font-bold ${theme.highlight}`}>{s.level}</td>
+                    <td className={`p-2 text-center ${theme.iconColor}`}>{s.xp}</td>
+                    <td className={`p-2 text-center ${theme.iconColor}`}>{s.badges}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Recent Activity */}
+        <div>
+          <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Recent Activity</p>
+          <div className="space-y-1.5">
+            {[
+              { text: 'Earned "Science Whiz" badge', time: '2 days ago', xp: '+100 XP', icon: '🔬' },
+              { text: 'Moved to Level 5', time: '5 days ago', xp: '', icon: '⬆️' },
+              { text: '+50 XP for homework submission', time: '1 day ago', xp: '+50 XP', icon: '📝' },
+              { text: 'Perfect attendance week bonus', time: '3 days ago', xp: '+30 XP', icon: '🌟' },
+              { text: '12-day streak milestone', time: 'Today', xp: '+20 XP', icon: '🔥' },
+            ].map((a, i) => (
+              <div key={i} className={`flex items-center gap-2 px-3 py-2 rounded-lg ${theme.secondaryBg}`}>
+                <span className="text-sm">{a.icon}</span>
+                <span className={`text-[10px] flex-1 ${theme.highlight}`}>{a.text}</span>
+                {a.xp && <span className="text-[10px] font-bold text-emerald-600">{a.xp}</span>}
+                <span className={`text-[9px] ${theme.iconColor}`}>{a.time}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -2479,6 +2707,351 @@ function MyExamsModule({ theme }: { theme: Theme }) {
 
 // ─── EXPORT ─────────────────────────────────────────
 // ─── COMMUNICATION MODULE ────────────────────────────
+// ─── STUDY PLANNER MODULE ───────────────────────────
+function StudyPlannerModule({ theme }: { theme: Theme }) {
+  const [plannerDay, setPlannerDay] = useState('Monday');
+
+  const weeklyPlan: Record<string, { time: string; subject: string; topic: string; duration: string; priority: string; status: string }[]> = {
+    Monday: [
+      { time: '4:00 PM', subject: 'Mathematics', topic: 'Ch-12: Surface Areas & Volumes', duration: '1h 30m', priority: 'High', status: 'Done' },
+      { time: '5:30 PM', subject: 'Science', topic: 'Magnetic Effects of Current (Revision)', duration: '1h', priority: 'High', status: 'Done' },
+      { time: '7:00 PM', subject: 'Hindi', topic: 'Surdas ke Pad — Memorize', duration: '45m', priority: 'Medium', status: 'Pending' },
+      { time: '8:00 PM', subject: 'English', topic: 'Essay writing practice', duration: '45m', priority: 'Medium', status: 'Pending' },
+    ],
+    Tuesday: [
+      { time: '4:00 PM', subject: 'Science', topic: 'Human Eye & Colourful World', duration: '1h 30m', priority: 'High', status: 'Pending' },
+      { time: '5:30 PM', subject: 'Social Science', topic: 'Map work — Soil Types', duration: '1h', priority: 'Medium', status: 'Pending' },
+      { time: '7:00 PM', subject: 'Computer Science', topic: 'Python — Stack programs', duration: '1h', priority: 'High', status: 'Pending' },
+    ],
+    Wednesday: [
+      { time: '4:00 PM', subject: 'Mathematics', topic: 'Ch-11: Constructions Practice', duration: '1h 30m', priority: 'High', status: 'Pending' },
+      { time: '5:30 PM', subject: 'English', topic: 'Letter writing + Grammar', duration: '1h', priority: 'Medium', status: 'Pending' },
+      { time: '7:00 PM', subject: 'Hindi', topic: 'Neta ji ka Chasma — Q&A', duration: '45m', priority: 'Low', status: 'Pending' },
+    ],
+    Thursday: [
+      { time: '4:00 PM', subject: 'Science', topic: 'Electricity — Numericals', duration: '1h 30m', priority: 'High', status: 'Pending' },
+      { time: '5:30 PM', subject: 'Social Science', topic: 'Economics — Ch 3 revision', duration: '1h', priority: 'Medium', status: 'Pending' },
+      { time: '7:00 PM', subject: 'Mathematics', topic: 'Statistics practice set', duration: '1h', priority: 'Medium', status: 'Pending' },
+    ],
+    Friday: [
+      { time: '4:00 PM', subject: 'Computer Science', topic: 'SQL queries practice', duration: '1h', priority: 'High', status: 'Pending' },
+      { time: '5:00 PM', subject: 'English', topic: 'Literature — Poem analysis', duration: '1h', priority: 'Low', status: 'Pending' },
+      { time: '6:30 PM', subject: 'Science', topic: 'Lab experiment write-ups', duration: '1h', priority: 'Medium', status: 'Pending' },
+    ],
+    Saturday: [
+      { time: '10:00 AM', subject: 'Mathematics', topic: 'Full chapter revision + mock', duration: '2h', priority: 'High', status: 'Pending' },
+      { time: '1:00 PM', subject: 'Science', topic: 'Previous year paper solving', duration: '2h', priority: 'High', status: 'Pending' },
+    ],
+  };
+
+  const subjectColorMap: Record<string, string> = {
+    Mathematics: 'bg-blue-100 text-blue-700 border-blue-200',
+    Science: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+    English: 'bg-purple-100 text-purple-700 border-purple-200',
+    Hindi: 'bg-orange-100 text-orange-700 border-orange-200',
+    'Social Science': 'bg-amber-100 text-amber-700 border-amber-200',
+    'Computer Science': 'bg-indigo-100 text-indigo-700 border-indigo-200',
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className={`text-2xl font-bold ${theme.highlight}`}>AI Study Planner</h1>
+        <button onClick={() => alert('Study plan regenerated with AI! (Blueprint demo)')} className={`text-[10px] px-3 py-1.5 rounded-lg ${theme.primary} text-white font-bold flex items-center gap-1`}>
+          <Sparkles size={10} /> Regenerate Plan
+        </button>
+      </div>
+
+      <p className={`text-xs ${theme.iconColor}`}>Auto-generated based on: upcoming exams, weak subjects, homework deadlines. Adjust priorities below.</p>
+
+      {/* Study Goals */}
+      <div className="grid grid-cols-4 gap-3">
+        <StatCard icon={Target} label="Target Score" value="90%+" color="bg-blue-500" sub="across all subjects" theme={theme} />
+        <StatCard icon={Clock} label="Daily Target" value="4 hrs" color="bg-emerald-500" sub="study time" theme={theme} />
+        <StatCard icon={CheckCircle} label="This Week" value="12/18" color="bg-amber-500" sub="tasks completed" theme={theme} />
+        <StatCard icon={TrendingUp} label="Planned vs Actual" value="85%" color="bg-purple-500" sub="adherence rate" theme={theme} />
+      </div>
+
+      {/* Subject Priority Sliders */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Subject Priority (1-5)</h3>
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { subject: 'Mathematics', priority: 5 },
+            { subject: 'Science', priority: 5 },
+            { subject: 'English', priority: 3 },
+            { subject: 'Hindi', priority: 3 },
+            { subject: 'Social Science', priority: 3 },
+            { subject: 'Computer Science', priority: 4 },
+          ].map((s, i) => (
+            <div key={i} className={`flex items-center gap-2 px-3 py-2 rounded-lg ${theme.secondaryBg}`}>
+              <span className={`text-[10px] flex-1 font-bold ${theme.highlight}`}>{s.subject}</span>
+              <div className="flex gap-0.5">
+                {[1, 2, 3, 4, 5].map(n => (
+                  <div key={n} className={`w-3 h-3 rounded-sm ${n <= s.priority ? 'bg-blue-500' : theme.accentBg}`} />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Weekly Calendar View */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Weekly Study Plan</h3>
+        <div className="flex gap-1 mb-3">
+          {Object.keys(weeklyPlan).map(day => (
+            <button key={day} onClick={() => setPlannerDay(day)} className={`flex-1 text-[10px] py-1.5 rounded-lg font-bold transition-all ${plannerDay === day ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.iconColor}`}`}>
+              {day.slice(0, 3)}
+            </button>
+          ))}
+        </div>
+
+        {/* Daily Breakdown */}
+        <div className="space-y-2">
+          {weeklyPlan[plannerDay]?.map((slot, i) => (
+            <div key={i} className={`flex items-center gap-3 p-3 rounded-xl ${theme.secondaryBg} border ${theme.border}`}>
+              <span className={`text-[10px] font-bold ${theme.iconColor} w-14 shrink-0`}>{slot.time}</span>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${subjectColorMap[slot.subject] || 'bg-gray-100 text-gray-700 border-gray-200'}`}>{slot.subject}</span>
+              <div className="flex-1 min-w-0">
+                <p className={`text-[10px] font-bold ${theme.highlight} truncate`}>{slot.topic}</p>
+              </div>
+              <span className={`text-[10px] ${theme.iconColor}`}>{slot.duration}</span>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                slot.priority === 'High' ? 'bg-red-100 text-red-700' : slot.priority === 'Medium' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
+              }`}>{slot.priority}</span>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                slot.status === 'Done' ? 'bg-emerald-100 text-emerald-700' : slot.status === 'Skipped' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-500'
+              }`}>{slot.status}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Progress: Planned vs Actual */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Weekly Progress — Planned vs Actual Hours</h3>
+        <div className="grid grid-cols-6 gap-2">
+          {[
+            { subject: 'Maths', planned: 6, actual: 5.5 },
+            { subject: 'Science', planned: 5, actual: 4 },
+            { subject: 'English', planned: 3, actual: 2.5 },
+            { subject: 'Hindi', planned: 2, actual: 1.5 },
+            { subject: 'SST', planned: 2, actual: 2 },
+            { subject: 'CS', planned: 3, actual: 3 },
+          ].map((s, i) => (
+            <div key={i} className={`${theme.secondaryBg} rounded-xl p-3 border ${theme.border} text-center`}>
+              <p className={`text-[10px] font-bold ${theme.highlight} mb-2`}>{s.subject}</p>
+              <div className="flex justify-center gap-2">
+                <div>
+                  <p className={`text-sm font-bold ${theme.iconColor}`}>{s.planned}h</p>
+                  <p className={`text-[8px] ${theme.iconColor}`}>Plan</p>
+                </div>
+                <div>
+                  <p className={`text-sm font-bold ${s.actual >= s.planned ? 'text-emerald-600' : 'text-amber-600'}`}>{s.actual}h</p>
+                  <p className={`text-[8px] ${theme.iconColor}`}>Actual</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── WELLNESS / MOOD TRACKER MODULE ─────────────────
+function WellnessModule({ theme }: { theme: Theme }) {
+  const [selectedMood, setSelectedMood] = useState<number | null>(null);
+  const [journalText, setJournalText] = useState('');
+  const [sleepHours, setSleepHours] = useState('7');
+
+  const moods = [
+    { emoji: '😄', label: 'Great', color: 'bg-emerald-100 border-emerald-300 text-emerald-700' },
+    { emoji: '🙂', label: 'Good', color: 'bg-blue-100 border-blue-300 text-blue-700' },
+    { emoji: '😐', label: 'Okay', color: 'bg-amber-100 border-amber-300 text-amber-700' },
+    { emoji: '😔', label: 'Low', color: 'bg-orange-100 border-orange-300 text-orange-700' },
+    { emoji: '😢', label: 'Bad', color: 'bg-red-100 border-red-300 text-red-700' },
+  ];
+
+  // 30-day mood calendar (mock)
+  const moodCalendar = [
+    0, 1, 0, 1, 2, 0, 1, 0, 0, 1, 2, 0, 1, 1, 0,
+    1, 0, 2, 1, 0, 0, 1, 3, 1, 0, 1, 0, 1, 0, null,
+  ];
+
+  const moodColorMap = ['bg-emerald-400', 'bg-blue-400', 'bg-amber-400', 'bg-orange-400', 'bg-red-400'];
+
+  return (
+    <div className="space-y-4">
+      <h1 className={`text-2xl font-bold ${theme.highlight}`}>Wellness &amp; Mood Tracker</h1>
+
+      {/* Daily Mood Check-in */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>How are you feeling today?</h3>
+        <div className="flex justify-center gap-4">
+          {moods.map((m, i) => (
+            <button
+              key={i}
+              onClick={() => setSelectedMood(i)}
+              className={`flex flex-col items-center gap-1 p-3 rounded-xl border-2 transition-all ${
+                selectedMood === i ? m.color + ' shadow-lg scale-110' : `${theme.secondaryBg} border-transparent`
+              }`}
+            >
+              <span className="text-3xl">{m.emoji}</span>
+              <span className={`text-[10px] font-bold ${selectedMood === i ? '' : theme.iconColor}`}>{m.label}</span>
+            </button>
+          ))}
+        </div>
+        {selectedMood !== null && (
+          <p className={`text-xs text-center mt-3 ${theme.iconColor}`}>
+            Mood recorded: <span className="font-bold">{moods[selectedMood].label}</span> — Thank you for checking in!
+          </p>
+        )}
+      </div>
+
+      {/* Mood Calendar (30 days) */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Mood Calendar — Last 30 Days</h3>
+        <div className="grid grid-cols-15 gap-1" style={{ gridTemplateColumns: 'repeat(15, minmax(0, 1fr))' }}>
+          {moodCalendar.map((mood, i) => (
+            <div
+              key={i}
+              title={mood !== null ? `Day ${i + 1}: ${moods[mood]?.label}` : 'Today'}
+              className={`w-5 h-5 rounded-sm ${mood !== null ? moodColorMap[mood] : `border-2 border-dashed ${theme.border}`}`}
+            />
+          ))}
+        </div>
+        <div className="flex items-center gap-3 mt-2">
+          {moods.map((m, i) => (
+            <div key={i} className="flex items-center gap-1">
+              <div className={`w-3 h-3 rounded-sm ${moodColorMap[i]}`} />
+              <span className={`text-[9px] ${theme.iconColor}`}>{m.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Weekly Mood Trend */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Weekly Mood Trend</h3>
+        <div className="flex items-end justify-between gap-2 h-20">
+          {[
+            { day: 'Mon', mood: 0 },
+            { day: 'Tue', mood: 1 },
+            { day: 'Wed', mood: 0 },
+            { day: 'Thu', mood: 1 },
+            { day: 'Fri', mood: 2 },
+            { day: 'Sat', mood: 0 },
+            { day: 'Sun', mood: 1 },
+          ].map((d, i) => (
+            <div key={i} className="flex-1 flex flex-col items-center gap-1">
+              <div className={`w-full rounded-t-lg ${moodColorMap[d.mood]}`} style={{ height: `${(5 - d.mood) * 15 + 10}px` }} />
+              <span className={`text-[9px] ${theme.iconColor}`}>{d.day}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        {/* Journal */}
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <h3 className={`text-sm font-bold ${theme.highlight} mb-2`}>Today&apos;s Journal</h3>
+          <p className={`text-[10px] ${theme.iconColor} mb-2`}>Write a quick note about your day.</p>
+          <textarea
+            value={journalText}
+            onChange={e => setJournalText(e.target.value)}
+            rows={4}
+            placeholder="How was your day? What went well? What could be better?"
+            className={`w-full text-xs p-3 rounded-xl border ${theme.border} ${theme.cardBg} ${theme.highlight} resize-none`}
+          />
+          <button onClick={() => alert('Journal saved! (Blueprint demo)')} className={`mt-2 text-[10px] px-4 py-2 rounded-xl ${theme.primary} text-white font-bold`}>
+            Save Entry
+          </button>
+        </div>
+
+        {/* Sleep Tracker */}
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <h3 className={`text-sm font-bold ${theme.highlight} mb-2`}>Sleep Tracker</h3>
+          <div className="mb-3">
+            <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Last night&apos;s sleep (hours)</label>
+            <input
+              type="number"
+              value={sleepHours}
+              onChange={e => setSleepHours(e.target.value)}
+              min={0} max={14} step={0.5}
+              className={`w-full text-xs p-2 rounded-lg border ${theme.border} ${theme.cardBg} ${theme.highlight}`}
+            />
+          </div>
+          <div className="space-y-2">
+            <div className="flex justify-between text-[10px]">
+              <span className={theme.iconColor}>Weekly Average</span>
+              <span className={`font-bold ${theme.highlight}`}>7.2 hours</span>
+            </div>
+            <div className="flex justify-between text-[10px]">
+              <span className={theme.iconColor}>Recommended</span>
+              <span className="font-bold text-emerald-600">8-10 hours</span>
+            </div>
+            <div className={`h-2 rounded-full ${theme.secondaryBg}`}>
+              <div className="h-full rounded-full bg-blue-500" style={{ width: `${(7.2 / 10) * 100}%` }} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Wellbeing Tips */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Wellbeing Tips for You</h3>
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { title: 'Take a 10-min Walk', desc: 'Fresh air boosts focus and mood. Take a walk after every 2-hour study block.', icon: '🚶' },
+            { title: 'Practice Deep Breathing', desc: 'Try 4-7-8 breathing: Inhale 4s, Hold 7s, Exhale 8s. Do 3 rounds.', icon: '🧘' },
+            { title: 'Stay Hydrated', desc: 'Drink at least 8 glasses of water daily. Keep a bottle at your study desk.', icon: '💧' },
+          ].map((tip, i) => (
+            <div key={i} className={`${theme.secondaryBg} rounded-xl p-3 border ${theme.border}`}>
+              <span className="text-xl">{tip.icon}</span>
+              <p className={`text-xs font-bold ${theme.highlight} mt-1`}>{tip.title}</p>
+              <p className={`text-[10px] ${theme.iconColor} mt-0.5`}>{tip.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Resources */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Support Resources</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <div className={`${theme.secondaryBg} rounded-xl p-4 border ${theme.border}`}>
+            <div className="flex items-center gap-2 mb-2">
+              <User size={14} className="text-blue-500" />
+              <p className={`text-xs font-bold ${theme.highlight}`}>School Counselor</p>
+            </div>
+            <p className={`text-[10px] ${theme.iconColor}`}>Mrs. Anita Sharma</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>Available: Mon-Fri, 10 AM - 4 PM</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>Room 105, Counseling Wing</p>
+            <button onClick={() => alert('Counselor booking request sent! (Blueprint demo)')} className={`mt-2 text-[10px] px-3 py-1.5 rounded-lg ${theme.primary} text-white font-bold flex items-center gap-1`}>
+              <MessageSquare size={10} /> Talk to Someone
+            </button>
+          </div>
+          <div className={`${theme.secondaryBg} rounded-xl p-4 border ${theme.border}`}>
+            <div className="flex items-center gap-2 mb-2">
+              <Heart size={14} className="text-red-500" />
+              <p className={`text-xs font-bold ${theme.highlight}`}>Helpline Numbers</p>
+            </div>
+            <div className="space-y-1.5">
+              <div className={`text-[10px] ${theme.iconColor}`}><span className="font-bold">iCall:</span> 9152987821</div>
+              <div className={`text-[10px] ${theme.iconColor}`}><span className="font-bold">Vandrevala Foundation:</span> 1860-2662-345</div>
+              <div className={`text-[10px] ${theme.iconColor}`}><span className="font-bold">NIMHANS:</span> 080-46110007</div>
+            </div>
+            <p className={`text-[9px] ${theme.iconColor} mt-2 italic`}>Confidential &amp; free. Available 24/7.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── COMMUNICATION MODULE ───────────────────────────
 function CommunicationModule({ theme }: { theme: Theme }) {
   const [commTab, setCommTab] = useState('Chat');
   const tabs = ['Notices', 'Chat'];

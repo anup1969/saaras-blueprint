@@ -49,6 +49,10 @@ import DemoDataSeederModule from '../_modules/DemoDataSeederModule';
 import MobileAppConfigModule from '../_modules/MobileAppConfigModule';
 import RemarkBankConfigModule from '../_modules/RemarkBankConfigModule';
 import LMSConfigModule from '../_modules/LMSConfigModule';
+import YearEndOperationsModule from '../_modules/YearEndOperationsModule';
+import IDCardConfigModule from '../_modules/IDCardConfigModule';
+import DocumentMgmtConfigModule from '../_modules/DocumentMgmtConfigModule';
+import HealthInfirmaryConfigModule from '../_modules/HealthInfirmaryConfigModule';
 
 // ─── Module ID → Component mapping ──────────────────
 const MODULE_COMPONENTS: Record<string, React.ComponentType<{ theme: Theme }>> = {
@@ -91,6 +95,10 @@ const MODULE_COMPONENTS: Record<string, React.ComponentType<{ theme: Theme }>> =
   'mobile-app-config': MobileAppConfigModule,
   'remark-bank-config': RemarkBankConfigModule,
   'lms-config': LMSConfigModule,
+  'year-end-ops': YearEndOperationsModule,
+  'id-card-config': IDCardConfigModule,
+  'doc-mgmt-config': DocumentMgmtConfigModule,
+  'health-config': HealthInfirmaryConfigModule,
 };
 
 export default function SchoolSuperAdminDashboard({ theme, currentUser }: { theme?: Theme; currentUser?: TeamMember }) {

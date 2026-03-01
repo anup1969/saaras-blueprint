@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Info } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
+import { MasterPermissionGrid, BulkImportWizard } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
 
 function InfoIcon({ tip }: { tip: string }) {
@@ -242,6 +243,16 @@ export default function HomeworkConfigModule({ theme }: { theme: Theme }) {
             </>
           )}
         </div>
+      </SectionCard>
+
+      <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
+        <div className="space-y-4">
+          <MasterPermissionGrid masterName="Assignment Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Bulk Import" subtitle="Import data from Excel templates" theme={theme}>
+        <BulkImportWizard entityName="Assignments" templateFields={['Class', 'Section', 'Subject', 'Title', 'Due Date', 'Max Marks']} sampleData={[['Grade 8', 'A', 'Science', 'Chapter 5 Worksheet', '2026-04-20', '25']]} theme={theme} />
       </SectionCard>
     </div>
   );

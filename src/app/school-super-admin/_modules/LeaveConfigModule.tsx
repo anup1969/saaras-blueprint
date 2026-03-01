@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { X, Plus } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField } from '../_helpers/components';
+import { MasterPermissionGrid, BulkImportWizard } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
 
 export default function LeaveConfigModule({ theme }: { theme: Theme }) {
@@ -139,6 +140,16 @@ export default function LeaveConfigModule({ theme }: { theme: Theme }) {
           </SectionCard>
         </div>
       </div>
+
+      <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
+        <div className="space-y-4">
+          <MasterPermissionGrid masterName="Leave Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Bulk Import" subtitle="Import data from Excel templates" theme={theme}>
+        <BulkImportWizard entityName="Staff Leave Balance" templateFields={['Employee ID', 'Name', 'Leave Type', 'Balance Days', 'Carried Forward']} sampleData={[['EMP001', 'Rajesh Sharma', 'Casual Leave', '12', '3']]} theme={theme} />
+      </SectionCard>
     </div>
   );
 }

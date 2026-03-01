@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { type Theme } from '@/lib/themes';
-import { LucideIcon } from 'lucide-react';
+import { LucideIcon, Download, Upload, FileText, CheckCircle, AlertTriangle, ChevronRight } from 'lucide-react';
 
 // ─── STAT CARD ───────────────────────────────────────
 export function StatCard({ icon: Icon, label, value, color, sub, theme }: {
@@ -193,6 +193,201 @@ export function MobilePreviewToggle({ mobileContent, theme }: { mobileContent: R
         {show ? 'Hide Mobile App View' : 'Show Mobile App View'}
       </button>
       {show && <div className="mt-4">{mobileContent}</div>}
+    </div>
+  );
+}
+
+// ─── MASTER PERMISSION GRID ─────────────────────────
+export function MasterPermissionGrid({ masterName, roles, theme }: {
+  masterName: string;
+  roles: string[];
+  theme: Theme;
+}) {
+  const permissions = ['View', 'Create', 'Edit', 'Delete', 'Import', 'Export'];
+  const [grid, setGrid] = useState<Record<string, Record<string, boolean>>>(() => {
+    const initial: Record<string, Record<string, boolean>> = {};
+    roles.forEach(role => {
+      initial[role] = {};
+      permissions.forEach(perm => {
+        initial[role][perm] = role === 'Super Admin' ? true : (perm === 'View' || perm === 'Create');
+      });
+    });
+    return initial;
+  });
+
+  const toggleCell = (role: string, perm: string) => {
+    setGrid(prev => ({
+      ...prev,
+      [role]: { ...prev[role], [perm]: !prev[role][perm] },
+    }));
+  };
+
+  return (
+    <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+      <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Permissions for {masterName}</h3>
+      <div className="overflow-x-auto">
+        <table className="w-full text-xs">
+          <thead>
+            <tr className={theme.secondaryBg}>
+              <th className={`text-left px-3 py-2 font-bold ${theme.iconColor} uppercase text-[10px]`}>Role</th>
+              {permissions.map(p => (
+                <th key={p} className={`text-center px-3 py-2 font-bold ${theme.iconColor} uppercase text-[10px]`}>{p}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {roles.map(role => (
+              <tr key={role} className={`border-t ${theme.border}`}>
+                <td className={`px-3 py-2.5 font-bold ${theme.highlight}`}>{role}</td>
+                {permissions.map(perm => (
+                  <td key={perm} className="text-center px-3 py-2.5">
+                    <button
+                      onClick={() => toggleCell(role, perm)}
+                      className={`w-9 h-5 rounded-full relative transition-colors ${grid[role]?.[perm] ? theme.primary : 'bg-gray-300'}`}
+                    >
+                      <div className={`w-4 h-4 bg-white rounded-full absolute top-0.5 transition-transform ${grid[role]?.[perm] ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                    </button>
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ─── BULK IMPORT WIZARD ─────────────────────────────
+export function BulkImportWizard({ entityName, templateFields, sampleData, theme }: {
+  entityName: string;
+  templateFields: string[];
+  sampleData: string[][];
+  theme: Theme;
+}) {
+  const [currentStep, setCurrentStep] = useState(0);
+  const [fileName, setFileName] = useState('');
+  const [importing, setImporting] = useState(false);
+  const [done, setDone] = useState(false);
+  const steps = ['Download Template', 'Upload File', 'Validate', 'Import'];
+  const validCount = sampleData.length;
+  const errorCount = Math.max(1, Math.floor(sampleData.length * 0.1));
+
+  return (
+    <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5`}>
+      <h3 className={`text-sm font-bold ${theme.highlight} mb-4`}>Import {entityName}</h3>
+      {/* Step indicators */}
+      <div className="flex items-center gap-1 mb-5">
+        {steps.map((s, i) => (
+          <React.Fragment key={s}>
+            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold ${
+              i === currentStep ? `${theme.primary} text-white` : i < currentStep ? 'bg-emerald-100 text-emerald-700' : `${theme.secondaryBg} ${theme.iconColor}`
+            }`}>
+              {i < currentStep ? <CheckCircle size={12} /> : <span>{i + 1}</span>}
+              {s}
+            </div>
+            {i < steps.length - 1 && <ChevronRight size={14} className={theme.iconColor} />}
+          </React.Fragment>
+        ))}
+      </div>
+
+      {/* Step 1: Download Template */}
+      {currentStep === 0 && (
+        <div className="space-y-3">
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead className={theme.secondaryBg}>
+                <tr>{templateFields.map(f => <th key={f} className={`text-left px-3 py-2 ${theme.iconColor} font-bold text-[10px] uppercase`}>{f}</th>)}</tr>
+              </thead>
+              <tbody>
+                {sampleData.slice(0, 2).map((row, i) => (
+                  <tr key={i} className={`border-t ${theme.border}`}>{row.map((c, j) => <td key={j} className={`px-3 py-2 ${theme.highlight}`}>{c}</td>)}</tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <button onClick={() => setCurrentStep(1)} className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white ${theme.primary}`}>
+            <Download size={14} /> Download Template
+          </button>
+        </div>
+      )}
+
+      {/* Step 2: Upload File */}
+      {currentStep === 1 && (
+        <div className="space-y-3">
+          <div className={`border-2 border-dashed ${theme.border} rounded-xl p-8 text-center`}
+            onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); setFileName('import_data.xlsx'); }}>
+            {fileName ? (
+              <div className="flex items-center justify-center gap-2">
+                <FileText size={18} className="text-emerald-500" />
+                <span className={`text-xs font-bold ${theme.highlight}`}>{fileName}</span>
+              </div>
+            ) : (
+              <div>
+                <Upload size={24} className={`mx-auto mb-2 ${theme.iconColor}`} />
+                <p className={`text-xs ${theme.iconColor}`}>Drag & drop your file here</p>
+              </div>
+            )}
+          </div>
+          <button onClick={() => { if (!fileName) setFileName('import_data.xlsx'); }}
+            className={`px-4 py-2 rounded-xl text-xs font-bold ${theme.secondaryBg} ${theme.highlight} border ${theme.border}`}>
+            Browse
+          </button>
+          <button onClick={() => setCurrentStep(2)} disabled={!fileName}
+            className={`ml-2 px-4 py-2 rounded-xl text-xs font-bold text-white ${theme.primary} ${!fileName ? 'opacity-40' : ''}`}>
+            Next <ChevronRight size={12} className="inline" />
+          </button>
+        </div>
+      )}
+
+      {/* Step 3: Validate */}
+      {currentStep === 2 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-4 mb-2">
+            <span className="flex items-center gap-1 text-xs font-bold text-emerald-600"><CheckCircle size={14} /> {validCount} valid</span>
+            <span className="flex items-center gap-1 text-xs font-bold text-red-500"><AlertTriangle size={14} /> {errorCount} errors</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead className={theme.secondaryBg}>
+                <tr>{templateFields.map(f => <th key={f} className={`text-left px-3 py-2 ${theme.iconColor} font-bold text-[10px] uppercase`}>{f}</th>)}<th className={`px-3 py-2 text-[10px] ${theme.iconColor}`}>Status</th></tr>
+              </thead>
+              <tbody>
+                {sampleData.map((row, i) => (
+                  <tr key={i} className={`border-t ${i === sampleData.length - 1 ? 'bg-red-50' : 'bg-emerald-50'}`}>
+                    {row.map((c, j) => <td key={j} className="px-3 py-2">{c}</td>)}
+                    <td className="px-3 py-2">{i === sampleData.length - 1 ? <AlertTriangle size={12} className="text-red-500" /> : <CheckCircle size={12} className="text-emerald-500" />}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <button onClick={() => setCurrentStep(3)} className={`px-4 py-2 rounded-xl text-xs font-bold text-white ${theme.primary}`}>
+            Next <ChevronRight size={12} className="inline" />
+          </button>
+        </div>
+      )}
+
+      {/* Step 4: Import */}
+      {currentStep === 3 && (
+        <div className="text-center py-6 space-y-3">
+          {done ? (
+            <div className="space-y-2 animate-pulse">
+              <CheckCircle size={40} className="mx-auto text-emerald-500" />
+              <p className={`text-sm font-bold ${theme.highlight}`}>Successfully imported {validCount} {entityName} records!</p>
+            </div>
+          ) : (
+            <>
+              <p className={`text-xs ${theme.iconColor}`}>Ready to import <strong>{validCount}</strong> {entityName} records ({errorCount} skipped due to errors)</p>
+              <button onClick={() => { setImporting(true); setTimeout(() => { setImporting(false); setDone(true); }, 1500); }}
+                disabled={importing}
+                className={`px-6 py-2.5 rounded-xl text-xs font-bold text-white ${theme.primary} ${importing ? 'opacity-60' : ''}`}>
+                {importing ? 'Importing...' : `Import ${validCount} Records`}
+              </button>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }

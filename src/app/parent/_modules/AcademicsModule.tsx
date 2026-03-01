@@ -6,6 +6,7 @@ import { StatCard, TabBar, DataTable, MobileFrame, MobilePreviewToggle } from '@
 import {
   TrendingUp, AlertCircle, MessageSquare,
   Star, Award, Download, X, Calendar, Clock, Info, Smartphone,
+  ArrowUpRight, ArrowDownRight, Minus, BookOpen, ExternalLink, User,
 } from 'lucide-react';
 import type { ChildProfile } from '../_components/types';
 import { academicsData } from '../_components/data';
@@ -298,6 +299,117 @@ export default function AcademicsModule({ theme, child }: { theme: Theme; child:
         </div>
       </div>
 
+      {/* ── Subject-wise Performance Trend ── */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <div className="flex items-center gap-2 mb-3">
+          <TrendingUp size={14} className={theme.iconColor} />
+          <h3 className={`text-sm font-bold ${theme.highlight}`}>Subject-wise Performance Trend</h3>
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { subject: 'Mathematics', trend: 'up', detail: 'Improved from 88% to 94%', change: '+6%' },
+            { subject: 'Science', trend: 'stable', detail: 'Consistent at 85-88%', change: '0%' },
+            { subject: 'English', trend: 'up', detail: 'Improved from 78% to 86%', change: '+8%' },
+            { subject: 'Hindi', trend: 'down', detail: 'Dropped from 92% to 88%', change: '-4%' },
+            { subject: 'Social Science', trend: 'stable', detail: 'Consistent at 82-84%', change: '0%' },
+            { subject: 'Computer Science', trend: 'up', detail: 'Improved from 90% to 97%', change: '+7%' },
+          ].map((s, i) => (
+            <div key={i} className={`flex items-center gap-3 p-3 rounded-xl ${theme.secondaryBg} border ${theme.border}`}>
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                s.trend === 'up' ? 'bg-emerald-100' : s.trend === 'down' ? 'bg-red-100' : 'bg-amber-100'
+              }`}>
+                {s.trend === 'up' && <ArrowUpRight size={16} className="text-emerald-600" />}
+                {s.trend === 'down' && <ArrowDownRight size={16} className="text-red-600" />}
+                {s.trend === 'stable' && <Minus size={16} className="text-amber-600" />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{s.subject}</p>
+                  <span className={`text-[10px] font-bold ${
+                    s.trend === 'up' ? 'text-emerald-600' : s.trend === 'down' ? 'text-red-600' : 'text-amber-600'
+                  }`}>{s.change}</span>
+                </div>
+                <p className={`text-[10px] ${theme.iconColor}`}>{s.detail}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Teacher Feedback per Subject ── */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <div className="flex items-center gap-2 mb-3">
+          <User size={14} className={theme.iconColor} />
+          <h3 className={`text-sm font-bold ${theme.highlight}`}>Recent Teacher Feedback</h3>
+        </div>
+        <div className="space-y-2.5">
+          {[
+            { subject: 'Mathematics', teacher: 'Mr. Sharma', feedback: 'Aarav shows excellent problem-solving skills. Consistently performs well in numerical problems. Should focus more on geometry proofs.', date: 'Feb 10, 2026' },
+            { subject: 'Science', teacher: 'Mrs. Iyer', feedback: 'Good grasp of concepts. Lab work is exceptional. Needs to improve answer writing for descriptive questions.', date: 'Feb 08, 2026' },
+            { subject: 'English', teacher: 'Ms. D\'Souza', feedback: 'Vocabulary has improved significantly. Creative writing is a strong suit. Grammar exercises need more practice, especially tenses.', date: 'Feb 05, 2026' },
+            { subject: 'Computer Science', teacher: 'Mr. Joshi', feedback: 'Outstanding performance in programming. Helps classmates with debugging. Ready for advanced topics in data structures.', date: 'Feb 12, 2026' },
+          ].map((f, i) => (
+            <div key={i} className={`p-3 rounded-xl ${theme.secondaryBg} border ${theme.border}`}>
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-2">
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold bg-blue-100 text-blue-700`}>{f.subject}</span>
+                  <span className={`text-[10px] ${theme.iconColor}`}>{f.teacher}</span>
+                </div>
+                <span className={`text-[10px] ${theme.iconColor}`}>{f.date}</span>
+              </div>
+              <p className={`text-[10px] ${theme.iconColor} leading-relaxed italic`}>&quot;{f.feedback}&quot;</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Learning Resources & Recommendations ── */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <div className="flex items-center gap-2 mb-3">
+          <BookOpen size={14} className={theme.iconColor} />
+          <h3 className={`text-sm font-bold ${theme.highlight}`}>Learning Resources &amp; Recommendations</h3>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { subject: 'Mathematics', resources: [
+              { name: 'NCERT Solutions Ch-12', type: 'PDF', link: '#' },
+              { name: 'Surface Area — Video Lectures', type: 'Video', link: '#' },
+              { name: 'R.D. Sharma Practice Set', type: 'PDF', link: '#' },
+            ]},
+            { subject: 'Science', resources: [
+              { name: 'Magnetic Effects Lab Demo', type: 'Video', link: '#' },
+              { name: 'NCERT Exemplar Solutions', type: 'PDF', link: '#' },
+              { name: 'Physics Wallah — Electricity', type: 'Video', link: '#' },
+            ]},
+            { subject: 'English', resources: [
+              { name: 'Grammar Practice Worksheets', type: 'PDF', link: '#' },
+              { name: 'Essay Writing Tips & Examples', type: 'Article', link: '#' },
+              { name: 'Letter Writing Format Guide', type: 'PDF', link: '#' },
+            ]},
+            { subject: 'Hindi', resources: [
+              { name: 'Surdas ke Pad — Explanation', type: 'Video', link: '#' },
+              { name: 'CBSE Hindi Grammar Notes', type: 'PDF', link: '#' },
+              { name: 'Previous Year Q Papers', type: 'PDF', link: '#' },
+            ]},
+          ].map((s, i) => (
+            <div key={i} className={`${theme.secondaryBg} rounded-xl p-3 border ${theme.border}`}>
+              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>{s.subject}</p>
+              <div className="space-y-1.5">
+                {s.resources.map((r, ri) => (
+                  <div key={ri} className="flex items-center gap-2">
+                    <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold ${
+                      r.type === 'Video' ? 'bg-red-100 text-red-600' : r.type === 'PDF' ? 'bg-blue-100 text-blue-600' : 'bg-emerald-100 text-emerald-600'
+                    }`}>{r.type}</span>
+                    <a href={r.link} className={`text-[10px] ${theme.primaryText} font-bold flex items-center gap-0.5 hover:underline`}>
+                      {r.name} <ExternalLink size={8} />
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
 
     </div>
   );
