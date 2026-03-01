@@ -122,50 +122,6 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
         </div>
       )}
 
-      {/* Gap #149 — Child Safety / Chronic Attendance Alert */}
-      {!isPreschool && (
-        <div className={`${theme.cardBg} rounded-2xl border-2 border-red-300 ring-1 ring-red-300/30 p-4`}>
-          <div className="flex items-center gap-2 mb-2">
-            <Shield size={16} className="text-red-600" />
-            <h3 className={`text-sm font-bold text-red-700`}>Chronic Attendance Alert</h3>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-bold">Action Required</span>
-          </div>
-          <p className={`text-xs ${theme.iconColor} mb-3`}>3 students flagged for chronic absence (&gt;30 days). POCSO/Child Safety protocol: Auto-flagged for counselor review.</p>
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className={`border-b ${theme.border}`}>
-                  <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Student</th>
-                  <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Class</th>
-                  <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Days Absent</th>
-                  <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Parent Contacted</th>
-                  <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Counselor</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  { name: 'Rohit Verma', cls: '7A', days: 34, contacted: 'Yes (Feb 20)', counselor: 'Assigned' },
-                  { name: 'Meena Kumari', cls: '5C', days: 31, contacted: 'Yes (Feb 22)', counselor: 'Pending' },
-                  { name: 'Ajay Thakur', cls: '9B', days: 38, contacted: 'No — unreachable', counselor: 'Assigned' },
-                ].map((s, i) => (
-                  <tr key={i} className={`border-b ${theme.border} ${theme.buttonHover}`}>
-                    <td className={`py-2 px-2 font-bold ${theme.highlight}`}>{s.name}</td>
-                    <td className={`py-2 px-2 ${theme.iconColor}`}>{s.cls}</td>
-                    <td className="py-2 px-2 font-bold text-red-600">{s.days}</td>
-                    <td className={`py-2 px-2 ${theme.iconColor}`}>{s.contacted}</td>
-                    <td className="py-2 px-2">
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
-                        s.counselor === 'Assigned' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-                      }`}>{s.counselor}</span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
       {/* Preschool Mode Banner */}
       {isPreschool && (
         <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800">
@@ -717,6 +673,50 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Gap #149 — Child Safety / Chronic Attendance Alert */}
+      {!isPreschool && (
+        <div className={`${theme.cardBg} rounded-2xl border-2 border-red-300 ring-1 ring-red-300/30 p-4`}>
+          <div className="flex items-center gap-2 mb-2">
+            <Shield size={16} className="text-red-600" />
+            <h3 className={`text-sm font-bold text-red-700`}>Chronic Attendance Alert</h3>
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-bold">Action Required</span>
+          </div>
+          <p className={`text-xs ${theme.iconColor} mb-3`}>3 students flagged for chronic absence (&gt;30 days). POCSO/Child Safety protocol: Auto-flagged for counselor review.</p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className={`border-b ${theme.border}`}>
+                  <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Student</th>
+                  <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Class</th>
+                  <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Days Absent</th>
+                  <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Parent Contacted</th>
+                  <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Counselor</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { name: 'Rohit Verma', cls: '7A', days: 34, contacted: 'Yes (Feb 20)', counselor: 'Assigned' },
+                  { name: 'Meena Kumari', cls: '5C', days: 31, contacted: 'Yes (Feb 22)', counselor: 'Pending' },
+                  { name: 'Ajay Thakur', cls: '9B', days: 38, contacted: 'No — unreachable', counselor: 'Assigned' },
+                ].map((s, i) => (
+                  <tr key={i} className={`border-b ${theme.border} ${theme.buttonHover}`}>
+                    <td className={`py-2 px-2 font-bold ${theme.highlight}`}>{s.name}</td>
+                    <td className={`py-2 px-2 ${theme.iconColor}`}>{s.cls}</td>
+                    <td className="py-2 px-2 font-bold text-red-600">{s.days}</td>
+                    <td className={`py-2 px-2 ${theme.iconColor}`}>{s.contacted}</td>
+                    <td className="py-2 px-2">
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                        s.counselor === 'Assigned' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                      }`}>{s.counselor}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
