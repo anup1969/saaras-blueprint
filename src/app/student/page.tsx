@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import BlueprintLayout from '@/components/BlueprintLayout';
-import { StatCard, TabBar, StatusBadge, SearchBar, DataTable } from '@/components/shared';
+import { StatCard, TabBar, StatusBadge, SearchBar, DataTable, MobileFrame, MobilePreviewToggle } from '@/components/shared';
 import { type Theme } from '@/lib/themes';
 import {
   Home, Calendar, BookOpen, Award, ClipboardCheck, Banknote, BookMarked, Megaphone,
@@ -13,7 +13,8 @@ import {
   PanelLeftClose, PanelLeftOpen, Headphones,
   CalendarOff, FileBadge, LayoutGrid, X, Send, Copy,
   FolderOpen, Trophy, Medal, Plus, Pencil, Trash2, Shield,
-  FileCheck, Info, Smartphone, Play, ChevronLeft
+  FileCheck, Info, Smartphone, Play, ChevronLeft,
+  Camera, Share2, QrCode, Fingerprint, Wifi, MapPin,
 } from 'lucide-react';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
@@ -474,6 +475,100 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
         {/* Task Tracker */}
         <TaskTrackerPanel theme={theme} role="student" />
       </div>
+
+      {/* Mobile App Preview */}
+      <MobilePreviewToggle theme={theme} mobileContent={
+        <MobileFrame title="Student Home" theme={theme}>
+          <div className="bg-white rounded-xl border border-gray-200 p-3 shadow-sm">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className="w-9 h-9 rounded-full bg-blue-500 flex items-center justify-center text-white text-[11px] font-bold">AP</div>
+                <div>
+                  <p className="text-[11px] font-bold text-gray-800">Hi, Aarav!</p>
+                  <p className="text-[8px] text-gray-500">Class 10-A | Roll No. 1</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="relative">
+                  <Bell size={16} className="text-gray-600" />
+                  <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-red-500 text-white text-[7px] font-bold flex items-center justify-center">3</span>
+                </div>
+                <Fingerprint size={16} className="text-emerald-500" />
+              </div>
+            </div>
+            <div className="bg-blue-50 rounded-lg p-2.5 mb-2">
+              <p className="text-[9px] font-bold text-blue-700 mb-1">Today &mdash; Thu, 12 Feb 2026</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-bold text-gray-800">Next: English &mdash; P3</p>
+                  <p className="text-[8px] text-gray-500">Ms. D&apos;Souza | Room 201 | 9:10 AM</p>
+                </div>
+                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-blue-200 text-blue-800 font-bold">In 12 min</span>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="bg-amber-50 rounded-lg p-2">
+                <p className="text-[8px] text-amber-600 font-bold">Homework Due</p>
+                <p className="text-[12px] font-bold text-amber-700">2 pending</p>
+                <p className="text-[7px] text-amber-500">Due tomorrow</p>
+              </div>
+              <div className="bg-emerald-50 rounded-lg p-2">
+                <p className="text-[8px] text-emerald-600 font-bold">Attendance</p>
+                <p className="text-[12px] font-bold text-emerald-700">93.2%</p>
+                <p className="text-[7px] text-emerald-500">Present today</p>
+              </div>
+            </div>
+          </div>
+          {/* Quick Action Grid */}
+          <div className="grid grid-cols-4 gap-2">
+            {[
+              { label: 'Timetable', icon: Calendar, color: 'bg-blue-500' },
+              { label: 'Homework', icon: BookOpen, color: 'bg-amber-500' },
+              { label: 'Results', icon: Award, color: 'bg-emerald-500' },
+              { label: 'Exams', icon: FileCheck, color: 'bg-purple-500' },
+            ].map((action, i) => (
+              <button key={i} className="flex flex-col items-center gap-1.5 py-3 rounded-xl bg-white border border-gray-200 shadow-sm">
+                <div className={`w-9 h-9 rounded-xl ${action.color} flex items-center justify-center text-white`}>
+                  <action.icon size={16} />
+                </div>
+                <span className="text-[8px] font-bold text-gray-700">{action.label}</span>
+              </button>
+            ))}
+          </div>
+          {/* Today Classes */}
+          <div className="bg-white rounded-xl border border-gray-200 p-2.5 shadow-sm">
+            <p className="text-[10px] font-bold text-gray-800 mb-1.5">Today&apos;s Classes</p>
+            <div className="space-y-1">
+              {[
+                { p: 'P1', subj: 'Hindi', time: '7:50', done: true, current: false },
+                { p: 'P2', subj: 'Science', time: '8:30', done: true, current: false },
+                { p: 'P3', subj: 'English', time: '9:10', done: false, current: true },
+                { p: 'P4', subj: 'Maths', time: '10:05', done: false, current: false },
+              ].map((cls, i) => (
+                <div key={i} className={`flex items-center gap-2 px-2 py-1.5 rounded-lg ${cls.current ? 'bg-blue-50 border border-blue-200' : cls.done ? 'bg-gray-50 opacity-60' : ''}`}>
+                  <span className={`text-[8px] font-bold w-5 ${cls.done ? 'text-gray-400' : 'text-gray-700'}`}>{cls.p}</span>
+                  <span className={`text-[9px] font-bold flex-1 ${cls.done ? 'text-gray-400' : 'text-gray-800'}`}>{cls.subj}</span>
+                  <span className="text-[8px] text-gray-400">{cls.time}</span>
+                  {cls.done && <CheckCircle size={9} className="text-emerald-500" />}
+                  {cls.current && <span className="text-[7px] px-1 py-0.5 rounded bg-blue-500 text-white font-bold">NOW</span>}
+                </div>
+              ))}
+              <p className="text-[8px] text-gray-400 text-center">+ 4 more periods</p>
+            </div>
+          </div>
+          {/* Recent Notice */}
+          <div className="bg-white rounded-xl border border-gray-200 p-2.5 shadow-sm">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-red-500 flex items-center justify-center text-white"><Bell size={10} /></div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[9px] font-bold text-gray-800 truncate">Annual Day Celebration 2026</p>
+                <p className="text-[8px] text-gray-500">12 Feb 2026 | Event</p>
+              </div>
+              <span className="text-[7px] px-1 py-0.5 rounded bg-red-100 text-red-600 font-bold">NEW</span>
+            </div>
+          </div>
+        </MobileFrame>
+      } />
     </div>
   );
 }
@@ -549,6 +644,59 @@ function TimetableModule({ theme }: { theme: Theme }) {
           ))}
         </div>
       </div>
+
+      {/* Mobile App Preview */}
+      <MobilePreviewToggle theme={theme} mobileContent={
+        <MobileFrame title="Timetable" theme={theme}>
+          <div className="bg-blue-50 rounded-xl border border-blue-200 p-2.5">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-[10px] font-bold text-blue-700">Now: Period 3</p>
+              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-blue-200 text-blue-800 font-bold">12 min left</span>
+            </div>
+            <p className="text-[11px] font-bold text-gray-800">English &mdash; Ms. D&apos;Souza</p>
+            <p className="text-[10px] text-gray-600 font-medium">Room 201</p>
+          </div>
+          <div className="flex items-center gap-1 overflow-x-auto pb-1">
+            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d, i) => (
+              <button key={d} className={`px-2.5 py-1.5 rounded-lg text-[9px] font-bold whitespace-nowrap ${i === 3 ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600'}`}>{d}</button>
+            ))}
+          </div>
+          <p className="text-center text-[8px] text-gray-400">&larr; Swipe &rarr;</p>
+          <div className="space-y-1.5">
+            {[
+              { p: 1, time: '7:50 - 8:30', subj: 'Hindi', teacher: 'Mrs. Mishra', room: 'Room 201', done: true, current: false },
+              { p: 2, time: '8:30 - 9:10', subj: 'Science', teacher: 'Mrs. Iyer', room: 'Lab 3', done: true, current: false },
+              { p: 3, time: '9:10 - 9:50', subj: 'English', teacher: "Ms. D'Souza", room: 'Room 201', done: false, current: true },
+              { p: 4, time: '10:05 - 10:45', subj: 'Maths', teacher: 'Mr. Sharma', room: 'Room 201', done: false, current: false },
+              { p: 5, time: '10:45 - 11:25', subj: 'SST', teacher: 'Mr. Reddy', room: 'Room 201', done: false, current: false },
+              { p: 6, time: '12:00 - 12:40', subj: 'CS', teacher: 'Mr. Joshi', room: 'Comp Lab 1', done: false, current: false },
+              { p: 7, time: '12:40 - 1:20', subj: 'Music', teacher: 'Mrs. Kapoor', room: 'Music Room', done: false, current: false },
+              { p: 8, time: '1:20 - 2:00', subj: 'Moral Sc.', teacher: 'Mrs. Devi', room: 'Room 201', done: false, current: false },
+            ].map((cls, i) => (
+              <div key={i} className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl border ${cls.current ? 'bg-blue-50 border-blue-300 shadow-sm' : cls.done ? 'bg-gray-50 border-gray-200 opacity-60' : 'bg-white border-gray-200'}`}>
+                <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-[9px] font-bold ${cls.current ? 'bg-blue-500 text-white' : cls.done ? 'bg-gray-300 text-white' : 'bg-gray-100 text-gray-600'}`}>P{cls.p}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-bold text-gray-800">{cls.subj}</span>
+                    {cls.current && <span className="text-[8px] px-1 py-0.5 rounded bg-blue-500 text-white font-bold">NOW</span>}
+                    {cls.done && <CheckCircle size={9} className="text-emerald-500" />}
+                  </div>
+                  <p className="text-[8px] text-gray-500">{cls.teacher}</p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-[9px] font-bold text-gray-700">{cls.room}</p>
+                  <p className="text-[8px] text-gray-400">{cls.time}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center justify-center gap-3 pt-1">
+            <span className="text-[8px] text-gray-400 flex items-center gap-0.5"><Clock size={7} /> Break 9:50</span>
+            <span className="text-[8px] text-gray-400 flex items-center gap-0.5"><Clock size={7} /> Lunch 11:25</span>
+            <span className="text-[8px] text-gray-400 flex items-center gap-0.5"><Clock size={7} /> Out 2:00</span>
+          </div>
+        </MobileFrame>
+      } />
     </div>
   );
 }
@@ -642,6 +790,57 @@ function HomeworkModule({ theme }: { theme: Theme }) {
           </div>
         ))}
       </div>
+
+      {/* Mobile App Preview */}
+      <MobilePreviewToggle theme={theme} mobileContent={
+        <MobileFrame title="Homework" theme={theme}>
+          <div className="bg-amber-50 rounded-xl border border-amber-200 p-2.5 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <AlertTriangle size={14} className="text-amber-600" />
+              <span className="text-[10px] font-bold text-amber-700">2 Pending Assignments</span>
+            </div>
+            <span className="text-[9px] text-amber-600">Due this week</span>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-3 shadow-sm">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[9px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-bold">Pending</span>
+              <span className="text-[9px] text-red-600 font-bold flex items-center gap-0.5"><Clock size={8} /> Due in 1 day</span>
+            </div>
+            <p className="text-[11px] font-bold text-gray-800 mb-0.5">Mathematics</p>
+            <p className="text-[9px] text-gray-600 mb-2">Ch-12: Surface Areas &amp; Volumes &mdash; Ex 12.2</p>
+            <p className="text-[8px] text-gray-400 mb-2">Assigned by Mr. Sharma | Due: 13 Feb 2026</p>
+            <div className="flex items-center gap-2">
+              <button className="flex-1 flex items-center justify-center gap-1 py-2.5 rounded-xl bg-blue-500 text-white text-[10px] font-bold"><Upload size={10} /> Submit</button>
+              <button className="flex items-center justify-center gap-1 px-3 py-2.5 rounded-xl bg-gray-100 text-gray-700 text-[10px] font-bold"><Camera size={10} /> Photo</button>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-3 shadow-sm">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[9px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-bold">Pending</span>
+              <span className="text-[9px] text-amber-600 font-bold flex items-center gap-0.5"><Clock size={8} /> Due in 3 days</span>
+            </div>
+            <p className="text-[11px] font-bold text-gray-800 mb-0.5">Science</p>
+            <p className="text-[9px] text-gray-600 mb-2">Write experiment report on Magnetic Effects</p>
+            <p className="text-[8px] text-gray-400 mb-2">Assigned by Mrs. Iyer | Due: 12 Feb 2026</p>
+            <div className="flex items-center gap-2">
+              <button className="flex-1 flex items-center justify-center gap-1 py-2.5 rounded-xl bg-blue-500 text-white text-[10px] font-bold"><Upload size={10} /> Submit</button>
+              <button className="flex items-center justify-center gap-1 px-3 py-2.5 rounded-xl bg-gray-100 text-gray-700 text-[10px] font-bold"><Camera size={10} /> Photo</button>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl border border-emerald-200 p-3 shadow-sm">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold">Graded</span>
+              <span className="text-[10px] font-bold text-emerald-700">18/20</span>
+            </div>
+            <p className="text-[11px] font-bold text-gray-800 mb-0.5">Hindi</p>
+            <p className="text-[9px] text-gray-600">Complete Surdas ke Pad exercises</p>
+            <button className="mt-2 w-full py-2 rounded-lg bg-gray-50 border border-gray-200 text-[9px] font-bold text-gray-700 flex items-center justify-center gap-1"><Eye size={9} /> View Feedback</button>
+          </div>
+          <div className="flex justify-center pt-1">
+            <button className="flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-blue-600 text-white text-[10px] font-bold shadow-lg"><Camera size={12} /> Snap &amp; Submit</button>
+          </div>
+        </MobileFrame>
+      } />
     </div>
   );
 }
@@ -826,6 +1025,90 @@ function AttendanceModule({ theme }: { theme: Theme }) {
         ])}
         theme={theme}
       />
+
+      {/* Mobile App Preview */}
+      <MobilePreviewToggle theme={theme} mobileContent={
+        <MobileFrame title="Attendance" theme={theme}>
+          <div className="bg-white rounded-xl border border-gray-200 p-3 shadow-sm flex items-center gap-3">
+            <div className="relative w-16 h-16 shrink-0">
+              <svg viewBox="0 0 36 36" className="w-16 h-16 -rotate-90">
+                <circle cx="18" cy="18" r="15" fill="none" stroke="#e5e7eb" strokeWidth="3" />
+                <circle cx="18" cy="18" r="15" fill="none" stroke="#10b981" strokeWidth="3" strokeDasharray="87.8 94.2" strokeLinecap="round" />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-[12px] font-bold text-emerald-600">93.2%</span>
+              </div>
+            </div>
+            <div>
+              <p className="text-[11px] font-bold text-gray-800">Overall Attendance</p>
+              <p className="text-[9px] text-gray-500">212 present / 228 working days</p>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold">Good</span>
+                <span className="text-[9px] text-gray-500">Min: 75% required</span>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-3 shadow-sm">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[11px] font-bold text-gray-800">February 2026</p>
+              <p className="text-[9px] text-gray-500">&larr; Swipe &rarr;</p>
+            </div>
+            <div className="grid grid-cols-7 gap-0.5 mb-1">
+              {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
+                <div key={i} className="text-center text-[8px] font-bold text-gray-400 py-0.5">{d}</div>
+              ))}
+            </div>
+            <div className="grid grid-cols-7 gap-0.5">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={`e-${i}`} className="h-7" />
+              ))}
+              {Array.from({ length: 28 }).map((_, i) => {
+                const day = i + 1;
+                const status: Record<number, string> = { 1: 'H', 2: 'P', 3: 'P', 4: 'P', 5: 'P', 6: 'P', 7: 'P', 8: 'H', 9: 'P', 10: 'L', 11: 'P', 12: 'P' };
+                const s = status[day];
+                const dotColor = s === 'P' ? 'bg-emerald-500' : s === 'A' ? 'bg-red-500' : s === 'L' ? 'bg-amber-400' : s === 'H' ? 'bg-gray-300' : '';
+                return (
+                  <div key={day} className="h-7 flex flex-col items-center justify-center">
+                    <span className={`text-[8px] ${day > 12 ? 'text-gray-300' : 'text-gray-700'} font-medium`}>{day}</span>
+                    {dotColor && <div className={`w-1.5 h-1.5 rounded-full ${dotColor} mt-0.5`} />}
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex items-center justify-center gap-3 mt-2 pt-2 border-t border-gray-100">
+              <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-emerald-500" /><span className="text-[8px] text-gray-500">Present</span></div>
+              <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-red-500" /><span className="text-[8px] text-gray-500">Absent</span></div>
+              <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-amber-400" /><span className="text-[8px] text-gray-500">Late</span></div>
+              <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-gray-300" /><span className="text-[8px] text-gray-500">Holiday</span></div>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-3 shadow-sm">
+            <p className="text-[10px] font-bold text-gray-800 mb-2">Month-wise Summary</p>
+            <div className="space-y-1.5">
+              {[
+                { month: 'Feb 2026', pct: 90.0 },
+                { month: 'Jan 2026', pct: 91.7 },
+                { month: 'Dec 2025', pct: 94.4 },
+              ].map((m, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <span className="text-[9px] text-gray-600 w-14">{m.month}</span>
+                  <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
+                    <div className={`h-full rounded-full ${m.pct >= 90 ? 'bg-emerald-500' : m.pct >= 75 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${m.pct}%` }} />
+                  </div>
+                  <span className="text-[9px] font-bold text-gray-700 w-10 text-right">{m.pct}%</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="bg-emerald-50 rounded-xl border border-emerald-200 p-3 flex items-center gap-2">
+            <CheckCircle size={14} className="text-emerald-600" />
+            <div>
+              <p className="text-[10px] font-bold text-emerald-700">Today: Present</p>
+              <p className="text-[8px] text-emerald-600">Marked at 7:48 AM</p>
+            </div>
+          </div>
+        </MobileFrame>
+      } />
     </div>
   );
 }
@@ -2081,6 +2364,115 @@ function MyExamsModule({ theme }: { theme: Theme }) {
           </div>
         </div>
       )}
+
+      {/* Mobile App Preview */}
+      <MobilePreviewToggle theme={theme} mobileContent={
+        <MobileFrame title="My Exams" theme={theme}>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-[11px] font-bold text-gray-800">Upcoming Exams</p>
+              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 font-bold">3 exams</span>
+            </div>
+            {[
+              { subject: 'Mathematics', date: 'Mon, 17 Feb', time: '9:00 AM', room: 'Hall A', days: 5 },
+              { subject: 'Science', date: 'Wed, 19 Feb', time: '9:00 AM', room: 'Hall B', days: 7 },
+              { subject: 'English', date: 'Fri, 21 Feb', time: '11:00 AM', room: 'Room 12', days: 9 },
+            ].map((exam, i) => (
+              <div key={i} className="bg-white rounded-xl border border-gray-200 p-3 shadow-sm">
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-[11px] font-bold text-gray-800">{exam.subject}</p>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold">{exam.days}d left</span>
+                </div>
+                <div className="flex items-center gap-3 text-[9px] text-gray-500">
+                  <span className="flex items-center gap-0.5"><Calendar size={8} /> {exam.date}</span>
+                  <span className="flex items-center gap-0.5"><Clock size={8} /> {exam.time}</span>
+                  <span className="flex items-center gap-0.5"><MapPin size={8} /> {exam.room}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="bg-gray-900 rounded-xl p-3 shadow-sm">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[11px] font-bold text-white">Online Test Mode</p>
+              <div className="flex items-center gap-1">
+                <Wifi size={8} className="text-emerald-400" />
+                <span className="text-[8px] text-emerald-400">Connected</span>
+              </div>
+            </div>
+            <div className="w-full h-1.5 bg-gray-700 rounded-full mb-3">
+              <div className="h-full rounded-full bg-amber-400" style={{ width: '35%' }} />
+            </div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[9px] text-gray-400">Q 7 of 20</span>
+              <span className="text-[9px] text-amber-400 font-bold flex items-center gap-0.5"><Timer size={8} /> 18:24</span>
+            </div>
+            <div className="bg-gray-800 rounded-lg p-2.5 mb-2">
+              <p className="text-[10px] text-white leading-relaxed">If sin(A) = 3/5, find cos(A) given A is acute.</p>
+            </div>
+            <div className="space-y-1.5">
+              {['4/5', '3/4', '5/3', '2/5'].map((opt, i) => (
+                <button key={i} className={`w-full text-left p-2 rounded-lg text-[10px] font-medium ${i === 0 ? 'bg-blue-600 text-white border border-blue-500' : 'bg-gray-800 text-gray-300 border border-gray-700'}`}>
+                  <span className="font-bold mr-2">{String.fromCharCode(65 + i)}.</span>{opt}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center justify-center mt-2">
+              <p className="text-[8px] text-gray-500">&larr; Swipe for next question &rarr;</p>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-3 shadow-sm">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <p className="text-[11px] font-bold text-gray-800">Science — Unit Test 3</p>
+                <p className="text-[9px] text-gray-500">5 Feb 2026</p>
+              </div>
+              <button className="flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-50 text-blue-600 text-[9px] font-bold"><Share2 size={8} /> Share</button>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="relative w-16 h-16 shrink-0">
+                <svg viewBox="0 0 36 36" className="w-16 h-16 -rotate-90">
+                  <circle cx="18" cy="18" r="15" fill="none" stroke="#e5e7eb" strokeWidth="3" />
+                  <circle cx="18" cy="18" r="15" fill="none" stroke="#3b82f6" strokeWidth="3" strokeDasharray="66 94.2" strokeLinecap="round" />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-[12px] font-bold text-blue-600">70%</span>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-[9px] text-gray-500 w-12">Marks</span>
+                  <span className="text-[10px] font-bold text-gray-800">35 / 50</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[9px] text-gray-500 w-12">Grade</span>
+                  <span className="text-[10px] font-bold text-blue-600">B+</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[9px] text-gray-500 w-12">Rank</span>
+                  <span className="text-[10px] font-bold text-gray-800">12 / 42</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-3 shadow-sm">
+            <div className="flex items-center gap-2 mb-2">
+              <QrCode size={14} className="text-gray-600" />
+              <p className="text-[11px] font-bold text-gray-800">Admit Card</p>
+            </div>
+            <div className="bg-blue-50 rounded-lg p-2.5 flex items-center gap-3">
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <QrCode size={24} className="text-blue-600" />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-gray-800">Final Term Exam 2026</p>
+                <p className="text-[9px] text-gray-600">Roll No: 2026-X-A-18</p>
+                <p className="text-[9px] text-gray-600">Seat: Hall A — Row 3</p>
+              </div>
+            </div>
+            <button className="mt-2 w-full py-2 rounded-lg bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center gap-1"><Download size={10} /> Download Admit Card</button>
+          </div>
+        </MobileFrame>
+      } />
     </div>
   );
 }

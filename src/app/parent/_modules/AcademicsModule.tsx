@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { type Theme } from '@/lib/themes';
-import { StatCard, TabBar, DataTable } from '@/components/shared';
+import { StatCard, TabBar, DataTable, MobileFrame, MobilePreviewToggle } from '@/components/shared';
 import {
   TrendingUp, AlertCircle, MessageSquare,
   Star, Award, Download, X, Calendar, Clock, Info, Smartphone,
@@ -204,6 +204,100 @@ export default function AcademicsModule({ theme, child }: { theme: Theme; child:
           </table>
         </div>
       </div>
+
+      {/* ── Mobile App Preview ── */}
+      <MobilePreviewToggle theme={theme} mobileContent={
+        <div className="flex flex-wrap gap-6 justify-center">
+          {/* Screen 1: Exam Results */}
+          <MobileFrame title="Results" theme={theme}>
+            <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 text-center">
+              <p className="text-[9px] text-gray-500">{exam.name} &bull; {exam.date}</p>
+              <p className="text-2xl font-bold text-blue-600 mt-0.5">{exam.totalMarks}/{exam.totalOutOf}</p>
+              <p className="text-[10px] text-gray-500 mt-0.5">Rank: <span className="font-bold text-amber-600">#{exam.rank}</span> of {exam.classStrength}</p>
+            </div>
+
+            <div className="bg-white rounded-xl p-2.5 shadow-sm border border-gray-100">
+              <p className="text-[10px] font-bold text-gray-800 mb-2">Subject-wise Marks</p>
+              {exam.subjects.map((s, i) => (
+                <div key={i} className="py-1.5 border-b border-gray-50 last:border-0">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] text-gray-700">{s.subject}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold text-gray-800">{s.marks}/{s.total}</span>
+                      <span className={`text-[8px] px-1.5 py-0.5 rounded-full font-bold ${
+                        s.grade.startsWith('A') ? 'bg-emerald-100 text-emerald-600' : s.grade.startsWith('B') ? 'bg-blue-100 text-blue-600' : 'bg-amber-100 text-amber-600'
+                      }`}>{s.grade}</span>
+                    </div>
+                  </div>
+                  <div className="h-1.5 bg-gray-100 rounded-full mt-1 overflow-hidden">
+                    <div className={`h-1.5 rounded-full ${s.marks/s.total >= 0.8 ? 'bg-emerald-500' : s.marks/s.total >= 0.6 ? 'bg-blue-500' : 'bg-amber-500'}`} style={{ width: `${(s.marks/s.total)*100}%` }} />
+                  </div>
+                  <div className="flex justify-between mt-0.5">
+                    <span className="text-[7px] text-gray-400">Class avg: {s.classAvg}</span>
+                    <span className={`text-[7px] font-bold ${s.marks > s.classAvg ? 'text-emerald-600' : 'text-red-500'}`}>{s.marks > s.classAvg ? `+${s.marks - s.classAvg} above` : `${s.classAvg - s.marks} below`}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <button className="w-full py-2.5 bg-blue-600 text-white text-[11px] font-bold rounded-xl flex items-center justify-center gap-1">
+              &#128196; Download Report Card
+            </button>
+
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-2.5">
+              <p className="text-[10px] font-bold text-emerald-800">Teacher&apos;s Remark</p>
+              <p className="text-[8px] text-emerald-700 mt-0.5">{exam.remarks}</p>
+            </div>
+          </MobileFrame>
+
+          {/* Screen 2: Exam Schedule */}
+          <MobileFrame title="Exam Schedule" theme={theme}>
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-2.5 text-center">
+              <p className="text-[10px] font-bold text-blue-800">Upcoming: {child.id === 'child1' ? 'Pre-Board Examination' : 'Unit Test 3'}</p>
+              <p className="text-[8px] text-blue-600 mt-0.5">Starting March 2026</p>
+            </div>
+
+            <div className="bg-white rounded-xl p-2.5 shadow-sm border border-gray-100">
+              <p className="text-[10px] font-bold text-gray-800 mb-2">Exam Timetable</p>
+              {[
+                { date: 'Mar 15', day: 'Mon', subject: 'Mathematics', time: '10:00 AM', venue: 'Hall A' },
+                { date: 'Mar 18', day: 'Thu', subject: 'Science', time: '10:00 AM', venue: 'Hall B' },
+                { date: 'Mar 20', day: 'Sat', subject: 'English', time: '10:00 AM', venue: 'Hall A' },
+                { date: 'Mar 22', day: 'Mon', subject: 'Hindi', time: '10:00 AM', venue: 'Hall B' },
+                { date: 'Mar 25', day: 'Thu', subject: 'Social Studies', time: '10:00 AM', venue: 'Hall A' },
+              ].map((ex, i) => (
+                <div key={i} className="flex items-center gap-2 py-2 border-b border-gray-50 last:border-0">
+                  <div className="w-10 h-10 rounded-lg bg-blue-100 text-center py-0.5">
+                    <p className="text-[10px] font-bold text-blue-800">{ex.date.split(' ')[1]}</p>
+                    <p className="text-[7px] text-blue-600">{ex.day}</p>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[10px] font-bold text-gray-800">{ex.subject}</p>
+                    <p className="text-[8px] text-gray-500">{ex.time} &bull; {ex.venue}</p>
+                  </div>
+                  <span className="text-[7px] px-1.5 py-0.5 bg-blue-100 text-blue-600 rounded-full font-bold">{ex.date}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-white rounded-xl p-2.5 shadow-sm border border-gray-100 text-center">
+              <p className="text-[10px] font-bold text-gray-800">Days until exam</p>
+              <p className="text-2xl font-bold text-blue-600 mt-0.5">13</p>
+              <p className="text-[8px] text-gray-500">Starting Mar 15, 2026</p>
+            </div>
+
+            <button className="w-full py-2.5 bg-blue-600 text-white text-[11px] font-bold rounded-xl flex items-center justify-center gap-1">
+              &#128197; Add to Calendar
+            </button>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-2.5 flex items-center gap-2">
+              <span className="text-blue-500 text-sm">&#128276;</span>
+              <div className="flex-1"><p className="text-[10px] font-bold text-blue-800">Exam Reminders Active</p><p className="text-[8px] text-blue-600">Get notified 1 day before each exam</p></div>
+            </div>
+          </MobileFrame>
+        </div>
+      } />
+
     </div>
   );
 }

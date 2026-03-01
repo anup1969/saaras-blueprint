@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import BlueprintLayout from '@/components/BlueprintLayout';
-import { StatCard, TabBar, StatusBadge, DataTable } from '@/components/shared';
+import { StatCard, TabBar, StatusBadge, DataTable, MobileFrame, MobilePreviewToggle } from '@/components/shared';
 import { ChatsView } from '@/components/ChatModule';
 import SupportModule from '@/components/SupportModule';
 import YourInputsModule from '@/components/YourInputsModule';
@@ -313,6 +313,89 @@ function DashboardView({ theme, setActiveModule }: { theme: Theme; setActiveModu
         {/* Recurring Tasks — Streak Tracking Card */}
         <RecurringTasksCard theme={theme} role="trustee" />
       </div>
+
+      {/* Mobile App Preview */}
+      <MobilePreviewToggle theme={theme} mobileContent={
+        <MobileFrame title="Trustee Dashboard" theme={theme}>
+          {/* KPI Cards */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-blue-50 rounded-xl p-2.5 text-center">
+              <p className="text-lg font-bold text-blue-600">1,247</p>
+              <p className="text-[9px] text-blue-500">Enrollment</p>
+            </div>
+            <div className="bg-emerald-50 rounded-xl p-2.5 text-center">
+              <p className="text-lg font-bold text-emerald-600">67%</p>
+              <p className="text-[9px] text-emerald-500">Fee Collection</p>
+            </div>
+            <div className="bg-purple-50 rounded-xl p-2.5 text-center">
+              <p className="text-lg font-bold text-purple-600">4.2/5</p>
+              <p className="text-[9px] text-purple-500">Satisfaction</p>
+            </div>
+            <div className="bg-amber-50 rounded-xl p-2.5 text-center">
+              <p className="text-lg font-bold text-amber-600">78/100</p>
+              <p className="text-[9px] text-amber-500">SQAAF Score</p>
+            </div>
+          </div>
+          {/* Fund Utilization Chart */}
+          <div className="bg-white rounded-xl p-3 border border-gray-200">
+            <p className="text-[10px] font-bold text-gray-700 mb-2">Fund Utilization</p>
+            <div className="space-y-2">
+              <div>
+                <div className="flex justify-between text-[9px] mb-0.5">
+                  <span className="text-gray-600">Staff Salary (68%)</span>
+                  <span className="font-bold text-gray-800">&#8377;98L</span>
+                </div>
+                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-blue-500 rounded-full" style={{ width: '68%' }} />
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between text-[9px] mb-0.5">
+                  <span className="text-gray-600">Operational (22%)</span>
+                  <span className="font-bold text-gray-800">&#8377;32L</span>
+                </div>
+                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-amber-500 rounded-full" style={{ width: '22%' }} />
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between text-[9px] mb-0.5">
+                  <span className="text-gray-600">Capital (10%)</span>
+                  <span className="font-bold text-gray-800">&#8377;15L</span>
+                </div>
+                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-purple-500 rounded-full" style={{ width: '10%' }} />
+                </div>
+              </div>
+            </div>
+          </div>
+          {/* News Board */}
+          <div className="bg-white rounded-xl p-3 border border-gray-200">
+            <div className="flex items-center gap-1.5 mb-2">
+              <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              <p className="text-[10px] font-bold text-gray-700">News Board</p>
+            </div>
+            <div className="space-y-1.5">
+              {[
+                { text: 'Science Fair — Hall A (Live)', badge: 'LIVE', color: 'bg-red-100 text-red-600' },
+                { text: 'CBSE Inspector Visit today', badge: 'Now', color: 'bg-amber-100 text-amber-600' },
+                { text: 'Trust Finance Review at 3 PM', badge: '3 PM', color: 'bg-blue-100 text-blue-600' },
+              ].map((n, i) => (
+                <div key={i} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
+                  <span className={`text-[8px] px-1.5 py-0.5 rounded-full font-bold ${n.color}`}>{n.badge}</span>
+                  <p className="text-[10px] text-gray-700 flex-1">{n.text}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Quick Nav */}
+          <div className="grid grid-cols-3 gap-2">
+            <button className="py-2 bg-blue-500 text-white rounded-xl text-[9px] font-bold text-center">Financials</button>
+            <button className="py-2 bg-emerald-500 text-white rounded-xl text-[9px] font-bold text-center">Approvals</button>
+            <button className="py-2 bg-purple-500 text-white rounded-xl text-[9px] font-bold text-center">Reports</button>
+          </div>
+        </MobileFrame>
+      } />
     </div>
   );
 }
@@ -392,6 +475,60 @@ function FinancialView({ theme }: { theme: Theme }) {
           theme={theme}
         />
       </div>
+
+      {/* Mobile App Preview */}
+      <MobilePreviewToggle theme={theme} mobileContent={
+        <MobileFrame title="Financial Overview" theme={theme}>
+          {/* Revenue/Expense Cards */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-emerald-50 rounded-xl p-3 text-center">
+              <p className="text-[9px] text-emerald-500">Total Revenue</p>
+              <p className="text-lg font-bold text-emerald-600">&#8377;2.85 Cr</p>
+            </div>
+            <div className="bg-red-50 rounded-xl p-3 text-center">
+              <p className="text-[9px] text-red-500">Total Expenses</p>
+              <p className="text-lg font-bold text-red-600">&#8377;1.45 Cr</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-blue-50 rounded-xl p-3 text-center">
+              <p className="text-[9px] text-blue-500">Net Surplus</p>
+              <p className="text-lg font-bold text-blue-600">&#8377;47L</p>
+            </div>
+            <div className="bg-amber-50 rounded-xl p-3 text-center">
+              <p className="text-[9px] text-amber-500">Pending Fees</p>
+              <p className="text-lg font-bold text-amber-600">&#8377;93L</p>
+            </div>
+          </div>
+          {/* Budget vs Actual */}
+          <div className="bg-white rounded-xl p-3 border border-gray-200">
+            <p className="text-[10px] font-bold text-gray-700 mb-2">Budget vs Actual</p>
+            <div className="space-y-2.5">
+              {[
+                { label: 'Staff Salary', budget: '&#8377;1.1 Cr', actual: '&#8377;98L', pct: 89 },
+                { label: 'Operational', budget: '&#8377;38L', actual: '&#8377;32L', pct: 84 },
+                { label: 'Capital', budget: '&#8377;20L', actual: '&#8377;15L', pct: 75 },
+              ].map((b, i) => (
+                <div key={i}>
+                  <div className="flex justify-between text-[9px] mb-0.5">
+                    <span className="text-gray-600 font-bold">{b.label}</span>
+                    <span className="text-gray-500">{b.actual} / {b.budget}</span>
+                  </div>
+                  <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div className={`h-full rounded-full ${b.pct >= 90 ? 'bg-red-500' : b.pct >= 80 ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${b.pct}%` }} />
+                  </div>
+                  <p className="text-[8px] text-gray-400 text-right mt-0.5">{b.pct}% utilized</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Tap to drill down */}
+          <div className="bg-blue-50 rounded-xl p-3 border border-blue-200 text-center">
+            <p className="text-[10px] font-bold text-blue-600">&#9757; Tap any category to drill down</p>
+            <p className="text-[8px] text-blue-400">View monthly breakdown, department-wise splits</p>
+          </div>
+        </MobileFrame>
+      } />
     </div>
   );
 }
@@ -454,6 +591,39 @@ function AcademicView({ theme }: { theme: Theme }) {
         <StatCard icon={Star} label="School Avg Score" value="73.2%" color="bg-purple-500" theme={theme} />
         <StatCard icon={Target} label="SQAAF Score" value="78/100" color="bg-amber-500" theme={theme} />
       </div>
+
+      {/* Mobile App Preview */}
+      <MobilePreviewToggle theme={theme} mobileContent={
+        <MobileFrame title="Reports" theme={theme}>
+          {/* Report Cards */}
+          <div className="space-y-2">
+            {[
+              { title: 'Board Exam Results 2025-26', type: 'Academic', date: 'Mar 2026', color: 'bg-blue-500', size: '2.4 MB' },
+              { title: 'Fee Collection Summary', type: 'Financial', date: 'Feb 2026', color: 'bg-emerald-500', size: '1.8 MB' },
+              { title: 'SQAAF Compliance Report', type: 'Quality', date: 'Jan 2026', color: 'bg-purple-500', size: '3.1 MB' },
+              { title: 'Staff Performance Review', type: 'HR', date: 'Jan 2026', color: 'bg-amber-500', size: '1.2 MB' },
+              { title: 'Annual Audit Report', type: 'Financial', date: 'Dec 2025', color: 'bg-red-500', size: '4.5 MB' },
+            ].map((r, i) => (
+              <div key={i} className="bg-white rounded-xl p-3 border border-gray-200">
+                <div className="flex items-start gap-2.5">
+                  <div className={`w-9 h-9 rounded-lg ${r.color} flex items-center justify-center text-white shrink-0`}>
+                    <span className="text-sm">&#128196;</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] font-bold text-gray-800 truncate">{r.title}</p>
+                    <p className="text-[9px] text-gray-500">{r.type} &bull; {r.date} &bull; {r.size}</p>
+                  </div>
+                </div>
+                <div className="flex gap-1.5 mt-2">
+                  <button className="flex-1 py-2 bg-gray-100 rounded-lg text-[9px] font-bold text-gray-600 text-center">&#128229; Download</button>
+                  <button className="flex-1 py-2 bg-emerald-100 rounded-lg text-[9px] font-bold text-emerald-600 text-center">&#128172; WhatsApp</button>
+                  <button className="flex-1 py-2 bg-blue-100 rounded-lg text-[9px] font-bold text-blue-600 text-center">&#9993; Email</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </MobileFrame>
+      } />
     </div>
   );
 }
@@ -1238,6 +1408,59 @@ function BoardMeetingsView({ theme }: { theme: Theme }) {
           ))}
         </div>
       )}
+
+      {/* Mobile App Preview */}
+      <MobilePreviewToggle theme={theme} mobileContent={
+        <MobileFrame title="School Visits" theme={theme}>
+          {/* Schedule Visit Button */}
+          <button className="w-full py-3 bg-blue-500 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2">
+            &#128197; Schedule New Visit
+          </button>
+          {/* Upcoming Visit */}
+          <div className="bg-blue-50 rounded-xl p-3 border border-blue-200">
+            <p className="text-[10px] font-bold text-blue-700 mb-1">Next Visit</p>
+            <p className="text-[11px] font-bold text-gray-800">Annual Budget Review</p>
+            <p className="text-[9px] text-gray-500">28 Feb 2026 &bull; 10:00 AM &bull; Trust Boardroom</p>
+            <div className="flex gap-1.5 mt-2">
+              <span className="text-[8px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-600 font-bold">Confirmed</span>
+              <span className="text-[8px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-bold">8 attendees</span>
+            </div>
+          </div>
+          {/* Visit Log */}
+          <div className="bg-white rounded-xl p-3 border border-gray-200">
+            <p className="text-[10px] font-bold text-gray-700 mb-2">Recent Visits</p>
+            <div className="space-y-2">
+              {[
+                { title: 'January Review', date: '28 Jan 2026', decisions: '3 decisions taken' },
+                { title: 'Fee Revision Meeting', date: '15 Jan 2026', decisions: '5% increase approved' },
+                { title: 'Quarterly Review Q2', date: '28 Dec 2025', decisions: 'Sports Day budget approved' },
+              ].map((v, i) => (
+                <div key={i} className="flex items-center gap-2.5 p-2 bg-gray-50 rounded-lg">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600 text-[10px] shrink-0">&#10003;</div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] font-bold text-gray-800 truncate">{v.title}</p>
+                    <p className="text-[9px] text-gray-500">{v.date} &bull; {v.decisions}</p>
+                  </div>
+                  <span className="text-[9px] text-blue-500 font-bold shrink-0">View</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Meeting Notes with Voice */}
+          <div className="bg-white rounded-xl p-3 border border-gray-200">
+            <p className="text-[10px] font-bold text-gray-700 mb-2">Meeting Notes</p>
+            <div className="bg-gray-50 rounded-lg p-2.5 border border-gray-200">
+              <p className="text-[10px] text-gray-600 italic">Tap to add notes for your visit...</p>
+            </div>
+            <div className="flex gap-2 mt-2">
+              <button className="flex-1 py-2 bg-gray-100 rounded-lg text-[9px] font-bold text-gray-600 text-center">&#9998; Type Notes</button>
+              <button className="flex-1 py-2 bg-red-100 rounded-lg text-[9px] font-bold text-red-600 text-center flex items-center justify-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" /> Voice Record
+              </button>
+            </div>
+          </div>
+        </MobileFrame>
+      } />
     </div>
   );
 }
@@ -1286,6 +1509,50 @@ function ApprovalsView({ theme }: { theme: Theme }) {
           </div>
         ))}
       </div>
+
+      {/* Mobile App Preview */}
+      <MobilePreviewToggle theme={theme} mobileContent={
+        <MobileFrame title="Approvals" theme={theme}>
+          {/* Pending Approval Cards */}
+          <div className="space-y-2">
+            {[
+              { desc: 'Science Lab Equipment', amount: '&#8377;12.5L', from: 'Principal', type: 'Budget', date: '25 Feb', color: 'bg-blue-500' },
+              { desc: 'Classroom Renovation Block B', amount: '&#8377;8.2L', from: 'Admin Officer', type: 'Infrastructure', date: '22 Feb', color: 'bg-purple-500' },
+              { desc: 'Annual Day Event Budget', amount: '&#8377;4.5L', from: 'Event Coordinator', type: 'Event', date: '20 Feb', color: 'bg-amber-500' },
+            ].map((a, i) => (
+              <div key={i} className="bg-white rounded-xl p-3 border border-gray-200">
+                <div className="flex items-start gap-2.5">
+                  <div className={`w-9 h-9 rounded-lg ${a.color} flex items-center justify-center text-white shrink-0`}>
+                    <span className="text-sm">&#128203;</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] font-bold text-gray-800">{a.desc}</p>
+                    <p className="text-[9px] text-gray-500">{a.type} &bull; {a.from} &bull; {a.date}</p>
+                  </div>
+                  <p className="text-sm font-bold text-gray-800 shrink-0">{a.amount}</p>
+                </div>
+                {/* Swipe Gesture Hint */}
+                <div className="flex items-center justify-center gap-3 mt-2 py-1.5 bg-gray-50 rounded-lg">
+                  <span className="text-[9px] text-red-500 font-bold">&larr; Reject</span>
+                  <span className="text-[8px] text-gray-300">|</span>
+                  <span className="text-[9px] text-gray-400">Swipe</span>
+                  <span className="text-[8px] text-gray-300">|</span>
+                  <span className="text-[9px] text-emerald-500 font-bold">Approve &rarr;</span>
+                </div>
+                <div className="flex gap-1.5 mt-2">
+                  <button className="flex-1 py-2.5 bg-emerald-500 text-white rounded-xl text-[10px] font-bold text-center">&#10003; Approve</button>
+                  <button className="flex-1 py-2.5 bg-gray-100 text-gray-600 rounded-xl text-[10px] font-bold text-center">&#128065; Details</button>
+                  <button className="flex-1 py-2.5 bg-red-100 text-red-600 rounded-xl text-[10px] font-bold text-center">&#10005; Reject</button>
+                </div>
+              </div>
+            ))}
+          </div>
+          {/* Summary */}
+          <div className="bg-amber-50 rounded-xl p-2.5 border border-amber-200 text-center">
+            <p className="text-[10px] font-bold text-amber-700">3 pending approvals totaling &#8377;25.2L</p>
+          </div>
+        </MobileFrame>
+      } />
     </div>
   );
 }

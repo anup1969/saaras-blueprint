@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { StatCard } from '@/components/shared';
+import { StatCard, MobileFrame, MobilePreviewToggle } from '@/components/shared';
 import { type Theme } from '@/lib/themes';
 import {
   Users, UserCheck, Clock, AlertTriangle, Bell, BarChart3, CheckCircle,
@@ -865,6 +865,38 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
           </div>
         </div>
       )}
+
+      {/* ─── MOBILE APP PREVIEW ─── */}
+      <MobilePreviewToggle theme={theme} mobileContent={
+        <MobileFrame title="Principal Dashboard" theme={theme}>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-emerald-50 rounded-xl p-2.5 text-center"><p className="text-lg font-bold text-emerald-700">1,247</p><p className="text-[9px] text-emerald-600 font-medium">Students Present</p><p className="text-[8px] text-emerald-500">of 1,320 (94.5%)</p></div>
+            <div className="bg-blue-50 rounded-xl p-2.5 text-center"><p className="text-lg font-bold text-blue-700">92</p><p className="text-[9px] text-blue-600 font-medium">Staff Present</p><p className="text-[8px] text-blue-500">6 on leave</p></div>
+            <div className="bg-amber-50 rounded-xl p-2.5 text-center"><p className="text-lg font-bold text-amber-700">5</p><p className="text-[9px] text-amber-600 font-medium">Visitors Today</p><p className="text-[8px] text-amber-500">2 in campus</p></div>
+            <div className="bg-purple-50 rounded-xl p-2.5 text-center"><p className="text-lg font-bold text-purple-700">3</p><p className="text-[9px] text-purple-600 font-medium">Pending Approvals</p><p className="text-[8px] text-purple-500">Tap to review</p></div>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-2.5">
+            <div className="flex items-center justify-between mb-2"><span className="text-[10px] font-bold text-gray-800">Notifications</span><span className="bg-red-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full">4 new</span></div>
+            {[{ text: 'Leave request from Mrs. Sharma (Math)', time: '2m ago', color: 'bg-blue-100 text-blue-600' },{ text: 'Fee defaulter list updated — 12 students', time: '15m ago', color: 'bg-amber-100 text-amber-600' },{ text: 'Parent meeting scheduled — Aarav Singh', time: '1h ago', color: 'bg-purple-100 text-purple-600' }].map((n, i) => (<div key={i} className="flex items-start gap-2 py-1.5 border-t border-gray-100"><span className={`${n.color} text-[8px] px-1 py-0.5 rounded font-bold mt-0.5`}>{'•'}</span><div className="flex-1 min-w-0"><p className="text-[10px] text-gray-700 leading-tight">{n.text}</p><p className="text-[8px] text-gray-400">{n.time}</p></div></div>))}
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-2.5">
+            <span className="text-[10px] font-bold text-gray-800 mb-2 block">Approval Queue</span>
+            {[{ title: 'Leave — Mrs. Priya (Science)', type: 'Leave', detail: '3 days' },{ title: 'Grace Marks — Rahul Joshi (Math)', type: 'Academic', detail: '+5' },{ title: 'Event — Sports Day Budget', type: 'Event', detail: '₹45,000' }].map((a, i) => (<div key={i} className="flex items-center gap-2 py-2 border-t border-gray-100"><div className="flex-1 min-w-0"><p className="text-[10px] font-bold text-gray-800 truncate">{a.title}</p><p className="text-[8px] text-gray-500">{a.type} {a.detail}</p></div><div className="flex gap-1 shrink-0"><button className="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 text-xs font-bold">{'✓'}</button><button className="w-7 h-7 rounded-full bg-red-100 flex items-center justify-center text-red-500 text-xs font-bold">{'✗'}</button></div></div>))}
+            <p className="text-[8px] text-gray-400 text-center mt-1 italic">{'←'} Swipe left to reject {'•'} Swipe right to approve {'→'}</p>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-2.5">
+            <span className="text-[10px] font-bold text-gray-800 mb-2 block">Today&apos;s Events</span>
+            {[{ time: '9:00 AM', event: 'Morning Assembly — Guest Speaker', color: 'bg-blue-500' },{ time: '11:30 AM', event: 'Parent-Teacher Meeting (Class 10)', color: 'bg-purple-500' },{ time: '2:00 PM', event: 'Staff Review Meeting', color: 'bg-emerald-500' }].map((ev, i) => (<div key={i} className="flex items-center gap-2 py-1.5 border-t border-gray-100"><div className={`w-1.5 h-8 rounded-full ${ev.color}`} /><div><p className="text-[10px] font-bold text-gray-800">{ev.event}</p><p className="text-[8px] text-gray-500">{ev.time}</p></div></div>))}
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-2.5">
+            <span className="text-[10px] font-bold text-gray-800 mb-2 block">Quick Actions</span>
+            <div className="grid grid-cols-4 gap-1.5">
+              {[{ icon: '📢', label: 'Announce' },{ icon: '📋', label: 'Attendance' },{ icon: '💰', label: 'Fees' },{ icon: '📊', label: 'Reports' }].map((q, i) => (<button key={i} className="flex flex-col items-center gap-1 py-2 rounded-lg bg-gray-50 hover:bg-gray-100"><span className="text-base">{q.icon}</span><span className="text-[8px] font-bold text-gray-600">{q.label}</span></button>))}
+            </div>
+          </div>
+        </MobileFrame>
+      } />
+
     </div>
   );
 }

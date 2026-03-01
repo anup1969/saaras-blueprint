@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { StatCard, TabBar, StatusBadge, DataTable } from '@/components/shared';
+import { StatCard, TabBar, StatusBadge, DataTable, MobileFrame, MobilePreviewToggle } from '@/components/shared';
 import { type Theme } from '@/lib/themes';
 import {
   FileText, Plus, X, Eye, Edit, Send, Upload, CheckCircle,
@@ -434,6 +434,135 @@ export default function HomeworkModule({ theme }: { theme: Theme }) {
           Homework grades auto-feed to Internal Assessment in Gradebook. Connected: Gradebook &rarr; Enter Marks &rarr; Internal Assessment column
         </p>
       </div>
+
+      {/* ── MOBILE APP PREVIEW ── */}
+      <MobilePreviewToggle
+        theme={theme}
+        mobileContent={
+          <MobileFrame title="Homework" theme={theme}>
+            {/* Pull to refresh */}
+            <div className="flex items-center justify-center py-1">
+              <div className="flex items-center gap-1 text-[9px] text-gray-400">
+                <span>&#8595;</span> Pull to refresh
+              </div>
+            </div>
+
+            {/* Quick create button with camera */}
+            <div className="bg-white rounded-xl border border-gray-100 p-3 space-y-2">
+              <span className="text-[10px] font-bold text-gray-800">Create Assignment</span>
+              <div className="flex gap-2">
+                <select className="flex-1 text-[9px] font-bold text-gray-600 bg-gray-100 rounded-lg px-2 py-1.5 border-none outline-none">
+                  {teacherProfile.classes.map(c => (
+                    <option key={c}>{c}</option>
+                  ))}
+                </select>
+                <input
+                  placeholder="Assignment title..."
+                  className="flex-[2] px-2 py-1.5 bg-gray-50 rounded-lg text-[9px] border border-gray-200 outline-none"
+                />
+              </div>
+              <textarea
+                rows={2}
+                placeholder="Instructions, page numbers, questions..."
+                className="w-full px-2 py-1.5 bg-gray-50 rounded-lg text-[9px] border border-gray-200 resize-none outline-none"
+              />
+              <div className="flex items-center justify-between">
+                <div className="flex gap-1.5">
+                  {/* Camera icon */}
+                  <button className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center" title="Take photo">
+                    <span className="text-sm">&#128247;</span>
+                  </button>
+                  {/* Attach file */}
+                  <button className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center" title="Attach file">
+                    <span className="text-sm">&#128206;</span>
+                  </button>
+                </div>
+                <button className="px-4 py-1.5 bg-blue-600 text-white rounded-lg text-[10px] font-bold">
+                  Assign
+                </button>
+              </div>
+            </div>
+
+            {/* Active assignments */}
+            <div className="flex items-center gap-1 mt-1">
+              <span className="text-[10px] font-bold text-gray-700">Active Assignments</span>
+              <div className="flex-1 h-px bg-gray-200" />
+            </div>
+
+            {homeworkList.slice(0, 3).map(h => (
+              <div key={h.id} className="bg-white rounded-xl border border-gray-100 p-2.5 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-bold text-gray-800">{h.title}</p>
+                    <p className="text-[8px] text-gray-400">Class {h.class} &bull; Due: {h.due}</p>
+                  </div>
+                  <span className={"text-[8px] px-1.5 py-0.5 rounded-full font-bold " + (
+                    h.status === 'Graded' ? 'bg-emerald-100 text-emerald-700' :
+                    h.status === 'Submitted' ? 'bg-blue-100 text-blue-700' :
+                    'bg-amber-100 text-amber-700'
+                  ) + ""}>{h.status}</span>
+                </div>
+                {/* Progress bar */}
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${h.submitted === h.total ? 'bg-emerald-500' : 'bg-blue-500'}`}
+                      style={{ width: `${(h.submitted / h.total) * 100}%` }}
+                    />
+                  </div>
+                  <span className="text-[8px] text-gray-500">{h.submitted}/{h.total}</span>
+                </div>
+              </div>
+            ))}
+
+            {/* Grade submissions section - swipe cards */}
+            <div className="flex items-center gap-1 mt-1">
+              <span className="text-[10px] font-bold text-gray-700">Grade Submissions</span>
+              <div className="flex-1 h-px bg-gray-200" />
+            </div>
+
+            {/* Submission cards with swipe hint */}
+            {submissionsData.slice(0, 3).filter(s => s.status !== 'Not Submitted').map((s, i) => (
+              <div key={i} className="bg-white rounded-xl border border-gray-100 p-2.5 relative overflow-hidden">
+                {/* Swipe indicators */}
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-400 rounded-l-xl" />
+                <div className="absolute right-0 top-0 bottom-0 w-1 bg-amber-400 rounded-r-xl" />
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-[9px] font-bold text-blue-700">
+                      {s.name.charAt(0)}
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-gray-800">{s.name}</p>
+                      <p className="text-[8px] text-gray-400">Submitted: {s.submitted}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-1">
+                    <button className="w-7 h-7 bg-emerald-100 rounded-lg flex items-center justify-center" title="Approve">
+                      <span className="text-emerald-600 text-xs">&#10003;</span>
+                    </button>
+                    <button className="w-7 h-7 bg-amber-100 rounded-lg flex items-center justify-center" title="Needs work">
+                      <span className="text-amber-600 text-xs">&#8634;</span>
+                    </button>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between mt-1">
+                  <span className="text-[8px] text-gray-400">&#8592; Swipe: Approve | Needs work &#8594;</span>
+                  {s.hasFile && <span className="text-[8px] text-blue-500">&#128206; Attachment</span>}
+                </div>
+              </div>
+            ))}
+
+            {/* Sticky save */}
+            <div className="sticky bottom-0 pt-2">
+              <button className="w-full py-2.5 bg-blue-600 text-white rounded-xl text-xs font-bold shadow-lg">
+                Save All Grades
+              </button>
+            </div>
+          </MobileFrame>
+        }
+      />
     </div>
   );
 }

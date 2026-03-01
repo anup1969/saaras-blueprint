@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { TabBar, DataTable } from '@/components/shared';
+import { TabBar, DataTable, MobileFrame, MobilePreviewToggle } from '@/components/shared';
 import { type Theme } from '@/lib/themes';
 import {
   Upload, FileText, Video, Presentation, HelpCircle, Eye,
@@ -953,6 +953,131 @@ export default function LMSModule({ theme }: { theme: Theme }) {
           </div>
         </div>
       )}
+
+      {/* ── MOBILE APP PREVIEW ── */}
+      <MobilePreviewToggle
+        theme={theme}
+        mobileContent={
+          <MobileFrame title="LMS" theme={theme}>
+            {/* Pull to refresh */}
+            <div className="flex items-center justify-center py-1">
+              <div className="flex items-center gap-1 text-[9px] text-gray-400">
+                <span>&#8595;</span> Pull to refresh
+              </div>
+            </div>
+
+            {/* Content cards with thumbnails */}
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] font-bold text-gray-700">My Content</span>
+              <div className="flex-1 h-px bg-gray-200" />
+              <button className="w-6 h-6 bg-blue-600 rounded-lg flex items-center justify-center text-white text-xs">+</button>
+            </div>
+
+            {myContentData.slice(0, 4).map((item, i) => (
+              <div key={i} className="bg-white rounded-xl border border-gray-100 p-2 flex gap-2">
+                {/* Thumbnail */}
+                <div className={"w-14 h-14 rounded-lg flex items-center justify-center flex-shrink-0 " + (
+                  item.type === 'Video' ? 'bg-red-100' :
+                  item.type === 'PDF' ? 'bg-blue-100' :
+                  item.type === 'Presentation' ? 'bg-orange-100' :
+                  'bg-purple-100'
+                )}>
+                  <span className="text-lg">
+                    {item.type === 'Video' ? '\u25B6' :
+                     item.type === 'PDF' ? '\u2B1C' :
+                     item.type === 'Presentation' ? '\u25A3' :
+                     '\u2753'}
+                  </span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-bold text-gray-800 truncate">{item.title}</p>
+                  <p className="text-[8px] text-gray-400">{item.cls} &bull; {item.subject}</p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-[8px] text-gray-400">{item.views} views</span>
+                    <span className={"text-[8px] px-1.5 py-0.5 rounded-full font-bold " + (
+                      item.status === 'Published' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'
+                    )}>{item.status}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {/* Question Bank quick-add */}
+            <div className="flex items-center gap-1 mt-1">
+              <span className="text-[10px] font-bold text-gray-700">Quick Add Question</span>
+              <div className="flex-1 h-px bg-gray-200" />
+            </div>
+
+            <div className="bg-white rounded-xl border border-gray-100 p-2.5 space-y-1.5">
+              <div className="flex gap-2">
+                <select className="flex-1 text-[9px] font-bold text-gray-600 bg-gray-100 rounded-lg px-2 py-1 border-none outline-none">
+                  <option>MCQ</option>
+                  <option>True/False</option>
+                  <option>Short Answer</option>
+                  <option>Descriptive</option>
+                </select>
+                <select className="flex-1 text-[9px] font-bold text-gray-600 bg-gray-100 rounded-lg px-2 py-1 border-none outline-none">
+                  <option>Easy</option>
+                  <option>Medium</option>
+                  <option>Hard</option>
+                </select>
+              </div>
+              <textarea
+                rows={2}
+                placeholder="Type question here..."
+                className="w-full px-2 py-1 bg-gray-50 rounded-lg text-[9px] border border-gray-200 resize-none outline-none"
+              />
+              <button className="w-full py-1.5 bg-blue-600 text-white rounded-lg text-[9px] font-bold">
+                Add to Question Bank
+              </button>
+            </div>
+
+            {/* Exam monitoring dashboard */}
+            <div className="flex items-center gap-1 mt-1">
+              <span className="text-[10px] font-bold text-gray-700">Live Exams</span>
+              <div className="flex-1 h-px bg-gray-200" />
+            </div>
+
+            <div className="bg-white rounded-xl border border-gray-100 p-2.5">
+              <div className="flex items-center justify-between mb-1.5">
+                <div>
+                  <p className="text-[10px] font-bold text-gray-800">UT-3 Mathematics</p>
+                  <p className="text-[8px] text-gray-400">Class 10-A &bull; 45 min</p>
+                </div>
+                <div className="flex items-center gap-1 px-2 py-0.5 bg-red-100 rounded-full">
+                  <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                  <span className="text-[8px] font-bold text-red-700">LIVE</span>
+                </div>
+              </div>
+              {/* Live stats */}
+              <div className="grid grid-cols-3 gap-2">
+                <div className="bg-emerald-50 rounded-lg p-1.5 text-center">
+                  <p className="text-sm font-bold text-emerald-700">28</p>
+                  <p className="text-[7px] text-emerald-600">Active</p>
+                </div>
+                <div className="bg-amber-50 rounded-lg p-1.5 text-center">
+                  <p className="text-sm font-bold text-amber-700">6</p>
+                  <p className="text-[7px] text-amber-600">Submitted</p>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-1.5 text-center">
+                  <p className="text-sm font-bold text-gray-700">8</p>
+                  <p className="text-[7px] text-gray-600">Not Started</p>
+                </div>
+              </div>
+              {/* Progress bar */}
+              <div className="mt-1.5">
+                <div className="flex items-center justify-between mb-0.5">
+                  <span className="text-[8px] text-gray-400">Time remaining</span>
+                  <span className="text-[8px] font-bold text-red-600">12:34</span>
+                </div>
+                <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-red-500 rounded-full" style={{ width: '72%' }} />
+                </div>
+              </div>
+            </div>
+          </MobileFrame>
+        }
+      />
     </div>
   );
 }

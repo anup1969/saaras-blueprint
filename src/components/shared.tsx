@@ -137,3 +137,62 @@ export function DataTable({ headers, rows, theme }: {
 export function Section({ children }: { children: React.ReactNode }) {
   return <div className="space-y-4">{children}</div>;
 }
+
+// ─── MOBILE FRAME ───────────────────────────────────
+// Phone-shaped container for showing mobile app previews inline
+export function MobileFrame({ title, children, theme }: { title: string; children: React.ReactNode; theme: Theme }) {
+  return (
+    <div className="flex flex-col items-center">
+      <div className="w-[320px] border-[3px] border-gray-800 rounded-[2rem] overflow-hidden shadow-xl bg-white">
+        {/* Notch */}
+        <div className="bg-gray-800 h-6 flex items-center justify-center">
+          <div className="w-16 h-3 bg-gray-900 rounded-full" />
+        </div>
+        {/* Status bar */}
+        <div className="bg-gray-800 text-white flex items-center justify-between px-4 py-1 text-[10px]">
+          <span>9:41</span>
+          <div className="flex gap-1 items-center">
+            <span>&#9679;&#9679;&#9679;&#9679;</span>
+            <span className="ml-1">100%</span>
+          </div>
+        </div>
+        {/* App header */}
+        <div className={`${theme.primary} text-white px-4 py-2.5 flex items-center gap-2`}>
+          <span className="text-sm">&larr;</span>
+          <span className="text-sm font-bold flex-1">{title}</span>
+          <span className="text-xs">&#8942;</span>
+        </div>
+        {/* Content */}
+        <div className="h-[480px] overflow-y-auto text-xs p-3 space-y-2 bg-gray-50">
+          {children}
+        </div>
+        {/* Bottom nav bar */}
+        <div className="bg-white border-t border-gray-200 flex justify-around py-2 text-[9px] text-gray-500">
+          <div className="flex flex-col items-center"><span className="text-base">&#8962;</span>Home</div>
+          <div className="flex flex-col items-center"><span className="text-base">&#128276;</span>Alerts</div>
+          <div className="flex flex-col items-center"><span className="text-base">&#9881;</span>More</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── MOBILE PREVIEW TOGGLE ──────────────────────────
+// Button + wrapper to toggle between desktop and mobile preview
+export function MobilePreviewToggle({ mobileContent, theme }: { mobileContent: React.ReactNode; theme: Theme }) {
+  const [show, setShow] = useState(false);
+  return (
+    <div className="mt-4">
+      <button
+        onClick={() => setShow(!show)}
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+          show ? 'bg-green-600 text-white' : `${theme.secondaryBg} ${theme.iconColor} border ${theme.border}`
+        }`}
+      >
+        <span>{'\uD83D\uDCF1'}</span>
+        {show ? 'Hide Mobile App View' : 'Show Mobile App View'}
+      </button>
+      {show && <div className="mt-4">{mobileContent}</div>}
+    </div>
+  );
+}

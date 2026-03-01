@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import BlueprintLayout from '@/components/BlueprintLayout';
-import { StatCard, TabBar, StatusBadge, SearchBar, DataTable, Toggle } from '@/components/shared';
+import { StatCard, TabBar, StatusBadge, SearchBar, DataTable, Toggle, MobileFrame, MobilePreviewToggle } from '@/components/shared';
 import { type Theme } from '@/lib/themes';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
@@ -261,6 +261,67 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
 
       {/* Task Tracker */}
       <TaskTrackerPanel theme={theme} role="security" />
+
+      {/* Mobile App Preview */}
+      <MobilePreviewToggle theme={theme} mobileContent={
+        <MobileFrame title="Security Dashboard" theme={theme}>
+          <div className="bg-emerald-500 text-white rounded-xl p-3 flex items-center justify-between">
+            <div>
+              <p className="text-[10px] opacity-80">Gate Status</p>
+              <p className="text-sm font-bold">Main Gate: OPEN</p>
+            </div>
+            <div className="w-3 h-3 rounded-full bg-white animate-pulse" />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-blue-50 rounded-xl p-2.5 text-center">
+              <p className="text-lg font-bold text-blue-600">4</p>
+              <p className="text-[9px] text-blue-500">Visitors Inside</p>
+            </div>
+            <div className="bg-amber-50 rounded-xl p-2.5 text-center">
+              <p className="text-lg font-bold text-amber-600">3</p>
+              <p className="text-[9px] text-amber-500">Pending Checkouts</p>
+            </div>
+            <div className="bg-emerald-50 rounded-xl p-2.5 text-center">
+              <p className="text-lg font-bold text-emerald-600">16</p>
+              <p className="text-[9px] text-emerald-500">Today&apos;s Entries</p>
+            </div>
+            <div className="bg-red-50 rounded-xl p-2.5 text-center">
+              <p className="text-lg font-bold text-red-600">1</p>
+              <p className="text-[9px] text-red-500">Active Alerts</p>
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <p className="text-[10px] font-bold text-gray-500 uppercase">Quick Actions</p>
+            <button className="w-full py-3 bg-blue-500 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2">&#128100; Check-in Visitor</button>
+            <button className="w-full py-3 bg-emerald-500 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2">&#9989; Verify Pickup</button>
+            <button className="w-full py-3 bg-indigo-500 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2">&#128694; Log Patrol</button>
+          </div>
+          <div className="space-y-1.5">
+            <p className="text-[10px] font-bold text-gray-500 uppercase">Recent Entries</p>
+            {[
+              { name: 'Priya Sharma', purpose: 'Fee Payment', time: '09:45 AM', dir: 'IN' },
+              { name: 'Inspector Desai', purpose: 'Govt. Visit', time: '11:30 AM', dir: 'IN' },
+              { name: 'Ramesh Gupta', purpose: 'Parent Meet', time: '10:30 AM', dir: 'OUT' },
+            ].map((e, i) => (
+              <div key={i} className="bg-white rounded-xl p-2.5 border border-gray-100 flex items-center gap-2">
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold ${e.dir === 'IN' ? 'bg-emerald-500' : 'bg-red-400'}`}>
+                  {e.dir === 'IN' ? '\u2192' : '\u2190'}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] font-bold text-gray-800 truncate">{e.name}</p>
+                  <p className="text-[9px] text-gray-500">{e.purpose}</p>
+                </div>
+                <span className="text-[9px] text-gray-400">{e.time}</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-end">
+            <div className="w-14 h-14 rounded-full bg-red-500 flex items-center justify-center text-white shadow-lg shadow-red-200 animate-pulse">
+              <span className="text-[10px] font-black">SOS</span>
+            </div>
+          </div>
+        </MobileFrame>
+      } />
     </div>
   );
 }
@@ -431,6 +492,52 @@ function VisitorCheckinModule({ theme }: { theme: Theme }) {
           </div>
         </div>
       )}
+
+      {/* Mobile App Preview */}
+      <MobilePreviewToggle theme={theme} mobileContent={
+        <MobileFrame title="Visitor Check-in" theme={theme}>
+          <div className="bg-gray-900 rounded-xl h-36 relative flex items-center justify-center overflow-hidden">
+            <div className="absolute inset-3 border-2 border-white/30 rounded-lg" />
+            <div className="absolute top-3 left-3 w-5 h-5 border-t-2 border-l-2 border-white rounded-tl-md" />
+            <div className="absolute top-3 right-3 w-5 h-5 border-t-2 border-r-2 border-white rounded-tr-md" />
+            <div className="absolute bottom-3 left-3 w-5 h-5 border-b-2 border-l-2 border-white rounded-bl-md" />
+            <div className="absolute bottom-3 right-3 w-5 h-5 border-b-2 border-r-2 border-white rounded-br-md" />
+            <div className="text-center">
+              <span className="text-white/50 text-2xl">&#128247;</span>
+              <p className="text-[9px] text-white/60 mt-1">Tap to capture visitor photo</p>
+            </div>
+          </div>
+          <div className="bg-blue-50 rounded-xl p-3 border border-blue-200">
+            <p className="text-[10px] font-bold text-blue-700 mb-2">OTP Verification</p>
+            <div className="flex gap-1.5 justify-center mb-2">
+              {[1,2,3,4].map(i => (
+                <div key={i} className="w-10 h-10 rounded-lg border-2 border-blue-300 bg-white flex items-center justify-center text-lg font-bold text-blue-600">
+                  {i <= 2 ? '\u2022' : ''}
+                </div>
+              ))}
+            </div>
+            <p className="text-[9px] text-blue-500 text-center">OTP sent to +91 98765&bull;&bull;&bull;&bull;&bull;</p>
+          </div>
+          <div className="bg-white rounded-xl p-3 border border-gray-200 space-y-2">
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center text-gray-400 text-lg">&#128100;</div>
+              <div>
+                <p className="text-[11px] font-bold text-gray-800">Priya Sharma</p>
+                <p className="text-[9px] text-gray-500">Fee Payment &bull; Accounts Office</p>
+              </div>
+              <div className="ml-auto w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center border border-gray-300">
+                <span className="text-[8px] text-gray-400 text-center leading-tight">QR Code</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-600 font-bold">Badge V-13</span>
+              <span className="text-[9px] text-gray-400">09:45 AM</span>
+            </div>
+          </div>
+          <button className="w-full py-4 bg-emerald-500 text-white rounded-xl text-base font-bold flex items-center justify-center gap-2 shadow-lg">&#10003; CHECK IN</button>
+          <button className="w-full py-4 bg-red-500 text-white rounded-xl text-base font-bold flex items-center justify-center gap-2 shadow-lg">&#10005; CHECK OUT</button>
+        </MobileFrame>
+      } />
     </div>
   );
 }
@@ -670,6 +777,60 @@ function GateLogModule({ theme }: { theme: Theme }) {
           <button className={`px-3 py-1.5 rounded-lg ${theme.secondaryBg}`}>Next</button>
         </div>
       </div>
+
+      {/* Mobile App Preview */}
+      <MobilePreviewToggle theme={theme} mobileContent={
+        <MobileFrame title="Vehicle Entry" theme={theme}>
+          <div className="bg-gray-900 rounded-xl h-36 relative flex items-center justify-center overflow-hidden">
+            <div className="absolute inset-x-6 top-1/2 -translate-y-1/2 h-14 border-2 border-amber-400/60 rounded-lg" />
+            <div className="absolute top-3 right-3 w-6 h-6 bg-amber-500/30 rounded-full flex items-center justify-center">
+              <span className="text-[8px] text-amber-300">&#9679;</span>
+            </div>
+            <div className="text-center relative z-10">
+              <p className="text-[10px] text-white/80 font-bold">Capture Number Plate</p>
+              <p className="text-[8px] text-white/50 mt-1">Align plate within frame</p>
+            </div>
+          </div>
+          <div className="bg-amber-50 rounded-xl p-3 border border-amber-200">
+            <p className="text-[9px] font-bold text-amber-600 uppercase mb-1">Detected Number Plate</p>
+            <div className="bg-white rounded-lg p-2 border-2 border-gray-800 text-center">
+              <p className="text-lg font-black text-gray-900 tracking-widest">MH12AB5678</p>
+            </div>
+          </div>
+          <div className="bg-emerald-50 rounded-xl p-3 border border-emerald-200 space-y-1.5">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white text-[10px]">&#10003;</div>
+              <p className="text-[11px] font-bold text-emerald-700">Vehicle Found in Records</p>
+            </div>
+            <div className="ml-8 space-y-0.5">
+              <p className="text-[10px] text-gray-700"><span className="font-bold">Owner:</span> Mrs. Sunita Deshpande</p>
+              <p className="text-[10px] text-gray-700"><span className="font-bold">Role:</span> Staff (Teacher) &bull; Class 5-B</p>
+              <p className="text-[10px] text-gray-700"><span className="font-bold">Vehicle:</span> Car &bull; White Maruti Swift</p>
+              <p className="text-[10px] text-gray-700"><span className="font-bold">Parking:</span> Staff Lot &bull; Slot #12</p>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl p-3 border border-gray-200">
+            <p className="text-[10px] font-bold text-gray-600 mb-2">Driver Verification</p>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-lg bg-gray-100 border border-gray-300 flex items-center justify-center text-gray-400">
+                <span className="text-lg">&#128100;</span>
+              </div>
+              <div className="flex-1">
+                <p className="text-[10px] text-gray-700">Photo matches registered driver</p>
+                <div className="flex gap-1 mt-1">
+                  <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-600 font-bold">ID Verified</span>
+                  <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-600 font-bold">Regular</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button className="w-full py-3.5 bg-emerald-500 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-lg">&#10003; Allow Entry</button>
+          <div className="grid grid-cols-2 gap-2">
+            <button className="py-3 bg-amber-100 text-amber-700 rounded-xl text-[10px] font-bold text-center">&#128247; Retake Photo</button>
+            <button className="py-3 bg-red-100 text-red-600 rounded-xl text-[10px] font-bold text-center">&#128683; Deny Entry</button>
+          </div>
+        </MobileFrame>
+      } />
     </div>
   );
 }
@@ -904,6 +1065,56 @@ function EmergencyModule({ theme }: { theme: Theme }) {
           </div>
         </div>
       )}
+
+      {/* Mobile App Preview */}
+      <MobilePreviewToggle theme={theme} mobileContent={
+        <MobileFrame title="Emergency Alert" theme={theme}>
+          <div className="flex flex-col items-center py-4">
+            <div className="w-32 h-32 rounded-full bg-red-500 flex items-center justify-center text-white shadow-xl shadow-red-300 animate-pulse border-4 border-red-300">
+              <div className="text-center">
+                <p className="text-3xl font-black">SOS</p>
+                <p className="text-[8px] font-bold mt-0.5">TAP FOR EMERGENCY</p>
+              </div>
+            </div>
+            <p className="text-[9px] text-gray-400 mt-2">Sends alert to all staff + admin + police</p>
+          </div>
+          <div className="space-y-1.5">
+            <p className="text-[10px] font-bold text-gray-500 uppercase">Select Alert Type</p>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { label: 'Fire', icon: '\uD83D\uDD25', color: 'bg-red-100 border-red-300 text-red-700' },
+                { label: 'Medical', icon: '\uD83C\uDFE5', color: 'bg-blue-100 border-blue-300 text-blue-700' },
+                { label: 'Intruder', icon: '\u26A0\uFE0F', color: 'bg-amber-100 border-amber-300 text-amber-700' },
+                { label: 'Other', icon: '\uD83D\uDCE2', color: 'bg-purple-100 border-purple-300 text-purple-700' },
+              ].map((t, i) => (
+                <button key={i} className={`p-3 rounded-xl border-2 ${t.color} flex flex-col items-center gap-1 ${i === 0 ? 'ring-2 ring-red-400' : ''}`}>
+                  <span className="text-xl">{t.icon}</span>
+                  <span className="text-[10px] font-bold">{t.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="bg-red-50 rounded-xl p-3 border border-red-200 space-y-2">
+            <p className="text-[10px] font-bold text-red-700">Auto-Notify Stakeholders</p>
+            <div className="space-y-1">
+              {[
+                { who: 'Principal & Vice Principal', status: 'Will be notified' },
+                { who: 'All Teaching Staff (78)', status: 'Will be notified' },
+                { who: 'Police \u2014 100', status: 'Auto-call if Intruder' },
+                { who: 'Fire Brigade \u2014 101', status: 'Auto-call if Fire' },
+                { who: 'Ambulance \u2014 108', status: 'Auto-call if Medical' },
+                { who: 'All Parents (via SMS)', status: 'After admin approval' },
+              ].map((n, i) => (
+                <div key={i} className="flex items-center justify-between">
+                  <span className="text-[9px] text-gray-700">{n.who}</span>
+                  <span className="text-[8px] text-red-500 font-bold">{n.status}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <button className="w-full py-4 bg-red-600 text-white rounded-xl text-base font-bold animate-pulse shadow-lg shadow-red-300">&#128680; CONFIRM EMERGENCY ALERT</button>
+        </MobileFrame>
+      } />
     </div>
   );
 }
@@ -1176,6 +1387,51 @@ function GatePassModule({ theme }: { theme: Theme }) {
           </div>
         </div>
       )}
+
+      {/* Mobile App Preview */}
+      <MobilePreviewToggle theme={theme} mobileContent={
+        <MobileFrame title="Gate Pass Scanner" theme={theme}>
+          <div className="bg-gray-900 rounded-xl h-44 relative flex items-center justify-center overflow-hidden">
+            <div className="absolute inset-4 border-2 border-emerald-400/40 rounded-lg" />
+            <div className="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-emerald-400 rounded-tl-md" />
+            <div className="absolute top-4 right-4 w-6 h-6 border-t-2 border-r-2 border-emerald-400 rounded-tr-md" />
+            <div className="absolute bottom-4 left-4 w-6 h-6 border-b-2 border-l-2 border-emerald-400 rounded-bl-md" />
+            <div className="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-emerald-400 rounded-br-md" />
+            <div className="absolute left-6 right-6 h-0.5 bg-emerald-400/60 top-1/2 animate-pulse" />
+            <div className="text-center relative z-10">
+              <p className="text-[10px] text-white/80 font-bold">Scan QR Code / Barcode</p>
+              <p className="text-[8px] text-white/50 mt-1">Point camera at gate pass</p>
+            </div>
+          </div>
+          <div className="bg-emerald-50 rounded-xl p-3 border border-emerald-200">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white text-sm">&#10003;</div>
+              <div>
+                <p className="text-[11px] font-bold text-emerald-700">Pass Verified</p>
+                <p className="text-[9px] text-emerald-500">GP-002 &bull; Valid</p>
+              </div>
+            </div>
+            <div className="space-y-1 ml-10">
+              <p className="text-[10px] text-gray-700"><span className="font-bold">Name:</span> Mr. Arvind Joshi</p>
+              <p className="text-[10px] text-gray-700"><span className="font-bold">Type:</span> Staff &bull; Official Work</p>
+              <p className="text-[10px] text-gray-700"><span className="font-bold">Exit:</span> 11:00 AM &bull; <span className="font-bold">Return:</span> 02:00 PM</p>
+              <p className="text-[10px] text-gray-700"><span className="font-bold">Auth:</span> Principal</p>
+            </div>
+          </div>
+          <div className="bg-red-50 rounded-xl p-3 border border-red-200">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white text-sm">&#10005;</div>
+              <div>
+                <p className="text-[11px] font-bold text-red-700">Invalid / Expired Pass</p>
+                <p className="text-[9px] text-red-500">Pass expired or not found. Deny exit.</p>
+              </div>
+            </div>
+          </div>
+          <button className="w-full py-3.5 bg-emerald-500 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2">&#10003; Allow Exit</button>
+          <button className="w-full py-3.5 bg-amber-500 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2">&#128221; Mark Return</button>
+          <button className="w-full py-3.5 bg-red-100 text-red-600 rounded-xl text-sm font-bold flex items-center justify-center gap-2">&#128683; Deny &mdash; Invalid Pass</button>
+        </MobileFrame>
+      } />
     </div>
   );
 }

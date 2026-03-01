@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { TabBar, SearchBar } from '@/components/shared';
+import { TabBar, SearchBar, MobileFrame, MobilePreviewToggle } from '@/components/shared';
 import { type Theme } from '@/lib/themes';
 import {
   Plus, X, Search, Eye, Edit, Send, Notebook, Info, Bell
@@ -148,6 +148,104 @@ export default function DiaryModule({ theme }: { theme: Theme }) {
             );
           })}
       </div>
+
+      {/* ── MOBILE APP PREVIEW ── */}
+      <MobilePreviewToggle
+        theme={theme}
+        mobileContent={
+          <MobileFrame title="Class Diary" theme={theme}>
+            {/* Pull to refresh */}
+            <div className="flex items-center justify-center py-1">
+              <div className="flex items-center gap-1 text-[9px] text-gray-400">
+                <span>&#8595;</span> Pull to refresh
+              </div>
+            </div>
+
+            {/* Quick create card */}
+            <div className="bg-white rounded-xl border border-gray-100 p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold text-gray-800">New Diary Entry</span>
+                <div className="flex gap-1">
+                  <select className="text-[9px] font-bold text-gray-600 bg-gray-100 rounded-lg px-2 py-1 border-none outline-none">
+                    {teacherProfile.classes.map(c => (
+                      <option key={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Voice-to-text input area */}
+              <div className="relative">
+                <textarea
+                  rows={3}
+                  placeholder="Type or tap mic to dictate..."
+                  className="w-full px-3 py-2 pr-10 bg-gray-50 rounded-xl text-[10px] border border-gray-200 resize-none outline-none"
+                />
+                {/* Mic icon */}
+                <button className="absolute right-2 bottom-2 w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center shadow-sm" title="Voice to text">
+                  <span className="text-white text-xs">&#127908;</span>
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-[9px] text-gray-400">Subject: Mathematics (auto-filled)</span>
+                <button className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-[10px] font-bold">
+                  Publish
+                </button>
+              </div>
+            </div>
+
+            {/* Today's entries */}
+            <div className="flex items-center gap-1 mt-1">
+              <span className="text-[10px] font-bold text-gray-700">Today</span>
+              <div className="flex-1 h-px bg-gray-200" />
+            </div>
+
+            {diaryEntries.slice(0, 3).map(d => {
+              const pendingCount = d.totalParents - d.readCount;
+              return (
+                <div key={d.id} className="bg-white rounded-xl border border-gray-100 p-2.5 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-6 h-6 rounded-lg bg-indigo-500 flex items-center justify-center text-white text-[9px]">&#128214;</div>
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-800">Class {d.class} &mdash; {d.subject}</p>
+                        <p className="text-[8px] text-gray-400">{d.date}</p>
+                      </div>
+                    </div>
+                    {/* Parent read status dots */}
+                    <div className="flex items-center gap-1">
+                      <div className="flex -space-x-0.5">
+                        {Array.from({ length: Math.min(d.readCount, 5) }).map((_, i) => (
+                          <div key={i} className="w-2 h-2 rounded-full bg-emerald-500 border border-white" />
+                        ))}
+                        {pendingCount > 0 && Array.from({ length: Math.min(pendingCount, 3) }).map((_, i) => (
+                          <div key={i} className="w-2 h-2 rounded-full bg-gray-300 border border-white" />
+                        ))}
+                      </div>
+                      <span className="text-[8px] text-gray-500">{d.readCount}/{d.totalParents}</span>
+                    </div>
+                  </div>
+
+                  <p className="text-[9px] text-gray-600 leading-relaxed line-clamp-2">{d.message}</p>
+
+                  {/* Send reminder button */}
+                  {pendingCount > 0 && (
+                    <button className="flex items-center gap-1 px-2 py-1 bg-amber-50 border border-amber-200 rounded-lg text-[9px] font-bold text-amber-700 w-full justify-center">
+                      <span>&#128276;</span> Send Reminder to {pendingCount} parents
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+
+            {/* Older entries hint */}
+            <div className="text-center py-1">
+              <span className="text-[9px] text-gray-400">&#8593; Scroll for older entries</span>
+            </div>
+          </MobileFrame>
+        }
+      />
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { type Theme } from '@/lib/themes';
-import { StatCard, StatusBadge, TabBar, DataTable } from '@/components/shared';
+import { StatCard, StatusBadge, TabBar, DataTable, MobileFrame, MobilePreviewToggle } from '@/components/shared';
 import { mockEnquiries } from '@/lib/mock-data';
 import { UserPlus, Clock, CheckCircle, TrendingUp, Plus, Eye, X, UserCheck, Download, Trash2, Archive, Info, Gift, Calculator, Award, Smartphone } from 'lucide-react';
 import { FormField, InputField, SelectField, TextAreaField } from '../_components/FormHelpers';
@@ -248,6 +248,30 @@ export default function EnquiriesModule({ theme }: { theme: Theme }) {
           </div>
         </div>
       )}
+
+
+      {/* ─── MOBILE APP PREVIEW ─── */}
+      <MobilePreviewToggle theme={theme} mobileContent={
+        <MobileFrame title="Enquiries" theme={theme}>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-blue-50 rounded-xl p-2.5 text-center"><p className="text-lg font-bold text-blue-700">45</p><p className="text-[9px] text-blue-600 font-medium">Total Enquiries</p></div>
+            <div className="bg-amber-50 rounded-xl p-2.5 text-center"><p className="text-lg font-bold text-amber-700">12</p><p className="text-[9px] text-amber-600 font-medium">Follow-up Due</p></div>
+          </div>
+          <div className="space-y-2">
+            {[{ child: "Arjun Patel", cls: "Class 5", parent: "Rajesh Patel", phone: "98765 43210", source: "Walk-in", status: "New", score: 88, date: "25-Feb" },{ child: "Meera Sharma", cls: "Class 3", parent: "Amit Sharma", phone: "87654 32109", source: "Referral", status: "Follow-up", score: 72, date: "22-Feb" },{ child: "Kabir Joshi", cls: "Class 8", parent: "Vikram Joshi", phone: "76543 21098", source: "Website", status: "New", score: 55, date: "20-Feb" },{ child: "Sanya Reddy", cls: "Class 1", parent: "Srinivas Reddy", phone: "65432 10987", source: "Phone", status: "Follow-up", score: 91, date: "18-Feb" }].map((enq, i) => (<div key={i} className="bg-white rounded-xl border border-gray-200 p-2.5"><div className="flex items-center justify-between mb-1.5"><div><p className="text-[11px] font-bold text-gray-800">{enq.child}</p><p className="text-[9px] text-gray-500">{enq.cls} {"•"} {enq.source} {"•"} {enq.date}</p></div><div className="flex flex-col items-end gap-1"><span className={`text-[8px] px-1.5 py-0.5 rounded-full font-bold ${enq.status === "New" ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"}`}>{enq.status}</span><span className={`text-[8px] px-1.5 py-0.5 rounded-full font-bold ${enq.score >= 85 ? "bg-red-100 text-red-700" : enq.score >= 60 ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"}`}>{enq.score >= 85 ? "Hot" : enq.score >= 60 ? "Warm" : "Cold"} ({enq.score})</span></div></div><p className="text-[9px] text-gray-600">{enq.parent} {"•"} {enq.phone}</p><div className="flex gap-1.5 mt-2 pt-2 border-t border-gray-100"><button className="flex-1 py-1.5 rounded-lg bg-green-500 text-white text-[8px] font-bold flex items-center justify-center gap-0.5">{"📞"} Call Now</button><button className="flex-1 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-[8px] font-bold text-emerald-700 flex items-center justify-center gap-0.5">{"✓"} Convert</button></div></div>))}
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-2.5">
+            <span className="text-[10px] font-bold text-gray-800 mb-2 block">Quick Fee Estimate</span>
+            <div className="space-y-1">
+              <div className="flex justify-between text-[9px]"><span className="text-gray-600">Tuition Fee</span><span className="font-bold text-gray-800">{"₹"}35,000</span></div>
+              <div className="flex justify-between text-[9px]"><span className="text-gray-600">Activity Fee</span><span className="font-bold text-gray-800">{"₹"}5,000</span></div>
+              <div className="flex justify-between text-[9px]"><span className="text-gray-600">Transport (if opted)</span><span className="font-bold text-gray-800">{"₹"}18,000</span></div>
+              <div className="flex justify-between text-[9px] pt-1 border-t border-gray-200"><span className="font-bold text-gray-800">Estimated Total</span><span className="font-bold text-emerald-700">{"₹"}58,000/yr</span></div>
+            </div>
+            <button className="w-full mt-2 py-1.5 rounded-lg bg-green-500 text-white text-[9px] font-bold flex items-center justify-center gap-1">{"📱"} Share via WhatsApp</button>
+          </div>
+        </MobileFrame>
+      } />
 
       {/* New Enquiry Modal */}
       {showNewEnquiry && (

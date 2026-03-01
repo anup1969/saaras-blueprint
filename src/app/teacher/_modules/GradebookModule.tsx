@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { StatCard, TabBar, DataTable } from '@/components/shared';
+import { StatCard, TabBar, DataTable, MobileFrame, MobilePreviewToggle } from '@/components/shared';
 import { type Theme } from '@/lib/themes';
 import {
   Check, Download, Star, CheckCircle, AlertTriangle, TrendingUp,
@@ -475,6 +475,125 @@ export default function GradebookModule({ theme }: { theme: Theme }) {
           </div>
         </div>
       )}
+
+      {/* ── MOBILE APP PREVIEW ── */}
+      <MobilePreviewToggle
+        theme={theme}
+        mobileContent={
+          <MobileFrame title="Gradebook" theme={theme}>
+            {/* Pull to refresh */}
+            <div className="flex items-center justify-center py-1">
+              <div className="flex items-center gap-1 text-[9px] text-gray-400">
+                <span>&#8595;</span> Pull to refresh
+              </div>
+            </div>
+
+            {/* Class / Exam selector */}
+            <div className="flex gap-2">
+              <div className="flex-1 bg-white rounded-xl border border-gray-100 px-2 py-1.5">
+                <span className="text-[8px] text-gray-400 block">Class</span>
+                <select className="text-[10px] font-bold text-gray-800 bg-transparent outline-none w-full">
+                  {teacherProfile.classes.map(c => (
+                    <option key={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex-1 bg-white rounded-xl border border-gray-100 px-2 py-1.5">
+                <span className="text-[8px] text-gray-400 block">Exam</span>
+                <select className="text-[10px] font-bold text-gray-800 bg-transparent outline-none w-full">
+                  {['UT-1', 'UT-2', 'Half Yearly', 'UT-3', 'Annual'].map(e => (
+                    <option key={e}>{e}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="bg-white rounded-xl border border-gray-100 px-2 py-1.5 flex flex-col items-center justify-center">
+                <span className="text-[8px] text-gray-400">Max</span>
+                <span className="text-[10px] font-bold text-gray-800">{currentMax}</span>
+              </div>
+            </div>
+
+            {/* Swipe between subjects hint */}
+            <div className="flex items-center justify-center gap-2 py-1">
+              <span className="text-[8px] text-gray-400">&#8592; Mathematics &#8594;</span>
+              <span className="text-[8px] text-blue-500 font-bold">Swipe for subjects</span>
+            </div>
+
+            {/* Quick mark entry grid */}
+            <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+              {/* Header */}
+              <div className="grid grid-cols-[28px_1fr_56px_36px] gap-0 bg-gray-100 px-2 py-1.5">
+                <span className="text-[8px] font-bold text-gray-500 text-center">#</span>
+                <span className="text-[8px] font-bold text-gray-500">STUDENT</span>
+                <span className="text-[8px] font-bold text-gray-500 text-center">MARKS</span>
+                <span className="text-[8px] font-bold text-gray-500 text-center">%</span>
+              </div>
+              {/* Student rows with editable cells */}
+              {gradebookStudents.slice(0, 8).map(s => {
+                const marks = getMarks(s);
+                const pct = currentMax > 0 ? Math.round((marks / currentMax) * 100) : 0;
+                return (
+                  <div key={s.roll} className="grid grid-cols-[28px_1fr_56px_36px] gap-0 px-2 py-1 border-t border-gray-50 items-center">
+                    <span className="text-[9px] text-gray-400 text-center">{s.roll}</span>
+                    <span className="text-[10px] font-medium text-gray-800 truncate pr-1">{s.name.split(' ')[0]}</span>
+                    <input
+                      type="number"
+                      defaultValue={marks}
+                      className="w-12 mx-auto px-1.5 py-1 bg-gray-50 rounded-lg text-[10px] text-center font-bold text-gray-800 border border-gray-200 outline-none"
+                    />
+                    <span className={`text-[9px] font-bold text-center ${pct >= 80 ? 'text-emerald-600' : pct >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
+                      {pct}%
+                    </span>
+                  </div>
+                );
+              })}
+              {gradebookStudents.length > 8 && (
+                <div className="px-2 py-1.5 text-center border-t border-gray-100">
+                  <span className="text-[9px] text-gray-400">+{gradebookStudents.length - 8} more students</span>
+                </div>
+              )}
+            </div>
+
+            {/* Skill Assessment quick view */}
+            <div className="bg-white rounded-xl border border-gray-100 p-2.5">
+              <span className="text-[10px] font-bold text-gray-800">Skill Assessment</span>
+              <div className="mt-1 space-y-1">
+                {gradebookStudents.slice(0, 3).map(s => (
+                  <div key={s.roll} className="flex items-center gap-1.5">
+                    <span className="text-[9px] text-gray-700 w-16 truncate">{s.name.split(' ')[0]}</span>
+                    <div className="flex gap-0.5">
+                      {skillColumns.slice(0, 3).map(sk => {
+                        const grade = skillGrades[s.name]?.[sk] || 'B';
+                        return (
+                          <button
+                            key={sk}
+                            className={`w-5 h-5 rounded text-[8px] font-bold flex items-center justify-center ${
+                              grade === 'A' ? 'bg-emerald-100 text-emerald-700' :
+                              grade === 'B' ? 'bg-blue-100 text-blue-700' :
+                              grade === 'C' ? 'bg-amber-100 text-amber-700' :
+                              'bg-red-100 text-red-700'
+                            }`}
+                          >
+                            {grade}
+                          </button>
+                        );
+                      })}
+                      <span className="text-[8px] text-gray-400">...</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="text-[8px] text-gray-400 mt-1">Tap grade to cycle A &#8594; B &#8594; C &#8594; D</p>
+            </div>
+
+            {/* Bulk save button */}
+            <div className="sticky bottom-0 pt-2">
+              <button className="w-full py-2.5 bg-blue-600 text-white rounded-xl text-xs font-bold shadow-lg">
+                Save All Marks
+              </button>
+            </div>
+          </MobileFrame>
+        }
+      />
     </div>
   );
 }
