@@ -7,7 +7,7 @@ import {
   Award, ClipboardCheck, IndianRupee, Briefcase, Bus,
   Download, FileText, ArrowRight, X, Monitor, TrendingUp,
   Users, FileSpreadsheet, BarChart3, GraduationCap, Info,
-  CalendarCheck, Smartphone, Eye,
+  CalendarCheck, Smartphone, Eye, FileBarChart, Share2, CheckCircle, Calendar,
 } from 'lucide-react';
 
 export default function ReportsModule({ theme }: { theme: Theme }) {
@@ -16,6 +16,14 @@ export default function ReportsModule({ theme }: { theme: Theme }) {
   const [previewToggle, setPreviewToggle] = useState(true);
   const [notifyToggle, setNotifyToggle] = useState(true);
   const [scheduleDate, setScheduleDate] = useState('');
+  const [reportType, setReportType] = useState('Overall School Performance');
+  const [reportPeriod, setReportPeriod] = useState('Term 2 (Oct–Mar)');
+  const [reportFormat, setReportFormat] = useState('PDF');
+  const [reportScope, setReportScope] = useState('All Classes');
+  const [includeCharts, setIncludeCharts] = useState(true);
+  const [includeComparison, setIncludeComparison] = useState(false);
+  const [includeRecommendations, setIncludeRecommendations] = useState(true);
+  const [reportGenerated, setReportGenerated] = useState(false);
 
   // Student rank trend data (moved from DashboardHome)
   const rankTrendStudents = [
@@ -681,6 +689,95 @@ export default function ReportsModule({ theme }: { theme: Theme }) {
       <div className={`px-4 py-2.5 rounded-xl border ${theme.border} ${theme.secondaryBg} flex items-center gap-2`}>
         <Info size={14} className={theme.primaryText} />
         <p className={`text-[10px] font-bold ${theme.iconColor}`}>{'\u2192'} Connected: ExamConfig (SSA) {'\u2192'} Gradebook (Teacher) {'\u2192'} Results (Student/Parent) {'\u2192'} Reports (Principal)</p>
+      </div>
+
+      {/* Performance Report Generator — Kshama: "add option of generating a performance report in PDF" */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>Performance Report Generator</h3>
+            <p className={`text-[10px] ${theme.iconColor} mt-0.5`}>Generate printable reports for Trustee presentations, board meetings, and parent circulars</p>
+          </div>
+          <FileBarChart size={20} className={theme.iconColor} />
+        </div>
+        <div className="grid grid-cols-4 gap-3 mb-4">
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Report Type</p>
+            <select value={reportType} onChange={e => setReportType(e.target.value)} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}>
+              <option>Overall School Performance</option>
+              <option>Class-wise Performance</option>
+              <option>Subject-wise Analysis</option>
+              <option>Student-wise Report Card</option>
+              <option>Teacher Effectiveness</option>
+              <option>Fee Collection Summary</option>
+              <option>Attendance Analytics</option>
+            </select>
+          </div>
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Time Period</p>
+            <select value={reportPeriod} onChange={e => setReportPeriod(e.target.value)} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}>
+              <option>Term 1 (Apr–Sep)</option>
+              <option>Term 2 (Oct–Mar)</option>
+              <option>Annual (Full Year)</option>
+              <option>Last 30 Days</option>
+              <option>Custom Range</option>
+            </select>
+          </div>
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Format</p>
+            <select value={reportFormat} onChange={e => setReportFormat(e.target.value)} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}>
+              <option>PDF</option>
+              <option>Excel</option>
+              <option>PDF + Excel</option>
+            </select>
+          </div>
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Include</p>
+            <select value={reportScope} onChange={e => setReportScope(e.target.value)} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}>
+              <option>All Classes</option>
+              <option>Primary (1–5)</option>
+              <option>Middle (6–8)</option>
+              <option>Senior (9–10)</option>
+              <option>Higher Secondary (11–12)</option>
+            </select>
+          </div>
+        </div>
+        <div className={`flex items-center gap-3 p-3 rounded-xl ${theme.secondaryBg} mb-4`}>
+          <input type="checkbox" checked={includeCharts} onChange={() => setIncludeCharts(!includeCharts)} className="rounded" />
+          <span className={`text-xs ${theme.highlight}`}>Include charts & graphs</span>
+          <span className={`mx-2 text-xs ${theme.iconColor}`}>|</span>
+          <input type="checkbox" checked={includeComparison} onChange={() => setIncludeComparison(!includeComparison)} className="rounded" />
+          <span className={`text-xs ${theme.highlight}`}>Include year-on-year comparison</span>
+          <span className={`mx-2 text-xs ${theme.iconColor}`}>|</span>
+          <input type="checkbox" checked={includeRecommendations} onChange={() => setIncludeRecommendations(!includeRecommendations)} className="rounded" />
+          <span className={`text-xs ${theme.highlight}`}>Include CTO recommendations</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <button onClick={() => setReportGenerated(true)} className={`px-5 py-2.5 ${theme.primary} text-white rounded-xl text-xs font-bold flex items-center gap-2 hover:opacity-90 transition-opacity`}>
+            <Download size={14} /> Generate Report
+          </button>
+          <button className={`px-4 py-2.5 rounded-xl border ${theme.border} text-xs font-bold ${theme.highlight} ${theme.buttonHover} flex items-center gap-2`}>
+            <Calendar size={14} /> Schedule Monthly
+          </button>
+          <button className={`px-4 py-2.5 rounded-xl border ${theme.border} text-xs font-bold ${theme.highlight} ${theme.buttonHover} flex items-center gap-2`}>
+            <Share2 size={14} /> Share with Trustee
+          </button>
+        </div>
+        {reportGenerated && (
+          <div className="mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center gap-3">
+            <CheckCircle size={16} className="text-emerald-600 shrink-0" />
+            <div className="flex-1">
+              <p className="text-xs font-bold text-emerald-800">Report Generated Successfully</p>
+              <p className="text-[10px] text-emerald-600">{reportType} — {reportPeriod} — {reportScope} ({reportFormat})</p>
+            </div>
+            <button className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-[10px] font-bold flex items-center gap-1 hover:bg-emerald-700">
+              <Download size={10} /> Download
+            </button>
+            <button className="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-[10px] font-bold flex items-center gap-1 hover:bg-blue-700">
+              <Share2 size={10} /> Email to Trustee
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Report Generation Summary */}
