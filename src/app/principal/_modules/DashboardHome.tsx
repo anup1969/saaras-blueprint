@@ -27,11 +27,14 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
   {/* Gap 13 — Dark Mode state */}
   const [darkMode, setDarkMode] = useState(false);
 
+  {/* Dismissible alert state */}
+  const [dismissedAlerts, setDismissedAlerts] = useState<string[]>([]);
+
   {/* Gap 12 — Dashlet Gallery state */}
   const [showGallery, setShowGallery] = useState(false);
   const [dashletVisibility, setDashletVisibility] = useState<Record<string, boolean>>({
     'birthday': true, 'sparkline': true,
-    'infirmary': true, 'rteQuota': true, 'countdown': true,
+    'infirmary': true, 'rteQuota': true,
   });
 
   {/* Compact card expanded states */}
@@ -95,7 +98,8 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
 
 
       {/* Gap 16 — Force-Push Mandatory Dashlet */}
-      <div className="rounded-2xl border-l-4 border-amber-500 bg-amber-50 border border-amber-200 p-4">
+      {!dismissedAlerts.includes('fee-collection-drive') && (
+            <div className="rounded-2xl border-l-4 border-amber-500 bg-amber-50 border border-amber-200 p-4">
         <div className="flex items-start gap-3">
           <AlertTriangle size={18} className="text-amber-600 shrink-0 mt-0.5" />
           <div className="flex-1">
@@ -111,22 +115,32 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
               </button>
             </div>
           </div>
+          <button onClick={() => setDismissedAlerts(prev => [...prev, 'fee-collection-drive'])} className="ml-auto text-amber-400 hover:text-amber-600 transition-colors shrink-0">
+            <X size={14} />
+          </button>
         </div>
       </div>
+      )}
 
       {/* Gap 20 — Bottleneck Alert (Principal-specific) */}
-      {!isPreschool && (
+      {!isPreschool && !dismissedAlerts.includes('bottleneck-alert') && (
         <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800">
           <AlertTriangle size={14} className="text-amber-600 shrink-0" />
-          <p className="text-xs font-medium">Bottleneck Alert — 23 leave approvals pending &gt; 3 days | 5 fee concessions awaiting sign-off</p>
+          <p className="text-xs font-medium flex-1">Bottleneck Alert — 23 leave approvals pending &gt; 3 days | 5 fee concessions awaiting sign-off</p>
+          <button onClick={() => setDismissedAlerts(prev => [...prev, 'bottleneck-alert'])} className="ml-auto text-amber-400 hover:text-amber-600 transition-colors shrink-0">
+            <X size={14} />
+          </button>
         </div>
       )}
 
       {/* Preschool Mode Banner */}
-      {isPreschool && (
+      {isPreschool && !dismissedAlerts.includes('preschool-mode') && (
         <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800">
           <AlertTriangle size={14} className="text-amber-600 shrink-0" />
-          <p className="text-xs font-medium">Preschool Mode — Showing Centre Head view with child safety, staff-child ratios, and milestone tracking</p>
+          <p className="text-xs font-medium flex-1">Preschool Mode — Showing Centre Head view with child safety, staff-child ratios, and milestone tracking</p>
+          <button onClick={() => setDismissedAlerts(prev => [...prev, 'preschool-mode'])} className="ml-auto text-amber-400 hover:text-amber-600 transition-colors shrink-0">
+            <X size={14} />
+          </button>
         </div>
       )}
       {/* Attendance Row — Student + Academic Staff + Non-Academic Staff (Clickable) */}
@@ -495,8 +509,8 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
 
       {/* ========== GAP DASHLETS (conditionally visible via dashlet gallery) ========== */}
 
-      {/* Compact Dashlet Row — Birthday, Gallery, Infirmary, Event Countdown */}
-      <div className="grid grid-cols-4 gap-3">
+      {/* Compact Dashlet Row — Birthday, Gallery, Infirmary */}
+      <div className="grid grid-cols-3 gap-3">
         {/* Compact Birthday Card */}
         {dashletVisibility['birthday'] && (
           <button onClick={() => setBirthdayExpanded(!birthdayExpanded)} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-3 text-left hover:ring-2 hover:ring-pink-300 transition-all`}>
@@ -529,30 +543,19 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
 
         {/* Compact Infirmary Card */}
         {dashletVisibility['infirmary'] && (
-          <button onClick={() => setInfirmaryExpanded(!infirmaryExpanded)} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-3 text-left hover:ring-2 hover:ring-red-300 transition-all`}>
-            <div className="flex items-center gap-2">
-              <Heart size={14} className="text-red-500" />
+          <button onClick={() => setInfirmaryExpanded(!infirmaryExpanded)} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-2.5 text-left hover:ring-2 hover:ring-red-300 transition-all`}>
+            <div className="flex items-center gap-1.5">
+              <Heart size={13} className="text-red-500" />
               <p className={`text-xs font-bold ${theme.highlight}`}>Infirmary</p>
             </div>
             <p className={`text-lg font-bold ${theme.highlight} mt-1`}>4 visits</p>
             <p className={`text-[10px] ${theme.iconColor}`}>12 allergy alerts</p>
-            <div className="flex items-center justify-end mt-1">
+            <div className="flex items-center justify-end mt-0.5">
               {infirmaryExpanded ? <ChevronUp size={12} className={theme.iconColor} /> : <ChevronDown size={12} className={theme.iconColor} />}
             </div>
           </button>
         )}
 
-        {/* Compact Event Countdown Card */}
-        {dashletVisibility['countdown'] && (
-          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-3 text-left`}>
-            <div className="flex items-center gap-2">
-              <Timer size={14} className={theme.iconColor} />
-              <p className={`text-xs font-bold ${theme.highlight}`}>Next Event</p>
-            </div>
-            <p className={`text-lg font-bold text-purple-700 mt-1`}>12 days</p>
-            <p className={`text-[10px] ${theme.iconColor}`}>Annual Day</p>
-          </div>
-        )}
       </div>
 
       {/* Expanded Birthday Section */}
@@ -626,33 +629,33 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
 
       {/* Expanded Infirmary Section */}
       {infirmaryExpanded && dashletVisibility['infirmary'] && (
-        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-          <div className="flex items-center gap-2 mb-3">
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-3`}>
+          <div className="flex items-center gap-2 mb-2">
             <Heart size={16} className="text-red-500" />
             <h3 className={`text-sm font-bold ${theme.highlight}`}>Infirmary — Today&apos;s Visits</h3>
           </div>
-          <div className="grid grid-cols-2 gap-3 mb-3">
-            <div className={`${theme.secondaryBg} rounded-xl p-3 text-center`}>
+          <div className="grid grid-cols-2 gap-2 mb-2">
+            <div className={`${theme.secondaryBg} rounded-xl p-2 text-center`}>
               <p className={`text-[10px] ${theme.iconColor} mb-1`}>Visits Today</p>
               <p className={`text-xl font-bold ${theme.highlight}`}>4</p>
             </div>
-            <div className={`${theme.secondaryBg} rounded-xl p-3 text-center`}>
+            <div className={`${theme.secondaryBg} rounded-xl p-2 text-center`}>
               <p className={`text-[10px] ${theme.iconColor} mb-1`}>Active Allergy Alerts</p>
               <p className="text-xl font-bold text-amber-600">12</p>
             </div>
           </div>
           <div>
-            <p className={`text-[10px] font-bold uppercase ${theme.iconColor} mb-1.5`}>Recent Visits</p>
-            <div className="space-y-1.5">
+            <p className={`text-[10px] font-bold uppercase ${theme.iconColor} mb-1`}>Recent Visits</p>
+            <div className="space-y-1">
               {[
                 { name: 'Rahul M.', reason: 'Headache', time: '10:30 AM', cls: '7A' },
                 { name: 'Sneha K.', reason: 'Stomach ache', time: '11:15 AM', cls: '5B' },
                 { name: 'Arjun P.', reason: 'Minor cut', time: '1:45 PM', cls: '9A' },
                 { name: 'Meera D.', reason: 'Fever (100.2F)', time: '2:10 PM', cls: '4C' },
               ].map((v, i) => (
-                <div key={i} className={`flex items-center justify-between p-2 rounded-xl ${theme.secondaryBg}`}>
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <Heart size={12} className="text-red-400 shrink-0" />
+                <div key={i} className={`flex items-center justify-between px-2 py-1.5 rounded-xl ${theme.secondaryBg}`}>
+                  <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                    <Heart size={11} className="text-red-400 shrink-0" />
                     <button
                       onClick={() => setMiniProfile({ name: v.name, class: v.cls })}
                       className={`text-[11px] font-bold ${theme.highlight} hover:underline cursor-pointer`}
@@ -661,13 +664,13 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
                     </button>
                     <span className={`text-[10px] ${theme.iconColor}`}>— {v.reason}</span>
                   </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
+                  <div className="flex items-center gap-1 shrink-0">
                     <span className={`text-[10px] ${theme.iconColor} font-medium`}>{v.time}</span>
-                    <button title="Call Parent" className="w-6 h-6 rounded-lg bg-blue-500/20 flex items-center justify-center hover:bg-blue-500/30 transition-colors">
-                      <Phone size={10} className="text-blue-600" />
+                    <button title="Call Parent" className="w-5 h-5 rounded-md bg-blue-500/20 flex items-center justify-center hover:bg-blue-500/30 transition-colors">
+                      <Phone size={9} className="text-blue-600" />
                     </button>
-                    <button title="Refer to Doctor" className="w-6 h-6 rounded-lg bg-red-500/20 flex items-center justify-center hover:bg-red-500/30 transition-colors">
-                      <Stethoscope size={10} className="text-red-600" />
+                    <button title="Refer to Doctor" className="w-5 h-5 rounded-md bg-red-500/20 flex items-center justify-center hover:bg-red-500/30 transition-colors">
+                      <Stethoscope size={9} className="text-red-600" />
                     </button>
                   </div>
                 </div>
@@ -933,7 +936,6 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
                 { key: 'birthday', name: 'Birthdays & Gallery', desc: 'Compact birthday wishes and photo gallery cards', icon: Cake },
                 { key: 'infirmary', name: 'Infirmary', desc: 'Health visits and allergy alerts (compact card)', icon: Heart },
                 { key: 'rteQuota', name: 'RTE Quota', desc: 'RTE 25% seat allocation tracking', icon: ShieldCheck },
-                { key: 'countdown', name: 'Event Countdown', desc: 'Days until upcoming major events (compact card)', icon: Timer },
                 /* bellCurve, markEntry, progressRing MOVED to AcademicsModule.tsx */
               ].map(d => (
                 <div key={d.key} className={`flex items-center gap-3 p-3 rounded-xl ${theme.secondaryBg} border ${theme.border}`}>

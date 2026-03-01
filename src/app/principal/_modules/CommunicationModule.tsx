@@ -13,6 +13,8 @@ export default function CommunicationModule({ theme }: { theme: Theme }) {
   const [commTab, setCommTab] = useState<'Messages' | 'Announcements' | 'PTM Overview' | 'Chat'>('Messages');
   const [showNewAnnouncement, setShowNewAnnouncement] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [showNewCircular, setShowNewCircular] = useState(false);
+  const [showQuickMessage, setShowQuickMessage] = useState(false);
   const [announcementForm, setAnnouncementForm] = useState({
     title: '', message: '', audience: 'All Staff', priority: 'Normal' as 'Normal' | 'Important' | 'Urgent', scheduleMode: 'now' as 'now' | 'later', scheduleDate: '',
     studentFilters: { grades: [] as string[], divisions: [] as string[], sectionGroups: [] as string[], houses: [] as string[] },
@@ -29,13 +31,13 @@ export default function CommunicationModule({ theme }: { theme: Theme }) {
     if (audience === 'Teachers') {
       counts.push({ group: 'Teaching Staff', count: 78 });
     }
-    if (audience === 'Parents' || audience === 'Selected Groups') {
+    if (audience === 'Parents' || audience === 'All Parents' || audience === 'Selected Groups') {
       counts.push({ group: 'Parents', count: 2847 });
     }
-    if (audience === 'Students' || audience === 'Selected Groups') {
+    if (['Students', 'Specific Grade', 'Specific Section', 'Custom Group', 'Selected Groups'].includes(audience)) {
       const sf = announcementForm.studentFilters;
       const hasFilters = sf.grades.length > 0 || sf.divisions.length > 0 || sf.sectionGroups.length > 0 || sf.houses.length > 0;
-      if (audience === 'Students' && hasFilters) {
+      if (['Students', 'Specific Grade', 'Specific Section', 'Custom Group'].includes(audience) && hasFilters) {
         let studentCount = 0;
         if (sf.grades.length > 0) studentCount += sf.grades.length * 120;
         else studentCount = 2847;
@@ -97,10 +99,10 @@ export default function CommunicationModule({ theme }: { theme: Theme }) {
         <div className="flex gap-2">
           {commTab === 'Messages' && (
             <>
-              <button className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold flex items-center gap-1`}>
+              <button onClick={() => { setShowNewCircular(!showNewCircular); setShowQuickMessage(false); }} className={`px-4 py-2 ${showNewCircular ? theme.primary + ' ring-2 ring-offset-1 ring-blue-400' : theme.primary} text-white rounded-xl text-xs font-bold flex items-center gap-1`}>
                 <Plus size={12} /> New Circular
               </button>
-              <button className={`px-4 py-2 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.highlight} flex items-center gap-1`}>
+              <button onClick={() => { setShowQuickMessage(!showQuickMessage); setShowNewCircular(false); }} className={`px-4 py-2 ${showQuickMessage ? theme.primary + ' text-white ring-2 ring-offset-1 ring-blue-400' : theme.secondaryBg + ' ' + theme.highlight} rounded-xl text-xs font-bold flex items-center gap-1`}>
                 <Send size={12} /> Quick Message
               </button>
             </>
@@ -112,6 +114,41 @@ export default function CommunicationModule({ theme }: { theme: Theme }) {
           )}
         </div>
       </div>
+
+      {/* ── Inline Forms (New Circular / Quick Message) ── */}
+      {commTab === 'Messages' && showNewCircular && (
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <h4 className={`text-xs font-bold ${theme.highlight} mb-3`}>New Circular</h4>
+          <input placeholder="Subject" className={`w-full px-3 py-2 rounded-lg border ${theme.border} ${theme.inputBg} text-xs mb-2`} />
+          <textarea placeholder="Message body..." rows={3} className={`w-full px-3 py-2 rounded-lg border ${theme.border} ${theme.inputBg} text-xs mb-2`} />
+          <div className="flex gap-2">
+            <select className={`px-3 py-2 rounded-lg border ${theme.border} ${theme.inputBg} text-xs`}>
+              <option>All Parents</option><option>All Staff</option><option>Specific Class</option>
+            </select>
+            <select className={`px-3 py-2 rounded-lg border ${theme.border} ${theme.inputBg} text-xs`}>
+              <option>Normal</option><option>Urgent</option><option>Important</option>
+            </select>
+            <button className={`px-4 py-2 ${theme.primary} text-white rounded-lg text-xs font-bold ml-auto`}>Send Circular</button>
+          </div>
+        </div>
+      )}
+      {commTab === 'Messages' && showQuickMessage && (
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <h4 className={`text-xs font-bold ${theme.highlight} mb-3`}>Quick Message</h4>
+          <div className="flex gap-2 mb-2">
+            <select className={`flex-1 px-3 py-2 rounded-lg border ${theme.border} ${theme.inputBg} text-xs`}>
+              <option>Select Recipient...</option><option>Vice Principal</option><option>Class Teacher - 10A</option><option>HR Manager</option><option>Transport Head</option><option>Accounts Head</option>
+            </select>
+            <select className={`px-3 py-2 rounded-lg border ${theme.border} ${theme.inputBg} text-xs`}>
+              <option>Text</option><option>Voice Note</option>
+            </select>
+          </div>
+          <div className="flex gap-2">
+            <input placeholder="Type your message..." className={`flex-1 px-3 py-2 rounded-lg border ${theme.border} ${theme.inputBg} text-xs`} />
+            <button className={`px-4 py-2 ${theme.primary} text-white rounded-lg text-xs font-bold`}>Send</button>
+          </div>
+        </div>
+      )}
 
       {/* Tab Bar */}
       <TabBar tabs={['Messages', 'Announcements', 'PTM Overview', 'Chat']} active={commTab} onChange={(t) => setCommTab(t as 'Messages' | 'Announcements' | 'PTM Overview' | 'Chat')} theme={theme} />
@@ -312,9 +349,13 @@ export default function CommunicationModule({ theme }: { theme: Theme }) {
                   className={`w-full px-3 py-2.5 rounded-xl text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight} outline-none focus:ring-2 focus:ring-blue-300`}
                 >
                   <option>All Staff</option>
+                  <option>All Parents</option>
                   <option>Teachers</option>
                   <option>Parents</option>
                   <option>Students</option>
+                  <option>Specific Grade</option>
+                  <option>Specific Section</option>
+                  <option>Custom Group</option>
                   <option>Selected Groups</option>
                 </select>
               </div>
@@ -337,9 +378,11 @@ export default function CommunicationModule({ theme }: { theme: Theme }) {
             </div>
 
             {/* Student Sub-Filters (shown when audience = Students) */}
-            {announcementForm.audience === 'Students' && (
+            {(['Students', 'Specific Grade', 'Specific Section', 'Custom Group'].includes(announcementForm.audience)) && (
               <div className={`p-3 rounded-xl border ${theme.border} ${theme.secondaryBg} space-y-3`}>
-                <p className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Student Filters</p>
+                <p className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>
+                  {announcementForm.audience === 'Specific Section' ? 'Select Grade & Section' : announcementForm.audience === 'Specific Grade' ? 'Select Grade(s)' : announcementForm.audience === 'Custom Group' ? 'Custom Group Filters' : 'Student Filters'}
+                </p>
 
                 {/* Grade-wise */}
                 <div>
@@ -369,7 +412,8 @@ export default function CommunicationModule({ theme }: { theme: Theme }) {
                   </div>
                 </div>
 
-                {/* Division */}
+                {/* Division (visible for Specific Section, Students, Custom Group) */}
+                {(['Students', 'Specific Section', 'Custom Group'].includes(announcementForm.audience)) && (
                 <div>
                   <label className={`text-[10px] font-medium ${theme.iconColor} block mb-1`}>Division</label>
                   <div className="flex gap-1.5">
@@ -396,6 +440,7 @@ export default function CommunicationModule({ theme }: { theme: Theme }) {
                     ))}
                   </div>
                 </div>
+                )}
 
                 {/* Section Group */}
                 <div>
@@ -549,7 +594,7 @@ export default function CommunicationModule({ theme }: { theme: Theme }) {
             </div>
 
             {/* Student filter summary */}
-            {announcementForm.audience === 'Students' && (
+            {(['Students', 'Specific Grade', 'Specific Section', 'Custom Group'].includes(announcementForm.audience)) && (
               <div className={`text-[10px] ${theme.iconColor} space-y-0.5`}>
                 {announcementForm.studentFilters.grades.length > 0 && <p>Grades: {announcementForm.studentFilters.grades.join(', ')}</p>}
                 {announcementForm.studentFilters.divisions.length > 0 && <p>Divisions: {announcementForm.studentFilters.divisions.join(', ')}</p>}

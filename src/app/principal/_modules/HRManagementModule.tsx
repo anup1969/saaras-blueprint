@@ -2,7 +2,7 @@
 
 import { StatCard, StatusBadge, DataTable } from '@/components/shared';
 import { type Theme } from '@/lib/themes';
-import { Users, GraduationCap, Briefcase, Calendar, DollarSign, ClipboardCheck } from 'lucide-react';
+import { Users, GraduationCap, Briefcase, Calendar, DollarSign, ClipboardCheck, Info } from 'lucide-react';
 
 export default function HRManagementModule({ theme }: { theme: Theme }) {
   const staffList = [
@@ -17,6 +17,13 @@ export default function HRManagementModule({ theme }: { theme: Theme }) {
   return (
     <div className="space-y-4">
       <h1 className={`text-2xl font-bold ${theme.highlight}`}>HR Management</h1>
+
+      <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${theme.accentBg || theme.secondaryBg} mb-4`}>
+        <Info size={14} className={theme.iconColor} />
+        <p className={`text-[10px] ${theme.iconColor}`}>
+          Principal-level overview — detailed HR operations managed via <span className="font-bold">HR Manager Dashboard</span>
+        </p>
+      </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon={Users} label="Total Staff" value="124" color="bg-blue-500" theme={theme} />

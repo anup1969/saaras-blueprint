@@ -22,7 +22,7 @@ export default function DrillDownPanel({ type, theme, onClose }: { type: 'studen
   const [expandedClassGroups, setExpandedClassGroups] = useState<Record<string, boolean>>({});
   // Remark 9+7: collapsible subject groups state (academic staff)
   const [expandedSubjectGroups, setExpandedSubjectGroups] = useState<Record<string, boolean>>({});
-  // Department-wise (organizational) expanded state
+  // Faculty / Department-wise (organizational) expanded state
   const [expandedDepts, setExpandedDepts] = useState<Record<string, boolean>>({});
 
   const titles: Record<string, string> = { students: 'Student Attendance Analytics', academic: 'Academic Staff Analytics', 'non-academic': 'Non-Academic Staff Analytics' };
@@ -153,9 +153,9 @@ export default function DrillDownPanel({ type, theme, onClose }: { type: 'studen
   ];
 
   const studentTabs = ['Class-wise', 'House-wise', 'Absent Today'];
-  // Remark 5: academic uses Subject-wise + Department-wise, non-academic keeps Department-wise
+  // Remark 5: academic uses Subject-wise + Faculty, non-academic keeps Department-wise
   const staffTabs = type === 'academic'
-    ? ['Subject-wise', 'Department-wise', 'Absent Today', 'Leave Summary']
+    ? ['Subject-wise', 'Faculty', 'Absent Today', 'Leave Summary']
     : ['Department-wise', 'Absent Today', 'Leave Summary'];
 
   /* ── Helpers ── */
@@ -365,8 +365,8 @@ export default function DrillDownPanel({ type, theme, onClose }: { type: 'studen
           </div>
         )}
 
-        {/* ──── Academic Staff: Department-wise (organizational departments — Pre-Primary, Primary, Secondary, Arts, Commerce, Science) ──── */}
-        {type === 'academic' && tab === 'Department-wise' && (
+        {/* ──── Academic Staff: Faculty (organizational departments — Pre-Primary, Primary, Secondary, Arts, Commerce, Science) ──── */}
+        {type === 'academic' && tab === 'Faculty' && (
           <div className={`border ${theme.border} rounded-xl overflow-hidden`}>
             <table className="w-full text-xs">
               <thead><tr className={theme.secondaryBg}>

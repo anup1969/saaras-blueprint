@@ -13,158 +13,158 @@ interface TaskTrackerPanelProps {
   onRecurringTasksChange?: (tasks: Array<{id: number; title: string; priority: 'high'|'medium'|'low'; assignee: string; frequency: string; status: 'active'|'paused'}>) => void;
 }
 
-const roleTasks: Record<string, Array<{ id: number; title: string; priority: 'high' | 'medium' | 'low'; assignee: string; days: string; status: 'open' | 'in progress' | 'done' }>> = {
+const roleTasks: Record<string, Array<{ id: number; title: string; priority: 'high' | 'medium' | 'low'; assignee: string; createdBy: string; days: string; status: 'open' | 'in progress' | 'done' }>> = {
   principal: [
-    { id: 1, title: 'Review mid-term exam papers', priority: 'high', assignee: 'Self', days: '2d', status: 'open' },
-    { id: 2, title: 'Approve staff leave requests (3)', priority: 'high', assignee: 'Self', days: 'Today', status: 'open' },
-    { id: 3, title: 'Submit SQAAF self-assessment', priority: 'high', assignee: 'Self', days: '5d', status: 'open' },
-    { id: 4, title: 'Prepare Annual Day speech', priority: 'medium', assignee: 'Self', days: '8d', status: 'open' },
-    { id: 5, title: 'Review fee defaulter list', priority: 'high', assignee: 'VP', days: '1d', status: 'in progress' },
-    { id: 6, title: 'Meeting with PTA committee', priority: 'medium', assignee: 'Self', days: '3d', status: 'open' },
-    { id: 7, title: 'Finalize timetable changes', priority: 'low', assignee: 'VP', days: '12d', status: 'open' },
-    { id: 8, title: 'Review bus route complaints', priority: 'medium', assignee: 'Transport Head', days: '4d', status: 'open' },
+    { id: 1, title: 'Review mid-term exam papers', priority: 'high', assignee: 'Self', createdBy: 'Self', days: '2d', status: 'open' },
+    { id: 2, title: 'Approve staff leave requests (3)', priority: 'high', assignee: 'Self', createdBy: 'Others', days: 'Today', status: 'open' },
+    { id: 3, title: 'Submit SQAAF self-assessment', priority: 'high', assignee: 'Self', createdBy: 'Self', days: '5d', status: 'open' },
+    { id: 4, title: 'Prepare Annual Day speech', priority: 'medium', assignee: 'Self', createdBy: 'Others', days: '8d', status: 'open' },
+    { id: 5, title: 'Review fee defaulter list', priority: 'high', assignee: 'VP', createdBy: 'Self', days: '1d', status: 'in progress' },
+    { id: 6, title: 'Meeting with PTA committee', priority: 'medium', assignee: 'Self', createdBy: 'Others', days: '3d', status: 'open' },
+    { id: 7, title: 'Finalize timetable changes', priority: 'low', assignee: 'VP', createdBy: 'Self', days: '12d', status: 'open' },
+    { id: 8, title: 'Review bus route complaints', priority: 'medium', assignee: 'Transport Head', createdBy: 'Self', days: '4d', status: 'open' },
   ],
   teacher: [
-    { id: 1, title: 'Mark attendance for 10-A & 8-A', priority: 'high', assignee: 'Self', days: 'Today', status: 'open' },
-    { id: 2, title: 'Enter UT-4 marks for Class 10-B', priority: 'high', assignee: 'Self', days: '3d', status: 'open' },
-    { id: 3, title: 'Grade homework — Ch 3 Linear Equations', priority: 'medium', assignee: 'Self', days: '1d', status: 'in progress' },
-    { id: 4, title: 'Prepare UT-4 question paper', priority: 'high', assignee: 'Self', days: '2d', status: 'open' },
-    { id: 5, title: 'Update lesson plan for next week', priority: 'medium', assignee: 'Self', days: '5d', status: 'open' },
-    { id: 6, title: 'Submit monthly progress report', priority: 'medium', assignee: 'Self', days: '7d', status: 'open' },
-    { id: 7, title: 'Review student project submissions', priority: 'low', assignee: 'Self', days: '10d', status: 'open' },
-    { id: 8, title: 'Attend staff development workshop', priority: 'medium', assignee: 'Self', days: '8d', status: 'open' },
+    { id: 1, title: 'Mark attendance for 10-A & 8-A', priority: 'high', assignee: 'Self', createdBy: 'Self', days: 'Today', status: 'open' },
+    { id: 2, title: 'Enter UT-4 marks for Class 10-B', priority: 'high', assignee: 'Self', createdBy: 'Others', days: '3d', status: 'open' },
+    { id: 3, title: 'Grade homework — Ch 3 Linear Equations', priority: 'medium', assignee: 'Self', createdBy: 'Self', days: '1d', status: 'in progress' },
+    { id: 4, title: 'Prepare UT-4 question paper', priority: 'high', assignee: 'Self', createdBy: 'Others', days: '2d', status: 'open' },
+    { id: 5, title: 'Update lesson plan for next week', priority: 'medium', assignee: 'Self', createdBy: 'Self', days: '5d', status: 'open' },
+    { id: 6, title: 'Submit monthly progress report', priority: 'medium', assignee: 'Self', createdBy: 'Others', days: '7d', status: 'open' },
+    { id: 7, title: 'Review student project submissions', priority: 'low', assignee: 'Self', createdBy: 'Self', days: '10d', status: 'open' },
+    { id: 8, title: 'Attend staff development workshop', priority: 'medium', assignee: 'Self', createdBy: 'Others', days: '8d', status: 'open' },
   ],
   student: [
-    { id: 1, title: 'Submit Maths homework — Ch 7', priority: 'high', assignee: 'Self', days: 'Today', status: 'open' },
-    { id: 2, title: 'Prepare for Science lab practical', priority: 'high', assignee: 'Self', days: '2d', status: 'open' },
-    { id: 3, title: 'Complete English essay draft', priority: 'medium', assignee: 'Self', days: '3d', status: 'in progress' },
-    { id: 4, title: 'Study for Pre-Board exam', priority: 'high', assignee: 'Self', days: '8d', status: 'open' },
-    { id: 5, title: 'Return library books', priority: 'low', assignee: 'Self', days: '5d', status: 'open' },
-    { id: 6, title: 'Collect PTM slip from class teacher', priority: 'medium', assignee: 'Self', days: '1d', status: 'open' },
-    { id: 7, title: 'Submit project file — Social Studies', priority: 'medium', assignee: 'Self', days: '7d', status: 'open' },
-    { id: 8, title: 'Practice for Annual Day performance', priority: 'low', assignee: 'Self', days: '12d', status: 'open' },
+    { id: 1, title: 'Submit Maths homework — Ch 7', priority: 'high', assignee: 'Self', createdBy: 'Self', days: 'Today', status: 'open' },
+    { id: 2, title: 'Prepare for Science lab practical', priority: 'high', assignee: 'Self', createdBy: 'Others', days: '2d', status: 'open' },
+    { id: 3, title: 'Complete English essay draft', priority: 'medium', assignee: 'Self', createdBy: 'Self', days: '3d', status: 'in progress' },
+    { id: 4, title: 'Study for Pre-Board exam', priority: 'high', assignee: 'Self', createdBy: 'Others', days: '8d', status: 'open' },
+    { id: 5, title: 'Return library books', priority: 'low', assignee: 'Self', createdBy: 'Self', days: '5d', status: 'open' },
+    { id: 6, title: 'Collect PTM slip from class teacher', priority: 'medium', assignee: 'Self', createdBy: 'Others', days: '1d', status: 'open' },
+    { id: 7, title: 'Submit project file — Social Studies', priority: 'medium', assignee: 'Self', createdBy: 'Self', days: '7d', status: 'open' },
+    { id: 8, title: 'Practice for Annual Day performance', priority: 'low', assignee: 'Self', createdBy: 'Others', days: '12d', status: 'open' },
   ],
   parent: [
-    { id: 1, title: 'Pay pending fee installment', priority: 'high', assignee: 'Self', days: '3d', status: 'open' },
-    { id: 2, title: 'Attend PTM on 20 Feb', priority: 'high', assignee: 'Self', days: '8d', status: 'open' },
-    { id: 3, title: 'Sign and return consent form', priority: 'medium', assignee: 'Self', days: '2d', status: 'open' },
-    { id: 4, title: 'Review child progress report', priority: 'medium', assignee: 'Self', days: '1d', status: 'in progress' },
-    { id: 5, title: 'Update emergency contact details', priority: 'low', assignee: 'Self', days: '10d', status: 'open' },
-    { id: 6, title: 'Submit medical certificate', priority: 'high', assignee: 'Self', days: 'Today', status: 'open' },
-    { id: 7, title: 'Approve bus route change request', priority: 'medium', assignee: 'Self', days: '5d', status: 'open' },
-    { id: 8, title: 'Check Annual Day invitation', priority: 'low', assignee: 'Self', days: '14d', status: 'open' },
+    { id: 1, title: 'Pay pending fee installment', priority: 'high', assignee: 'Self', createdBy: 'Self', days: '3d', status: 'open' },
+    { id: 2, title: 'Attend PTM on 20 Feb', priority: 'high', assignee: 'Self', createdBy: 'Others', days: '8d', status: 'open' },
+    { id: 3, title: 'Sign and return consent form', priority: 'medium', assignee: 'Self', createdBy: 'Self', days: '2d', status: 'open' },
+    { id: 4, title: 'Review child progress report', priority: 'medium', assignee: 'Self', createdBy: 'Others', days: '1d', status: 'in progress' },
+    { id: 5, title: 'Update emergency contact details', priority: 'low', assignee: 'Self', createdBy: 'Self', days: '10d', status: 'open' },
+    { id: 6, title: 'Submit medical certificate', priority: 'high', assignee: 'Self', createdBy: 'Others', days: 'Today', status: 'open' },
+    { id: 7, title: 'Approve bus route change request', priority: 'medium', assignee: 'Self', createdBy: 'Self', days: '5d', status: 'open' },
+    { id: 8, title: 'Check Annual Day invitation', priority: 'low', assignee: 'Self', createdBy: 'Others', days: '14d', status: 'open' },
   ],
   'school-admin': [
-    { id: 1, title: 'Process pending admission forms (5)', priority: 'high', assignee: 'Self', days: 'Today', status: 'open' },
-    { id: 2, title: 'Generate fee defaulter report', priority: 'high', assignee: 'Self', days: '1d', status: 'open' },
-    { id: 3, title: 'Update student records for Class 3', priority: 'medium', assignee: 'Self', days: '3d', status: 'in progress' },
-    { id: 4, title: 'Send circular to all parents', priority: 'medium', assignee: 'Self', days: '2d', status: 'open' },
-    { id: 5, title: 'Verify staff attendance records', priority: 'high', assignee: 'Self', days: '1d', status: 'open' },
-    { id: 6, title: 'Review transport route complaints', priority: 'medium', assignee: 'Transport', days: '5d', status: 'open' },
-    { id: 7, title: 'Complete monthly enrolment report', priority: 'low', assignee: 'Self', days: '10d', status: 'open' },
-    { id: 8, title: 'Schedule parent orientation session', priority: 'medium', assignee: 'Self', days: '7d', status: 'open' },
+    { id: 1, title: 'Process pending admission forms (5)', priority: 'high', assignee: 'Self', createdBy: 'Self', days: 'Today', status: 'open' },
+    { id: 2, title: 'Generate fee defaulter report', priority: 'high', assignee: 'Self', createdBy: 'Others', days: '1d', status: 'open' },
+    { id: 3, title: 'Update student records for Class 3', priority: 'medium', assignee: 'Self', createdBy: 'Self', days: '3d', status: 'in progress' },
+    { id: 4, title: 'Send circular to all parents', priority: 'medium', assignee: 'Self', createdBy: 'Others', days: '2d', status: 'open' },
+    { id: 5, title: 'Verify staff attendance records', priority: 'high', assignee: 'Self', createdBy: 'Self', days: '1d', status: 'open' },
+    { id: 6, title: 'Review transport route complaints', priority: 'medium', assignee: 'Transport', createdBy: 'Self', days: '5d', status: 'open' },
+    { id: 7, title: 'Complete monthly enrolment report', priority: 'low', assignee: 'Self', createdBy: 'Self', days: '10d', status: 'open' },
+    { id: 8, title: 'Schedule parent orientation session', priority: 'medium', assignee: 'Self', createdBy: 'Others', days: '7d', status: 'open' },
   ],
   'super-admin': [
-    { id: 1, title: 'Review platform uptime report', priority: 'high', assignee: 'Self', days: 'Today', status: 'open' },
-    { id: 2, title: 'Approve new school onboarding', priority: 'high', assignee: 'Self', days: '1d', status: 'open' },
-    { id: 3, title: 'Deploy v2.4 hotfix to production', priority: 'high', assignee: 'DevOps', days: '2d', status: 'in progress' },
-    { id: 4, title: 'Review support ticket escalations', priority: 'medium', assignee: 'Self', days: '1d', status: 'open' },
-    { id: 5, title: 'Update subscription plan pricing', priority: 'medium', assignee: 'Self', days: '5d', status: 'open' },
-    { id: 6, title: 'Audit user access permissions', priority: 'medium', assignee: 'Self', days: '7d', status: 'open' },
-    { id: 7, title: 'Review monthly MRR analytics', priority: 'low', assignee: 'Self', days: '10d', status: 'open' },
-    { id: 8, title: 'Plan feature rollout for Q2', priority: 'low', assignee: 'Product', days: '14d', status: 'open' },
+    { id: 1, title: 'Review platform uptime report', priority: 'high', assignee: 'Self', createdBy: 'Self', days: 'Today', status: 'open' },
+    { id: 2, title: 'Approve new school onboarding', priority: 'high', assignee: 'Self', createdBy: 'Others', days: '1d', status: 'open' },
+    { id: 3, title: 'Deploy v2.4 hotfix to production', priority: 'high', assignee: 'DevOps', createdBy: 'Self', days: '2d', status: 'in progress' },
+    { id: 4, title: 'Review support ticket escalations', priority: 'medium', assignee: 'Self', createdBy: 'Others', days: '1d', status: 'open' },
+    { id: 5, title: 'Update subscription plan pricing', priority: 'medium', assignee: 'Self', createdBy: 'Self', days: '5d', status: 'open' },
+    { id: 6, title: 'Audit user access permissions', priority: 'medium', assignee: 'Self', createdBy: 'Others', days: '7d', status: 'open' },
+    { id: 7, title: 'Review monthly MRR analytics', priority: 'low', assignee: 'Self', createdBy: 'Self', days: '10d', status: 'open' },
+    { id: 8, title: 'Plan feature rollout for Q2', priority: 'low', assignee: 'Product', createdBy: 'Self', days: '14d', status: 'open' },
   ],
   trustee: [
-    { id: 1, title: 'Review quarterly financial report', priority: 'high', assignee: 'Self', days: '2d', status: 'open' },
-    { id: 2, title: 'Approve capital expenditure request', priority: 'high', assignee: 'Self', days: '1d', status: 'open' },
-    { id: 3, title: 'Review SQAAF compliance status', priority: 'high', assignee: 'Self', days: '5d', status: 'in progress' },
-    { id: 4, title: 'Approve board meeting agenda', priority: 'medium', assignee: 'Self', days: '3d', status: 'open' },
-    { id: 5, title: 'Review staff hiring proposals', priority: 'medium', assignee: 'HR', days: '7d', status: 'open' },
-    { id: 6, title: 'Sign off on annual budget', priority: 'high', assignee: 'Self', days: 'Today', status: 'open' },
-    { id: 7, title: 'Review infrastructure audit report', priority: 'low', assignee: 'Self', days: '12d', status: 'open' },
-    { id: 8, title: 'Prepare trust annual report', priority: 'medium', assignee: 'Self', days: '10d', status: 'open' },
+    { id: 1, title: 'Review quarterly financial report', priority: 'high', assignee: 'Self', createdBy: 'Self', days: '2d', status: 'open' },
+    { id: 2, title: 'Approve capital expenditure request', priority: 'high', assignee: 'Self', createdBy: 'Others', days: '1d', status: 'open' },
+    { id: 3, title: 'Review SQAAF compliance status', priority: 'high', assignee: 'Self', createdBy: 'Self', days: '5d', status: 'in progress' },
+    { id: 4, title: 'Approve board meeting agenda', priority: 'medium', assignee: 'Self', createdBy: 'Others', days: '3d', status: 'open' },
+    { id: 5, title: 'Review staff hiring proposals', priority: 'medium', assignee: 'HR', createdBy: 'Self', days: '7d', status: 'open' },
+    { id: 6, title: 'Sign off on annual budget', priority: 'high', assignee: 'Self', createdBy: 'Others', days: 'Today', status: 'open' },
+    { id: 7, title: 'Review infrastructure audit report', priority: 'low', assignee: 'Self', createdBy: 'Self', days: '12d', status: 'open' },
+    { id: 8, title: 'Prepare trust annual report', priority: 'medium', assignee: 'Self', createdBy: 'Others', days: '10d', status: 'open' },
   ],
   'vice-principal': [
-    { id: 1, title: 'Assign substitute for Mrs. Sharma', priority: 'high', assignee: 'Self', days: 'Today', status: 'open' },
-    { id: 2, title: 'Review discipline case — Arjun (9-B)', priority: 'high', assignee: 'Self', days: '1d', status: 'in progress' },
-    { id: 3, title: 'Finalize exam schedule for Pre-Board', priority: 'high', assignee: 'Self', days: '3d', status: 'open' },
-    { id: 4, title: 'Publish unit test circular', priority: 'medium', assignee: 'Self', days: '2d', status: 'open' },
-    { id: 5, title: 'Update duty roster for Sports Day', priority: 'medium', assignee: 'Self', days: '5d', status: 'open' },
-    { id: 6, title: 'Review teacher performance reports', priority: 'medium', assignee: 'Self', days: '7d', status: 'open' },
-    { id: 7, title: 'Coordinate POCSO training session', priority: 'low', assignee: 'Self', days: '8d', status: 'open' },
-    { id: 8, title: 'Complete timetable revision for March', priority: 'low', assignee: 'Self', days: '14d', status: 'open' },
+    { id: 1, title: 'Assign substitute for Mrs. Sharma', priority: 'high', assignee: 'Self', createdBy: 'Self', days: 'Today', status: 'open' },
+    { id: 2, title: 'Review discipline case — Arjun (9-B)', priority: 'high', assignee: 'Self', createdBy: 'Others', days: '1d', status: 'in progress' },
+    { id: 3, title: 'Finalize exam schedule for Pre-Board', priority: 'high', assignee: 'Self', createdBy: 'Self', days: '3d', status: 'open' },
+    { id: 4, title: 'Publish unit test circular', priority: 'medium', assignee: 'Self', createdBy: 'Others', days: '2d', status: 'open' },
+    { id: 5, title: 'Update duty roster for Sports Day', priority: 'medium', assignee: 'Self', createdBy: 'Self', days: '5d', status: 'open' },
+    { id: 6, title: 'Review teacher performance reports', priority: 'medium', assignee: 'Self', createdBy: 'Others', days: '7d', status: 'open' },
+    { id: 7, title: 'Coordinate POCSO training session', priority: 'low', assignee: 'Self', createdBy: 'Self', days: '8d', status: 'open' },
+    { id: 8, title: 'Complete timetable revision for March', priority: 'low', assignee: 'Self', createdBy: 'Others', days: '14d', status: 'open' },
   ],
   'hr-manager': [
-    { id: 1, title: 'Process pending leave requests (3)', priority: 'high', assignee: 'Self', days: 'Today', status: 'open' },
-    { id: 2, title: 'Complete onboarding for new joinee', priority: 'high', assignee: 'Self', days: '2d', status: 'in progress' },
-    { id: 3, title: 'Prepare February payroll', priority: 'high', assignee: 'Self', days: '5d', status: 'open' },
-    { id: 4, title: 'Update employee records — 3 pending', priority: 'medium', assignee: 'Self', days: '3d', status: 'open' },
-    { id: 5, title: 'Schedule performance review meetings', priority: 'medium', assignee: 'Self', days: '7d', status: 'open' },
-    { id: 6, title: 'Verify background checks for recruits', priority: 'medium', assignee: 'Self', days: '4d', status: 'open' },
-    { id: 7, title: 'Draft staff welfare policy update', priority: 'low', assignee: 'Self', days: '12d', status: 'open' },
-    { id: 8, title: 'Compile monthly attendance report', priority: 'medium', assignee: 'Self', days: '8d', status: 'open' },
+    { id: 1, title: 'Process pending leave requests (3)', priority: 'high', assignee: 'Self', createdBy: 'Self', days: 'Today', status: 'open' },
+    { id: 2, title: 'Complete onboarding for new joinee', priority: 'high', assignee: 'Self', createdBy: 'Others', days: '2d', status: 'in progress' },
+    { id: 3, title: 'Prepare February payroll', priority: 'high', assignee: 'Self', createdBy: 'Self', days: '5d', status: 'open' },
+    { id: 4, title: 'Update employee records — 3 pending', priority: 'medium', assignee: 'Self', createdBy: 'Others', days: '3d', status: 'open' },
+    { id: 5, title: 'Schedule performance review meetings', priority: 'medium', assignee: 'Self', createdBy: 'Self', days: '7d', status: 'open' },
+    { id: 6, title: 'Verify background checks for recruits', priority: 'medium', assignee: 'Self', createdBy: 'Others', days: '4d', status: 'open' },
+    { id: 7, title: 'Draft staff welfare policy update', priority: 'low', assignee: 'Self', createdBy: 'Self', days: '12d', status: 'open' },
+    { id: 8, title: 'Compile monthly attendance report', priority: 'medium', assignee: 'Self', createdBy: 'Others', days: '8d', status: 'open' },
   ],
   'accounts-head': [
-    { id: 1, title: 'Send overdue fee reminders (28)', priority: 'high', assignee: 'Self', days: 'Today', status: 'open' },
-    { id: 2, title: 'Process salary disbursement for Feb', priority: 'high', assignee: 'Self', days: '3d', status: 'open' },
-    { id: 3, title: 'Review concession request — Kavya D.', priority: 'medium', assignee: 'Self', days: '1d', status: 'in progress' },
-    { id: 4, title: 'Deposit cheques to bank (5 pending)', priority: 'high', assignee: 'Self', days: '1d', status: 'open' },
-    { id: 5, title: 'Prepare monthly financial statement', priority: 'medium', assignee: 'Self', days: '5d', status: 'open' },
-    { id: 6, title: 'Process vendor payments (2 pending)', priority: 'medium', assignee: 'Self', days: '4d', status: 'open' },
-    { id: 7, title: 'Reconcile bank statement', priority: 'low', assignee: 'Self', days: '10d', status: 'open' },
-    { id: 8, title: 'Generate quarterly expense report', priority: 'medium', assignee: 'Self', days: '8d', status: 'open' },
+    { id: 1, title: 'Send overdue fee reminders (28)', priority: 'high', assignee: 'Self', createdBy: 'Self', days: 'Today', status: 'open' },
+    { id: 2, title: 'Process salary disbursement for Feb', priority: 'high', assignee: 'Self', createdBy: 'Others', days: '3d', status: 'open' },
+    { id: 3, title: 'Review concession request — Kavya D.', priority: 'medium', assignee: 'Self', createdBy: 'Self', days: '1d', status: 'in progress' },
+    { id: 4, title: 'Deposit cheques to bank (5 pending)', priority: 'high', assignee: 'Self', createdBy: 'Others', days: '1d', status: 'open' },
+    { id: 5, title: 'Prepare monthly financial statement', priority: 'medium', assignee: 'Self', createdBy: 'Self', days: '5d', status: 'open' },
+    { id: 6, title: 'Process vendor payments (2 pending)', priority: 'medium', assignee: 'Self', createdBy: 'Others', days: '4d', status: 'open' },
+    { id: 7, title: 'Reconcile bank statement', priority: 'low', assignee: 'Self', createdBy: 'Self', days: '10d', status: 'open' },
+    { id: 8, title: 'Generate quarterly expense report', priority: 'medium', assignee: 'Self', createdBy: 'Others', days: '8d', status: 'open' },
   ],
   receptionist: [
-    { id: 1, title: 'Follow up on pending enquiries (3)', priority: 'high', assignee: 'Self', days: 'Today', status: 'open' },
-    { id: 2, title: 'Update visitor log for CBSE inspection', priority: 'high', assignee: 'Self', days: '1d', status: 'open' },
-    { id: 3, title: 'Distribute courier to departments', priority: 'medium', assignee: 'Self', days: 'Today', status: 'in progress' },
-    { id: 4, title: 'Confirm appointments for tomorrow', priority: 'medium', assignee: 'Self', days: '1d', status: 'open' },
-    { id: 5, title: 'Update school directory contacts', priority: 'low', assignee: 'Self', days: '7d', status: 'open' },
-    { id: 6, title: 'Prepare admission enquiry report', priority: 'medium', assignee: 'Self', days: '3d', status: 'open' },
-    { id: 7, title: 'Restock visitor badges', priority: 'low', assignee: 'Self', days: '5d', status: 'open' },
-    { id: 8, title: 'Send parent communication for Annual Day', priority: 'medium', assignee: 'Self', days: '4d', status: 'open' },
+    { id: 1, title: 'Follow up on pending enquiries (3)', priority: 'high', assignee: 'Self', createdBy: 'Self', days: 'Today', status: 'open' },
+    { id: 2, title: 'Update visitor log for CBSE inspection', priority: 'high', assignee: 'Self', createdBy: 'Others', days: '1d', status: 'open' },
+    { id: 3, title: 'Distribute courier to departments', priority: 'medium', assignee: 'Self', createdBy: 'Self', days: 'Today', status: 'in progress' },
+    { id: 4, title: 'Confirm appointments for tomorrow', priority: 'medium', assignee: 'Self', createdBy: 'Others', days: '1d', status: 'open' },
+    { id: 5, title: 'Update school directory contacts', priority: 'low', assignee: 'Self', createdBy: 'Self', days: '7d', status: 'open' },
+    { id: 6, title: 'Prepare admission enquiry report', priority: 'medium', assignee: 'Self', createdBy: 'Others', days: '3d', status: 'open' },
+    { id: 7, title: 'Restock visitor badges', priority: 'low', assignee: 'Self', createdBy: 'Self', days: '5d', status: 'open' },
+    { id: 8, title: 'Send parent communication for Annual Day', priority: 'medium', assignee: 'Self', createdBy: 'Others', days: '4d', status: 'open' },
   ],
   'transport-head': [
-    { id: 1, title: 'Review morning route delay report', priority: 'high', assignee: 'Self', days: 'Today', status: 'open' },
-    { id: 2, title: 'Schedule engine overhaul for GJ-01-MN', priority: 'high', assignee: 'Self', days: '2d', status: 'in progress' },
-    { id: 3, title: 'Renew driver license — Suresh Parmar', priority: 'high', assignee: 'Self', days: '3d', status: 'open' },
-    { id: 4, title: 'Add new student to Satellite route', priority: 'medium', assignee: 'Self', days: '1d', status: 'open' },
-    { id: 5, title: 'Review fuel consumption report', priority: 'medium', assignee: 'Self', days: '5d', status: 'open' },
-    { id: 6, title: 'Update GPS tracking system firmware', priority: 'low', assignee: 'IT', days: '10d', status: 'open' },
-    { id: 7, title: 'Prepare monthly transport report', priority: 'medium', assignee: 'Self', days: '7d', status: 'open' },
-    { id: 8, title: 'Inspect fire extinguishers on all buses', priority: 'medium', assignee: 'Self', days: '4d', status: 'open' },
+    { id: 1, title: 'Review morning route delay report', priority: 'high', assignee: 'Self', createdBy: 'Self', days: 'Today', status: 'open' },
+    { id: 2, title: 'Schedule engine overhaul for GJ-01-MN', priority: 'high', assignee: 'Self', createdBy: 'Others', days: '2d', status: 'in progress' },
+    { id: 3, title: 'Renew driver license — Suresh Parmar', priority: 'high', assignee: 'Self', createdBy: 'Self', days: '3d', status: 'open' },
+    { id: 4, title: 'Add new student to Satellite route', priority: 'medium', assignee: 'Self', createdBy: 'Others', days: '1d', status: 'open' },
+    { id: 5, title: 'Review fuel consumption report', priority: 'medium', assignee: 'Self', createdBy: 'Self', days: '5d', status: 'open' },
+    { id: 6, title: 'Update GPS tracking system firmware', priority: 'low', assignee: 'IT', createdBy: 'Self', days: '10d', status: 'open' },
+    { id: 7, title: 'Prepare monthly transport report', priority: 'medium', assignee: 'Self', createdBy: 'Self', days: '7d', status: 'open' },
+    { id: 8, title: 'Inspect fire extinguishers on all buses', priority: 'medium', assignee: 'Self', createdBy: 'Others', days: '4d', status: 'open' },
   ],
   security: [
-    { id: 1, title: 'Complete 10 AM campus patrol', priority: 'high', assignee: 'Self', days: 'Today', status: 'open' },
-    { id: 2, title: 'Report expired fire extinguisher — Lab 2', priority: 'high', assignee: 'Self', days: 'Today', status: 'in progress' },
-    { id: 3, title: 'Verify pickup requests (3 pending)', priority: 'high', assignee: 'Self', days: 'Today', status: 'open' },
-    { id: 4, title: 'Check CCTV #7 angle — First Floor', priority: 'medium', assignee: 'Self', days: '1d', status: 'open' },
-    { id: 5, title: 'Update gate log for vendor entries', priority: 'medium', assignee: 'Self', days: '1d', status: 'open' },
-    { id: 6, title: 'Report boundary wall crack to admin', priority: 'medium', assignee: 'Self', days: '1d', status: 'open' },
-    { id: 7, title: 'Review emergency evacuation drill plan', priority: 'low', assignee: 'Self', days: '7d', status: 'open' },
-    { id: 8, title: 'Submit monthly security report', priority: 'low', assignee: 'Self', days: '10d', status: 'open' },
+    { id: 1, title: 'Complete 10 AM campus patrol', priority: 'high', assignee: 'Self', createdBy: 'Self', days: 'Today', status: 'open' },
+    { id: 2, title: 'Report expired fire extinguisher — Lab 2', priority: 'high', assignee: 'Self', createdBy: 'Others', days: 'Today', status: 'in progress' },
+    { id: 3, title: 'Verify pickup requests (3 pending)', priority: 'high', assignee: 'Self', createdBy: 'Self', days: 'Today', status: 'open' },
+    { id: 4, title: 'Check CCTV #7 angle — First Floor', priority: 'medium', assignee: 'Self', createdBy: 'Others', days: '1d', status: 'open' },
+    { id: 5, title: 'Update gate log for vendor entries', priority: 'medium', assignee: 'Self', createdBy: 'Self', days: '1d', status: 'open' },
+    { id: 6, title: 'Report boundary wall crack to admin', priority: 'medium', assignee: 'Self', createdBy: 'Others', days: '1d', status: 'open' },
+    { id: 7, title: 'Review emergency evacuation drill plan', priority: 'low', assignee: 'Self', createdBy: 'Self', days: '7d', status: 'open' },
+    { id: 8, title: 'Submit monthly security report', priority: 'low', assignee: 'Self', createdBy: 'Others', days: '10d', status: 'open' },
   ],
   'account-manager': [
-    { id: 1, title: 'Call Udgam School — health critical', priority: 'high', assignee: 'Self', days: 'Today', status: 'open' },
-    { id: 2, title: 'Resolve TKT-2038 escalation', priority: 'high', assignee: 'Self', days: '1d', status: 'in progress' },
-    { id: 3, title: 'Prepare Navrachana renewal deck', priority: 'high', assignee: 'Self', days: '3d', status: 'open' },
-    { id: 4, title: 'Confirm Vibgyor High UAT sign-off', priority: 'medium', assignee: 'Self', days: '5d', status: 'open' },
-    { id: 5, title: 'Schedule DPS quarterly business review', priority: 'medium', assignee: 'Self', days: '7d', status: 'open' },
-    { id: 6, title: 'Complete Eklavya School training #6', priority: 'medium', assignee: 'Self', days: '4d', status: 'open' },
-    { id: 7, title: 'Update CRM with latest health scores', priority: 'low', assignee: 'Self', days: '10d', status: 'open' },
-    { id: 8, title: 'Send monthly portfolio report to manager', priority: 'medium', assignee: 'Self', days: '8d', status: 'open' },
+    { id: 1, title: 'Call Udgam School — health critical', priority: 'high', assignee: 'Self', createdBy: 'Self', days: 'Today', status: 'open' },
+    { id: 2, title: 'Resolve TKT-2038 escalation', priority: 'high', assignee: 'Self', createdBy: 'Others', days: '1d', status: 'in progress' },
+    { id: 3, title: 'Prepare Navrachana renewal deck', priority: 'high', assignee: 'Self', createdBy: 'Self', days: '3d', status: 'open' },
+    { id: 4, title: 'Confirm Vibgyor High UAT sign-off', priority: 'medium', assignee: 'Self', createdBy: 'Others', days: '5d', status: 'open' },
+    { id: 5, title: 'Schedule DPS quarterly business review', priority: 'medium', assignee: 'Self', createdBy: 'Self', days: '7d', status: 'open' },
+    { id: 6, title: 'Complete Eklavya School training #6', priority: 'medium', assignee: 'Self', createdBy: 'Others', days: '4d', status: 'open' },
+    { id: 7, title: 'Update CRM with latest health scores', priority: 'low', assignee: 'Self', createdBy: 'Self', days: '10d', status: 'open' },
+    { id: 8, title: 'Send monthly portfolio report to manager', priority: 'medium', assignee: 'Self', createdBy: 'Others', days: '8d', status: 'open' },
   ],
 };
 
-const defaultTasks: Array<{ id: number; title: string; priority: 'high' | 'medium' | 'low'; assignee: string; days: string; status: 'open' | 'in progress' | 'done' }> = [
-  { id: 1, title: 'Review pending approvals', priority: 'high', assignee: 'Self', days: 'Today', status: 'open' },
-  { id: 2, title: 'Complete monthly report', priority: 'high', assignee: 'Self', days: '2d', status: 'open' },
-  { id: 3, title: 'Update records and documentation', priority: 'medium', assignee: 'Self', days: '3d', status: 'in progress' },
-  { id: 4, title: 'Schedule team meeting', priority: 'medium', assignee: 'Self', days: '5d', status: 'open' },
-  { id: 5, title: 'Follow up on pending items', priority: 'high', assignee: 'Self', days: '1d', status: 'open' },
-  { id: 6, title: 'Prepare presentation for review', priority: 'medium', assignee: 'Self', days: '7d', status: 'open' },
-  { id: 7, title: 'Review compliance checklist', priority: 'low', assignee: 'Self', days: '10d', status: 'open' },
-  { id: 8, title: 'Submit weekly summary', priority: 'low', assignee: 'Self', days: '12d', status: 'open' },
+const defaultTasks: Array<{ id: number; title: string; priority: 'high' | 'medium' | 'low'; assignee: string; createdBy: string; days: string; status: 'open' | 'in progress' | 'done' }> = [
+  { id: 1, title: 'Review pending approvals', priority: 'high', assignee: 'Self', createdBy: 'Self', days: 'Today', status: 'open' },
+  { id: 2, title: 'Complete monthly report', priority: 'high', assignee: 'Self', createdBy: 'Others', days: '2d', status: 'open' },
+  { id: 3, title: 'Update records and documentation', priority: 'medium', assignee: 'Self', createdBy: 'Self', days: '3d', status: 'in progress' },
+  { id: 4, title: 'Schedule team meeting', priority: 'medium', assignee: 'Self', createdBy: 'Others', days: '5d', status: 'open' },
+  { id: 5, title: 'Follow up on pending items', priority: 'high', assignee: 'Self', createdBy: 'Self', days: '1d', status: 'open' },
+  { id: 6, title: 'Prepare presentation for review', priority: 'medium', assignee: 'Self', createdBy: 'Others', days: '7d', status: 'open' },
+  { id: 7, title: 'Review compliance checklist', priority: 'low', assignee: 'Self', createdBy: 'Self', days: '10d', status: 'open' },
+  { id: 8, title: 'Submit weekly summary', priority: 'low', assignee: 'Self', createdBy: 'Others', days: '12d', status: 'open' },
 ];
 
 export default function TaskTrackerPanel({ theme, role, onRecurringTasksChange }: TaskTrackerPanelProps) {
@@ -173,7 +173,7 @@ export default function TaskTrackerPanel({ theme, role, onRecurringTasksChange }
   const [priorityFilter, setPriorityFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [customTasks, setCustomTasks] = useState<Array<{ id: number; title: string; priority: 'high' | 'medium' | 'low'; assignee: string; days: string; status: 'open' | 'in progress' | 'done' }>>([]);
+  const [customTasks, setCustomTasks] = useState<Array<{ id: number; title: string; priority: 'high' | 'medium' | 'low'; assignee: string; createdBy: string; days: string; status: 'open' | 'in progress' | 'done' }>>([]);
   const [newTitle, setNewTitle] = useState('');
   const [newDescription, setNewDescription] = useState('');
   const [newPriority, setNewPriority] = useState<'high' | 'medium' | 'low'>('medium');
@@ -270,6 +270,7 @@ export default function TaskTrackerPanel({ theme, role, onRecurringTasksChange }
       title: newTitle.trim(),
       priority: newPriority,
       assignee: newAssignees.length > 0 ? newAssignees.join(', ') : 'Self',
+      createdBy: 'Self',
       days: dueLabel,
       status: 'open' as const,
     };
@@ -279,12 +280,34 @@ export default function TaskTrackerPanel({ theme, role, onRecurringTasksChange }
   };
 
   const roleTaskList = roleTasks[role] || defaultTasks;
-  const tasks = [...customTasks, ...roleTaskList];
+  const allTasks = [...customTasks, ...roleTaskList];
 
-  const totalTasks = 12;
-  const inProgress = 3;
-  const highPriority = 5;
-  const completed = 4;
+  // Filter by tab
+  const tabFilteredTasks = taskTab === 'Assigned to Me'
+    ? allTasks.filter(t => t.assignee === 'Self')
+    : taskTab === 'Created by Me'
+    ? allTasks.filter(t => t.createdBy === 'Self')
+    : allTasks; // Quick View = all
+
+  // Filter by priority
+  const priorityFilteredTasks = priorityFilter === 'All'
+    ? tabFilteredTasks
+    : tabFilteredTasks.filter(t => t.priority === priorityFilter.toLowerCase());
+
+  // Filter by status
+  const statusFilteredTasks = statusFilter === 'All'
+    ? priorityFilteredTasks
+    : priorityFilteredTasks.filter(t => t.status.toLowerCase() === statusFilter.toLowerCase());
+
+  // Filter by search
+  const tasks = taskSearch.trim()
+    ? statusFilteredTasks.filter(t => t.title.toLowerCase().includes(taskSearch.toLowerCase()))
+    : statusFilteredTasks;
+
+  const totalTasks = allTasks.length;
+  const inProgress = allTasks.filter(t => t.status === 'in progress').length;
+  const highPriority = allTasks.filter(t => t.priority === 'high').length;
+  const completed = allTasks.filter(t => t.status === 'done').length;
 
   const priorityDot = (p: 'high' | 'medium' | 'low') => {
     if (p === 'high') return 'bg-red-500';
@@ -306,7 +329,7 @@ export default function TaskTrackerPanel({ theme, role, onRecurringTasksChange }
     return 'bg-emerald-100 text-emerald-700';
   };
 
-  const tabCounts: Record<string, number> = { 'Quick View': 5, 'Assigned to Me': 3, 'Created by Me': 4 };
+  const tabCounts: Record<string, number> = { 'Quick View': allTasks.length, 'Assigned to Me': allTasks.filter(t => t.assignee === 'Self').length, 'Created by Me': allTasks.filter(t => t.createdBy === 'Self').length };
 
   return (
     <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 flex flex-col`}>

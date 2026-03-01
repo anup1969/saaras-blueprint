@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { StatCard, TabBar, StatusBadge, SearchBar, DataTable } from '@/components/shared';
 import { type Theme } from '@/lib/themes';
 import {
@@ -8,14 +8,26 @@ import {
   Eye, Edit, Wrench, CheckCircle, Gauge, X
 } from 'lucide-react';
 
+
+// ─── EXPIRY COLOR HELPER ────────────────────────
+const getExpiryColor = (dateStr: string) => {
+  const expiry = new Date(dateStr);
+  const now = new Date();
+  const daysLeft = Math.ceil((expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  if (daysLeft < 0) return 'text-red-600 bg-red-50 font-bold'; // Expired
+  if (daysLeft <= 30) return 'text-amber-600 bg-amber-50 font-bold'; // Expiring soon
+  if (daysLeft <= 90) return 'text-yellow-600 bg-yellow-50'; // Warning
+  return 'text-green-600 bg-green-50'; // Valid
+};
+
 // ─── MOCK DATA ──────────────────────────────────────
 const mockVehicles = [
-  { id: 'GJ-01-AB-1234', type: 'Bus', capacity: 40, driver: 'Ramesh Kumar', route: 'Route A', insurance: '2026-08-15', puc: '2026-05-20', fitness: '2027-01-10', km: '45,230', status: 'Active', year: 2022 },
-  { id: 'GJ-01-CD-5678', type: 'Bus', capacity: 50, driver: 'Suresh Patel', route: 'Route B', insurance: '2026-11-02', puc: '2026-07-14', fitness: '2027-03-22', km: '38,120', status: 'Active', year: 2021 },
-  { id: 'GJ-01-EF-9012', type: 'Mini Bus', capacity: 30, driver: 'Mahesh Singh', route: 'Route C', insurance: '2026-06-30', puc: '2026-04-10', fitness: '2026-12-05', km: '52,870', status: 'Active', year: 2023 },
+  { id: 'GJ-01-AB-1234', type: 'Bus', capacity: 40, driver: 'Ramesh Kumar', route: 'Route A', insurance: '2026-02-15', puc: '2026-03-20', fitness: '2027-01-10', km: '45,230', status: 'Active', year: 2022 },
+  { id: 'GJ-01-CD-5678', type: 'Bus', capacity: 50, driver: 'Suresh Patel', route: 'Route B', insurance: '2026-08-15', puc: '2026-03-10', fitness: '2026-12-20', km: '38,120', status: 'Active', year: 2021 },
+  { id: 'GJ-01-EF-9012', type: 'Mini Bus', capacity: 30, driver: 'Mahesh Singh', route: 'Route C', insurance: '2026-05-10', puc: '2026-02-20', fitness: '2026-04-05', km: '52,870', status: 'Active', year: 2023 },
   { id: 'GJ-01-GH-3456', type: 'Van', capacity: 26, driver: 'Jayesh Patel', route: 'Route D', insurance: '2026-09-18', puc: '2026-06-25', fitness: '2027-02-14', km: '31,450', status: 'Active', year: 2020 },
   { id: 'GJ-01-IJ-7890', type: 'Van', capacity: 26, driver: 'Dinesh Raval', route: 'Route E', insurance: '2026-10-05', puc: '2026-08-01', fitness: '2027-04-20', km: '28,670', status: 'Active', year: 2022 },
-  { id: 'GJ-01-KL-2345', type: 'Bus', capacity: 52, driver: 'Prakash Bhatt', route: 'Route F', insurance: '2026-07-22', puc: '2026-03-15', fitness: '2026-11-30', km: '48,910', status: 'Active', year: 2019 },
+  { id: 'GJ-01-KL-2345', type: 'Bus', capacity: 52, driver: 'Prakash Bhatt', route: 'Route F', insurance: '2026-03-15', puc: '2026-02-10', fitness: '2026-03-28', km: '48,910', status: 'Active', year: 2019 },
 ];
 
 const mockDrivers = [
@@ -39,6 +51,7 @@ const mockRoutes = [
 export default function VehiclesModule({ theme }: { theme: Theme }) {
   const [tab, setTab] = useState('All Vehicles');
   const [showAddVehicle, setShowAddVehicle] = useState(false);
+  const tableRef = useRef<HTMLDivElement>(null);
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -54,12 +67,13 @@ export default function VehiclesModule({ theme }: { theme: Theme }) {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Bus} label="Total Fleet" value={6} color="bg-blue-500" theme={theme} />
+        <StatCard icon={Bus} label="Total Fleet" value={6} sub="Active vehicles" color="bg-blue-500" theme={theme} onClick={() => tableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })} />
+        <StatCard icon={Gauge} label="Total KM Logged" value="2.45L" color="bg-indigo-500" sub="all vehicles" theme={theme} />
         <StatCard icon={CheckCircle} label="Active Vehicles" value={6} color="bg-emerald-500" theme={theme} />
         <StatCard icon={Wrench} label="Under Maintenance" value={0} color="bg-amber-500" theme={theme} />
-        <StatCard icon={Gauge} label="Total KM Logged" value="2.45L" color="bg-indigo-500" sub="all vehicles" theme={theme} />
       </div>
 
+      <div ref={tableRef}>
       <DataTable
         headers={['Vehicle No.', 'Type', 'Capacity', 'Driver', 'Route', 'KM Run', 'Insurance', 'PUC', 'Fitness', 'Status', '']}
         rows={mockVehicles
@@ -71,9 +85,9 @@ export default function VehiclesModule({ theme }: { theme: Theme }) {
             <span key="driver" className={theme.iconColor}>{v.driver}</span>,
             <span key="route" className={`font-bold ${theme.primaryText}`}>{v.route}</span>,
             <span key="km" className={theme.iconColor}>{v.km}</span>,
-            <span key="ins" className={`text-xs ${theme.iconColor}`}>{v.insurance}</span>,
-            <span key="puc" className={`text-xs ${theme.iconColor}`}>{v.puc}</span>,
-            <span key="fit" className={`text-xs ${theme.iconColor}`}>{v.fitness}</span>,
+            <span key="ins" className={`text-xs px-1.5 py-0.5 rounded ${getExpiryColor(v.insurance)}`}>{v.insurance}</span>,
+            <span key="puc" className={`text-xs px-1.5 py-0.5 rounded ${getExpiryColor(v.puc)}`}>{v.puc}</span>,
+            <span key="fit" className={`text-xs px-1.5 py-0.5 rounded ${getExpiryColor(v.fitness)}`}>{v.fitness}</span>,
             <StatusBadge key="status" status={v.status} theme={theme} />,
             <div key="actions" className="flex gap-1">
               <button className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><Eye size={12} className={theme.iconColor} /></button>
@@ -82,6 +96,7 @@ export default function VehiclesModule({ theme }: { theme: Theme }) {
           ])}
         theme={theme}
       />
+      </div>
       <div className={`flex items-center justify-between text-xs ${theme.iconColor} px-2`}>
         <span>Showing {mockVehicles.filter(v => tab === 'All Vehicles' || (tab === 'Bus' && v.type === 'Bus') || (tab === 'Mini Bus' && v.type === 'Mini Bus') || (tab === 'Van' && v.type === 'Van') || (tab === 'Under Maintenance' && v.status === 'Maintenance')).length} of {mockVehicles.length} vehicles</span>
         <div className="flex gap-1">
