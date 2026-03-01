@@ -38,6 +38,31 @@ export default function AcademicsModule({ theme }: { theme: Theme }) {
       <h1 className={`text-2xl font-bold ${theme.highlight}`}>Academic Performance</h1>
       <TabBar tabs={['Overview', 'Class Performance', 'Exam Results', 'Programs']} active={tab} onChange={setTab} theme={theme} />
 
+      {/* ─── MOBILE APP PREVIEW ─── */}
+      <MobilePreviewToggle theme={theme} mobileContent={
+        <MobileFrame title="Academics" theme={theme}>
+          <div className="bg-white rounded-xl border border-gray-200 p-2.5">
+            <span className="text-[10px] font-bold text-gray-800 mb-2 block">Mark Entry Compliance</span>
+            {[{ subject: "Mathematics", teacher: "Mr. Verma", pct: "100%", color: "bg-emerald-500" },{ subject: "Science", teacher: "Mrs. Priya", pct: "65%", color: "bg-amber-500" },{ subject: "English", teacher: "Ms. Joshi", pct: "40%", color: "bg-red-500" },{ subject: "Hindi", teacher: "Mr. Sharma", pct: "100%", color: "bg-emerald-500" },{ subject: "Social Studies", teacher: "Mrs. Reddy", pct: "0%", color: "bg-gray-400" }].map((m, i) => (<div key={i} className="flex items-center gap-2 py-2 border-t border-gray-100"><div className={`w-2 h-2 rounded-full ${m.color}`} /><div className="flex-1 min-w-0"><p className="text-[10px] font-bold text-gray-800 truncate">{m.subject}</p><p className="text-[8px] text-gray-500">{m.teacher}</p></div><span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${m.pct === "100%" ? "bg-emerald-100 text-emerald-700" : m.pct === "0%" ? "bg-gray-100 text-gray-600" : "bg-amber-100 text-amber-700"}`}>{m.pct}</span></div>))}
+            <button className="w-full mt-2 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-[9px] font-bold">Send Reminder to Pending</button>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-2.5">
+            <div className="flex items-center justify-between mb-2"><span className="text-[10px] font-bold text-gray-800">Grace Marks Requests</span><span className="bg-amber-100 text-amber-700 text-[8px] font-bold px-1.5 py-0.5 rounded-full">3 pending</span></div>
+            {[{ student: "Rahul Joshi", subject: "Maths", current: 32, requested: 35, reason: "Medical" },{ student: "Priya Desai", subject: "Science", current: 28, requested: 33, reason: "Bereavement" },{ student: "Amit Singh", subject: "Hindi", current: 30, requested: 35, reason: "Sports clash" }].map((g, i) => (<div key={i} className="py-2 border-t border-gray-100"><div className="flex items-center justify-between mb-1"><p className="text-[10px] font-bold text-gray-800">{g.student}</p><span className="text-[8px] text-gray-500">{g.subject}</span></div><div className="flex items-center gap-2 mb-1.5"><span className="text-[9px] text-red-600 font-bold">{g.current}/100</span><span className="text-[8px] text-gray-400">{"→"}</span><span className="text-[9px] text-emerald-600 font-bold">{g.requested}/100</span><span className="text-[8px] px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-600 font-medium">{g.reason}</span></div><div className="flex gap-1.5"><button className="flex-1 py-1.5 rounded-lg bg-emerald-500 text-white text-[9px] font-bold">Approve</button><button className="flex-1 py-1.5 rounded-lg bg-red-100 text-red-600 text-[9px] font-bold">Reject</button></div></div>))}
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-2.5">
+            <span className="text-[10px] font-bold text-gray-800 mb-2 block">Supplementary Exams</span>
+            {[{ student: "Rahul Joshi", subject: "Maths", date: "Mar 15", status: "Scheduled" },{ student: "Kiran Verma", subject: "Science", date: "Mar 15", status: "Scheduled" },{ student: "Sahil Gupta", subject: "Hindi", date: "Mar 18", status: "Scheduled" }].map((r, i) => (<div key={i} className="flex items-center gap-2 py-1.5 border-t border-gray-100"><div className="flex-1 min-w-0"><p className="text-[10px] font-bold text-gray-800 truncate">{r.student} — {r.subject}</p><p className="text-[8px] text-gray-500">{r.date}</p></div><span className="text-[8px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold">{r.status}</span></div>))}
+            <button className="w-full mt-2 py-1.5 rounded-lg bg-purple-50 text-purple-600 text-[9px] font-bold">+ Schedule New Re-exam</button>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-2.5">
+            <span className="text-[10px] font-bold text-gray-800 mb-2 block">Subject Performance</span>
+            {[{ subject: "Maths", avg: 89, color: "bg-blue-500" },{ subject: "Science", avg: 85, color: "bg-emerald-500" },{ subject: "English", avg: 91, color: "bg-purple-500" },{ subject: "Hindi", avg: 88, color: "bg-teal-500" }].map((s, i) => (<div key={i} className="flex items-center gap-2 py-1"><span className="text-[9px] text-gray-700 w-14">{s.subject}</span><div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden"><div className={`h-full rounded-full ${s.color}`} style={{ width: `${s.avg}%` }} /></div><span className="text-[9px] font-bold text-gray-800 w-8 text-right">{s.avg}%</span></div>))}
+          </div>
+        </MobileFrame>
+      } />
+
+
       {tab === 'Overview' && (
         <div className="space-y-4">
           <div className="grid grid-cols-3 gap-4">
@@ -620,29 +645,6 @@ export default function AcademicsModule({ theme }: { theme: Theme }) {
         </div>
       )}
 
-      {/* ─── MOBILE APP PREVIEW ─── */}
-      <MobilePreviewToggle theme={theme} mobileContent={
-        <MobileFrame title="Academics" theme={theme}>
-          <div className="bg-white rounded-xl border border-gray-200 p-2.5">
-            <span className="text-[10px] font-bold text-gray-800 mb-2 block">Mark Entry Compliance</span>
-            {[{ subject: "Mathematics", teacher: "Mr. Verma", pct: "100%", color: "bg-emerald-500" },{ subject: "Science", teacher: "Mrs. Priya", pct: "65%", color: "bg-amber-500" },{ subject: "English", teacher: "Ms. Joshi", pct: "40%", color: "bg-red-500" },{ subject: "Hindi", teacher: "Mr. Sharma", pct: "100%", color: "bg-emerald-500" },{ subject: "Social Studies", teacher: "Mrs. Reddy", pct: "0%", color: "bg-gray-400" }].map((m, i) => (<div key={i} className="flex items-center gap-2 py-2 border-t border-gray-100"><div className={`w-2 h-2 rounded-full ${m.color}`} /><div className="flex-1 min-w-0"><p className="text-[10px] font-bold text-gray-800 truncate">{m.subject}</p><p className="text-[8px] text-gray-500">{m.teacher}</p></div><span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${m.pct === "100%" ? "bg-emerald-100 text-emerald-700" : m.pct === "0%" ? "bg-gray-100 text-gray-600" : "bg-amber-100 text-amber-700"}`}>{m.pct}</span></div>))}
-            <button className="w-full mt-2 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-[9px] font-bold">Send Reminder to Pending</button>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-2.5">
-            <div className="flex items-center justify-between mb-2"><span className="text-[10px] font-bold text-gray-800">Grace Marks Requests</span><span className="bg-amber-100 text-amber-700 text-[8px] font-bold px-1.5 py-0.5 rounded-full">3 pending</span></div>
-            {[{ student: "Rahul Joshi", subject: "Maths", current: 32, requested: 35, reason: "Medical" },{ student: "Priya Desai", subject: "Science", current: 28, requested: 33, reason: "Bereavement" },{ student: "Amit Singh", subject: "Hindi", current: 30, requested: 35, reason: "Sports clash" }].map((g, i) => (<div key={i} className="py-2 border-t border-gray-100"><div className="flex items-center justify-between mb-1"><p className="text-[10px] font-bold text-gray-800">{g.student}</p><span className="text-[8px] text-gray-500">{g.subject}</span></div><div className="flex items-center gap-2 mb-1.5"><span className="text-[9px] text-red-600 font-bold">{g.current}/100</span><span className="text-[8px] text-gray-400">{"→"}</span><span className="text-[9px] text-emerald-600 font-bold">{g.requested}/100</span><span className="text-[8px] px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-600 font-medium">{g.reason}</span></div><div className="flex gap-1.5"><button className="flex-1 py-1.5 rounded-lg bg-emerald-500 text-white text-[9px] font-bold">Approve</button><button className="flex-1 py-1.5 rounded-lg bg-red-100 text-red-600 text-[9px] font-bold">Reject</button></div></div>))}
-          </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-2.5">
-            <span className="text-[10px] font-bold text-gray-800 mb-2 block">Supplementary Exams</span>
-            {[{ student: "Rahul Joshi", subject: "Maths", date: "Mar 15", status: "Scheduled" },{ student: "Kiran Verma", subject: "Science", date: "Mar 15", status: "Scheduled" },{ student: "Sahil Gupta", subject: "Hindi", date: "Mar 18", status: "Scheduled" }].map((r, i) => (<div key={i} className="flex items-center gap-2 py-1.5 border-t border-gray-100"><div className="flex-1 min-w-0"><p className="text-[10px] font-bold text-gray-800 truncate">{r.student} — {r.subject}</p><p className="text-[8px] text-gray-500">{r.date}</p></div><span className="text-[8px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold">{r.status}</span></div>))}
-            <button className="w-full mt-2 py-1.5 rounded-lg bg-purple-50 text-purple-600 text-[9px] font-bold">+ Schedule New Re-exam</button>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-2.5">
-            <span className="text-[10px] font-bold text-gray-800 mb-2 block">Subject Performance</span>
-            {[{ subject: "Maths", avg: 89, color: "bg-blue-500" },{ subject: "Science", avg: 85, color: "bg-emerald-500" },{ subject: "English", avg: 91, color: "bg-purple-500" },{ subject: "Hindi", avg: 88, color: "bg-teal-500" }].map((s, i) => (<div key={i} className="flex items-center gap-2 py-1"><span className="text-[9px] text-gray-700 w-14">{s.subject}</span><div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden"><div className={`h-full rounded-full ${s.color}`} style={{ width: `${s.avg}%` }} /></div><span className="text-[9px] font-bold text-gray-800 w-8 text-right">{s.avg}%</span></div>))}
-          </div>
-        </MobileFrame>
-      } />
 
     </div>
   );

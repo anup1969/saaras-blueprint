@@ -23,6 +23,40 @@ export default function ReportsModule({ theme }: { theme: Theme }) {
     <div className="space-y-4">
       <h1 className={`text-2xl font-bold ${theme.highlight}`}>Reports & Analytics</h1>
       <TabBar tabs={['Academic', 'Financial', 'Administrative']} active={tab} onChange={setTab} theme={theme} />
+
+      {/* ─── MOBILE APP PREVIEW ─── */}
+      <MobilePreviewToggle theme={theme} mobileContent={
+        <MobileFrame title="Reports" theme={theme}>
+          <div className="bg-white rounded-xl border border-gray-200 p-2.5">
+            <span className="text-[10px] font-bold text-gray-800 mb-2 block">Admit Cards</span>
+            <div className="border border-blue-200 rounded-xl p-3 bg-blue-50/50">
+              <div className="flex items-start gap-2.5">
+                <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white text-sm font-bold shrink-0">AP</div>
+                <div className="flex-1 min-w-0"><p className="text-[11px] font-bold text-gray-800">Aarav Patel</p><p className="text-[9px] text-gray-600">Class 10-A {"•"} Roll 12</p><p className="text-[9px] text-gray-600">SAR-2025-0001</p><p className="text-[8px] text-gray-500 mt-0.5">Unit Test 3 {"•"} Mar 2026</p></div>
+                <div className="w-12 h-12 bg-white border border-gray-300 rounded-lg flex items-center justify-center shrink-0"><div className="grid grid-cols-3 gap-0.5 w-8 h-8">{Array.from({length: 9}).map((_, qi) => (<div key={qi} className={`rounded-sm ${[0,1,2,3,5,6,8].includes(qi) ? "bg-gray-800" : "bg-white"}`} />))}</div></div>
+              </div>
+              <div className="flex gap-1.5 mt-2 pt-2 border-t border-blue-200"><button className="flex-1 py-1.5 rounded-lg bg-blue-500 text-white text-[8px] font-bold">Download PDF</button><button className="flex-1 py-1.5 rounded-lg bg-white border border-blue-300 text-[8px] font-bold text-blue-700">Print</button></div>
+            </div>
+            <div className="mt-2 flex gap-1.5"><button className="flex-1 py-1.5 rounded-lg bg-gray-100 text-[9px] font-bold text-gray-700">{"←"} Previous</button><span className="py-1.5 text-[9px] text-gray-500 px-2">1 of 45</span><button className="flex-1 py-1.5 rounded-lg bg-gray-100 text-[9px] font-bold text-gray-700">Next {"→"}</button></div>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-2.5">
+            <span className="text-[10px] font-bold text-gray-800 mb-2 block">Report Cards</span>
+            {[{ name: "Aarav Patel", cls: "10-A", exam: "Term 1", pct: "94.5%", status: "Ready" },{ name: "Saanvi Sharma", cls: "8-B", exam: "Term 1", pct: "89.2%", status: "Ready" },{ name: "Vivaan Mehta", cls: "6-A", exam: "Term 1", pct: "91.8%", status: "Generating" }].map((r, i) => (<div key={i} className="flex items-center gap-2 py-2 border-t border-gray-100"><div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600 text-[10px] font-bold shrink-0">{r.name.split(" ").map(n => n[0]).join("")}</div><div className="flex-1 min-w-0"><p className="text-[10px] font-bold text-gray-800">{r.name}</p><p className="text-[8px] text-gray-500">{r.cls} {"•"} {r.exam} {"•"} {r.pct}</p></div>{r.status === "Ready" ? (<button className="text-[8px] px-2 py-1 rounded-lg bg-blue-500 text-white font-bold">{"⤓"} PDF</button>) : (<span className="text-[8px] px-2 py-1 rounded-lg bg-amber-100 text-amber-700 font-bold">{"⏳"}</span>)}</div>))}
+            <button className="w-full mt-2 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-[9px] font-bold">Download All (Bulk PDF)</button>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-2.5">
+            <span className="text-[10px] font-bold text-gray-800 mb-2 block">Compliance Status</span>
+            {[{ item: "RTE Compliance", status: "Complete" },{ item: "Fire Safety Cert", status: "Expiring Soon" },{ item: "CBSE Affiliation", status: "Valid" },{ item: "Health Inspection", status: "Overdue" },{ item: "NOC — Building", status: "Complete" }].map((co, i) => (<div key={i} className="flex items-center gap-2 py-1.5 border-t border-gray-100"><span className="text-xs">{co.status === "Complete" || co.status === "Valid" ? "✅" : co.status === "Expiring Soon" ? "⚠️" : "❌"}</span><span className="text-[10px] text-gray-800 flex-1">{co.item}</span><span className={`text-[8px] px-1.5 py-0.5 rounded-full font-bold ${co.status === "Complete" || co.status === "Valid" ? "bg-emerald-100 text-emerald-700" : co.status === "Expiring Soon" ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700"}`}>{co.status}</span></div>))}
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-2.5">
+            <span className="text-[10px] font-bold text-gray-800 mb-2 block">Quick Export</span>
+            <div className="grid grid-cols-2 gap-1.5">
+              {[{ label: "Student List", format: "Excel" },{ label: "Fee Report", format: "PDF" },{ label: "Attendance", format: "CSV" },{ label: "TC Records", format: "PDF" }].map((exp, i) => (<button key={i} className="py-2 rounded-lg bg-gray-50 border border-gray-200 text-center"><p className="text-[9px] font-bold text-gray-800">{exp.label}</p><p className="text-[7px] text-gray-500">{exp.format}</p></button>))}
+            </div>
+          </div>
+        </MobileFrame>
+      } />
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {(tab === 'Academic' ? [
           { title: 'Student Strength Report', desc: 'Class-wise, section-wise, gender-wise count', icon: Users },
@@ -473,38 +507,6 @@ export default function ReportsModule({ theme }: { theme: Theme }) {
         </div>
       )}
 
-      {/* ─── MOBILE APP PREVIEW ─── */}
-      <MobilePreviewToggle theme={theme} mobileContent={
-        <MobileFrame title="Reports" theme={theme}>
-          <div className="bg-white rounded-xl border border-gray-200 p-2.5">
-            <span className="text-[10px] font-bold text-gray-800 mb-2 block">Admit Cards</span>
-            <div className="border border-blue-200 rounded-xl p-3 bg-blue-50/50">
-              <div className="flex items-start gap-2.5">
-                <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white text-sm font-bold shrink-0">AP</div>
-                <div className="flex-1 min-w-0"><p className="text-[11px] font-bold text-gray-800">Aarav Patel</p><p className="text-[9px] text-gray-600">Class 10-A {"•"} Roll 12</p><p className="text-[9px] text-gray-600">SAR-2025-0001</p><p className="text-[8px] text-gray-500 mt-0.5">Unit Test 3 {"•"} Mar 2026</p></div>
-                <div className="w-12 h-12 bg-white border border-gray-300 rounded-lg flex items-center justify-center shrink-0"><div className="grid grid-cols-3 gap-0.5 w-8 h-8">{Array.from({length: 9}).map((_, qi) => (<div key={qi} className={`rounded-sm ${[0,1,2,3,5,6,8].includes(qi) ? "bg-gray-800" : "bg-white"}`} />))}</div></div>
-              </div>
-              <div className="flex gap-1.5 mt-2 pt-2 border-t border-blue-200"><button className="flex-1 py-1.5 rounded-lg bg-blue-500 text-white text-[8px] font-bold">Download PDF</button><button className="flex-1 py-1.5 rounded-lg bg-white border border-blue-300 text-[8px] font-bold text-blue-700">Print</button></div>
-            </div>
-            <div className="mt-2 flex gap-1.5"><button className="flex-1 py-1.5 rounded-lg bg-gray-100 text-[9px] font-bold text-gray-700">{"←"} Previous</button><span className="py-1.5 text-[9px] text-gray-500 px-2">1 of 45</span><button className="flex-1 py-1.5 rounded-lg bg-gray-100 text-[9px] font-bold text-gray-700">Next {"→"}</button></div>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-2.5">
-            <span className="text-[10px] font-bold text-gray-800 mb-2 block">Report Cards</span>
-            {[{ name: "Aarav Patel", cls: "10-A", exam: "Term 1", pct: "94.5%", status: "Ready" },{ name: "Saanvi Sharma", cls: "8-B", exam: "Term 1", pct: "89.2%", status: "Ready" },{ name: "Vivaan Mehta", cls: "6-A", exam: "Term 1", pct: "91.8%", status: "Generating" }].map((r, i) => (<div key={i} className="flex items-center gap-2 py-2 border-t border-gray-100"><div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600 text-[10px] font-bold shrink-0">{r.name.split(" ").map(n => n[0]).join("")}</div><div className="flex-1 min-w-0"><p className="text-[10px] font-bold text-gray-800">{r.name}</p><p className="text-[8px] text-gray-500">{r.cls} {"•"} {r.exam} {"•"} {r.pct}</p></div>{r.status === "Ready" ? (<button className="text-[8px] px-2 py-1 rounded-lg bg-blue-500 text-white font-bold">{"⤓"} PDF</button>) : (<span className="text-[8px] px-2 py-1 rounded-lg bg-amber-100 text-amber-700 font-bold">{"⏳"}</span>)}</div>))}
-            <button className="w-full mt-2 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-[9px] font-bold">Download All (Bulk PDF)</button>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-2.5">
-            <span className="text-[10px] font-bold text-gray-800 mb-2 block">Compliance Status</span>
-            {[{ item: "RTE Compliance", status: "Complete" },{ item: "Fire Safety Cert", status: "Expiring Soon" },{ item: "CBSE Affiliation", status: "Valid" },{ item: "Health Inspection", status: "Overdue" },{ item: "NOC — Building", status: "Complete" }].map((co, i) => (<div key={i} className="flex items-center gap-2 py-1.5 border-t border-gray-100"><span className="text-xs">{co.status === "Complete" || co.status === "Valid" ? "✅" : co.status === "Expiring Soon" ? "⚠️" : "❌"}</span><span className="text-[10px] text-gray-800 flex-1">{co.item}</span><span className={`text-[8px] px-1.5 py-0.5 rounded-full font-bold ${co.status === "Complete" || co.status === "Valid" ? "bg-emerald-100 text-emerald-700" : co.status === "Expiring Soon" ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700"}`}>{co.status}</span></div>))}
-          </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-2.5">
-            <span className="text-[10px] font-bold text-gray-800 mb-2 block">Quick Export</span>
-            <div className="grid grid-cols-2 gap-1.5">
-              {[{ label: "Student List", format: "Excel" },{ label: "Fee Report", format: "PDF" },{ label: "Attendance", format: "CSV" },{ label: "TC Records", format: "PDF" }].map((exp, i) => (<button key={i} className="py-2 rounded-lg bg-gray-50 border border-gray-200 text-center"><p className="text-[9px] font-bold text-gray-800">{exp.label}</p><p className="text-[7px] text-gray-500">{exp.format}</p></button>))}
-            </div>
-          </div>
-        </MobileFrame>
-      } />
 
     </div>
   );

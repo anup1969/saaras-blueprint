@@ -67,6 +67,97 @@ export default function HomeworkModule({ theme, child }: { theme: Theme; child: 
 
       <TabBar tabs={['All', 'Pending', 'Submitted', 'Graded', 'Overdue', 'Diary']} active={activeTab} onChange={setActiveTab} theme={theme} />
 
+      {/* ── Mobile App Preview ── */}
+      <MobilePreviewToggle theme={theme} mobileContent={
+        <div className="flex flex-wrap gap-6 justify-center">
+          {/* Screen 1: Homework List */}
+          <MobileFrame title="Homework" theme={theme}>
+            <div className="bg-white rounded-xl p-2.5 shadow-sm border border-gray-100">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[10px] font-bold text-gray-800">Today&apos;s Homework</p>
+                <span className={`text-[8px] px-1.5 py-0.5 rounded-full font-bold ${hw.items.filter(h => h.status === 'Pending' || h.status === 'Overdue').length > 0 ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                  {hw.items.filter(h => h.status === 'Pending' || h.status === 'Overdue').length} pending
+                </span>
+              </div>
+              {hw.items.slice(0, 4).map((item, i) => (
+                <div key={i} className="flex items-center gap-2 py-2 border-b border-gray-50 last:border-0">
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white text-[9px] font-bold ${
+                    item.status === 'Pending' ? 'bg-amber-500' : item.status === 'Overdue' ? 'bg-red-500' : item.status === 'Submitted' ? 'bg-blue-500' : 'bg-emerald-500'
+                  }`}>{item.subject[0]}</div>
+                  <div className="flex-1">
+                    <p className="text-[10px] font-bold text-gray-800">{item.subject}</p>
+                    <p className="text-[8px] text-gray-500 truncate">{item.title}</p>
+                    <p className="text-[7px] text-gray-400">Due: {item.dueDate}</p>
+                  </div>
+                  <span className={`text-[7px] px-1.5 py-0.5 rounded-full font-bold ${
+                    item.status === 'Pending' ? 'bg-amber-100 text-amber-600' : item.status === 'Overdue' ? 'bg-red-100 text-red-600' : item.status === 'Submitted' ? 'bg-blue-100 text-blue-600' : 'bg-emerald-100 text-emerald-600'
+                  }`}>{item.status}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-white rounded-xl p-2.5 shadow-sm border border-gray-100">
+              <p className="text-[10px] font-bold text-gray-800 mb-2">Upload Homework</p>
+              <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center">
+                <span className="text-2xl">&#128247;</span>
+                <p className="text-[10px] text-gray-600 mt-1 font-bold">Tap to take photo</p>
+                <p className="text-[8px] text-gray-400">or upload from gallery</p>
+              </div>
+            </div>
+
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-2.5 text-center">
+              <p className="text-[10px] font-bold text-emerald-800">Submission Tip</p>
+              <p className="text-[8px] text-emerald-600 mt-0.5">Take clear photos in good light. All pages in one upload.</p>
+            </div>
+          </MobileFrame>
+
+          {/* Screen 2: Diary & Acknowledgements */}
+          <MobileFrame title="School Diary" theme={theme}>
+            <div className="bg-white rounded-xl p-2.5 shadow-sm border border-gray-100">
+              <p className="text-[10px] font-bold text-gray-800 mb-2">Recent Diary Entries</p>
+              {[
+                { date: '12 Feb', teacher: 'Mrs. Sunita Sharma', note: 'Great work in Math quiz today! Keep practicing Ch 8.', ack: false },
+                { date: '10 Feb', teacher: 'Mr. Vikram Desai', note: 'Needs extra practice in trigonometry.', ack: true },
+                { date: '08 Feb', teacher: 'Dr. Meena Joshi', note: 'Science project submission extended to 22 Feb.', ack: true },
+              ].map((entry, i) => (
+                <div key={i} className="py-2 border-b border-gray-50 last:border-0">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-[9px] font-bold">{entry.date.split(' ')[0]}</div>
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-800">{entry.teacher}</p>
+                        <p className="text-[8px] text-gray-500">{entry.date} 2026</p>
+                      </div>
+                    </div>
+                    {entry.ack ? (
+                      <span className="text-[7px] px-1.5 py-0.5 bg-emerald-100 text-emerald-600 rounded-full font-bold">&#10003; Acknowledged</span>
+                    ) : (
+                      <span className="text-[7px] px-1.5 py-0.5 bg-amber-100 text-amber-600 rounded-full font-bold animate-pulse">Swipe &rarr;</span>
+                    )}
+                  </div>
+                  <p className="text-[9px] text-gray-600 mt-1 ml-9">{entry.note}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-2.5">
+              <div className="flex items-center gap-2">
+                <span className="text-amber-500 text-sm">&#128073;</span>
+                <div>
+                  <p className="text-[10px] font-bold text-amber-800">Swipe to Acknowledge</p>
+                  <p className="text-[8px] text-amber-600">Swipe right on unread entries to confirm you&apos;ve seen them</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-2.5 flex items-center gap-2">
+              <span className="text-blue-500 text-sm">&#128276;</span>
+              <div className="flex-1"><p className="text-[10px] font-bold text-blue-800">Daily Diary Alerts</p><p className="text-[8px] text-blue-600">Get notified when teachers add diary entries</p></div>
+            </div>
+          </MobileFrame>
+        </div>
+      } />
+
       {/* ── Diary Tab ── */}
       {activeTab === 'Diary' && (
         <div className="space-y-4">
@@ -170,96 +261,6 @@ export default function HomeworkModule({ theme, child }: { theme: Theme; child: 
         </div>
       )}
 
-      {/* ── Mobile App Preview ── */}
-      <MobilePreviewToggle theme={theme} mobileContent={
-        <div className="flex flex-wrap gap-6 justify-center">
-          {/* Screen 1: Homework List */}
-          <MobileFrame title="Homework" theme={theme}>
-            <div className="bg-white rounded-xl p-2.5 shadow-sm border border-gray-100">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-[10px] font-bold text-gray-800">Today&apos;s Homework</p>
-                <span className={`text-[8px] px-1.5 py-0.5 rounded-full font-bold ${hw.items.filter(h => h.status === 'Pending' || h.status === 'Overdue').length > 0 ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                  {hw.items.filter(h => h.status === 'Pending' || h.status === 'Overdue').length} pending
-                </span>
-              </div>
-              {hw.items.slice(0, 4).map((item, i) => (
-                <div key={i} className="flex items-center gap-2 py-2 border-b border-gray-50 last:border-0">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white text-[9px] font-bold ${
-                    item.status === 'Pending' ? 'bg-amber-500' : item.status === 'Overdue' ? 'bg-red-500' : item.status === 'Submitted' ? 'bg-blue-500' : 'bg-emerald-500'
-                  }`}>{item.subject[0]}</div>
-                  <div className="flex-1">
-                    <p className="text-[10px] font-bold text-gray-800">{item.subject}</p>
-                    <p className="text-[8px] text-gray-500 truncate">{item.title}</p>
-                    <p className="text-[7px] text-gray-400">Due: {item.dueDate}</p>
-                  </div>
-                  <span className={`text-[7px] px-1.5 py-0.5 rounded-full font-bold ${
-                    item.status === 'Pending' ? 'bg-amber-100 text-amber-600' : item.status === 'Overdue' ? 'bg-red-100 text-red-600' : item.status === 'Submitted' ? 'bg-blue-100 text-blue-600' : 'bg-emerald-100 text-emerald-600'
-                  }`}>{item.status}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="bg-white rounded-xl p-2.5 shadow-sm border border-gray-100">
-              <p className="text-[10px] font-bold text-gray-800 mb-2">Upload Homework</p>
-              <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center">
-                <span className="text-2xl">&#128247;</span>
-                <p className="text-[10px] text-gray-600 mt-1 font-bold">Tap to take photo</p>
-                <p className="text-[8px] text-gray-400">or upload from gallery</p>
-              </div>
-            </div>
-
-            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-2.5 text-center">
-              <p className="text-[10px] font-bold text-emerald-800">Submission Tip</p>
-              <p className="text-[8px] text-emerald-600 mt-0.5">Take clear photos in good light. All pages in one upload.</p>
-            </div>
-          </MobileFrame>
-
-          {/* Screen 2: Diary & Acknowledgements */}
-          <MobileFrame title="School Diary" theme={theme}>
-            <div className="bg-white rounded-xl p-2.5 shadow-sm border border-gray-100">
-              <p className="text-[10px] font-bold text-gray-800 mb-2">Recent Diary Entries</p>
-              {[
-                { date: '12 Feb', teacher: 'Mrs. Sunita Sharma', note: 'Great work in Math quiz today! Keep practicing Ch 8.', ack: false },
-                { date: '10 Feb', teacher: 'Mr. Vikram Desai', note: 'Needs extra practice in trigonometry.', ack: true },
-                { date: '08 Feb', teacher: 'Dr. Meena Joshi', note: 'Science project submission extended to 22 Feb.', ack: true },
-              ].map((entry, i) => (
-                <div key={i} className="py-2 border-b border-gray-50 last:border-0">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-[9px] font-bold">{entry.date.split(' ')[0]}</div>
-                      <div>
-                        <p className="text-[10px] font-bold text-gray-800">{entry.teacher}</p>
-                        <p className="text-[8px] text-gray-500">{entry.date} 2026</p>
-                      </div>
-                    </div>
-                    {entry.ack ? (
-                      <span className="text-[7px] px-1.5 py-0.5 bg-emerald-100 text-emerald-600 rounded-full font-bold">&#10003; Acknowledged</span>
-                    ) : (
-                      <span className="text-[7px] px-1.5 py-0.5 bg-amber-100 text-amber-600 rounded-full font-bold animate-pulse">Swipe &rarr;</span>
-                    )}
-                  </div>
-                  <p className="text-[9px] text-gray-600 mt-1 ml-9">{entry.note}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-2.5">
-              <div className="flex items-center gap-2">
-                <span className="text-amber-500 text-sm">&#128073;</span>
-                <div>
-                  <p className="text-[10px] font-bold text-amber-800">Swipe to Acknowledge</p>
-                  <p className="text-[8px] text-amber-600">Swipe right on unread entries to confirm you&apos;ve seen them</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-2.5 flex items-center gap-2">
-              <span className="text-blue-500 text-sm">&#128276;</span>
-              <div className="flex-1"><p className="text-[10px] font-bold text-blue-800">Daily Diary Alerts</p><p className="text-[8px] text-blue-600">Get notified when teachers add diary entries</p></div>
-            </div>
-          </MobileFrame>
-        </div>
-      } />
 
     </div>
   );

@@ -97,6 +97,28 @@ export default function StudentsModule({ theme }: { theme: Theme }) {
 
       <TabBar tabs={['All Students', 'Class-wise', 'Fee Status', 'TC Requests', 'Archived / Alumni']} active={tab} onChange={setTab} theme={theme} />
 
+      {/* ─── MOBILE APP PREVIEW ─── */}
+      <MobilePreviewToggle theme={theme} mobileContent={
+        <MobileFrame title="Student Lookup" theme={theme}>
+          <div className="bg-white rounded-xl border border-gray-200 p-2.5">
+            <div className="flex gap-1.5">
+              <div className="flex-1 relative"><span className="absolute left-2 top-2 text-gray-400 text-xs">{"🔍"}</span><div className="w-full pl-7 pr-2 py-2 rounded-lg border border-gray-200 bg-gray-50 text-[10px] text-gray-400">Search by name, ID, class...</div></div>
+              <button className="w-9 h-9 rounded-lg bg-blue-500 flex items-center justify-center text-white"><span className="text-sm">{"📷"}</span></button>
+            </div>
+            <p className="text-[8px] text-gray-400 text-center mt-1">Tap camera to scan student ID barcode</p>
+          </div>
+          <div className="space-y-2">
+            {[{ name: "Aarav Patel", id: "SAR-2025-0001", cls: "10-A", roll: 12, fee: "Paid", parent: "Rajesh Patel", phone: "98765 43210", photo: "AP" },{ name: "Saanvi Sharma", id: "SAR-2025-0002", cls: "8-B", roll: 5, fee: "Pending", parent: "Amit Sharma", phone: "87654 32109", photo: "SS" },{ name: "Vivaan Mehta", id: "SAR-2025-0003", cls: "6-A", roll: 18, fee: "Paid", parent: "Karan Mehta", phone: "76543 21098", photo: "VM" },{ name: "Diya Reddy", id: "SAR-2025-0004", cls: "9-C", roll: 8, fee: "Overdue", parent: "Srinivas Reddy", phone: "65432 10987", photo: "DR" }].map((s, i) => (<div key={i} className="bg-white rounded-xl border border-gray-200 p-2.5"><div className="flex gap-2.5"><div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-sm font-bold shrink-0">{s.photo}</div><div className="flex-1 min-w-0"><div className="flex items-center justify-between"><p className="text-[11px] font-bold text-gray-800">{s.name}</p><span className={`text-[8px] px-1.5 py-0.5 rounded-full font-bold ${s.fee === "Paid" ? "bg-emerald-100 text-emerald-700" : s.fee === "Pending" ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700"}`}>{s.fee}</span></div><p className="text-[9px] text-gray-500">{s.id} {"•"} Class {s.cls} {"•"} Roll {s.roll}</p><p className="text-[9px] text-gray-600 mt-0.5">{s.parent} {"•"} {s.phone}</p></div></div><div className="flex gap-1.5 mt-2 pt-2 border-t border-gray-100"><button className="flex-1 py-1.5 rounded-lg bg-green-50 border border-green-200 text-[8px] font-bold text-green-700 flex items-center justify-center gap-0.5">{"📱"} SMS Parent</button><button className="flex-1 py-1.5 rounded-lg bg-blue-50 border border-blue-200 text-[8px] font-bold text-blue-700 flex items-center justify-center gap-0.5">{"📞"} Call</button><button className="flex-1 py-1.5 rounded-lg bg-purple-50 border border-purple-200 text-[8px] font-bold text-purple-700 flex items-center justify-center gap-0.5">{"📅"} Attendance</button></div></div>))}
+          </div>
+          <div className="grid grid-cols-3 gap-1.5">
+            <div className="bg-emerald-50 rounded-lg p-2 text-center"><p className="text-sm font-bold text-emerald-700">1,320</p><p className="text-[8px] text-emerald-600">Total</p></div>
+            <div className="bg-blue-50 rounded-lg p-2 text-center"><p className="text-sm font-bold text-blue-700">1,247</p><p className="text-[8px] text-blue-600">Present</p></div>
+            <div className="bg-red-50 rounded-lg p-2 text-center"><p className="text-sm font-bold text-red-700">15</p><p className="text-[8px] text-red-600">Fee Overdue</p></div>
+          </div>
+        </MobileFrame>
+      } />
+
+
       {(tab === 'All Students' || tab === 'Class-wise' || tab === 'Fee Status') && (
         <>
           <div className="flex gap-3">
@@ -371,26 +393,6 @@ export default function StudentsModule({ theme }: { theme: Theme }) {
       )}
 
 
-      {/* ─── MOBILE APP PREVIEW ─── */}
-      <MobilePreviewToggle theme={theme} mobileContent={
-        <MobileFrame title="Student Lookup" theme={theme}>
-          <div className="bg-white rounded-xl border border-gray-200 p-2.5">
-            <div className="flex gap-1.5">
-              <div className="flex-1 relative"><span className="absolute left-2 top-2 text-gray-400 text-xs">{"🔍"}</span><div className="w-full pl-7 pr-2 py-2 rounded-lg border border-gray-200 bg-gray-50 text-[10px] text-gray-400">Search by name, ID, class...</div></div>
-              <button className="w-9 h-9 rounded-lg bg-blue-500 flex items-center justify-center text-white"><span className="text-sm">{"📷"}</span></button>
-            </div>
-            <p className="text-[8px] text-gray-400 text-center mt-1">Tap camera to scan student ID barcode</p>
-          </div>
-          <div className="space-y-2">
-            {[{ name: "Aarav Patel", id: "SAR-2025-0001", cls: "10-A", roll: 12, fee: "Paid", parent: "Rajesh Patel", phone: "98765 43210", photo: "AP" },{ name: "Saanvi Sharma", id: "SAR-2025-0002", cls: "8-B", roll: 5, fee: "Pending", parent: "Amit Sharma", phone: "87654 32109", photo: "SS" },{ name: "Vivaan Mehta", id: "SAR-2025-0003", cls: "6-A", roll: 18, fee: "Paid", parent: "Karan Mehta", phone: "76543 21098", photo: "VM" },{ name: "Diya Reddy", id: "SAR-2025-0004", cls: "9-C", roll: 8, fee: "Overdue", parent: "Srinivas Reddy", phone: "65432 10987", photo: "DR" }].map((s, i) => (<div key={i} className="bg-white rounded-xl border border-gray-200 p-2.5"><div className="flex gap-2.5"><div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-sm font-bold shrink-0">{s.photo}</div><div className="flex-1 min-w-0"><div className="flex items-center justify-between"><p className="text-[11px] font-bold text-gray-800">{s.name}</p><span className={`text-[8px] px-1.5 py-0.5 rounded-full font-bold ${s.fee === "Paid" ? "bg-emerald-100 text-emerald-700" : s.fee === "Pending" ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700"}`}>{s.fee}</span></div><p className="text-[9px] text-gray-500">{s.id} {"•"} Class {s.cls} {"•"} Roll {s.roll}</p><p className="text-[9px] text-gray-600 mt-0.5">{s.parent} {"•"} {s.phone}</p></div></div><div className="flex gap-1.5 mt-2 pt-2 border-t border-gray-100"><button className="flex-1 py-1.5 rounded-lg bg-green-50 border border-green-200 text-[8px] font-bold text-green-700 flex items-center justify-center gap-0.5">{"📱"} SMS Parent</button><button className="flex-1 py-1.5 rounded-lg bg-blue-50 border border-blue-200 text-[8px] font-bold text-blue-700 flex items-center justify-center gap-0.5">{"📞"} Call</button><button className="flex-1 py-1.5 rounded-lg bg-purple-50 border border-purple-200 text-[8px] font-bold text-purple-700 flex items-center justify-center gap-0.5">{"📅"} Attendance</button></div></div>))}
-          </div>
-          <div className="grid grid-cols-3 gap-1.5">
-            <div className="bg-emerald-50 rounded-lg p-2 text-center"><p className="text-sm font-bold text-emerald-700">1,320</p><p className="text-[8px] text-emerald-600">Total</p></div>
-            <div className="bg-blue-50 rounded-lg p-2 text-center"><p className="text-sm font-bold text-blue-700">1,247</p><p className="text-[8px] text-blue-600">Present</p></div>
-            <div className="bg-red-50 rounded-lg p-2 text-center"><p className="text-sm font-bold text-red-700">15</p><p className="text-[8px] text-red-600">Fee Overdue</p></div>
-          </div>
-        </MobileFrame>
-      } />
 
       {showPromotionWizard && <PromotionWizard theme={theme} onClose={() => setShowPromotionWizard(false)} />}
     </div>

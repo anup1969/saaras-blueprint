@@ -328,6 +328,31 @@ export default function ReportsModule({ theme }: { theme: Theme }) {
         </button>
       </div>
 
+
+      {/* ─── MOBILE APP PREVIEW ─── */}
+      <MobilePreviewToggle theme={theme} mobileContent={
+        <MobileFrame title="Reports" theme={theme}>
+          <div className="bg-white rounded-xl border border-gray-200 p-2.5">
+            <span className="text-[10px] font-bold text-gray-800 mb-2 block">Report Cards</span>
+            <div className="grid grid-cols-2 gap-2">
+              {[{ title: "Academic Report", icon: "📊", color: "bg-purple-50 border-purple-200", count: "12 classes" },{ title: "Attendance", icon: "📋", color: "bg-blue-50 border-blue-200", count: "Monthly" },{ title: "Fee Collection", icon: "💰", color: "bg-emerald-50 border-emerald-200", count: "₹24.5L" },{ title: "Staff Report", icon: "👥", color: "bg-amber-50 border-amber-200", count: "98 staff" }].map((r, i) => (<button key={i} className={`${r.color} border rounded-xl p-3 text-center`}><span className="text-xl block mb-1">{r.icon}</span><p className="text-[10px] font-bold text-gray-800">{r.title}</p><p className="text-[8px] text-gray-500 mt-0.5">{r.count}</p><div className="mt-1.5 flex items-center justify-center gap-1 text-[8px] text-blue-600 font-bold"><span>{"⤓"}</span> Download PDF</div></button>))}
+            </div>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-2.5">
+            <div className="flex items-center justify-between mb-2"><span className="text-[10px] font-bold text-gray-800">Publish Results</span><span className="text-[8px] text-gray-500">Unit Test 3</span></div>
+            {[{ cls: "Class 1-5", status: "Published", date: "Feb 25" },{ cls: "Class 6-8", status: "Ready", date: "Awaiting" },{ cls: "Class 9-10", status: "Pending", date: "Marks incomplete" },{ cls: "Class 11-12", status: "Ready", date: "Awaiting" }].map((r, i) => (<div key={i} className="flex items-center gap-2 py-2 border-t border-gray-100"><div className="flex-1"><p className="text-[10px] font-bold text-gray-800">{r.cls}</p><p className="text-[8px] text-gray-500">{r.date}</p></div>{r.status === "Published" ? (<span className="text-[8px] px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 font-bold">{"✓"} Published</span>) : r.status === "Ready" ? (<button className="text-[8px] px-2.5 py-1 rounded-full bg-blue-500 text-white font-bold">Publish Now</button>) : (<span className="text-[8px] px-2 py-1 rounded-full bg-gray-100 text-gray-500 font-bold">Incomplete</span>)}</div>))}
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-2.5">
+            <span className="text-[10px] font-bold text-gray-800 mb-2 block">Share Reports</span>
+            {[{ name: "Term 1 Report Cards", recipients: "All Parents", format: "PDF" },{ name: "Board Exam Analysis", recipients: "Management", format: "Excel" }].map((s, i) => (<div key={i} className="p-2 rounded-lg bg-gray-50 border border-gray-100 mb-1.5"><p className="text-[10px] font-bold text-gray-800">{s.name}</p><p className="text-[8px] text-gray-500">{s.recipients} {"•"} {s.format}</p><div className="flex gap-1.5 mt-1.5"><button className="flex-1 py-1.5 rounded-lg bg-green-500 text-white text-[8px] font-bold flex items-center justify-center gap-1">{"📱"} WhatsApp</button><button className="flex-1 py-1.5 rounded-lg bg-blue-500 text-white text-[8px] font-bold flex items-center justify-center gap-1">{"✉"} Email</button></div></div>))}
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-2.5">
+            <span className="text-[10px] font-bold text-gray-800 mb-2 block">Top Performers</span>
+            {[{ rank: 1, name: "Ananya Sharma", cls: "8A", pct: "97.4%" },{ rank: 2, name: "Vivaan Mehta", cls: "10B", pct: "96.8%" },{ rank: 3, name: "Diya Reddy", cls: "9A", pct: "95.2%" }].map((t, i) => (<div key={i} className="flex items-center gap-2 py-1.5 border-t border-gray-100"><span className={`w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold ${t.rank === 1 ? "bg-yellow-100 text-yellow-700" : t.rank === 2 ? "bg-gray-100 text-gray-600" : "bg-orange-100 text-orange-600"}`}>{t.rank}</span><div className="flex-1"><p className="text-[10px] font-bold text-gray-800">{t.name}</p><p className="text-[8px] text-gray-500">Class {t.cls}</p></div><span className="text-[10px] font-bold text-purple-600">{t.pct}</span></div>))}
+          </div>
+        </MobileFrame>
+      } />
+
       {/* Overview Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {reportCards.map(card => {
@@ -677,29 +702,6 @@ export default function ReportsModule({ theme }: { theme: Theme }) {
         </div>
       </div>
 
-      {/* ─── MOBILE APP PREVIEW ─── */}
-      <MobilePreviewToggle theme={theme} mobileContent={
-        <MobileFrame title="Reports" theme={theme}>
-          <div className="bg-white rounded-xl border border-gray-200 p-2.5">
-            <span className="text-[10px] font-bold text-gray-800 mb-2 block">Report Cards</span>
-            <div className="grid grid-cols-2 gap-2">
-              {[{ title: "Academic Report", icon: "📊", color: "bg-purple-50 border-purple-200", count: "12 classes" },{ title: "Attendance", icon: "📋", color: "bg-blue-50 border-blue-200", count: "Monthly" },{ title: "Fee Collection", icon: "💰", color: "bg-emerald-50 border-emerald-200", count: "₹24.5L" },{ title: "Staff Report", icon: "👥", color: "bg-amber-50 border-amber-200", count: "98 staff" }].map((r, i) => (<button key={i} className={`${r.color} border rounded-xl p-3 text-center`}><span className="text-xl block mb-1">{r.icon}</span><p className="text-[10px] font-bold text-gray-800">{r.title}</p><p className="text-[8px] text-gray-500 mt-0.5">{r.count}</p><div className="mt-1.5 flex items-center justify-center gap-1 text-[8px] text-blue-600 font-bold"><span>{"⤓"}</span> Download PDF</div></button>))}
-            </div>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-2.5">
-            <div className="flex items-center justify-between mb-2"><span className="text-[10px] font-bold text-gray-800">Publish Results</span><span className="text-[8px] text-gray-500">Unit Test 3</span></div>
-            {[{ cls: "Class 1-5", status: "Published", date: "Feb 25" },{ cls: "Class 6-8", status: "Ready", date: "Awaiting" },{ cls: "Class 9-10", status: "Pending", date: "Marks incomplete" },{ cls: "Class 11-12", status: "Ready", date: "Awaiting" }].map((r, i) => (<div key={i} className="flex items-center gap-2 py-2 border-t border-gray-100"><div className="flex-1"><p className="text-[10px] font-bold text-gray-800">{r.cls}</p><p className="text-[8px] text-gray-500">{r.date}</p></div>{r.status === "Published" ? (<span className="text-[8px] px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 font-bold">{"✓"} Published</span>) : r.status === "Ready" ? (<button className="text-[8px] px-2.5 py-1 rounded-full bg-blue-500 text-white font-bold">Publish Now</button>) : (<span className="text-[8px] px-2 py-1 rounded-full bg-gray-100 text-gray-500 font-bold">Incomplete</span>)}</div>))}
-          </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-2.5">
-            <span className="text-[10px] font-bold text-gray-800 mb-2 block">Share Reports</span>
-            {[{ name: "Term 1 Report Cards", recipients: "All Parents", format: "PDF" },{ name: "Board Exam Analysis", recipients: "Management", format: "Excel" }].map((s, i) => (<div key={i} className="p-2 rounded-lg bg-gray-50 border border-gray-100 mb-1.5"><p className="text-[10px] font-bold text-gray-800">{s.name}</p><p className="text-[8px] text-gray-500">{s.recipients} {"•"} {s.format}</p><div className="flex gap-1.5 mt-1.5"><button className="flex-1 py-1.5 rounded-lg bg-green-500 text-white text-[8px] font-bold flex items-center justify-center gap-1">{"📱"} WhatsApp</button><button className="flex-1 py-1.5 rounded-lg bg-blue-500 text-white text-[8px] font-bold flex items-center justify-center gap-1">{"✉"} Email</button></div></div>))}
-          </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-2.5">
-            <span className="text-[10px] font-bold text-gray-800 mb-2 block">Top Performers</span>
-            {[{ rank: 1, name: "Ananya Sharma", cls: "8A", pct: "97.4%" },{ rank: 2, name: "Vivaan Mehta", cls: "10B", pct: "96.8%" },{ rank: 3, name: "Diya Reddy", cls: "9A", pct: "95.2%" }].map((t, i) => (<div key={i} className="flex items-center gap-2 py-1.5 border-t border-gray-100"><span className={`w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold ${t.rank === 1 ? "bg-yellow-100 text-yellow-700" : t.rank === 2 ? "bg-gray-100 text-gray-600" : "bg-orange-100 text-orange-600"}`}>{t.rank}</span><div className="flex-1"><p className="text-[10px] font-bold text-gray-800">{t.name}</p><p className="text-[8px] text-gray-500">Class {t.cls}</p></div><span className="text-[10px] font-bold text-purple-600">{t.pct}</span></div>))}
-          </div>
-        </MobileFrame>
-      } />
 
     </div>
   );

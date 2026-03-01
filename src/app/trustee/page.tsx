@@ -117,6 +117,89 @@ function DashboardView({ theme, setActiveModule }: { theme: Theme; setActiveModu
         <button onClick={() => setActiveModule('profile')} title="My Profile" className={`w-9 h-9 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold hover:opacity-90 transition-opacity`}>JS</button>
       </div>
 
+      {/* Mobile App Preview */}
+      <MobilePreviewToggle theme={theme} mobileContent={
+        <MobileFrame title="Trustee Dashboard" theme={theme}>
+          {/* KPI Cards */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-blue-50 rounded-xl p-2.5 text-center">
+              <p className="text-lg font-bold text-blue-600">1,247</p>
+              <p className="text-[9px] text-blue-500">Enrollment</p>
+            </div>
+            <div className="bg-emerald-50 rounded-xl p-2.5 text-center">
+              <p className="text-lg font-bold text-emerald-600">67%</p>
+              <p className="text-[9px] text-emerald-500">Fee Collection</p>
+            </div>
+            <div className="bg-purple-50 rounded-xl p-2.5 text-center">
+              <p className="text-lg font-bold text-purple-600">4.2/5</p>
+              <p className="text-[9px] text-purple-500">Satisfaction</p>
+            </div>
+            <div className="bg-amber-50 rounded-xl p-2.5 text-center">
+              <p className="text-lg font-bold text-amber-600">78/100</p>
+              <p className="text-[9px] text-amber-500">SQAAF Score</p>
+            </div>
+          </div>
+          {/* Fund Utilization Chart */}
+          <div className="bg-white rounded-xl p-3 border border-gray-200">
+            <p className="text-[10px] font-bold text-gray-700 mb-2">Fund Utilization</p>
+            <div className="space-y-2">
+              <div>
+                <div className="flex justify-between text-[9px] mb-0.5">
+                  <span className="text-gray-600">Staff Salary (68%)</span>
+                  <span className="font-bold text-gray-800">&#8377;98L</span>
+                </div>
+                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-blue-500 rounded-full" style={{ width: '68%' }} />
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between text-[9px] mb-0.5">
+                  <span className="text-gray-600">Operational (22%)</span>
+                  <span className="font-bold text-gray-800">&#8377;32L</span>
+                </div>
+                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-amber-500 rounded-full" style={{ width: '22%' }} />
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between text-[9px] mb-0.5">
+                  <span className="text-gray-600">Capital (10%)</span>
+                  <span className="font-bold text-gray-800">&#8377;15L</span>
+                </div>
+                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-purple-500 rounded-full" style={{ width: '10%' }} />
+                </div>
+              </div>
+            </div>
+          </div>
+          {/* News Board */}
+          <div className="bg-white rounded-xl p-3 border border-gray-200">
+            <div className="flex items-center gap-1.5 mb-2">
+              <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              <p className="text-[10px] font-bold text-gray-700">News Board</p>
+            </div>
+            <div className="space-y-1.5">
+              {[
+                { text: 'Science Fair — Hall A (Live)', badge: 'LIVE', color: 'bg-red-100 text-red-600' },
+                { text: 'CBSE Inspector Visit today', badge: 'Now', color: 'bg-amber-100 text-amber-600' },
+                { text: 'Trust Finance Review at 3 PM', badge: '3 PM', color: 'bg-blue-100 text-blue-600' },
+              ].map((n, i) => (
+                <div key={i} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
+                  <span className={`text-[8px] px-1.5 py-0.5 rounded-full font-bold ${n.color}`}>{n.badge}</span>
+                  <p className="text-[10px] text-gray-700 flex-1">{n.text}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Quick Nav */}
+          <div className="grid grid-cols-3 gap-2">
+            <button className="py-2 bg-blue-500 text-white rounded-xl text-[9px] font-bold text-center">Financials</button>
+            <button className="py-2 bg-emerald-500 text-white rounded-xl text-[9px] font-bold text-center">Approvals</button>
+            <button className="py-2 bg-purple-500 text-white rounded-xl text-[9px] font-bold text-center">Reports</button>
+          </div>
+        </MobileFrame>
+      } />
+
       {/* Financial KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard icon={DollarSign} label="Total Revenue" value={financialSummary.totalRevenue} color="bg-emerald-500" theme={theme} />
@@ -313,89 +396,6 @@ function DashboardView({ theme, setActiveModule }: { theme: Theme; setActiveModu
         {/* Recurring Tasks — Streak Tracking Card */}
         <RecurringTasksCard theme={theme} role="trustee" />
       </div>
-
-      {/* Mobile App Preview */}
-      <MobilePreviewToggle theme={theme} mobileContent={
-        <MobileFrame title="Trustee Dashboard" theme={theme}>
-          {/* KPI Cards */}
-          <div className="grid grid-cols-2 gap-2">
-            <div className="bg-blue-50 rounded-xl p-2.5 text-center">
-              <p className="text-lg font-bold text-blue-600">1,247</p>
-              <p className="text-[9px] text-blue-500">Enrollment</p>
-            </div>
-            <div className="bg-emerald-50 rounded-xl p-2.5 text-center">
-              <p className="text-lg font-bold text-emerald-600">67%</p>
-              <p className="text-[9px] text-emerald-500">Fee Collection</p>
-            </div>
-            <div className="bg-purple-50 rounded-xl p-2.5 text-center">
-              <p className="text-lg font-bold text-purple-600">4.2/5</p>
-              <p className="text-[9px] text-purple-500">Satisfaction</p>
-            </div>
-            <div className="bg-amber-50 rounded-xl p-2.5 text-center">
-              <p className="text-lg font-bold text-amber-600">78/100</p>
-              <p className="text-[9px] text-amber-500">SQAAF Score</p>
-            </div>
-          </div>
-          {/* Fund Utilization Chart */}
-          <div className="bg-white rounded-xl p-3 border border-gray-200">
-            <p className="text-[10px] font-bold text-gray-700 mb-2">Fund Utilization</p>
-            <div className="space-y-2">
-              <div>
-                <div className="flex justify-between text-[9px] mb-0.5">
-                  <span className="text-gray-600">Staff Salary (68%)</span>
-                  <span className="font-bold text-gray-800">&#8377;98L</span>
-                </div>
-                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-blue-500 rounded-full" style={{ width: '68%' }} />
-                </div>
-              </div>
-              <div>
-                <div className="flex justify-between text-[9px] mb-0.5">
-                  <span className="text-gray-600">Operational (22%)</span>
-                  <span className="font-bold text-gray-800">&#8377;32L</span>
-                </div>
-                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-amber-500 rounded-full" style={{ width: '22%' }} />
-                </div>
-              </div>
-              <div>
-                <div className="flex justify-between text-[9px] mb-0.5">
-                  <span className="text-gray-600">Capital (10%)</span>
-                  <span className="font-bold text-gray-800">&#8377;15L</span>
-                </div>
-                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-purple-500 rounded-full" style={{ width: '10%' }} />
-                </div>
-              </div>
-            </div>
-          </div>
-          {/* News Board */}
-          <div className="bg-white rounded-xl p-3 border border-gray-200">
-            <div className="flex items-center gap-1.5 mb-2">
-              <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-              <p className="text-[10px] font-bold text-gray-700">News Board</p>
-            </div>
-            <div className="space-y-1.5">
-              {[
-                { text: 'Science Fair — Hall A (Live)', badge: 'LIVE', color: 'bg-red-100 text-red-600' },
-                { text: 'CBSE Inspector Visit today', badge: 'Now', color: 'bg-amber-100 text-amber-600' },
-                { text: 'Trust Finance Review at 3 PM', badge: '3 PM', color: 'bg-blue-100 text-blue-600' },
-              ].map((n, i) => (
-                <div key={i} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
-                  <span className={`text-[8px] px-1.5 py-0.5 rounded-full font-bold ${n.color}`}>{n.badge}</span>
-                  <p className="text-[10px] text-gray-700 flex-1">{n.text}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-          {/* Quick Nav */}
-          <div className="grid grid-cols-3 gap-2">
-            <button className="py-2 bg-blue-500 text-white rounded-xl text-[9px] font-bold text-center">Financials</button>
-            <button className="py-2 bg-emerald-500 text-white rounded-xl text-[9px] font-bold text-center">Approvals</button>
-            <button className="py-2 bg-purple-500 text-white rounded-xl text-[9px] font-bold text-center">Reports</button>
-          </div>
-        </MobileFrame>
-      } />
     </div>
   );
 }
@@ -430,50 +430,6 @@ function FinancialView({ theme }: { theme: Theme }) {
             <Download size={12} /> Export
           </button>
         </div>
-      </div>
-
-      {/* Revenue vs Expense Summary */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard icon={TrendingUp} label="Total Revenue" value={financialSummary.totalRevenue} color="bg-emerald-500" theme={theme} />
-        <StatCard icon={TrendingDown} label="Total Expenses" value={financialSummary.totalExpenses} color="bg-red-500" theme={theme} />
-        <StatCard icon={DollarSign} label="Net Surplus" value={financialSummary.netSurplus} color="bg-blue-500" theme={theme} />
-        <StatCard icon={Banknote} label="Pending Fees" value={financialSummary.pendingFees} color="bg-amber-500" theme={theme} />
-      </div>
-
-      {/* Expense Breakdown */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Expense Breakdown</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[
-            { label: 'Staff Salary', amount: financialSummary.salaryExpense, percent: '68%', color: 'bg-blue-500' },
-            { label: 'Operational', amount: financialSummary.operationalExpense, percent: '22%', color: 'bg-amber-500' },
-            { label: 'Capital', amount: financialSummary.capitalExpense, percent: '10%', color: 'bg-purple-500' },
-          ].map(e => (
-            <div key={e.label} className={`p-4 rounded-xl ${theme.secondaryBg}`}>
-              <div className="flex items-center gap-2 mb-2">
-                <div className={`w-3 h-3 rounded-full ${e.color}`} />
-                <span className={`text-xs font-bold ${theme.highlight}`}>{e.label}</span>
-              </div>
-              <p className={`text-lg font-bold ${theme.highlight}`}>{e.amount}</p>
-              <p className={`text-[10px] ${theme.iconColor}`}>{e.percent} of total expenses</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Monthly Collection */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Monthly Fee Collection</h3>
-        <DataTable
-          headers={['Month', 'Collected', 'Target', 'Achievement']}
-          rows={monthlyRevenue.map(m => [
-            <span key="m" className={`text-xs font-bold ${theme.highlight}`}>{m.month}</span>,
-            <span key="c" className={`text-xs font-bold ${theme.highlight}`}>{m.collected}</span>,
-            <span key="t" className={`text-xs ${theme.iconColor}`}>{m.target}</span>,
-            <span key="p" className={`text-xs font-bold ${parseInt(m.percent) >= 90 ? 'text-emerald-600' : parseInt(m.percent) >= 80 ? 'text-amber-600' : 'text-red-600'}`}>{m.percent}</span>,
-          ])}
-          theme={theme}
-        />
       </div>
 
       {/* Mobile App Preview */}
@@ -529,6 +485,50 @@ function FinancialView({ theme }: { theme: Theme }) {
           </div>
         </MobileFrame>
       } />
+
+      {/* Revenue vs Expense Summary */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <StatCard icon={TrendingUp} label="Total Revenue" value={financialSummary.totalRevenue} color="bg-emerald-500" theme={theme} />
+        <StatCard icon={TrendingDown} label="Total Expenses" value={financialSummary.totalExpenses} color="bg-red-500" theme={theme} />
+        <StatCard icon={DollarSign} label="Net Surplus" value={financialSummary.netSurplus} color="bg-blue-500" theme={theme} />
+        <StatCard icon={Banknote} label="Pending Fees" value={financialSummary.pendingFees} color="bg-amber-500" theme={theme} />
+      </div>
+
+      {/* Expense Breakdown */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Expense Breakdown</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[
+            { label: 'Staff Salary', amount: financialSummary.salaryExpense, percent: '68%', color: 'bg-blue-500' },
+            { label: 'Operational', amount: financialSummary.operationalExpense, percent: '22%', color: 'bg-amber-500' },
+            { label: 'Capital', amount: financialSummary.capitalExpense, percent: '10%', color: 'bg-purple-500' },
+          ].map(e => (
+            <div key={e.label} className={`p-4 rounded-xl ${theme.secondaryBg}`}>
+              <div className="flex items-center gap-2 mb-2">
+                <div className={`w-3 h-3 rounded-full ${e.color}`} />
+                <span className={`text-xs font-bold ${theme.highlight}`}>{e.label}</span>
+              </div>
+              <p className={`text-lg font-bold ${theme.highlight}`}>{e.amount}</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>{e.percent} of total expenses</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Monthly Collection */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Monthly Fee Collection</h3>
+        <DataTable
+          headers={['Month', 'Collected', 'Target', 'Achievement']}
+          rows={monthlyRevenue.map(m => [
+            <span key="m" className={`text-xs font-bold ${theme.highlight}`}>{m.month}</span>,
+            <span key="c" className={`text-xs font-bold ${theme.highlight}`}>{m.collected}</span>,
+            <span key="t" className={`text-xs ${theme.iconColor}`}>{m.target}</span>,
+            <span key="p" className={`text-xs font-bold ${parseInt(m.percent) >= 90 ? 'text-emerald-600' : parseInt(m.percent) >= 80 ? 'text-amber-600' : 'text-red-600'}`}>{m.percent}</span>,
+          ])}
+          theme={theme}
+        />
+      </div>
     </div>
   );
 }
@@ -541,6 +541,39 @@ function AcademicView({ theme }: { theme: Theme }) {
         <h2 className={`text-lg font-bold ${theme.highlight}`}>Academic Performance</h2>
         <p className={`text-xs ${theme.iconColor}`}>School-wide academic overview for trust governance</p>
       </div>
+
+      {/* Mobile App Preview */}
+      <MobilePreviewToggle theme={theme} mobileContent={
+        <MobileFrame title="Reports" theme={theme}>
+          {/* Report Cards */}
+          <div className="space-y-2">
+            {[
+              { title: 'Board Exam Results 2025-26', type: 'Academic', date: 'Mar 2026', color: 'bg-blue-500', size: '2.4 MB' },
+              { title: 'Fee Collection Summary', type: 'Financial', date: 'Feb 2026', color: 'bg-emerald-500', size: '1.8 MB' },
+              { title: 'SQAAF Compliance Report', type: 'Quality', date: 'Jan 2026', color: 'bg-purple-500', size: '3.1 MB' },
+              { title: 'Staff Performance Review', type: 'HR', date: 'Jan 2026', color: 'bg-amber-500', size: '1.2 MB' },
+              { title: 'Annual Audit Report', type: 'Financial', date: 'Dec 2025', color: 'bg-red-500', size: '4.5 MB' },
+            ].map((r, i) => (
+              <div key={i} className="bg-white rounded-xl p-3 border border-gray-200">
+                <div className="flex items-start gap-2.5">
+                  <div className={`w-9 h-9 rounded-lg ${r.color} flex items-center justify-center text-white shrink-0`}>
+                    <span className="text-sm">&#128196;</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] font-bold text-gray-800 truncate">{r.title}</p>
+                    <p className="text-[9px] text-gray-500">{r.type} &bull; {r.date} &bull; {r.size}</p>
+                  </div>
+                </div>
+                <div className="flex gap-1.5 mt-2">
+                  <button className="flex-1 py-2 bg-gray-100 rounded-lg text-[9px] font-bold text-gray-600 text-center">&#128229; Download</button>
+                  <button className="flex-1 py-2 bg-emerald-100 rounded-lg text-[9px] font-bold text-emerald-600 text-center">&#128172; WhatsApp</button>
+                  <button className="flex-1 py-2 bg-blue-100 rounded-lg text-[9px] font-bold text-blue-600 text-center">&#9993; Email</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </MobileFrame>
+      } />
 
       {/* Board Results */}
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
@@ -591,39 +624,6 @@ function AcademicView({ theme }: { theme: Theme }) {
         <StatCard icon={Star} label="School Avg Score" value="73.2%" color="bg-purple-500" theme={theme} />
         <StatCard icon={Target} label="SQAAF Score" value="78/100" color="bg-amber-500" theme={theme} />
       </div>
-
-      {/* Mobile App Preview */}
-      <MobilePreviewToggle theme={theme} mobileContent={
-        <MobileFrame title="Reports" theme={theme}>
-          {/* Report Cards */}
-          <div className="space-y-2">
-            {[
-              { title: 'Board Exam Results 2025-26', type: 'Academic', date: 'Mar 2026', color: 'bg-blue-500', size: '2.4 MB' },
-              { title: 'Fee Collection Summary', type: 'Financial', date: 'Feb 2026', color: 'bg-emerald-500', size: '1.8 MB' },
-              { title: 'SQAAF Compliance Report', type: 'Quality', date: 'Jan 2026', color: 'bg-purple-500', size: '3.1 MB' },
-              { title: 'Staff Performance Review', type: 'HR', date: 'Jan 2026', color: 'bg-amber-500', size: '1.2 MB' },
-              { title: 'Annual Audit Report', type: 'Financial', date: 'Dec 2025', color: 'bg-red-500', size: '4.5 MB' },
-            ].map((r, i) => (
-              <div key={i} className="bg-white rounded-xl p-3 border border-gray-200">
-                <div className="flex items-start gap-2.5">
-                  <div className={`w-9 h-9 rounded-lg ${r.color} flex items-center justify-center text-white shrink-0`}>
-                    <span className="text-sm">&#128196;</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[11px] font-bold text-gray-800 truncate">{r.title}</p>
-                    <p className="text-[9px] text-gray-500">{r.type} &bull; {r.date} &bull; {r.size}</p>
-                  </div>
-                </div>
-                <div className="flex gap-1.5 mt-2">
-                  <button className="flex-1 py-2 bg-gray-100 rounded-lg text-[9px] font-bold text-gray-600 text-center">&#128229; Download</button>
-                  <button className="flex-1 py-2 bg-emerald-100 rounded-lg text-[9px] font-bold text-emerald-600 text-center">&#128172; WhatsApp</button>
-                  <button className="flex-1 py-2 bg-blue-100 rounded-lg text-[9px] font-bold text-blue-600 text-center">&#9993; Email</button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </MobileFrame>
-      } />
     </div>
   );
 }
@@ -1267,6 +1267,59 @@ function BoardMeetingsView({ theme }: { theme: Theme }) {
         </button>
       </div>
 
+      {/* Mobile App Preview */}
+      <MobilePreviewToggle theme={theme} mobileContent={
+        <MobileFrame title="School Visits" theme={theme}>
+          {/* Schedule Visit Button */}
+          <button className="w-full py-3 bg-blue-500 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2">
+            &#128197; Schedule New Visit
+          </button>
+          {/* Upcoming Visit */}
+          <div className="bg-blue-50 rounded-xl p-3 border border-blue-200">
+            <p className="text-[10px] font-bold text-blue-700 mb-1">Next Visit</p>
+            <p className="text-[11px] font-bold text-gray-800">Annual Budget Review</p>
+            <p className="text-[9px] text-gray-500">28 Feb 2026 &bull; 10:00 AM &bull; Trust Boardroom</p>
+            <div className="flex gap-1.5 mt-2">
+              <span className="text-[8px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-600 font-bold">Confirmed</span>
+              <span className="text-[8px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-bold">8 attendees</span>
+            </div>
+          </div>
+          {/* Visit Log */}
+          <div className="bg-white rounded-xl p-3 border border-gray-200">
+            <p className="text-[10px] font-bold text-gray-700 mb-2">Recent Visits</p>
+            <div className="space-y-2">
+              {[
+                { title: 'January Review', date: '28 Jan 2026', decisions: '3 decisions taken' },
+                { title: 'Fee Revision Meeting', date: '15 Jan 2026', decisions: '5% increase approved' },
+                { title: 'Quarterly Review Q2', date: '28 Dec 2025', decisions: 'Sports Day budget approved' },
+              ].map((v, i) => (
+                <div key={i} className="flex items-center gap-2.5 p-2 bg-gray-50 rounded-lg">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600 text-[10px] shrink-0">&#10003;</div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] font-bold text-gray-800 truncate">{v.title}</p>
+                    <p className="text-[9px] text-gray-500">{v.date} &bull; {v.decisions}</p>
+                  </div>
+                  <span className="text-[9px] text-blue-500 font-bold shrink-0">View</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Meeting Notes with Voice */}
+          <div className="bg-white rounded-xl p-3 border border-gray-200">
+            <p className="text-[10px] font-bold text-gray-700 mb-2">Meeting Notes</p>
+            <div className="bg-gray-50 rounded-lg p-2.5 border border-gray-200">
+              <p className="text-[10px] text-gray-600 italic">Tap to add notes for your visit...</p>
+            </div>
+            <div className="flex gap-2 mt-2">
+              <button className="flex-1 py-2 bg-gray-100 rounded-lg text-[9px] font-bold text-gray-600 text-center">&#9998; Type Notes</button>
+              <button className="flex-1 py-2 bg-red-100 rounded-lg text-[9px] font-bold text-red-600 text-center flex items-center justify-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" /> Voice Record
+              </button>
+            </div>
+          </div>
+        </MobileFrame>
+      } />
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard icon={Calendar} label="Upcoming Meetings" value={upcomingMeetings.length} color="bg-blue-500" theme={theme} />
         <StatCard icon={CheckCircle} label="Completed (FY)" value={completedMeetings.length} color="bg-emerald-500" theme={theme} />
@@ -1408,59 +1461,6 @@ function BoardMeetingsView({ theme }: { theme: Theme }) {
           ))}
         </div>
       )}
-
-      {/* Mobile App Preview */}
-      <MobilePreviewToggle theme={theme} mobileContent={
-        <MobileFrame title="School Visits" theme={theme}>
-          {/* Schedule Visit Button */}
-          <button className="w-full py-3 bg-blue-500 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2">
-            &#128197; Schedule New Visit
-          </button>
-          {/* Upcoming Visit */}
-          <div className="bg-blue-50 rounded-xl p-3 border border-blue-200">
-            <p className="text-[10px] font-bold text-blue-700 mb-1">Next Visit</p>
-            <p className="text-[11px] font-bold text-gray-800">Annual Budget Review</p>
-            <p className="text-[9px] text-gray-500">28 Feb 2026 &bull; 10:00 AM &bull; Trust Boardroom</p>
-            <div className="flex gap-1.5 mt-2">
-              <span className="text-[8px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-600 font-bold">Confirmed</span>
-              <span className="text-[8px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-bold">8 attendees</span>
-            </div>
-          </div>
-          {/* Visit Log */}
-          <div className="bg-white rounded-xl p-3 border border-gray-200">
-            <p className="text-[10px] font-bold text-gray-700 mb-2">Recent Visits</p>
-            <div className="space-y-2">
-              {[
-                { title: 'January Review', date: '28 Jan 2026', decisions: '3 decisions taken' },
-                { title: 'Fee Revision Meeting', date: '15 Jan 2026', decisions: '5% increase approved' },
-                { title: 'Quarterly Review Q2', date: '28 Dec 2025', decisions: 'Sports Day budget approved' },
-              ].map((v, i) => (
-                <div key={i} className="flex items-center gap-2.5 p-2 bg-gray-50 rounded-lg">
-                  <div className="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600 text-[10px] shrink-0">&#10003;</div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[10px] font-bold text-gray-800 truncate">{v.title}</p>
-                    <p className="text-[9px] text-gray-500">{v.date} &bull; {v.decisions}</p>
-                  </div>
-                  <span className="text-[9px] text-blue-500 font-bold shrink-0">View</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          {/* Meeting Notes with Voice */}
-          <div className="bg-white rounded-xl p-3 border border-gray-200">
-            <p className="text-[10px] font-bold text-gray-700 mb-2">Meeting Notes</p>
-            <div className="bg-gray-50 rounded-lg p-2.5 border border-gray-200">
-              <p className="text-[10px] text-gray-600 italic">Tap to add notes for your visit...</p>
-            </div>
-            <div className="flex gap-2 mt-2">
-              <button className="flex-1 py-2 bg-gray-100 rounded-lg text-[9px] font-bold text-gray-600 text-center">&#9998; Type Notes</button>
-              <button className="flex-1 py-2 bg-red-100 rounded-lg text-[9px] font-bold text-red-600 text-center flex items-center justify-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" /> Voice Record
-              </button>
-            </div>
-          </div>
-        </MobileFrame>
-      } />
     </div>
   );
 }
@@ -1475,39 +1475,6 @@ function ApprovalsView({ theme }: { theme: Theme }) {
       <div>
         <h2 className={`text-lg font-bold ${theme.highlight}`}>High-Value Approvals</h2>
         <p className={`text-xs ${theme.iconColor}`}>Items requiring Trust-level approval (₹1L+)</p>
-      </div>
-
-      <TabBar tabs={['Pending', 'Approved', 'All']} active={tab} onChange={setTab} theme={theme} />
-
-      <div className="space-y-3">
-        {filtered.map(a => (
-          <div key={a.desc} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-            <div className="flex items-start justify-between">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${theme.secondaryBg} ${theme.primaryText}`}>{a.type}</span>
-                  <StatusBadge status={a.status} theme={theme} />
-                </div>
-                <h4 className={`text-sm font-bold ${theme.highlight} mt-2`}>{a.desc}</h4>
-                <p className={`text-[10px] ${theme.iconColor} mt-1`}>Requested by {a.from} · {a.date}</p>
-              </div>
-              <span className={`text-lg font-bold ${theme.highlight}`}>{a.amount}</span>
-            </div>
-            {a.status === 'Pending' && (
-              <div className="flex gap-2 mt-3">
-                <button className="flex items-center gap-1 px-4 py-2 bg-emerald-500 text-white rounded-xl text-xs font-bold">
-                  <CheckCircle size={12} /> Approve
-                </button>
-                <button className={`flex items-center gap-1 px-4 py-2 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.highlight}`}>
-                  <Eye size={12} /> View Details
-                </button>
-                <button className="flex items-center gap-1 px-4 py-2 bg-red-100 text-red-600 rounded-xl text-xs font-bold">
-                  <XCircle size={12} /> Reject
-                </button>
-              </div>
-            )}
-          </div>
-        ))}
       </div>
 
       {/* Mobile App Preview */}
@@ -1553,6 +1520,39 @@ function ApprovalsView({ theme }: { theme: Theme }) {
           </div>
         </MobileFrame>
       } />
+
+      <TabBar tabs={['Pending', 'Approved', 'All']} active={tab} onChange={setTab} theme={theme} />
+
+      <div className="space-y-3">
+        {filtered.map(a => (
+          <div key={a.desc} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${theme.secondaryBg} ${theme.primaryText}`}>{a.type}</span>
+                  <StatusBadge status={a.status} theme={theme} />
+                </div>
+                <h4 className={`text-sm font-bold ${theme.highlight} mt-2`}>{a.desc}</h4>
+                <p className={`text-[10px] ${theme.iconColor} mt-1`}>Requested by {a.from} · {a.date}</p>
+              </div>
+              <span className={`text-lg font-bold ${theme.highlight}`}>{a.amount}</span>
+            </div>
+            {a.status === 'Pending' && (
+              <div className="flex gap-2 mt-3">
+                <button className="flex items-center gap-1 px-4 py-2 bg-emerald-500 text-white rounded-xl text-xs font-bold">
+                  <CheckCircle size={12} /> Approve
+                </button>
+                <button className={`flex items-center gap-1 px-4 py-2 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.highlight}`}>
+                  <Eye size={12} /> View Details
+                </button>
+                <button className="flex items-center gap-1 px-4 py-2 bg-red-100 text-red-600 rounded-xl text-xs font-bold">
+                  <XCircle size={12} /> Reject
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

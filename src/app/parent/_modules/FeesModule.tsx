@@ -78,6 +78,104 @@ export default function FeesModule({ theme, child }: { theme: Theme; child: Chil
       </div>
 
       <TabBar tabs={['Overview', 'Payment History', 'Upcoming', 'Fee Structure', 'Ledger', 'Scholarships']} active={activeTab} onChange={setActiveTab} theme={theme} />
+
+      {/* ── Mobile App Preview ── */}
+      <MobilePreviewToggle theme={theme} mobileContent={
+        <div className="flex flex-wrap gap-6 justify-center">
+          {/* Screen 1: Fee Payment */}
+          <MobileFrame title="Fee Payment" theme={theme}>
+            <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 text-center">
+              <p className="text-[9px] text-gray-500">Total Due</p>
+              <p className={`text-2xl font-bold ${fees.currentDue > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{fees.currentDue > 0 ? `\u20B9${fees.currentDue.toLocaleString('en-IN')}` : 'No Dues'}</p>
+              <p className="text-[8px] text-gray-400 mt-0.5">{fees.currentDue > 0 ? `Due by ${fees.nextDueDate}` : 'All fees paid!'}</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div className="bg-emerald-50 rounded-xl p-2.5 text-center border border-emerald-100"><p className="text-[8px] text-gray-500">Total Paid</p><p className="text-sm font-bold text-emerald-600">{'\u20B9'}{fees.totalPaid.toLocaleString('en-IN')}</p></div>
+              <div className="bg-blue-50 rounded-xl p-2.5 text-center border border-blue-100"><p className="text-[8px] text-gray-500">Annual Fee</p><p className="text-sm font-bold text-blue-600">{'\u20B9'}{fees.totalAnnual.toLocaleString('en-IN')}</p></div>
+            </div>
+
+            {fees.currentDue > 0 && (
+              <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100">
+                <p className="text-[10px] font-bold text-gray-800 mb-2">Pay via UPI</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {['Google Pay', 'PhonePe', 'Paytm'].map((app, i) => (
+                    <button key={i} className="flex flex-col items-center gap-1 py-2 bg-gray-50 rounded-lg">
+                      <span className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold ${i === 0 ? 'bg-blue-500' : i === 1 ? 'bg-purple-500' : 'bg-sky-500'}`}>{app[0]}</span>
+                      <span className="text-[7px] text-gray-600">{app}</span>
+                    </button>
+                  ))}
+                </div>
+                <button className="w-full mt-2 py-2.5 bg-emerald-600 text-white text-[11px] font-bold rounded-xl flex items-center justify-center gap-1">
+                  {'\u20B9'} Pay {'\u20B9'}{fees.currentDue.toLocaleString('en-IN')} Now
+                </button>
+                <p className="text-[7px] text-gray-400 text-center mt-1">Secured by Razorpay &bull; Instant receipt</p>
+              </div>
+            )}
+
+            <div className="bg-white rounded-xl p-2.5 shadow-sm border border-gray-100">
+              <p className="text-[10px] font-bold text-gray-800 mb-2">Fee Breakdown</p>
+              {fees.breakdown.map((item, i) => (
+                <div key={i} className="flex justify-between py-1 border-b border-gray-50 last:border-0">
+                  <span className="text-[9px] text-gray-600">{item.head}</span>
+                  <span className="text-[9px] font-bold text-gray-800">{'\u20B9'}{item.amount.toLocaleString('en-IN')}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-2.5">
+              <p className="text-[10px] font-bold text-amber-800">Scholarship Available</p>
+              <p className="text-[8px] text-amber-600 mt-0.5">Check eligibility &amp; apply from Fees &rarr; Scholarships</p>
+            </div>
+          </MobileFrame>
+
+          {/* Screen 2: Payment History */}
+          <MobileFrame title="Payment History" theme={theme}>
+            <div className="bg-white rounded-xl p-2.5 shadow-sm border border-gray-100">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[10px] font-bold text-gray-800">Recent Payments</p>
+                <span className="text-[8px] text-blue-600 font-bold">View All</span>
+              </div>
+              {fees.payments.slice(0, 5).map((p, i) => (
+                <div key={i} className="flex items-center gap-2 py-2 border-b border-gray-50 last:border-0">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-[10px] font-bold">&#10003;</div>
+                  <div className="flex-1">
+                    <p className="text-[10px] font-bold text-gray-800">{p.description}</p>
+                    <p className="text-[8px] text-gray-500">{p.date} &bull; {p.mode}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] font-bold text-gray-800">{'\u20B9'}{p.amount.toLocaleString('en-IN')}</p>
+                    <p className="text-[7px] text-emerald-600">{p.status}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-white rounded-xl p-2.5 shadow-sm border border-gray-100">
+              <p className="text-[10px] font-bold text-gray-800 mb-2">Upcoming Installments</p>
+              {fees.upcoming.map((u, i) => (
+                <div key={i} className="flex items-center gap-2 py-2 border-b border-gray-50 last:border-0">
+                  <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-[10px]">&#128197;</div>
+                  <div className="flex-1">
+                    <p className="text-[10px] font-bold text-gray-800">{u.installment}</p>
+                    <p className="text-[8px] text-gray-500">Due: {u.dueDate}</p>
+                  </div>
+                  <p className="text-[10px] font-bold text-gray-800">{'\u20B9'}{u.amount.toLocaleString('en-IN')}</p>
+                </div>
+              ))}
+            </div>
+
+            <button className="w-full py-2.5 bg-blue-600 text-white text-[11px] font-bold rounded-xl flex items-center justify-center gap-1">
+              &#128196; Download Receipt PDF
+            </button>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-2.5 flex items-center gap-2">
+              <span className="text-blue-500 text-sm">&#128276;</span>
+              <div className="flex-1"><p className="text-[10px] font-bold text-blue-800">Payment Reminders On</p><p className="text-[8px] text-blue-600">Get notified 5 days before due date</p></div>
+            </div>
+          </MobileFrame>
+        </div>
+      } />
       <p className="text-[10px] text-amber-600 mb-2">Fee policy per SSA: Due 10th monthly · Late fee Rs.50/day (7-day grace) · Blocking: Report card if &gt;60 days overdue</p>
 
       {activeTab === 'Overview' && (
@@ -405,103 +503,6 @@ export default function FeesModule({ theme, child }: { theme: Theme; child: Chil
         </div>
       )}
 
-      {/* ── Mobile App Preview ── */}
-      <MobilePreviewToggle theme={theme} mobileContent={
-        <div className="flex flex-wrap gap-6 justify-center">
-          {/* Screen 1: Fee Payment */}
-          <MobileFrame title="Fee Payment" theme={theme}>
-            <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 text-center">
-              <p className="text-[9px] text-gray-500">Total Due</p>
-              <p className={`text-2xl font-bold ${fees.currentDue > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{fees.currentDue > 0 ? `\u20B9${fees.currentDue.toLocaleString('en-IN')}` : 'No Dues'}</p>
-              <p className="text-[8px] text-gray-400 mt-0.5">{fees.currentDue > 0 ? `Due by ${fees.nextDueDate}` : 'All fees paid!'}</p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <div className="bg-emerald-50 rounded-xl p-2.5 text-center border border-emerald-100"><p className="text-[8px] text-gray-500">Total Paid</p><p className="text-sm font-bold text-emerald-600">{'\u20B9'}{fees.totalPaid.toLocaleString('en-IN')}</p></div>
-              <div className="bg-blue-50 rounded-xl p-2.5 text-center border border-blue-100"><p className="text-[8px] text-gray-500">Annual Fee</p><p className="text-sm font-bold text-blue-600">{'\u20B9'}{fees.totalAnnual.toLocaleString('en-IN')}</p></div>
-            </div>
-
-            {fees.currentDue > 0 && (
-              <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100">
-                <p className="text-[10px] font-bold text-gray-800 mb-2">Pay via UPI</p>
-                <div className="grid grid-cols-3 gap-2">
-                  {['Google Pay', 'PhonePe', 'Paytm'].map((app, i) => (
-                    <button key={i} className="flex flex-col items-center gap-1 py-2 bg-gray-50 rounded-lg">
-                      <span className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold ${i === 0 ? 'bg-blue-500' : i === 1 ? 'bg-purple-500' : 'bg-sky-500'}`}>{app[0]}</span>
-                      <span className="text-[7px] text-gray-600">{app}</span>
-                    </button>
-                  ))}
-                </div>
-                <button className="w-full mt-2 py-2.5 bg-emerald-600 text-white text-[11px] font-bold rounded-xl flex items-center justify-center gap-1">
-                  {'\u20B9'} Pay {'\u20B9'}{fees.currentDue.toLocaleString('en-IN')} Now
-                </button>
-                <p className="text-[7px] text-gray-400 text-center mt-1">Secured by Razorpay &bull; Instant receipt</p>
-              </div>
-            )}
-
-            <div className="bg-white rounded-xl p-2.5 shadow-sm border border-gray-100">
-              <p className="text-[10px] font-bold text-gray-800 mb-2">Fee Breakdown</p>
-              {fees.breakdown.map((item, i) => (
-                <div key={i} className="flex justify-between py-1 border-b border-gray-50 last:border-0">
-                  <span className="text-[9px] text-gray-600">{item.head}</span>
-                  <span className="text-[9px] font-bold text-gray-800">{'\u20B9'}{item.amount.toLocaleString('en-IN')}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-2.5">
-              <p className="text-[10px] font-bold text-amber-800">Scholarship Available</p>
-              <p className="text-[8px] text-amber-600 mt-0.5">Check eligibility &amp; apply from Fees &rarr; Scholarships</p>
-            </div>
-          </MobileFrame>
-
-          {/* Screen 2: Payment History */}
-          <MobileFrame title="Payment History" theme={theme}>
-            <div className="bg-white rounded-xl p-2.5 shadow-sm border border-gray-100">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-[10px] font-bold text-gray-800">Recent Payments</p>
-                <span className="text-[8px] text-blue-600 font-bold">View All</span>
-              </div>
-              {fees.payments.slice(0, 5).map((p, i) => (
-                <div key={i} className="flex items-center gap-2 py-2 border-b border-gray-50 last:border-0">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-[10px] font-bold">&#10003;</div>
-                  <div className="flex-1">
-                    <p className="text-[10px] font-bold text-gray-800">{p.description}</p>
-                    <p className="text-[8px] text-gray-500">{p.date} &bull; {p.mode}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[10px] font-bold text-gray-800">{'\u20B9'}{p.amount.toLocaleString('en-IN')}</p>
-                    <p className="text-[7px] text-emerald-600">{p.status}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="bg-white rounded-xl p-2.5 shadow-sm border border-gray-100">
-              <p className="text-[10px] font-bold text-gray-800 mb-2">Upcoming Installments</p>
-              {fees.upcoming.map((u, i) => (
-                <div key={i} className="flex items-center gap-2 py-2 border-b border-gray-50 last:border-0">
-                  <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-[10px]">&#128197;</div>
-                  <div className="flex-1">
-                    <p className="text-[10px] font-bold text-gray-800">{u.installment}</p>
-                    <p className="text-[8px] text-gray-500">Due: {u.dueDate}</p>
-                  </div>
-                  <p className="text-[10px] font-bold text-gray-800">{'\u20B9'}{u.amount.toLocaleString('en-IN')}</p>
-                </div>
-              ))}
-            </div>
-
-            <button className="w-full py-2.5 bg-blue-600 text-white text-[11px] font-bold rounded-xl flex items-center justify-center gap-1">
-              &#128196; Download Receipt PDF
-            </button>
-
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-2.5 flex items-center gap-2">
-              <span className="text-blue-500 text-sm">&#128276;</span>
-              <div className="flex-1"><p className="text-[10px] font-bold text-blue-800">Payment Reminders On</p><p className="text-[8px] text-blue-600">Get notified 5 days before due date</p></div>
-            </div>
-          </MobileFrame>
-        </div>
-      } />
 
     </div>
   );

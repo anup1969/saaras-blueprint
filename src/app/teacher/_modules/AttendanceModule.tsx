@@ -79,6 +79,104 @@ export default function AttendanceModule({ theme }: { theme: Theme }) {
       <TabBar tabs={['Mark Attendance', 'Corrections', 'Calendar View', 'Reports']} active={tab} onChange={setTab} theme={theme} />
       <p className="text-[10px] text-amber-600 mb-2">Attendance method: Mobile App (Teacher) | Frequency: Daily -- configured by SSA</p>
 
+      {/* ── MOBILE APP PREVIEW ── */}
+      <MobilePreviewToggle
+        theme={theme}
+        mobileContent={
+          <MobileFrame title="Mark Attendance" theme={theme}>
+            {/* Pull to refresh indicator */}
+            <div className="flex items-center justify-center py-1">
+              <div className="flex items-center gap-1 text-[9px] text-gray-400">
+                <span>&#8595;</span> Pull to refresh
+              </div>
+            </div>
+
+            {/* Quick summary bar */}
+            <div className="flex items-center justify-between px-2 py-2 bg-white rounded-xl shadow-sm border border-gray-100">
+              <div className="text-center">
+                <p className="text-[10px] text-gray-400">Total</p>
+                <p className="text-sm font-bold text-gray-800">{attendanceData.length}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-[10px] text-gray-400">Present</p>
+                <p className="text-sm font-bold text-emerald-600">{presentCount}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-[10px] text-gray-400">Absent</p>
+                <p className="text-sm font-bold text-red-600">{absentCount}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-[10px] text-gray-400">Late</p>
+                <p className="text-sm font-bold text-amber-600">{lateCount}</p>
+              </div>
+            </div>
+
+            {/* Class selector - swipe between classes */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-1">
+              {teacherProfile.classes.map(c => (
+                <button
+                  key={c}
+                  className={`px-3 py-1.5 rounded-full text-[10px] font-bold whitespace-nowrap ${
+                    selectedClass === c ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border border-gray-200'
+                  }`}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+
+            {/* Date display */}
+            <div className="flex items-center justify-between px-2 py-1">
+              <span className="text-[10px] font-bold text-gray-700">Class {selectedClass} &mdash; {attendanceDate}</span>
+              <div className="flex gap-1">
+                <button className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded text-[8px] font-bold">All P</button>
+                <button className="px-2 py-0.5 bg-red-100 text-red-700 rounded text-[8px] font-bold">All A</button>
+              </div>
+            </div>
+
+            {/* Tap-to-mark grid */}
+            <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+              {/* Header row */}
+              <div className="grid grid-cols-[28px_1fr_36px_36px_36px] gap-0 bg-gray-100 px-2 py-1.5">
+                <span className="text-[8px] font-bold text-gray-500 text-center">#</span>
+                <span className="text-[8px] font-bold text-gray-500">NAME</span>
+                <span className="text-[8px] font-bold text-emerald-600 text-center">P</span>
+                <span className="text-[8px] font-bold text-red-600 text-center">A</span>
+                <span className="text-[8px] font-bold text-amber-600 text-center">L</span>
+              </div>
+              {/* Student rows */}
+              {attendanceData.slice(0, 8).map((s) => (
+                <div key={s.roll} className="grid grid-cols-[28px_1fr_36px_36px_36px] gap-0 px-2 py-1 border-t border-gray-50 items-center">
+                  <span className="text-[9px] text-gray-400 text-center">{s.roll}</span>
+                  <span className="text-[10px] font-medium text-gray-800 truncate pr-1">{s.name.split(' ')[0]}</span>
+                  <button className={`w-7 h-7 rounded-lg text-[10px] font-bold flex items-center justify-center ${
+                    s.status === 'P' ? 'bg-emerald-500 text-white shadow-sm' : 'bg-gray-100 text-gray-400'
+                  }`}>P</button>
+                  <button className={`w-7 h-7 rounded-lg text-[10px] font-bold flex items-center justify-center ${
+                    s.status === 'A' ? 'bg-red-500 text-white shadow-sm' : 'bg-gray-100 text-gray-400'
+                  }`}>A</button>
+                  <button className={`w-7 h-7 rounded-lg text-[10px] font-bold flex items-center justify-center ${
+                    s.status === 'L' ? 'bg-amber-500 text-white shadow-sm' : 'bg-gray-100 text-gray-400'
+                  }`}>L</button>
+                </div>
+              ))}
+              {attendanceData.length > 8 && (
+                <div className="px-2 py-1.5 text-center border-t border-gray-100">
+                  <span className="text-[9px] text-gray-400">+{attendanceData.length - 8} more students (scroll down)</span>
+                </div>
+              )}
+            </div>
+
+            {/* Sticky Submit button */}
+            <div className="sticky bottom-0 pt-2">
+              <button className="w-full py-2.5 bg-blue-600 text-white rounded-xl text-xs font-bold shadow-lg">
+                Submit Attendance
+              </button>
+            </div>
+          </MobileFrame>
+        }
+      />
+
       {tab === 'Mark Attendance' && (
         <>
           <div className="flex gap-3 flex-wrap">
@@ -397,104 +495,6 @@ export default function AttendanceModule({ theme }: { theme: Theme }) {
           </div>
         </div>
       )}
-
-      {/* ── MOBILE APP PREVIEW ── */}
-      <MobilePreviewToggle
-        theme={theme}
-        mobileContent={
-          <MobileFrame title="Mark Attendance" theme={theme}>
-            {/* Pull to refresh indicator */}
-            <div className="flex items-center justify-center py-1">
-              <div className="flex items-center gap-1 text-[9px] text-gray-400">
-                <span>&#8595;</span> Pull to refresh
-              </div>
-            </div>
-
-            {/* Quick summary bar */}
-            <div className="flex items-center justify-between px-2 py-2 bg-white rounded-xl shadow-sm border border-gray-100">
-              <div className="text-center">
-                <p className="text-[10px] text-gray-400">Total</p>
-                <p className="text-sm font-bold text-gray-800">{attendanceData.length}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-[10px] text-gray-400">Present</p>
-                <p className="text-sm font-bold text-emerald-600">{presentCount}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-[10px] text-gray-400">Absent</p>
-                <p className="text-sm font-bold text-red-600">{absentCount}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-[10px] text-gray-400">Late</p>
-                <p className="text-sm font-bold text-amber-600">{lateCount}</p>
-              </div>
-            </div>
-
-            {/* Class selector - swipe between classes */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1">
-              {teacherProfile.classes.map(c => (
-                <button
-                  key={c}
-                  className={`px-3 py-1.5 rounded-full text-[10px] font-bold whitespace-nowrap ${
-                    selectedClass === c ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border border-gray-200'
-                  }`}
-                >
-                  {c}
-                </button>
-              ))}
-            </div>
-
-            {/* Date display */}
-            <div className="flex items-center justify-between px-2 py-1">
-              <span className="text-[10px] font-bold text-gray-700">Class {selectedClass} &mdash; {attendanceDate}</span>
-              <div className="flex gap-1">
-                <button className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded text-[8px] font-bold">All P</button>
-                <button className="px-2 py-0.5 bg-red-100 text-red-700 rounded text-[8px] font-bold">All A</button>
-              </div>
-            </div>
-
-            {/* Tap-to-mark grid */}
-            <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-              {/* Header row */}
-              <div className="grid grid-cols-[28px_1fr_36px_36px_36px] gap-0 bg-gray-100 px-2 py-1.5">
-                <span className="text-[8px] font-bold text-gray-500 text-center">#</span>
-                <span className="text-[8px] font-bold text-gray-500">NAME</span>
-                <span className="text-[8px] font-bold text-emerald-600 text-center">P</span>
-                <span className="text-[8px] font-bold text-red-600 text-center">A</span>
-                <span className="text-[8px] font-bold text-amber-600 text-center">L</span>
-              </div>
-              {/* Student rows */}
-              {attendanceData.slice(0, 8).map((s) => (
-                <div key={s.roll} className="grid grid-cols-[28px_1fr_36px_36px_36px] gap-0 px-2 py-1 border-t border-gray-50 items-center">
-                  <span className="text-[9px] text-gray-400 text-center">{s.roll}</span>
-                  <span className="text-[10px] font-medium text-gray-800 truncate pr-1">{s.name.split(' ')[0]}</span>
-                  <button className={`w-7 h-7 rounded-lg text-[10px] font-bold flex items-center justify-center ${
-                    s.status === 'P' ? 'bg-emerald-500 text-white shadow-sm' : 'bg-gray-100 text-gray-400'
-                  }`}>P</button>
-                  <button className={`w-7 h-7 rounded-lg text-[10px] font-bold flex items-center justify-center ${
-                    s.status === 'A' ? 'bg-red-500 text-white shadow-sm' : 'bg-gray-100 text-gray-400'
-                  }`}>A</button>
-                  <button className={`w-7 h-7 rounded-lg text-[10px] font-bold flex items-center justify-center ${
-                    s.status === 'L' ? 'bg-amber-500 text-white shadow-sm' : 'bg-gray-100 text-gray-400'
-                  }`}>L</button>
-                </div>
-              ))}
-              {attendanceData.length > 8 && (
-                <div className="px-2 py-1.5 text-center border-t border-gray-100">
-                  <span className="text-[9px] text-gray-400">+{attendanceData.length - 8} more students (scroll down)</span>
-                </div>
-              )}
-            </div>
-
-            {/* Sticky Submit button */}
-            <div className="sticky bottom-0 pt-2">
-              <button className="w-full py-2.5 bg-blue-600 text-white rounded-xl text-xs font-bold shadow-lg">
-                Submit Attendance
-              </button>
-            </div>
-          </MobileFrame>
-        }
-      />
     </div>
   );
 }
