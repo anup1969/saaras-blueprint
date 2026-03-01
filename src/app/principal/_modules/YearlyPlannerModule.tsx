@@ -7,6 +7,7 @@ import {
   ShieldCheck, Download, Edit2, Eye, CalendarDays, CalendarClock,
   Sparkles, Bot, ChevronDown, Loader2, CheckCircle, Clock, Circle, User,
   Lock, RefreshCw, Printer, FileDown,
+  Trophy, Medal, Target, Flag, MapPin, Award, Milestone,
 } from 'lucide-react';
 
 // ─── YEARLY PLANNER MODULE ───────────────────────────
@@ -73,6 +74,121 @@ export default function YearlyPlannerModule({ theme }: { theme: Theme }) {
 
   // Export dropdown state (Planned #70)
   const [showExportDropdown, setShowExportDropdown] = useState(false);
+
+  // ─── SPECIAL EVENT PLANNER STATE ──────────────────
+  const [selectedSpecialEvent, setSelectedSpecialEvent] = useState<string | null>(null);
+
+  interface SpecialEventPlan {
+    type: string;
+    icon: React.ElementType;
+    color: string;
+    milestones: { label: string; days: string; responsible: string; done: boolean }[];
+    budget: { category: string; amount: number }[];
+    progress: number;
+  }
+
+  const specialEventPlans: SpecialEventPlan[] = [
+    {
+      type: 'Annual Day',
+      icon: Star,
+      color: 'bg-purple-500',
+      milestones: [
+        { label: 'Theme finalization & committee formation', days: '60 days before', responsible: 'Principal', done: true },
+        { label: 'Script writing & participant selection', days: '45 days before', responsible: 'Activity Coordinator', done: true },
+        { label: 'Costume procurement & stage booking', days: '30 days before', responsible: 'Admin', done: true },
+        { label: 'Full dress rehearsals begin', days: '14 days before', responsible: 'Teachers', done: false },
+        { label: 'Final rehearsal & logistics check', days: '7 days before', responsible: 'VP + Admin', done: false },
+        { label: 'Event day — D-Day execution', days: 'D-Day', responsible: 'All Staff', done: false },
+      ],
+      budget: [
+        { category: 'Venue & Stage', amount: 50000 },
+        { category: 'Decorations', amount: 25000 },
+        { category: 'Costumes & Props', amount: 30000 },
+        { category: 'Prizes & Certificates', amount: 15000 },
+        { category: 'Food & Beverages', amount: 20000 },
+        { category: 'Sound & Lighting', amount: 35000 },
+      ],
+      progress: 50,
+    },
+    {
+      type: 'Sports Day',
+      icon: Trophy,
+      color: 'bg-green-500',
+      milestones: [
+        { label: 'Event list & house allocation', days: '60 days before', responsible: 'Sports Teacher', done: true },
+        { label: 'Practice sessions & selection trials', days: '30 days before', responsible: 'PE Department', done: true },
+        { label: 'Track/field prep & equipment check', days: '14 days before', responsible: 'Admin', done: false },
+        { label: 'March-past rehearsal & chief guest confirmation', days: '7 days before', responsible: 'Principal', done: false },
+        { label: 'Sports Day — D-Day execution', days: 'D-Day', responsible: 'All Staff', done: false },
+      ],
+      budget: [
+        { category: 'Ground Preparation', amount: 20000 },
+        { category: 'Equipment & Supplies', amount: 15000 },
+        { category: 'Trophies & Medals', amount: 25000 },
+        { category: 'Refreshments', amount: 12000 },
+        { category: 'Tent & Seating', amount: 30000 },
+      ],
+      progress: 40,
+    },
+    {
+      type: 'Independence Day',
+      icon: Flag,
+      color: 'bg-orange-500',
+      milestones: [
+        { label: 'Program schedule & speech assignments', days: '14 days before', responsible: 'VP', done: true },
+        { label: 'Flag hoisting arrangements & decoration', days: '7 days before', responsible: 'Admin', done: true },
+        { label: 'Rehearsals for cultural programs', days: '3 days before', responsible: 'Teachers', done: false },
+        { label: 'Independence Day celebration', days: 'D-Day', responsible: 'Principal', done: false },
+      ],
+      budget: [
+        { category: 'Decoration & Flags', amount: 5000 },
+        { category: 'Sweets Distribution', amount: 8000 },
+        { category: 'Sound System', amount: 3000 },
+      ],
+      progress: 50,
+    },
+    {
+      type: 'Republic Day',
+      icon: Flag,
+      color: 'bg-blue-500',
+      milestones: [
+        { label: 'Program finalization & chief guest invite', days: '14 days before', responsible: 'Principal', done: true },
+        { label: 'March-past practice & cultural rehearsals', days: '7 days before', responsible: 'PE + Teachers', done: true },
+        { label: 'Flag, stage & seating arrangements', days: '2 days before', responsible: 'Admin', done: false },
+        { label: 'Republic Day celebration', days: 'D-Day', responsible: 'All Staff', done: false },
+      ],
+      budget: [
+        { category: 'Decoration & Flags', amount: 5000 },
+        { category: 'Refreshments', amount: 6000 },
+        { category: 'Sound & Stage', amount: 4000 },
+      ],
+      progress: 50,
+    },
+  ];
+
+  // ─── INTER-SCHOOL EVENTS STATE ──────────────────
+  const [showInterSchool, setShowInterSchool] = useState(false);
+
+  interface InterSchoolEvent {
+    id: string;
+    name: string;
+    hostSchool: string;
+    date: string;
+    activity: string;
+    participants: number;
+    result: string;
+    status: 'Upcoming' | 'Completed' | 'Registered';
+  }
+
+  const [interSchoolEvents] = useState<InterSchoolEvent[]>([
+    { id: 'IS-1', name: 'Inter-School Cricket Tournament', hostSchool: 'DPS Ahmedabad', date: '10 Mar 2026', activity: 'Cricket', participants: 15, result: '-', status: 'Registered' },
+    { id: 'IS-2', name: 'Science Olympiad — District Level', hostSchool: 'KV Gandhinagar', date: '22 Mar 2026', activity: 'Science', participants: 8, result: '-', status: 'Upcoming' },
+    { id: 'IS-3', name: 'Inter-School Debate Competition', hostSchool: 'St. Xavier\'s School', date: '15 Feb 2026', activity: 'Debate', participants: 4, result: '1st Place', status: 'Completed' },
+    { id: 'IS-4', name: 'Zonal Athletics Meet', hostSchool: 'Sardar Patel Stadium', date: '5 Feb 2026', activity: 'Athletics', participants: 20, result: '3 Gold, 2 Silver', status: 'Completed' },
+    { id: 'IS-5', name: 'Art & Craft Exhibition', hostSchool: 'NID Campus', date: '28 Mar 2026', activity: 'Art', participants: 12, result: '-', status: 'Upcoming' },
+  ]);
+
+  const medalTally = { gold: 5, silver: 3, bronze: 4 };
 
   // Generated Gantt categories from AI answers (FIX 3)
   interface GanttItem { label: string; startMonth: number; duration: number; detail: string; }
@@ -696,6 +812,159 @@ export default function YearlyPlannerModule({ theme }: { theme: Theme }) {
             </button>
           </div>
         </div>
+      </div>
+
+      {/* ─── ANNUAL DAY / SPORTS DAY PLANNING ──────────── */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <div className="flex items-center gap-2 mb-4">
+          <Trophy size={16} className="text-amber-500" />
+          <h3 className={`text-sm font-bold ${theme.highlight}`}>Special Event Planning</h3>
+        </div>
+
+        {/* Event Type Cards */}
+        <div className="grid grid-cols-4 gap-3 mb-4">
+          {specialEventPlans.map(plan => {
+            const isSelected = selectedSpecialEvent === plan.type;
+            return (
+              <button key={plan.type} onClick={() => setSelectedSpecialEvent(isSelected ? null : plan.type)}
+                className={`p-3 rounded-xl border transition-all text-left ${
+                  isSelected ? `ring-2 ring-purple-400 ${theme.secondaryBg}` : `${theme.border} ${theme.buttonHover}`
+                }`}>
+                <div className={`w-8 h-8 rounded-lg ${plan.color} flex items-center justify-center mb-2`}>
+                  <plan.icon size={14} className="text-white" />
+                </div>
+                <p className={`text-xs font-bold ${theme.highlight}`}>{plan.type}</p>
+                <div className="mt-2">
+                  <div className="flex items-center justify-between mb-0.5">
+                    <span className={`text-[9px] ${theme.iconColor}`}>Progress</span>
+                    <span className={`text-[9px] font-bold ${theme.highlight}`}>{plan.progress}%</span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-gray-200 overflow-hidden">
+                    <div className={`h-full rounded-full ${plan.color} transition-all`} style={{ width: `${plan.progress}%` }} />
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Selected Event Detail */}
+        {selectedSpecialEvent && (() => {
+          const plan = specialEventPlans.find(p => p.type === selectedSpecialEvent);
+          if (!plan) return null;
+          const totalBudget = plan.budget.reduce((s, b) => s + b.amount, 0);
+          return (
+            <div className={`p-4 rounded-xl border ${theme.border} ${theme.secondaryBg} space-y-4`}>
+              <div className="flex items-center justify-between">
+                <h4 className={`text-sm font-bold ${theme.highlight} flex items-center gap-2`}>
+                  <plan.icon size={14} /> {plan.type} — Planning Timeline
+                </h4>
+                <button onClick={() => setSelectedSpecialEvent(null)} className={`p-1 rounded-lg ${theme.buttonHover}`}>
+                  <X size={14} className={theme.iconColor} />
+                </button>
+              </div>
+
+              {/* Milestones */}
+              <div className="space-y-2">
+                {plan.milestones.map((ms, i) => (
+                  <div key={i} className={`flex items-center gap-3 p-3 rounded-xl ${theme.cardBg}`}>
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${ms.done ? 'bg-emerald-500' : 'border-2 ' + theme.border}`}>
+                      {ms.done ? <Check size={12} className="text-white" /> : <Circle size={10} className={theme.iconColor} />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-xs font-bold ${ms.done ? 'text-emerald-600' : theme.highlight}`}>{ms.label}</p>
+                      <p className={`text-[10px] ${theme.iconColor}`}>{ms.responsible}</p>
+                    </div>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                      ms.days === 'D-Day' ? 'bg-red-100 text-red-700' : ms.done ? 'bg-emerald-100 text-emerald-700' : `${theme.secondaryBg} ${theme.iconColor}`
+                    }`}>{ms.days}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Budget Allocation */}
+              <div>
+                <h5 className={`text-xs font-bold ${theme.highlight} mb-2 flex items-center gap-1`}>
+                  <Target size={12} /> Budget Allocation — INR {totalBudget.toLocaleString()}
+                </h5>
+                <div className="grid grid-cols-3 gap-2">
+                  {plan.budget.map((b, i) => (
+                    <div key={i} className={`p-2.5 rounded-xl ${theme.cardBg} border ${theme.border}`}>
+                      <p className={`text-[10px] ${theme.iconColor}`}>{b.category}</p>
+                      <p className={`text-sm font-bold ${theme.highlight}`}>INR {b.amount.toLocaleString()}</p>
+                      <div className="h-1 rounded-full bg-gray-200 mt-1">
+                        <div className={`h-full rounded-full ${plan.color}`} style={{ width: `${(b.amount / totalBudget) * 100}%` }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+      </div>
+
+      {/* ─── INTER-SCHOOL EVENTS ──────────── */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Award size={16} className="text-blue-500" />
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>Inter-School Events</h3>
+          </div>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setShowInterSchool(!showInterSchool)}
+              className={`px-3 py-1.5 rounded-xl border ${theme.border} text-xs font-bold ${theme.highlight} ${theme.buttonHover} flex items-center gap-1`}>
+              <Eye size={12} /> {showInterSchool ? 'Collapse' : 'Expand'}
+            </button>
+            <button className={`px-3 py-1.5 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-1`}>
+              <Plus size={12} /> Register for Event
+            </button>
+          </div>
+        </div>
+
+        {/* Medal/Trophy Tally */}
+        <div className="grid grid-cols-3 gap-3 mb-4">
+          <div className={`p-3 rounded-xl bg-amber-50 border border-amber-200 text-center`}>
+            <Medal size={18} className="text-amber-500 mx-auto mb-1" />
+            <p className="text-lg font-bold text-amber-600">{medalTally.gold}</p>
+            <p className="text-[10px] text-amber-700 font-medium">Gold</p>
+          </div>
+          <div className={`p-3 rounded-xl bg-gray-50 border border-gray-200 text-center`}>
+            <Medal size={18} className="text-gray-400 mx-auto mb-1" />
+            <p className="text-lg font-bold text-gray-600">{medalTally.silver}</p>
+            <p className="text-[10px] text-gray-600 font-medium">Silver</p>
+          </div>
+          <div className={`p-3 rounded-xl bg-orange-50 border border-orange-200 text-center`}>
+            <Medal size={18} className="text-orange-500 mx-auto mb-1" />
+            <p className="text-lg font-bold text-orange-600">{medalTally.bronze}</p>
+            <p className="text-[10px] text-orange-700 font-medium">Bronze</p>
+          </div>
+        </div>
+
+        {/* Events Table */}
+        {showInterSchool && (
+          <div className={`border ${theme.border} rounded-xl overflow-hidden`}>
+            <div className={`grid grid-cols-7 gap-2 px-3 py-2 ${theme.secondaryBg}`}>
+              {['Event Name', 'Host School', 'Date', 'Activity', 'Participants', 'Result', 'Status'].map(h => (
+                <p key={h} className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>{h}</p>
+              ))}
+            </div>
+            {interSchoolEvents.map(ev => (
+              <div key={ev.id} className={`grid grid-cols-7 gap-2 px-3 py-2.5 border-t ${theme.border} items-center`}>
+                <p className={`text-xs font-bold ${theme.highlight}`}>{ev.name}</p>
+                <p className={`text-xs ${theme.iconColor}`}>{ev.hostSchool}</p>
+                <p className={`text-xs ${theme.iconColor}`}>{ev.date}</p>
+                <p className={`text-xs ${theme.iconColor}`}>{ev.activity}</p>
+                <p className={`text-xs ${theme.highlight} font-bold`}>{ev.participants}</p>
+                <p className={`text-xs ${ev.result === '-' ? theme.iconColor : 'text-emerald-600 font-bold'}`}>{ev.result}</p>
+                <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full w-fit ${
+                  ev.status === 'Completed' ? 'bg-gray-100 text-gray-600' :
+                  ev.status === 'Registered' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                }`}>{ev.status}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

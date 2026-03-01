@@ -5,6 +5,9 @@ import { type Theme } from '@/lib/themes';
 import {
   Calendar, Plus, X, Save, Edit2,
   ChevronRight, ChevronLeft, Trash2,
+  Repeat, Users, Upload, MapPin, Bus, DollarSign,
+  ClipboardCheck, AlertTriangle, Clock, CheckCircle,
+  FileText, Send, Eye, ChevronDown, Shield, History,
 } from 'lucide-react';
 
 interface CalendarEvent {
@@ -12,6 +15,43 @@ interface CalendarEvent {
   time: string;
   type: string;
   color: string;
+}
+
+interface RsvpEntry {
+  name: string;
+  role: string;
+  status: 'Accepted' | 'Declined' | 'Pending';
+  date: string;
+}
+
+interface FieldTrip {
+  id: string;
+  name: string;
+  date: string;
+  destination: string;
+  classes: string;
+  buses: number;
+  budget: number;
+  status: 'Planning' | 'Approved' | 'Completed';
+  consentGiven: number;
+  consentTotal: number;
+  consentRequired: boolean;
+  consentDeadline: string;
+  riskNotes: string;
+}
+
+interface AuditEntry {
+  timestamp: string;
+  user: string;
+  action: string;
+  eventName: string;
+}
+
+interface ImportedEvent {
+  title: string;
+  date: string;
+  time: string;
+  conflict: boolean;
 }
 
 type CalendarView = 'yearly' | 'monthly' | 'weekly' | 'today';
@@ -24,6 +64,74 @@ export default function CalendarModule({ theme }: { theme: Theme }) {
   const [newEventTitle, setNewEventTitle] = useState('');
   const [newEventTime, setNewEventTime] = useState('09:00');
   const [newEventType, setNewEventType] = useState('Meeting');
+
+  // Recurring event state
+  const [recurringEnabled, setRecurringEnabled] = useState(false);
+  const [recurringFrequency, setRecurringFrequency] = useState('Weekly');
+  const [recurringEndDate, setRecurringEndDate] = useState('2026-06-30');
+  const [recurringOccurrences, setRecurringOccurrences] = useState(10);
+  const [recurringEndMode, setRecurringEndMode] = useState<'date' | 'occurrences'>('date');
+
+  // RSVP state
+  const [requireRsvp, setRequireRsvp] = useState(false);
+  const [rsvpDeadline, setRsvpDeadline] = useState('2026-02-20');
+  const [showRsvpDetails, setShowRsvpDetails] = useState(false);
+  const [rsvpData] = useState<RsvpEntry[]>([
+    { name: 'Ramesh Patel', role: 'Teacher', status: 'Accepted', date: '10 Feb 2026' },
+    { name: 'Sunita Sharma', role: 'Teacher', status: 'Accepted', date: '10 Feb 2026' },
+    { name: 'Anil Mehta', role: 'HOD', status: 'Accepted', date: '11 Feb 2026' },
+    { name: 'Priya Joshi', role: 'Teacher', status: 'Declined', date: '11 Feb 2026' },
+    { name: 'Deepak Singh', role: 'Coordinator', status: 'Pending', date: '-' },
+    { name: 'Kavita Rao', role: 'Teacher', status: 'Pending', date: '-' },
+    { name: 'Manoj Verma', role: 'Teacher', status: 'Accepted', date: '12 Feb 2026' },
+    { name: 'Neha Gupta', role: 'Lab Assistant', status: 'Pending', date: '-' },
+  ]);
+
+  // Calendar Import state
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importMethod, setImportMethod] = useState<'file' | 'url'>('file');
+  const [importUrl, setImportUrl] = useState('');
+  const [importedEvents, setImportedEvents] = useState<ImportedEvent[]>([
+    { title: 'Board Meeting', date: '2026-02-15', time: '10:00 AM', conflict: true },
+    { title: 'Workshop on NEP', date: '2026-02-19', time: '9:00 AM', conflict: false },
+    { title: 'School Inspection', date: '2026-02-22', time: '11:00 AM', conflict: true },
+    { title: 'Cultural Exchange', date: '2026-02-26', time: '10:00 AM', conflict: false },
+  ]);
+  const [showImportPreview, setShowImportPreview] = useState(false);
+
+  // Field Trip state
+  const [showFieldTrips, setShowFieldTrips] = useState(false);
+  const [showTripForm, setShowTripForm] = useState(false);
+  const [tripName, setTripName] = useState('');
+  const [tripDest, setTripDest] = useState('');
+  const [tripDate, setTripDate] = useState('2026-03-10');
+  const [tripClasses, setTripClasses] = useState('Class V, VI');
+  const [tripBuses, setTripBuses] = useState(2);
+  const [tripBudgetTransport, setTripBudgetTransport] = useState(15000);
+  const [tripBudgetEntry, setTripBudgetEntry] = useState(5000);
+  const [tripBudgetMeals, setTripBudgetMeals] = useState(8000);
+  const [tripBudgetMisc, setTripBudgetMisc] = useState(2000);
+  const [tripConsentRequired, setTripConsentRequired] = useState(true);
+  const [tripConsentDeadline, setTripConsentDeadline] = useState('2026-03-07');
+  const [tripRiskNotes, setTripRiskNotes] = useState('');
+  const [fieldTrips, setFieldTrips] = useState<FieldTrip[]>([
+    { id: 'FT-1', name: 'Science Museum Visit', date: '5 Mar 2026', destination: 'Science City, Ahmedabad', classes: 'Class VII, VIII', buses: 3, budget: 45000, status: 'Approved', consentGiven: 72, consentTotal: 90, consentRequired: true, consentDeadline: '28 Feb 2026', riskNotes: 'First aid kit mandatory, 1:15 teacher ratio' },
+    { id: 'FT-2', name: 'Nature Trail Excursion', date: '18 Mar 2026', destination: 'Polo Forest, Sabarkantha', classes: 'Class IX, X', buses: 2, budget: 35000, status: 'Planning', consentGiven: 0, consentTotal: 60, consentRequired: true, consentDeadline: '12 Mar 2026', riskNotes: 'Outdoor activity, carry insect repellent' },
+    { id: 'FT-3', name: 'Heritage Walk', date: '12 Jan 2026', destination: 'Old City, Ahmedabad', classes: 'Class XI, XII', buses: 2, budget: 20000, status: 'Completed', consentGiven: 55, consentTotal: 55, consentRequired: true, consentDeadline: '8 Jan 2026', riskNotes: 'Walking tour, comfortable footwear required' },
+  ]);
+
+  // Audit Trail
+  const [showAuditLog, setShowAuditLog] = useState(false);
+  const [auditLog] = useState<AuditEntry[]>([
+    { timestamp: '13 Feb 2026, 4:30 PM', user: 'Principal', action: 'Created event', eventName: 'Annual Day Celebration' },
+    { timestamp: '13 Feb 2026, 3:15 PM', user: 'Admin', action: 'Updated venue for', eventName: 'PTM (Classes VI-X)' },
+    { timestamp: '12 Feb 2026, 11:00 AM', user: 'Principal', action: 'Approved field trip', eventName: 'Science Museum Visit' },
+    { timestamp: '12 Feb 2026, 9:45 AM', user: 'Vice Principal', action: 'Added RSVP requirement to', eventName: 'Staff Meeting' },
+    { timestamp: '11 Feb 2026, 2:30 PM', user: 'Admin', action: 'Deleted event', eventName: 'Cancelled Workshop' },
+    { timestamp: '10 Feb 2026, 10:00 AM', user: 'Principal', action: 'Created recurring event', eventName: 'Weekly Assembly' },
+    { timestamp: '9 Feb 2026, 4:00 PM', user: 'Admin', action: 'Imported 4 events from', eventName: 'iCal file' },
+    { timestamp: '8 Feb 2026, 11:30 AM', user: 'Coordinator', action: 'Updated budget for', eventName: 'Inter-House Cricket' },
+  ]);
 
   const daysInMonth = 28;
   const startDay = 0; // Feb 2026 starts on Sunday
@@ -262,6 +370,78 @@ export default function CalendarModule({ theme }: { theme: Theme }) {
               </select>
             </div>
           </div>
+          {/* Recurring Events Toggle */}
+          <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Repeat size={12} className={theme.iconColor} />
+                <label className={`text-[10px] font-bold ${theme.highlight} uppercase`}>Recurring Event</label>
+              </div>
+              <button
+                onClick={() => setRecurringEnabled(!recurringEnabled)}
+                className={`w-9 h-5 rounded-full transition-all relative ${recurringEnabled ? 'bg-emerald-500' : 'bg-gray-300'}`}
+              >
+                <div className="w-3.5 h-3.5 rounded-full bg-white shadow absolute top-[3px] transition-all"
+                  style={{ left: recurringEnabled ? '18px' : '3px' }} />
+              </button>
+            </div>
+            {recurringEnabled && (
+              <div className="space-y-2 mt-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className={`text-[10px] ${theme.iconColor} block mb-1`}>Frequency</label>
+                    <select value={recurringFrequency} onChange={e => setRecurringFrequency(e.target.value)}
+                      className={`w-full px-2 py-1.5 rounded-lg text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight}`}>
+                      <option>Daily</option><option>Weekly</option><option>Monthly</option><option>Custom</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className={`text-[10px] ${theme.iconColor} block mb-1`}>End</label>
+                    <select value={recurringEndMode} onChange={e => setRecurringEndMode(e.target.value as 'date' | 'occurrences')}
+                      className={`w-full px-2 py-1.5 rounded-lg text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight}`}>
+                      <option value="date">By Date</option><option value="occurrences">After X times</option>
+                    </select>
+                  </div>
+                </div>
+                {recurringEndMode === 'date' ? (
+                  <input type="date" value={recurringEndDate} onChange={e => setRecurringEndDate(e.target.value)}
+                    className={`w-full px-2 py-1.5 rounded-lg text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight}`} />
+                ) : (
+                  <input type="number" value={recurringOccurrences} onChange={e => setRecurringOccurrences(Number(e.target.value))} min={1} max={52}
+                    className={`w-full px-2 py-1.5 rounded-lg text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight}`} />
+                )}
+                <p className={`text-[10px] ${theme.iconColor} italic`}>
+                  This event will repeat every {recurringFrequency === 'Daily' ? 'day' : recurringFrequency === 'Weekly' ? dayNames[(startDay + (selectedDate || 1) - 1) % 7] : 'month'}{' '}
+                  {recurringEndMode === 'date' ? `until ${new Date(recurringEndDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}` : `for ${recurringOccurrences} occurrences`}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* RSVP Toggle */}
+          <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Users size={12} className={theme.iconColor} />
+                <label className={`text-[10px] font-bold ${theme.highlight} uppercase`}>Require RSVP</label>
+              </div>
+              <button
+                onClick={() => setRequireRsvp(!requireRsvp)}
+                className={`w-9 h-5 rounded-full transition-all relative ${requireRsvp ? 'bg-emerald-500' : 'bg-gray-300'}`}
+              >
+                <div className="w-3.5 h-3.5 rounded-full bg-white shadow absolute top-[3px] transition-all"
+                  style={{ left: requireRsvp ? '18px' : '3px' }} />
+              </button>
+            </div>
+            {requireRsvp && (
+              <div className="mt-2">
+                <label className={`text-[10px] ${theme.iconColor} block mb-1`}>RSVP Deadline</label>
+                <input type="date" value={rsvpDeadline} onChange={e => setRsvpDeadline(e.target.value)}
+                  className={`w-full px-2 py-1.5 rounded-lg text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight}`} />
+              </div>
+            )}
+          </div>
+
           <div className="flex gap-2">
             <button
               onClick={handleAddEvent}
@@ -517,11 +697,389 @@ export default function CalendarModule({ theme }: { theme: Theme }) {
     </div>
   );
 
+  // ─── RSVP DETAILS PANEL ─────────────────────────
+  const renderRsvpPanel = () => {
+    if (!showRsvpDetails) return null;
+    const accepted = rsvpData.filter(r => r.status === 'Accepted').length;
+    const declined = rsvpData.filter(r => r.status === 'Declined').length;
+    const pending = rsvpData.filter(r => r.status === 'Pending').length;
+    return (
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className={`text-sm font-bold ${theme.highlight} flex items-center gap-2`}>
+            <Users size={14} /> RSVP Status — Staff Meeting (Feb 5)
+          </h3>
+          <button onClick={() => setShowRsvpDetails(false)} className={`p-1.5 rounded-lg ${theme.buttonHover}`}>
+            <X size={14} className={theme.iconColor} />
+          </button>
+        </div>
+        <div className="grid grid-cols-3 gap-3 mb-4">
+          <div className={`p-3 rounded-xl bg-emerald-50 text-center`}>
+            <p className="text-lg font-bold text-emerald-600">{accepted}</p>
+            <p className="text-[10px] text-emerald-700 font-medium">Accepted</p>
+          </div>
+          <div className={`p-3 rounded-xl bg-red-50 text-center`}>
+            <p className="text-lg font-bold text-red-600">{declined}</p>
+            <p className="text-[10px] text-red-700 font-medium">Declined</p>
+          </div>
+          <div className={`p-3 rounded-xl bg-amber-50 text-center`}>
+            <p className="text-lg font-bold text-amber-600">{pending}</p>
+            <p className="text-[10px] text-amber-700 font-medium">Pending</p>
+          </div>
+        </div>
+        <div className={`border ${theme.border} rounded-xl overflow-hidden`}>
+          <div className={`grid grid-cols-4 gap-2 px-3 py-2 ${theme.secondaryBg}`}>
+            <p className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Name</p>
+            <p className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Role</p>
+            <p className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Status</p>
+            <p className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Response</p>
+          </div>
+          {rsvpData.map((r, i) => (
+            <div key={i} className={`grid grid-cols-4 gap-2 px-3 py-2 border-t ${theme.border}`}>
+              <p className={`text-xs ${theme.highlight}`}>{r.name}</p>
+              <p className={`text-xs ${theme.iconColor}`}>{r.role}</p>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full w-fit ${
+                r.status === 'Accepted' ? 'bg-emerald-100 text-emerald-700' :
+                r.status === 'Declined' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
+              }`}>{r.status}</span>
+              <p className={`text-xs ${theme.iconColor}`}>{r.date}</p>
+            </div>
+          ))}
+        </div>
+        <div className="flex gap-2 mt-3">
+          <button className={`px-3 py-1.5 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-1`}>
+            <Send size={10} /> Remind Pending ({pending})
+          </button>
+          <p className={`text-[10px] ${theme.iconColor} flex items-center gap-1`}>
+            <Clock size={10} /> Deadline: {new Date(rsvpDeadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+          </p>
+        </div>
+      </div>
+    );
+  };
+
+  // ─── CALENDAR IMPORT MODAL ─────────────────────────
+  const renderImportModal = () => {
+    if (!showImportModal) return null;
+    return (
+      <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-6 w-full max-w-lg`}>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className={`text-sm font-bold ${theme.highlight} flex items-center gap-2`}>
+              <Upload size={14} /> Import Calendar
+            </h3>
+            <button onClick={() => { setShowImportModal(false); setShowImportPreview(false); }} className={`p-1.5 rounded-lg ${theme.buttonHover}`}>
+              <X size={14} className={theme.iconColor} />
+            </button>
+          </div>
+
+          {!showImportPreview ? (
+            <div className="space-y-4">
+              <div className={`flex gap-1 p-1 rounded-xl ${theme.secondaryBg} w-fit`}>
+                <button onClick={() => setImportMethod('file')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold ${importMethod === 'file' ? `${theme.primary} text-white` : theme.iconColor}`}>
+                  Upload File
+                </button>
+                <button onClick={() => setImportMethod('url')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold ${importMethod === 'url' ? `${theme.primary} text-white` : theme.iconColor}`}>
+                  iCal URL
+                </button>
+              </div>
+
+              {importMethod === 'file' ? (
+                <div className={`border-2 border-dashed ${theme.border} rounded-xl p-8 text-center`}>
+                  <Upload size={24} className={`${theme.iconColor} mx-auto mb-2`} />
+                  <p className={`text-xs ${theme.highlight} font-bold mb-1`}>Drop .ics or .xlsx file here</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>or click to browse files</p>
+                  <button onClick={() => setShowImportPreview(true)}
+                    className={`mt-3 px-4 py-2 rounded-xl border ${theme.border} text-xs font-bold ${theme.highlight}`}>
+                    Select File
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <input type="url" value={importUrl} onChange={e => setImportUrl(e.target.value)}
+                    placeholder="https://calendar.google.com/...ical"
+                    className={`w-full px-3 py-2 rounded-lg text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight}`} />
+                  <button onClick={() => setShowImportPreview(true)}
+                    className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}>
+                    Fetch Events
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <p className={`text-xs ${theme.iconColor}`}>Preview: {importedEvents.length} events found</p>
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {importedEvents.map((ev, i) => (
+                  <div key={i} className={`flex items-center gap-3 p-3 rounded-xl ${ev.conflict ? 'bg-amber-50 border border-amber-200' : theme.secondaryBg}`}>
+                    <div className={`w-1.5 h-8 rounded-full ${ev.conflict ? 'bg-amber-400' : 'bg-emerald-400'} shrink-0`} />
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-xs font-bold ${theme.highlight}`}>{ev.title}</p>
+                      <p className={`text-[10px] ${theme.iconColor}`}>{ev.date} at {ev.time}</p>
+                    </div>
+                    {ev.conflict && (
+                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-bold flex items-center gap-1">
+                        <AlertTriangle size={8} /> Conflict
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <button onClick={() => { setShowImportModal(false); setShowImportPreview(false); }}
+                  className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-1`}>
+                  <Upload size={12} /> Import {importedEvents.length} Events
+                </button>
+                <button onClick={() => setShowImportPreview(false)}
+                  className={`px-4 py-2 rounded-xl border ${theme.border} text-xs font-bold ${theme.highlight}`}>
+                  Back
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // ─── FIELD TRIPS SECTION ─────────────────────────
+  const renderFieldTrips = () => {
+    if (!showFieldTrips) return null;
+    const tripStatusColors: Record<string, string> = { Planning: 'bg-amber-100 text-amber-700', Approved: 'bg-emerald-100 text-emerald-700', Completed: 'bg-gray-100 text-gray-600' };
+    const tripChecklist = [
+      { item: 'First aid kit packed', done: true },
+      { item: 'Emergency contacts list', done: true },
+      { item: 'Headcount sheets printed', done: false },
+      { item: 'Bus inspection completed', done: true },
+      { item: 'Parent consent forms collected', done: false },
+      { item: 'Teacher supervisors assigned', done: true },
+    ];
+
+    return (
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className={`text-sm font-bold ${theme.highlight} flex items-center gap-2`}>
+            <MapPin size={14} /> Field Trips
+          </h3>
+          <div className="flex gap-2">
+            <button onClick={() => setShowTripForm(!showTripForm)}
+              className={`px-3 py-1.5 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-1`}>
+              <Plus size={12} /> Plan Trip
+            </button>
+            <button onClick={() => setShowFieldTrips(false)} className={`p-1.5 rounded-lg ${theme.buttonHover}`}>
+              <X size={14} className={theme.iconColor} />
+            </button>
+          </div>
+        </div>
+
+        {/* Trip Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-4">
+          {fieldTrips.map(trip => (
+            <div key={trip.id} className={`p-4 rounded-xl border ${theme.border} ${theme.secondaryBg}`}>
+              <div className="flex items-start justify-between mb-2">
+                <div>
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{trip.name}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{trip.date}</p>
+                </div>
+                <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${tripStatusColors[trip.status]}`}>{trip.status}</span>
+              </div>
+              <div className="space-y-1.5">
+                <p className={`text-[10px] ${theme.iconColor} flex items-center gap-1`}><MapPin size={9} /> {trip.destination}</p>
+                <p className={`text-[10px] ${theme.iconColor} flex items-center gap-1`}><Users size={9} /> {trip.classes}</p>
+                <p className={`text-[10px] ${theme.iconColor} flex items-center gap-1`}><Bus size={9} /> {trip.buses} buses</p>
+                <p className={`text-[10px] ${theme.iconColor} flex items-center gap-1`}><DollarSign size={9} /> INR {trip.budget.toLocaleString()}</p>
+              </div>
+              {trip.consentRequired && (
+                <div className="mt-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className={`text-[10px] font-bold ${theme.iconColor}`}>Consent: {trip.consentGiven}/{trip.consentTotal}</p>
+                    <p className={`text-[10px] ${theme.iconColor}`}>{Math.round((trip.consentGiven / trip.consentTotal) * 100)}%</p>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-gray-200 overflow-hidden">
+                    <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${(trip.consentGiven / trip.consentTotal) * 100}%` }} />
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Plan Trip Form */}
+        {showTripForm && (
+          <div className={`p-4 rounded-xl border-2 border-dashed ${theme.border} space-y-3`}>
+            <h4 className={`text-xs font-bold ${theme.highlight}`}>Plan New Trip</h4>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>Trip Name</label>
+                <input type="text" value={tripName} onChange={e => setTripName(e.target.value)} placeholder="e.g., Zoo Visit"
+                  className={`w-full px-2 py-1.5 rounded-lg text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight}`} />
+              </div>
+              <div>
+                <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>Destination</label>
+                <input type="text" value={tripDest} onChange={e => setTripDest(e.target.value)} placeholder="e.g., Kamla Nehru Zoo"
+                  className={`w-full px-2 py-1.5 rounded-lg text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight}`} />
+              </div>
+              <div>
+                <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>Date</label>
+                <input type="date" value={tripDate} onChange={e => setTripDate(e.target.value)}
+                  className={`w-full px-2 py-1.5 rounded-lg text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight}`} />
+              </div>
+              <div>
+                <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>Classes Involved</label>
+                <input type="text" value={tripClasses} onChange={e => setTripClasses(e.target.value)}
+                  className={`w-full px-2 py-1.5 rounded-lg text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight}`} />
+              </div>
+            </div>
+
+            <div>
+              <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>Transport</label>
+              <div className="flex items-center gap-2">
+                <span className={`text-xs ${theme.iconColor}`}>Buses needed:</span>
+                <input type="number" value={tripBuses} onChange={e => setTripBuses(Number(e.target.value))} min={1} max={10}
+                  className={`w-16 px-2 py-1.5 rounded-lg text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight}`} />
+              </div>
+            </div>
+
+            <div>
+              <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-2`}>Budget Breakdown (INR)</label>
+              <div className="grid grid-cols-4 gap-2">
+                {[
+                  { label: 'Transport', val: tripBudgetTransport, set: setTripBudgetTransport },
+                  { label: 'Entry Fees', val: tripBudgetEntry, set: setTripBudgetEntry },
+                  { label: 'Meals', val: tripBudgetMeals, set: setTripBudgetMeals },
+                  { label: 'Misc', val: tripBudgetMisc, set: setTripBudgetMisc },
+                ].map(b => (
+                  <div key={b.label}>
+                    <p className={`text-[9px] ${theme.iconColor} mb-1`}>{b.label}</p>
+                    <input type="number" value={b.val} onChange={e => b.set(Number(e.target.value))}
+                      className={`w-full px-2 py-1 rounded-lg text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight}`} />
+                  </div>
+                ))}
+              </div>
+              <p className={`text-[10px] font-bold ${theme.highlight} mt-1`}>
+                Total: INR {(tripBudgetTransport + tripBudgetEntry + tripBudgetMeals + tripBudgetMisc).toLocaleString()}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <button onClick={() => setTripConsentRequired(!tripConsentRequired)}
+                  className={`w-9 h-5 rounded-full transition-all relative ${tripConsentRequired ? 'bg-emerald-500' : 'bg-gray-300'}`}>
+                  <div className="w-3.5 h-3.5 rounded-full bg-white shadow absolute top-[3px] transition-all"
+                    style={{ left: tripConsentRequired ? '18px' : '3px' }} />
+                </button>
+                <span className={`text-xs ${theme.highlight}`}>Require Parent Consent</span>
+              </div>
+              {tripConsentRequired && (
+                <div className="flex items-center gap-2">
+                  <span className={`text-[10px] ${theme.iconColor}`}>Deadline:</span>
+                  <input type="date" value={tripConsentDeadline} onChange={e => setTripConsentDeadline(e.target.value)}
+                    className={`px-2 py-1 rounded-lg text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight}`} />
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>Risk Assessment / Safety Notes</label>
+              <textarea value={tripRiskNotes} onChange={e => setTripRiskNotes(e.target.value)}
+                placeholder="Safety considerations, medical concerns, emergency protocols..."
+                rows={2}
+                className={`w-full px-2 py-1.5 rounded-lg text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight} resize-none`} />
+            </div>
+
+            <div className="flex gap-2">
+              <button onClick={() => {
+                if (!tripName.trim() || !tripDest.trim()) return;
+                setFieldTrips(prev => [...prev, {
+                  id: `FT-${prev.length + 1}`, name: tripName, date: new Date(tripDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+                  destination: tripDest, classes: tripClasses, buses: tripBuses,
+                  budget: tripBudgetTransport + tripBudgetEntry + tripBudgetMeals + tripBudgetMisc,
+                  status: 'Planning', consentGiven: 0, consentTotal: 60, consentRequired: tripConsentRequired,
+                  consentDeadline: tripConsentDeadline, riskNotes: tripRiskNotes,
+                }]);
+                setShowTripForm(false); setTripName(''); setTripDest(''); setTripRiskNotes('');
+              }} className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-1`}>
+                <Save size={12} /> Save Trip
+              </button>
+              <button onClick={() => setShowTripForm(false)}
+                className={`px-4 py-2 rounded-xl border ${theme.border} text-xs font-bold ${theme.highlight}`}>Cancel</button>
+            </div>
+          </div>
+        )}
+
+        {/* Trip Checklist */}
+        <div className={`mt-4 p-3 rounded-xl ${theme.secondaryBg}`}>
+          <h4 className={`text-xs font-bold ${theme.highlight} mb-2 flex items-center gap-1`}>
+            <ClipboardCheck size={12} /> Trip Checklist (Next Trip)
+          </h4>
+          <div className="grid grid-cols-2 gap-2">
+            {tripChecklist.map((item, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <div className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 ${item.done ? 'border-emerald-500 bg-emerald-500' : theme.border}`}>
+                  {item.done && <CheckCircle size={10} className="text-white" />}
+                </div>
+                <span className={`text-[10px] ${item.done ? 'line-through ' + theme.iconColor : theme.highlight}`}>{item.item}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // ─── AUDIT TRAIL ─────────────────────────
+  const renderAuditTrail = () => (
+    <div className={`${theme.cardBg} rounded-2xl border ${theme.border} overflow-hidden`}>
+      <button onClick={() => setShowAuditLog(!showAuditLog)}
+        className={`w-full flex items-center justify-between p-4 ${theme.buttonHover}`}>
+        <div className="flex items-center gap-2">
+          <History size={14} className={theme.iconColor} />
+          <h3 className={`text-sm font-bold ${theme.highlight}`}>Activity Log</h3>
+          <span className={`text-[9px] px-2 py-0.5 rounded-full ${theme.secondaryBg} ${theme.iconColor} font-bold`}>{auditLog.length}</span>
+        </div>
+        <ChevronDown size={14} className={`${theme.iconColor} transition-transform ${showAuditLog ? 'rotate-180' : ''}`} />
+      </button>
+      {showAuditLog && (
+        <div className={`px-4 pb-4 space-y-2`}>
+          {auditLog.map((entry, i) => (
+            <div key={i} className={`flex items-start gap-3 p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <div className={`w-6 h-6 rounded-full ${theme.primary} flex items-center justify-center shrink-0 mt-0.5`}>
+                <FileText size={10} className="text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`text-xs ${theme.highlight}`}>
+                  <strong>{entry.user}</strong> {entry.action} <strong>&ldquo;{entry.eventName}&rdquo;</strong>
+                </p>
+                <p className={`text-[10px] ${theme.iconColor} flex items-center gap-1`}>
+                  <Clock size={9} /> {entry.timestamp}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className={`text-2xl font-bold ${theme.highlight}`}>School Calendar</h1>
         <div className="flex items-center gap-2">
+          <button onClick={() => setShowImportModal(true)}
+            className={`px-3 py-1.5 rounded-xl border ${theme.border} text-xs font-bold ${theme.highlight} ${theme.buttonHover} flex items-center gap-1.5`}>
+            <Upload size={12} /> Import
+          </button>
+          <button onClick={() => setShowFieldTrips(!showFieldTrips)}
+            className={`px-3 py-1.5 rounded-xl border ${theme.border} text-xs font-bold ${theme.highlight} ${theme.buttonHover} flex items-center gap-1.5 ${showFieldTrips ? 'ring-2 ring-purple-400' : ''}`}>
+            <MapPin size={12} /> Field Trips
+          </button>
+          <button onClick={() => setShowRsvpDetails(!showRsvpDetails)}
+            className={`px-3 py-1.5 rounded-xl border ${theme.border} text-xs font-bold ${theme.highlight} ${theme.buttonHover} flex items-center gap-1.5`}>
+            <Users size={12} /> RSVP
+          </button>
           {/* Edit toggle */}
           <button
             onClick={() => { setEditMode(!editMode); setShowAddForm(false); }}
@@ -558,6 +1116,18 @@ export default function CalendarModule({ theme }: { theme: Theme }) {
       {calendarView === 'weekly' && renderWeeklyView()}
       {calendarView === 'today' && renderTodayView()}
       {calendarView === 'yearly' && renderYearlyView()}
+
+      {/* RSVP Details Panel */}
+      {renderRsvpPanel()}
+
+      {/* Field Trips Section */}
+      {renderFieldTrips()}
+
+      {/* Activity Log / Audit Trail */}
+      {renderAuditTrail()}
+
+      {/* Import Modal (rendered as overlay) */}
+      {renderImportModal()}
     </div>
   );
 }

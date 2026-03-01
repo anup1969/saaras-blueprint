@@ -7,7 +7,8 @@ import {
   Home, Users, UserPlus, Briefcase, Calendar, Shield, Bus,
   Banknote, CheckCircle, BarChart3, Settings, ClipboardCheck, Award, Megaphone,
   PanelLeftClose, PanelLeftOpen, Headphones,
-  Heart, AlertTriangle, CreditCard, FolderOpen
+  Heart, AlertTriangle, CreditCard, FolderOpen,
+  Image, Newspaper, Bell, CalendarCheck, MessageSquareWarning, ListChecks, HelpCircle,
 } from 'lucide-react';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import SupportModule from '@/components/SupportModule';
@@ -33,6 +34,13 @@ import HealthInfirmaryModule from '../_modules/HealthInfirmaryModule';
 import IncidentReportModule from '../_modules/IncidentReportModule';
 import IDCardModule from '../_modules/IDCardModule';
 import DocumentMgmtModule from '../_modules/DocumentMgmtModule';
+import GalleryMediaModule from '../_modules/GalleryMediaModule';
+import NewsModule from '../_modules/NewsModule';
+import NotificationCenterModule from '../_modules/NotificationCenterModule';
+import PTMModule from '../_modules/PTMModule';
+import ComplaintTicketModule from '../_modules/ComplaintTicketModule';
+import SurveyPollModule from '../_modules/SurveyPollModule';
+import HelpDeskModule from '../_modules/HelpDeskModule';
 
 // ─── MODULE SIDEBAR ────────────────────────────────
 const modules = [
@@ -55,6 +63,13 @@ const modules = [
   { id: 'incidents', label: 'Incidents', icon: AlertTriangle },
   { id: 'id-cards', label: 'ID Cards', icon: CreditCard },
   { id: 'documents', label: 'Documents', icon: FolderOpen },
+  { id: 'gallery', label: 'Gallery & Media', icon: Image },
+  { id: 'news', label: 'News', icon: Newspaper },
+  { id: 'notifications', label: 'Notifications', icon: Bell },
+  { id: 'ptm', label: 'PTM', icon: CalendarCheck },
+  { id: 'complaints', label: 'Complaints', icon: MessageSquareWarning },
+  { id: 'surveys', label: 'Surveys & Polls', icon: ListChecks },
+  { id: 'help-desk', label: 'Help Desk', icon: HelpCircle },
   { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
   { id: 'support', label: 'Support', icon: Headphones },
 ];
@@ -110,6 +125,13 @@ export default function SchoolAdminDashboard({ theme, themeIdx, onThemeChange, c
         {activeModule === 'incidents' && <IncidentReportModule theme={theme} />}
         {activeModule === 'id-cards' && <IDCardModule theme={theme} />}
         {activeModule === 'documents' && <DocumentMgmtModule theme={theme} />}
+        {activeModule === 'gallery' && <GalleryMediaModule theme={theme} />}
+        {activeModule === 'news' && <NewsModule theme={theme} />}
+        {activeModule === 'notifications' && <NotificationCenterModule theme={theme} />}
+        {activeModule === 'ptm' && <PTMModule theme={theme} />}
+        {activeModule === 'complaints' && <ComplaintTicketModule theme={theme} />}
+        {activeModule === 'surveys' && <SurveyPollModule theme={theme} />}
+        {activeModule === 'help-desk' && <HelpDeskModule theme={theme} />}
         {activeModule === 'your-inputs' && <YourInputsModule theme={theme} userName={currentUser?.name || ''} />}
         {activeModule === 'support' && <SupportModule theme={theme} role="school-admin" />}
         {activeModule === 'profile' && <StakeholderProfile role="school-admin" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}

@@ -7,7 +7,8 @@ import {
   MessageSquare, Users, Megaphone, Send, Search, Plus, Settings,
   Phone, Video, Paperclip, Image, MoreVertical, Check, CheckCheck,
   Clock, Star, Pin, Hash, Lock, BarChart3, FileText, Download,
-  Camera, Mic, X, Edit, Shield, Eye, Briefcase, GraduationCap, BookOpen
+  Camera, Mic, X, Edit, Shield, Eye, Briefcase, GraduationCap, BookOpen,
+  Archive, Trash2, Info, ChevronUp, ChevronDown, Save
 } from 'lucide-react';
 
 // ─── MOCK DATA ────────────────────────────────────────
@@ -45,6 +46,22 @@ const sampleMessages = [
   { id: 'm6', sender: 'Priya Sharma', avatar: 'PS', text: 'Also, 3 students from 10-A haven\'t submitted their homework for Chapter 12. Should I send a reminder to parents?', time: '10:30 AM', status: 'read', type: 'text' },
   { id: 'm7', sender: 'You', avatar: 'You', text: 'Yes, please send it via the parent group. Mark it as important.', time: '10:35 AM', status: 'delivered', type: 'text', self: true },
   { id: 'm8', sender: 'Priya Sharma', avatar: 'PS', text: 'Class 10-A test papers are ready for review', time: '11:02 AM', status: 'delivered', type: 'text' },
+];
+
+const archivedConversations = [
+  { id: 'a1', type: 'dm' as const, name: 'Former Teacher - Sunil', avatar: 'FS', lastMsg: 'Best wishes for the new school year', time: '3 months', unread: 0, online: false },
+  { id: 'a2', type: 'group' as const, name: 'Science Fair 2025', avatar: '15', lastMsg: 'Event completed successfully!', time: '2 months', unread: 0, members: 15, icon: Star },
+];
+
+const broadcastRecipients = [
+  { name: 'Priya Sharma', role: 'PGT Mathematics', delivered: true, read: true, time: '15 min ago' },
+  { name: 'Rajesh Kumar', role: 'TGT Science', delivered: true, read: true, time: '20 min ago' },
+  { name: 'Dr. Meena Iyer', role: 'Vice Principal', delivered: true, read: false, time: '15 min ago' },
+  { name: 'Sunita Patel', role: 'Office Assistant', delivered: true, read: true, time: '30 min ago' },
+  { name: 'Kavitha Nair', role: 'PRT English', delivered: true, read: false, time: '16 min ago' },
+  { name: 'Arun Verma', role: 'HOD Science', delivered: false, read: false, time: '—' },
+  { name: 'Mohammed Irfan', role: 'Transport Head', delivered: true, read: true, time: '18 min ago' },
+  { name: 'Deepak Verma', role: 'Security Head', delivered: false, read: false, time: '—' },
 ];
 
 const broadcasts = [
@@ -90,14 +107,76 @@ export function ChatsView({ theme, compact }: { theme: Theme; compact?: boolean 
   const [activeConvo, setActiveConvo] = useState('c1');
   const [tab, setTab] = useState('All');
   const [message, setMessage] = useState('');
+  const [kebabOpen, setKebabOpen] = useState<string | null>(null);
+  const [editingMsg, setEditingMsg] = useState<string | null>(null);
+  const [editText, setEditText] = useState('');
+  const [editedMessages, setEditedMessages] = useState<Record<string, string>>({});
+  const [deletedMessages, setDeletedMessages] = useState<string[]>([]);
+  const [importantMessages, setImportantMessages] = useState<string[]>([]);
+  const [pinnedMessages, setPinnedMessages] = useState<string[]>([]);
+  const [archivedConvos, setArchivedConvos] = useState<string[]>([]);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [convoSearch, setConvoSearch] = useState('');
+  const [showConvoSearch, setShowConvoSearch] = useState(false);
+  const [retentionDismissed, setRetentionDismissed] = useState(false);
 
-  const filtered = tab === 'All' ? conversations
-    : tab === 'Unread' ? conversations.filter(c => c.unread > 0)
-    : tab === 'Groups' ? conversations.filter(c => c.type === 'group')
-    : tab === 'Parents' ? conversations.filter(c => (c as any).isParent)
-    : conversations.filter(c => c.pinned);
+  // Separate pinned and unpinned conversations for display
+  const activeConversations = conversations.filter(c => !archivedConvos.includes(c.id));
+  const pinnedConvos = activeConversations.filter(c => c.pinned);
+  const unpinnedConvos = activeConversations.filter(c => !c.pinned);
 
-  const activeChat = conversations.find(c => c.id === activeConvo);
+  const filtered = tab === 'All' ? activeConversations
+    : tab === 'Unread' ? activeConversations.filter(c => c.unread > 0)
+    : tab === 'Groups' ? activeConversations.filter(c => c.type === 'group')
+    : tab === 'Parents' ? activeConversations.filter(c => (c as any).isParent)
+    : tab === 'Pinned' ? pinnedConvos
+    : tab === 'Archived' ? [...archivedConversations, ...conversations.filter(c => archivedConvos.includes(c.id))]
+    : activeConversations;
+
+  const activeChat = [...conversations, ...archivedConversations].find(c => c.id === activeConvo);
+
+  // Filter messages for in-conversation search
+  const visibleMessages = sampleMessages.filter(m => !deletedMessages.includes(m.id));
+  const searchResults = convoSearch
+    ? visibleMessages.filter(m => (editedMessages[m.id] || m.text).toLowerCase().includes(convoSearch.toLowerCase()))
+    : [];
+
+  // Render a single conversation row (reusable for pinned section + main list)
+  const renderConvoRow = (c: typeof conversations[0] & { members?: number; icon?: any; isParent?: boolean }, showUnarchive?: boolean) => (
+    <button
+      key={c.id}
+      onClick={() => setActiveConvo(c.id)}
+      className={`w-full flex items-center gap-3 px-3 py-3 transition-all ${
+        activeConvo === c.id ? theme.secondaryBg : `${theme.buttonHover}`
+      } border-b ${theme.border}`}
+    >
+      <div className="relative">
+        <div className={`w-10 h-10 rounded-full ${c.type === 'group' ? theme.primary : 'bg-slate-300'} text-white flex items-center justify-center text-xs font-bold`}>
+          {c.avatar}
+        </div>
+        {c.online && <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full absolute -bottom-0.5 -right-0.5 border-2 border-white" />}
+      </div>
+      <div className="flex-1 text-left min-w-0">
+        <div className="flex items-center justify-between">
+          <span className={`text-xs font-bold ${theme.highlight} truncate`}>
+            {c.pinned && <Pin size={10} className="inline mr-1 text-amber-500" />}
+            {c.name}
+          </span>
+          <span className={`text-[10px] ${c.unread > 0 ? theme.primaryText + ' font-bold' : theme.iconColor}`}>{c.time}</span>
+        </div>
+        <p className={`text-[10px] ${c.unread > 0 ? `${theme.highlight} font-medium` : theme.iconColor} truncate`}>{c.lastMsg}</p>
+      </div>
+      {c.unread > 0 && (
+        <span className={`w-5 h-5 rounded-full ${theme.primary} text-white text-[10px] font-bold flex items-center justify-center shrink-0`}>{c.unread}</span>
+      )}
+      {showUnarchive && (
+        <button
+          onClick={e => { e.stopPropagation(); setArchivedConvos(prev => prev.filter(id => id !== c.id)); }}
+          className={`text-[9px] px-2 py-1 rounded-lg ${theme.secondaryBg} ${theme.primaryText} font-bold shrink-0`}
+        >Unarchive</button>
+      )}
+    </button>
+  );
 
   return (
     <div className={`flex gap-0 ${compact ? '' : '-m-6'} h-[calc(100vh-${compact ? '200px' : '120px'})]`}>
@@ -109,39 +188,30 @@ export function ChatsView({ theme, compact }: { theme: Theme; compact?: boolean 
             <button className={`p-2 rounded-xl ${theme.secondaryBg}`}><Edit size={14} className={theme.iconColor} /></button>
           </div>
           <SearchBar placeholder="Search conversations..." theme={theme} icon={Search} />
-          <TabBar tabs={['All', 'Unread', 'Groups', 'Parents', 'Pinned']} active={tab} onChange={setTab} theme={theme} />
+          <TabBar tabs={['All', 'Unread', 'Groups', 'Parents', 'Pinned', 'Archived']} active={tab} onChange={setTab} theme={theme} />
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          {filtered.map(c => (
-            <button
-              key={c.id}
-              onClick={() => setActiveConvo(c.id)}
-              className={`w-full flex items-center gap-3 px-3 py-3 transition-all ${
-                activeConvo === c.id ? theme.secondaryBg : `${theme.buttonHover}`
-              } border-b ${theme.border}`}
-            >
-              <div className="relative">
-                <div className={`w-10 h-10 rounded-full ${c.type === 'group' ? theme.primary : 'bg-slate-300'} text-white flex items-center justify-center text-xs font-bold`}>
-                  {c.avatar}
-                </div>
-                {c.online && <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full absolute -bottom-0.5 -right-0.5 border-2 border-white" />}
+          {/* Pinned Section (show in All / Unread tabs, not in Archived/Pinned-only) */}
+          {tab !== 'Archived' && tab !== 'Pinned' && pinnedConvos.length > 0 && (
+            <>
+              <div className={`px-3 py-1.5 ${theme.accentBg} border-b ${theme.border}`}>
+                <span className={`text-[9px] font-bold uppercase ${theme.iconColor}`}><Pin size={8} className="inline mr-1" />Pinned</span>
               </div>
-              <div className="flex-1 text-left min-w-0">
-                <div className="flex items-center justify-between">
-                  <span className={`text-xs font-bold ${theme.highlight} truncate`}>
-                    {c.pinned && <Pin size={10} className="inline mr-1 text-amber-500" />}
-                    {c.name}
-                  </span>
-                  <span className={`text-[10px] ${c.unread > 0 ? theme.primaryText + ' font-bold' : theme.iconColor}`}>{c.time}</span>
-                </div>
-                <p className={`text-[10px] ${c.unread > 0 ? `${theme.highlight} font-medium` : theme.iconColor} truncate`}>{c.lastMsg}</p>
+              {pinnedConvos.map(c => renderConvoRow(c as any))}
+              <div className={`px-3 py-1.5 ${theme.accentBg} border-b ${theme.border}`}>
+                <span className={`text-[9px] font-bold uppercase ${theme.iconColor}`}>All Messages</span>
               </div>
-              {c.unread > 0 && (
-                <span className={`w-5 h-5 rounded-full ${theme.primary} text-white text-[10px] font-bold flex items-center justify-center`}>{c.unread}</span>
-              )}
-            </button>
-          ))}
+            </>
+          )}
+
+          {/* Main conversation list */}
+          {tab === 'Archived' ? (
+            filtered.length > 0 ? filtered.map(c => renderConvoRow(c as any, true))
+            : <p className={`text-xs ${theme.iconColor} text-center py-8`}>No archived conversations</p>
+          ) : (
+            (tab === 'All' ? unpinnedConvos : filtered.filter(c => !(c as any).pinned)).map(c => renderConvoRow(c as any))
+          )}
         </div>
       </div>
 
@@ -163,9 +233,48 @@ export function ChatsView({ theme, compact }: { theme: Theme; compact?: boolean 
             <div className="flex items-center gap-1">
               <button className={`p-2 rounded-xl ${theme.secondaryBg}`}><Phone size={14} className={theme.iconColor} /></button>
               <button className={`p-2 rounded-xl ${theme.secondaryBg}`}><Video size={14} className={theme.iconColor} /></button>
-              <button className={`p-2 rounded-xl ${theme.secondaryBg}`}><Search size={14} className={theme.iconColor} /></button>
+              <button
+                onClick={() => setShowConvoSearch(!showConvoSearch)}
+                className={`p-2 rounded-xl ${showConvoSearch ? theme.primary + ' text-white' : theme.secondaryBg}`}
+              ><Search size={14} className={showConvoSearch ? 'text-white' : theme.iconColor} /></button>
               <button className={`p-2 rounded-xl ${theme.secondaryBg}`}><MoreVertical size={14} className={theme.iconColor} /></button>
             </div>
+          </div>
+        )}
+
+        {/* In-Conversation Search Bar */}
+        {showConvoSearch && (
+          <div className={`px-4 py-2 border-b ${theme.border} ${theme.cardBg} flex items-center gap-2`}>
+            <Search size={14} className={theme.iconColor} />
+            <input
+              value={convoSearch}
+              onChange={e => setConvoSearch(e.target.value)}
+              placeholder="Search in this conversation..."
+              className={`flex-1 px-3 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs outline-none`}
+              autoFocus
+            />
+            {convoSearch && (
+              <span className={`text-[10px] ${theme.primaryText} font-bold whitespace-nowrap`}>
+                {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} found
+              </span>
+            )}
+            <button onClick={() => { setShowConvoSearch(false); setConvoSearch(''); }} className={`p-1 rounded-lg ${theme.secondaryBg}`}>
+              <X size={12} className={theme.iconColor} />
+            </button>
+          </div>
+        )}
+
+        {/* Retention Banner */}
+        {!retentionDismissed && (
+          <div className={`px-4 py-2 ${theme.accentBg} border-b ${theme.border} flex items-center gap-2`}>
+            <Info size={12} className={theme.iconColor} />
+            <span className={`text-[10px] ${theme.iconColor} flex-1`}>
+              Messages older than 1 year are auto-archived. Change retention in{' '}
+              <button className={`${theme.primaryText} font-bold underline`}>Settings</button>.
+            </span>
+            <button onClick={() => setRetentionDismissed(true)} className={`p-0.5 rounded ${theme.secondaryBg}`}>
+              <X size={10} className={theme.iconColor} />
+            </button>
           </div>
         )}
 
@@ -174,31 +283,121 @@ export function ChatsView({ theme, compact }: { theme: Theme; compact?: boolean 
           <div className={`text-center`}>
             <span className={`text-[10px] px-3 py-1 rounded-full ${theme.secondaryBg} ${theme.iconColor}`}>Today</span>
           </div>
-          {sampleMessages.map(msg => (
-            <div key={msg.id} className={`flex ${msg.self ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[65%] ${msg.self ? `${theme.primary} text-white` : `${theme.cardBg} border ${theme.border}`} rounded-2xl ${msg.self ? 'rounded-br-sm' : 'rounded-bl-sm'} px-4 py-2.5`}>
-                {!msg.self && <p className={`text-[10px] font-bold ${theme.primaryText} mb-1`}>{msg.sender}</p>}
-                {msg.type === 'file' ? (
-                  <div className={`flex items-center gap-3 p-2 rounded-xl ${msg.self ? 'bg-white/10' : theme.secondaryBg}`}>
-                    <FileText size={20} className={msg.self ? 'text-white' : theme.primaryText} />
-                    <div>
-                      <p className={`text-xs font-bold`}>{(msg as any).fileName}</p>
-                      <p className={`text-[10px] ${msg.self ? 'text-white/70' : theme.iconColor}`}>{(msg as any).fileSize}</p>
+          {visibleMessages.map(msg => {
+            const isHighlighted = convoSearch && (editedMessages[msg.id] || msg.text).toLowerCase().includes(convoSearch.toLowerCase());
+            const isEditing = editingMsg === msg.id;
+            const displayText = editedMessages[msg.id] || msg.text;
+            const wasEdited = !!editedMessages[msg.id];
+            const isImportant = importantMessages.includes(msg.id);
+            const isPinned = pinnedMessages.includes(msg.id);
+
+            return (
+              <div key={msg.id} className={`flex ${msg.self ? 'justify-end' : 'justify-start'} ${isHighlighted ? 'ring-2 ring-amber-400 rounded-2xl' : ''}`}>
+                <div className={`relative group max-w-[65%] ${msg.self ? `${theme.primary} text-white` : `${theme.cardBg} border ${theme.border}`} rounded-2xl ${msg.self ? 'rounded-br-sm' : 'rounded-bl-sm'} px-4 py-2.5`}>
+                  {/* Important / Pinned indicators */}
+                  {(isImportant || isPinned) && (
+                    <div className="flex items-center gap-1 mb-1">
+                      {isPinned && <Pin size={9} className={msg.self ? 'text-amber-300' : 'text-amber-500'} />}
+                      {isImportant && <Star size={9} className={msg.self ? 'text-yellow-300' : 'text-yellow-500'} />}
                     </div>
-                    <Download size={14} className={msg.self ? 'text-white' : theme.iconColor} />
-                  </div>
-                ) : (
-                  <p className="text-xs whitespace-pre-wrap">{msg.text}</p>
-                )}
-                <div className={`flex items-center justify-end gap-1 mt-1`}>
-                  <span className={`text-[9px] ${msg.self ? 'text-white/60' : theme.iconColor}`}>{msg.time}</span>
-                  {msg.self && (
-                    msg.status === 'read' ? <CheckCheck size={10} className="text-blue-300" /> : <CheckCheck size={10} className="text-white/40" />
                   )}
+
+                  {!msg.self && <p className={`text-[10px] font-bold ${theme.primaryText} mb-1`}>{msg.sender}</p>}
+
+                  {/* Kebab Menu Button */}
+                  <button
+                    onClick={() => setKebabOpen(kebabOpen === msg.id ? null : msg.id)}
+                    className={`absolute top-1 ${msg.self ? 'left-1' : 'right-1'} opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full ${msg.self ? 'hover:bg-white/20' : `hover:${theme.secondaryBg}`}`}
+                  >
+                    <MoreVertical size={10} className={msg.self ? 'text-white/70' : theme.iconColor} />
+                  </button>
+
+                  {/* Kebab Dropdown */}
+                  {kebabOpen === msg.id && (
+                    <div className={`absolute z-20 top-6 ${msg.self ? 'left-0' : 'right-0'} ${theme.cardBg} border ${theme.border} rounded-xl shadow-lg py-1 w-36`}>
+                      {msg.self && msg.status !== 'read' && (
+                        <button onClick={() => { setEditingMsg(msg.id); setEditText(displayText); setKebabOpen(null); }}
+                          className={`w-full flex items-center gap-2 px-3 py-1.5 text-[10px] ${theme.highlight} ${theme.buttonHover}`}>
+                          <Edit size={10} /> Edit
+                        </button>
+                      )}
+                      <button onClick={() => { setPinnedMessages(prev => prev.includes(msg.id) ? prev.filter(i => i !== msg.id) : [...prev, msg.id]); setKebabOpen(null); }}
+                        className={`w-full flex items-center gap-2 px-3 py-1.5 text-[10px] ${theme.highlight} ${theme.buttonHover}`}>
+                        <Pin size={10} /> {isPinned ? 'Unpin' : 'Pin'}
+                      </button>
+                      <button onClick={() => { setImportantMessages(prev => prev.includes(msg.id) ? prev.filter(i => i !== msg.id) : [...prev, msg.id]); setKebabOpen(null); }}
+                        className={`w-full flex items-center gap-2 px-3 py-1.5 text-[10px] ${theme.highlight} ${theme.buttonHover}`}>
+                        <Star size={10} /> {isImportant ? 'Unmark Important' : 'Mark as Important'}
+                      </button>
+                      <button onClick={() => { setDeleteConfirm(msg.id); setKebabOpen(null); }}
+                        className={`w-full flex items-center gap-2 px-3 py-1.5 text-[10px] text-red-500 ${theme.buttonHover}`}>
+                        <Trash2 size={10} /> Delete
+                      </button>
+                      <button onClick={() => { setArchivedConvos(prev => [...prev, activeConvo]); setKebabOpen(null); }}
+                        className={`w-full flex items-center gap-2 px-3 py-1.5 text-[10px] ${theme.highlight} ${theme.buttonHover}`}>
+                        <Archive size={10} /> Archive Chat
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Message Content — edit mode or display */}
+                  {msg.type === 'file' ? (
+                    <div className={`flex items-center gap-3 p-2 rounded-xl ${msg.self ? 'bg-white/10' : theme.secondaryBg}`}>
+                      <FileText size={20} className={msg.self ? 'text-white' : theme.primaryText} />
+                      <div>
+                        <p className={`text-xs font-bold`}>{(msg as any).fileName}</p>
+                        <p className={`text-[10px] ${msg.self ? 'text-white/70' : theme.iconColor}`}>{(msg as any).fileSize}</p>
+                      </div>
+                      <Download size={14} className={msg.self ? 'text-white' : theme.iconColor} />
+                    </div>
+                  ) : isEditing ? (
+                    <div className="space-y-1.5">
+                      <textarea
+                        value={editText}
+                        onChange={e => setEditText(e.target.value)}
+                        rows={2}
+                        className={`w-full px-2 py-1.5 rounded-lg text-xs text-slate-800 outline-none border ${theme.border}`}
+                        autoFocus
+                      />
+                      <div className="flex items-center gap-1 justify-end">
+                        <button onClick={() => setEditingMsg(null)}
+                          className="text-[9px] px-2 py-0.5 rounded bg-white/20 text-white">Cancel</button>
+                        <button onClick={() => { setEditedMessages(prev => ({ ...prev, [msg.id]: editText })); setEditingMsg(null); }}
+                          className="text-[9px] px-2 py-0.5 rounded bg-white/30 text-white font-bold flex items-center gap-1">
+                          <Save size={8} /> Save
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-xs whitespace-pre-wrap">{displayText}</p>
+                  )}
+
+                  <div className={`flex items-center justify-end gap-1 mt-1`}>
+                    {wasEdited && <span className={`text-[8px] italic ${msg.self ? 'text-white/50' : theme.iconColor}`}>(edited)</span>}
+                    <span className={`text-[9px] ${msg.self ? 'text-white/60' : theme.iconColor}`}>{msg.time}</span>
+                    {msg.self && (
+                      msg.status === 'read' ? <CheckCheck size={10} className="text-blue-300" /> : <CheckCheck size={10} className="text-white/40" />
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+
+          {/* Delete Confirmation Modal */}
+          {deleteConfirm && (
+            <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+              <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5 w-80 shadow-xl`}>
+                <h4 className={`text-sm font-bold ${theme.highlight} mb-2`}>Delete Message?</h4>
+                <p className={`text-xs ${theme.iconColor} mb-4`}>This message will be permanently removed from the conversation.</p>
+                <div className="flex justify-end gap-2">
+                  <button onClick={() => setDeleteConfirm(null)} className={`px-3 py-1.5 rounded-lg text-xs ${theme.secondaryBg} ${theme.highlight}`}>Cancel</button>
+                  <button onClick={() => { setDeletedMessages(prev => [...prev, deleteConfirm]); setDeleteConfirm(null); }}
+                    className="px-3 py-1.5 rounded-lg text-xs bg-red-500 text-white font-bold">Delete</button>
                 </div>
               </div>
             </div>
-          ))}
+          )}
         </div>
 
         {/* Message Input */}
@@ -298,6 +497,11 @@ export function GroupsView({ theme }: { theme: Theme }) {
 export function BroadcastsView({ theme }: { theme: Theme }) {
   const [tab, setTab] = useState('All');
   const [showCompose, setShowCompose] = useState(false);
+  const [reportBroadcast, setReportBroadcast] = useState<string | null>(null);
+
+  const reportTarget = broadcasts.find(b => b.id === reportBroadcast);
+  const deliveredCount = broadcastRecipients.filter(r => r.delivered).length;
+  const readCount = broadcastRecipients.filter(r => r.read).length;
 
   return (
     <div className="space-y-4">
@@ -338,13 +542,94 @@ export function BroadcastsView({ theme }: { theme: Theme }) {
                   <Eye size={10} className="inline mr-1" />{b.readCount}/{b.totalCount} read ({Math.round(b.readCount / b.totalCount * 100)}%)
                 </span>
               </div>
-              <div className="h-1.5 w-24 rounded-full bg-slate-200 overflow-hidden">
-                <div className="h-full rounded-full bg-emerald-500" style={{ width: `${Math.round(b.readCount / b.totalCount * 100)}%` }} />
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setReportBroadcast(b.id)}
+                  className={`text-[10px] px-2.5 py-1 rounded-lg ${theme.secondaryBg} ${theme.primaryText} font-bold flex items-center gap-1`}
+                >
+                  <BarChart3 size={10} /> View Report
+                </button>
+                <div className="h-1.5 w-24 rounded-full bg-slate-200 overflow-hidden">
+                  <div className="h-full rounded-full bg-emerald-500" style={{ width: `${Math.round(b.readCount / b.totalCount * 100)}%` }} />
+                </div>
               </div>
             </div>
           </div>
         ))}
       </div>
+
+      {/* Delivery & Read Report Modal */}
+      {reportBroadcast && reportTarget && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5 w-[600px] max-h-[80vh] overflow-y-auto shadow-xl`}>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className={`text-sm font-bold ${theme.highlight}`}>Delivery Report</h3>
+                <p className={`text-[10px] ${theme.iconColor}`}>{reportTarget.title}</p>
+              </div>
+              <button onClick={() => setReportBroadcast(null)} className={`p-1.5 rounded-lg ${theme.secondaryBg}`}>
+                <X size={14} className={theme.iconColor} />
+              </button>
+            </div>
+
+            {/* Summary Row */}
+            <div className="flex gap-3 mb-4">
+              <div className={`flex-1 p-3 rounded-xl ${theme.secondaryBg} text-center`}>
+                <p className={`text-lg font-bold ${theme.highlight}`}>{deliveredCount}/{broadcastRecipients.length}</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Delivered</p>
+              </div>
+              <div className={`flex-1 p-3 rounded-xl ${theme.secondaryBg} text-center`}>
+                <p className={`text-lg font-bold ${theme.primaryText}`}>{readCount}/{broadcastRecipients.length}</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Read</p>
+              </div>
+              <div className={`flex-1 p-3 rounded-xl ${theme.secondaryBg} text-center`}>
+                <p className={`text-lg font-bold text-red-500`}>{broadcastRecipients.length - deliveredCount}</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Undelivered</p>
+              </div>
+            </div>
+
+            {/* Recipient Table */}
+            <div className={`rounded-xl border ${theme.border} overflow-hidden`}>
+              <table className="w-full">
+                <thead>
+                  <tr className={`${theme.accentBg} border-b ${theme.border}`}>
+                    <th className={`text-[10px] font-bold ${theme.iconColor} text-left px-3 py-2`}>Name</th>
+                    <th className={`text-[10px] font-bold ${theme.iconColor} text-left px-3 py-2`}>Role</th>
+                    <th className={`text-[10px] font-bold ${theme.iconColor} text-center px-3 py-2`}>Delivered</th>
+                    <th className={`text-[10px] font-bold ${theme.iconColor} text-center px-3 py-2`}>Read</th>
+                    <th className={`text-[10px] font-bold ${theme.iconColor} text-right px-3 py-2`}>Time</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {broadcastRecipients.map(r => (
+                    <tr key={r.name} className={`border-b ${theme.border}`}>
+                      <td className={`text-xs ${theme.highlight} px-3 py-2`}>{r.name}</td>
+                      <td className={`text-[10px] ${theme.iconColor} px-3 py-2`}>{r.role}</td>
+                      <td className="text-center px-3 py-2">
+                        {r.delivered ? <Check size={12} className="text-emerald-500 mx-auto" /> : <X size={12} className="text-red-400 mx-auto" />}
+                      </td>
+                      <td className="text-center px-3 py-2">
+                        {r.read ? <CheckCheck size={12} className="text-blue-500 mx-auto" /> : <X size={12} className="text-red-400 mx-auto" />}
+                      </td>
+                      <td className={`text-[10px] ${theme.iconColor} text-right px-3 py-2`}>{r.time}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center justify-end gap-2 mt-4">
+              <button className={`flex items-center gap-1 px-3 py-2 rounded-xl ${theme.secondaryBg} text-xs font-bold ${theme.highlight}`}>
+                <Download size={12} /> Export Report
+              </button>
+              <button className={`flex items-center gap-1 px-3 py-2 rounded-xl bg-amber-500 text-white text-xs font-bold`}>
+                <Send size={12} /> Resend to Undelivered ({broadcastRecipients.length - deliveredCount})
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showCompose && (
         <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>

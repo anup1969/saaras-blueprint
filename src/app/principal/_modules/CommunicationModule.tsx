@@ -5,12 +5,12 @@ import { StatCard, TabBar } from '@/components/shared';
 import { type Theme } from '@/lib/themes';
 import {
   Megaphone, Users, Bell, Send, Inbox, Mail, Plus, Eye, X,
-  ChevronRight, Clock, Edit2, Paperclip,
+  ChevronRight, Clock, Edit2, Paperclip, Calendar, CheckCircle, Star, BarChart3,
 } from 'lucide-react';
 import { ChatsView } from '@/components/ChatModule';
 
 export default function CommunicationModule({ theme }: { theme: Theme }) {
-  const [commTab, setCommTab] = useState<'Messages' | 'Announcements' | 'Chat'>('Messages');
+  const [commTab, setCommTab] = useState<'Messages' | 'Announcements' | 'PTM Overview' | 'Chat'>('Messages');
   const [showNewAnnouncement, setShowNewAnnouncement] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [announcementForm, setAnnouncementForm] = useState({
@@ -114,7 +114,7 @@ export default function CommunicationModule({ theme }: { theme: Theme }) {
       </div>
 
       {/* Tab Bar */}
-      <TabBar tabs={['Messages', 'Announcements', 'Chat']} active={commTab} onChange={(t) => setCommTab(t as 'Messages' | 'Announcements' | 'Chat')} theme={theme} />
+      <TabBar tabs={['Messages', 'Announcements', 'PTM Overview', 'Chat']} active={commTab} onChange={(t) => setCommTab(t as 'Messages' | 'Announcements' | 'PTM Overview' | 'Chat')} theme={theme} />
 
       {/* ── Messages Tab ── */}
       {commTab === 'Messages' && (
@@ -179,6 +179,88 @@ export default function CommunicationModule({ theme }: { theme: Theme }) {
             ))}
           </div>
         </>
+      )}
+
+      {/* ── PTM Overview Tab ── */}
+      {commTab === 'PTM Overview' && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-4 gap-4">
+            <StatCard icon={Calendar} label="PTMs This Year" value="5" color="bg-blue-500" theme={theme} />
+            <StatCard icon={Users} label="Avg Attendance" value="84%" color="bg-emerald-500" theme={theme} />
+            <StatCard icon={Star} label="Avg Feedback" value="4.3/5" color="bg-amber-500" theme={theme} />
+            <StatCard icon={CheckCircle} label="Booking Rate" value="89%" color="bg-purple-500" theme={theme} />
+          </div>
+
+          {/* Next Upcoming PTM */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5`}>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center text-white">
+                  <Calendar size={18} />
+                </div>
+                <div>
+                  <p className={`text-sm font-bold ${theme.highlight}`}>Next PTM: Term 1 PTM</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>05 Mar 2026 | 09:00 AM - 01:00 PM | School Campus</p>
+                </div>
+              </div>
+              <span className="text-[10px] px-2.5 py-1 rounded-full font-bold bg-blue-100 text-blue-700">Upcoming</span>
+            </div>
+            <div className="grid grid-cols-3 gap-3 mb-3">
+              <div className={`p-3 rounded-xl ${theme.secondaryBg} text-center`}>
+                <p className={`text-lg font-bold ${theme.primaryText}`}>120</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Total Slots</p>
+              </div>
+              <div className={`p-3 rounded-xl ${theme.secondaryBg} text-center`}>
+                <p className={`text-lg font-bold ${theme.highlight}`}>85</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Booked</p>
+              </div>
+              <div className={`p-3 rounded-xl ${theme.secondaryBg} text-center`}>
+                <p className={`text-lg font-bold text-amber-600`}>35</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Available</p>
+              </div>
+            </div>
+            {/* Booking Progress */}
+            <div className="space-y-1 mb-3">
+              <div className="flex items-center justify-between">
+                <span className={`text-[10px] ${theme.iconColor}`}>Booking Progress</span>
+                <span className={`text-[10px] font-bold ${theme.primaryText}`}>71%</span>
+              </div>
+              <div className={`h-2.5 rounded-full ${theme.secondaryBg} overflow-hidden`}>
+                <div className={`h-full rounded-full ${theme.primary}`} style={{ width: '71%' }} />
+              </div>
+            </div>
+            <button onClick={() => window.alert('Redirecting to School Admin PTM Module... (Blueprint demo)')} className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-xs font-bold flex items-center gap-1`}>
+              <Calendar size={12} /> Schedule PTM
+            </button>
+          </div>
+
+          {/* Recent PTM Results */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5`}>
+            <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Recent PTM Results</h3>
+            <div className="space-y-2">
+              {[
+                { title: 'Class 10 Board Prep PTM', date: '20 Feb 2026', attendance: '38/42 (90%)', feedback: 4.5 },
+                { title: 'Special PTM — At-risk Students', date: '15 Feb 2026', attendance: '12/15 (80%)', feedback: 4.2 },
+                { title: 'Term End PTM (Dec)', date: '18 Dec 2025', attendance: '245/280 (88%)', feedback: 4.0 },
+              ].map((ptm, idx) => (
+                <div key={idx} className={`flex items-center gap-3 p-3 rounded-xl ${theme.secondaryBg}`}>
+                  <CheckCircle size={14} className="text-emerald-500" />
+                  <div className="flex-1">
+                    <p className={`text-xs font-bold ${theme.highlight}`}>{ptm.title}</p>
+                    <p className={`text-[10px] ${theme.iconColor}`}>{ptm.date}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className={`text-[10px] font-bold ${theme.highlight}`}>{ptm.attendance}</p>
+                    <div className="flex items-center gap-0.5 justify-end">
+                      <Star size={8} className="text-amber-500 fill-amber-500" />
+                      <span className={`text-[10px] font-bold ${theme.primaryText}`}>{ptm.feedback.toFixed(1)}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       )}
 
       {/* ── Chat Tab ── */}

@@ -6,7 +6,9 @@ import {
   Headphones, MessageSquare, BarChart3, BookOpen, ClipboardCheck,
   DollarSign, Shield, Send, Bot, Zap, Users, Calendar,
   Bus, ShieldCheck, Phone, UserCheck, Briefcase, Calculator,
-  FileText, Settings, Home, Bell, Lock, Key, Heart
+  FileText, Settings, Home, Bell, Lock, Key, Heart,
+  Plus, Edit2, Trash2, ChevronUp, ChevronDown, Eye, ThumbsUp,
+  ThumbsDown, HelpCircle, ToggleLeft, ToggleRight, Search, Info, Clock,
 } from 'lucide-react';
 
 // ─── ROLE-SPECIFIC FAQ DATA ─────────────────────────
@@ -408,6 +410,43 @@ export default function SupportModule({ theme, role = 'principal' }: { theme: Th
   const [showFaq, setShowFaq] = useState(true);
   const [activeCategory, setActiveCategory] = useState(faqData.categories[0]?.label || 'Getting Started');
 
+  // FAQ Management State
+  const [showFaqManager, setShowFaqManager] = useState(false);
+  const [showAddFaq, setShowAddFaq] = useState(false);
+  const [newFaqQuestion, setNewFaqQuestion] = useState('');
+  const [newFaqAnswer, setNewFaqAnswer] = useState('');
+  const [newFaqCategory, setNewFaqCategory] = useState('');
+  const [newFaqRoleSpecific, setNewFaqRoleSpecific] = useState(false);
+  interface CustomFaq { id: number; question: string; answer: string; category: string; roleSpecific: boolean; views: number; addedOn: string; }
+  const [customFaqs, setCustomFaqs] = useState<CustomFaq[]>([
+    { id: 1, question: 'How to reset a student password?', answer: 'Go to Students module, select the student profile, click Actions > Reset Password.', category: 'Getting Started', roleSpecific: false, views: 45, addedOn: '10 Feb 2026' },
+    { id: 2, question: 'Can parents view transport tracking?', answer: 'Yes, parents can see live bus location on the mobile app under Transport > Track Bus.', category: 'Communication', roleSpecific: true, views: 32, addedOn: '12 Feb 2026' },
+    { id: 3, question: 'How to bulk assign homework?', answer: 'Go to Academics > Homework > Create Assignment, select multiple classes, and publish.', category: 'Academics', roleSpecific: true, views: 28, addedOn: '14 Feb 2026' },
+  ]);
+  const [editingFaqId, setEditingFaqId] = useState<number | null>(null);
+
+  // Contextual Help State
+  const [contextualHelpEnabled, setContextualHelpEnabled] = useState(true);
+  const [contextualScreens] = useState([
+    { screen: 'Dashboard', tooltips: 5, enabled: true },
+    { screen: 'Students', tooltips: 3, enabled: true },
+    { screen: 'Fees', tooltips: 4, enabled: true },
+    { screen: 'Attendance', tooltips: 3, enabled: false },
+    { screen: 'Timetable', tooltips: 2, enabled: true },
+    { screen: 'Reports', tooltips: 4, enabled: false },
+    { screen: 'Transport', tooltips: 2, enabled: true },
+  ]);
+
+  // Article Usage Analytics State
+  const [showAnalytics, setShowAnalytics] = useState(false);
+  const [faqAnalytics] = useState({
+    totalViews: 1248,
+    topSearches: ['fee payment', 'attendance', 'homework', 'timetable', 'transport', 'leave'],
+    zeroResults: ['biometric', 'hostel', 'alumni', 'canteen'],
+    helpfulRatio: 78,
+    recentlyAdded: 3,
+  });
+
   const handleSendMessage = () => {
     if (!userInput.trim()) return;
     setChatMessages(prev => [...prev, { from: 'user', text: userInput, time: 'Now' }]);
@@ -451,6 +490,226 @@ export default function SupportModule({ theme, role = 'principal' }: { theme: Th
           <p className={`text-[10px] ${theme.iconColor}`}>Phase 2: Short videos &amp; audio guides · Phase 3: Natural language processing</p>
         </div>
         <span className="text-[10px] px-2 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 font-bold">Active</span>
+      </div>
+
+      {/* ─── CONTEXTUAL HELP TOOLTIPS CONFIG ──────────── */}
+      <div className={`${theme.cardBg} rounded-xl border ${theme.border} overflow-hidden`}>
+        <div className={`px-4 py-3 flex items-center justify-between ${theme.accentBg}`}>
+          <div className="flex items-center gap-2">
+            <HelpCircle size={14} className="text-blue-400" />
+            <h3 className={`text-xs font-bold ${theme.highlight}`}>Contextual Help Tooltips</h3>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className={`text-[10px] ${theme.iconColor}`}>{contextualHelpEnabled ? 'Enabled' : 'Disabled'}</span>
+            <button onClick={() => setContextualHelpEnabled(!contextualHelpEnabled)}
+              className={`w-9 h-5 rounded-full transition-all relative ${contextualHelpEnabled ? 'bg-emerald-500' : 'bg-gray-300'}`}>
+              <div className="w-3.5 h-3.5 rounded-full bg-white shadow absolute top-[3px] transition-all"
+                style={{ left: contextualHelpEnabled ? '18px' : '3px' }} />
+            </button>
+          </div>
+        </div>
+        {contextualHelpEnabled && (
+          <div className="px-4 py-3 space-y-2">
+            <div className="grid grid-cols-4 gap-2">
+              {contextualScreens.map((scr) => (
+                <div key={scr.screen} className={`p-2.5 rounded-lg ${scr.enabled ? theme.secondaryBg : 'opacity-50 ' + theme.secondaryBg} flex items-center justify-between`}>
+                  <div>
+                    <p className={`text-[10px] font-bold ${theme.highlight}`}>{scr.screen}</p>
+                    <p className={`text-[9px] ${theme.iconColor}`}>{scr.tooltips} tooltips</p>
+                  </div>
+                  <div className={`w-2 h-2 rounded-full ${scr.enabled ? 'bg-emerald-500' : 'bg-gray-300'}`} />
+                </div>
+              ))}
+            </div>
+            {/* Tooltip Preview */}
+            <div className={`p-3 rounded-lg border-2 border-dashed ${theme.border} ${theme.accentBg}`}>
+              <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1`}>Tooltip Preview</p>
+              <div className="flex items-start gap-2">
+                <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center shrink-0 mt-0.5">
+                  <Info size={8} className="text-white" />
+                </div>
+                <div className={`p-2 rounded-lg bg-blue-50 border border-blue-200 max-w-xs`}>
+                  <p className="text-[10px] text-blue-800 font-medium">Click on any stat card to view detailed drill-down analytics and export data as PDF or Excel.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ─── FAQ MANAGEMENT ──────────── */}
+      <div className={`${theme.cardBg} rounded-xl border ${theme.border} overflow-hidden`}>
+        <button onClick={() => setShowFaqManager(!showFaqManager)}
+          className={`w-full px-4 py-3 flex items-center justify-between ${theme.buttonHover}`}>
+          <div className="flex items-center gap-2">
+            <Settings size={14} className={theme.iconColor} />
+            <h3 className={`text-xs font-bold ${theme.highlight}`}>FAQ Management</h3>
+            <span className={`text-[9px] px-2 py-0.5 rounded-full ${theme.secondaryBg} ${theme.iconColor} font-bold`}>{customFaqs.length} custom</span>
+          </div>
+          <ChevronDown size={14} className={`${theme.iconColor} transition-transform ${showFaqManager ? 'rotate-180' : ''}`} />
+        </button>
+        {showFaqManager && (
+          <div className="px-4 pb-4 space-y-3">
+            {/* Add FAQ Button */}
+            <button onClick={() => setShowAddFaq(!showAddFaq)}
+              className={`px-3 py-1.5 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-1`}>
+              <Plus size={12} /> Add FAQ
+            </button>
+
+            {/* Add FAQ Form */}
+            {showAddFaq && (
+              <div className={`p-3 rounded-xl border-2 border-dashed ${theme.border} space-y-2`}>
+                <div>
+                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>Question</label>
+                  <input value={newFaqQuestion} onChange={e => setNewFaqQuestion(e.target.value)} placeholder="Enter question..."
+                    className={`w-full px-2 py-1.5 rounded-lg text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight}`} />
+                </div>
+                <div>
+                  <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>Answer</label>
+                  <textarea value={newFaqAnswer} onChange={e => setNewFaqAnswer(e.target.value)} rows={2} placeholder="Enter answer..."
+                    className={`w-full px-2 py-1.5 rounded-lg text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight} resize-none`} />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>Category</label>
+                    <select value={newFaqCategory || faqData.categories[0]?.label} onChange={e => setNewFaqCategory(e.target.value)}
+                      className={`w-full px-2 py-1.5 rounded-lg text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight}`}>
+                      {faqData.categories.map(c => <option key={c.label} value={c.label}>{c.label}</option>)}
+                    </select>
+                  </div>
+                  <div className="flex items-end gap-2 pb-1">
+                    <button onClick={() => setNewFaqRoleSpecific(!newFaqRoleSpecific)}
+                      className={`w-9 h-5 rounded-full transition-all relative ${newFaqRoleSpecific ? 'bg-emerald-500' : 'bg-gray-300'}`}>
+                      <div className="w-3.5 h-3.5 rounded-full bg-white shadow absolute top-[3px] transition-all"
+                        style={{ left: newFaqRoleSpecific ? '18px' : '3px' }} />
+                    </button>
+                    <span className={`text-xs ${theme.highlight}`}>Role-specific</span>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => {
+                    if (!newFaqQuestion.trim() || !newFaqAnswer.trim()) return;
+                    setCustomFaqs(prev => [...prev, {
+                      id: prev.length + 1, question: newFaqQuestion, answer: newFaqAnswer,
+                      category: newFaqCategory || faqData.categories[0]?.label || 'General',
+                      roleSpecific: newFaqRoleSpecific, views: 0, addedOn: 'Just now',
+                    }]);
+                    setShowAddFaq(false); setNewFaqQuestion(''); setNewFaqAnswer(''); setNewFaqCategory('');
+                  }} className={`px-3 py-1.5 rounded-xl ${theme.primary} text-white text-xs font-bold`}>Save FAQ</button>
+                  <button onClick={() => setShowAddFaq(false)} className={`px-3 py-1.5 rounded-xl border ${theme.border} text-xs font-bold ${theme.highlight}`}>Cancel</button>
+                </div>
+              </div>
+            )}
+
+            {/* FAQ List */}
+            <div className="space-y-2">
+              {customFaqs.map((faq, idx) => (
+                <div key={faq.id} className={`flex items-center gap-2 p-3 rounded-xl ${theme.secondaryBg}`}>
+                  {/* Reorder buttons */}
+                  <div className="flex flex-col gap-0.5">
+                    <button onClick={() => {
+                      if (idx === 0) return;
+                      setCustomFaqs(prev => { const arr = [...prev]; [arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]]; return arr; });
+                    }} className={`p-0.5 rounded ${theme.buttonHover}`}><ChevronUp size={10} className={theme.iconColor} /></button>
+                    <button onClick={() => {
+                      if (idx === customFaqs.length - 1) return;
+                      setCustomFaqs(prev => { const arr = [...prev]; [arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]]; return arr; });
+                    }} className={`p-0.5 rounded ${theme.buttonHover}`}><ChevronDown size={10} className={theme.iconColor} /></button>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-xs font-bold ${theme.highlight}`}>{faq.question}</p>
+                    <p className={`text-[10px] ${theme.iconColor} truncate`}>{faq.answer}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${theme.accentBg} ${theme.iconColor} font-bold`}>{faq.category}</span>
+                      {faq.roleSpecific && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold">Role-specific</span>}
+                      <span className={`text-[9px] ${theme.iconColor} flex items-center gap-0.5`}><Eye size={7} /> {faq.views}</span>
+                      <span className={`text-[9px] ${theme.iconColor} flex items-center gap-0.5`}><Clock size={7} /> {faq.addedOn}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button className={`p-1.5 rounded-lg ${theme.buttonHover}`}><Edit2 size={10} className={theme.iconColor} /></button>
+                    <button onClick={() => setCustomFaqs(prev => prev.filter(f => f.id !== faq.id))}
+                      className="p-1.5 rounded-lg hover:bg-red-50"><Trash2 size={10} className="text-red-400" /></button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ─── ARTICLE USAGE ANALYTICS ──────────── */}
+      <div className={`${theme.cardBg} rounded-xl border ${theme.border} overflow-hidden`}>
+        <button onClick={() => setShowAnalytics(!showAnalytics)}
+          className={`w-full px-4 py-3 flex items-center justify-between ${theme.buttonHover}`}>
+          <div className="flex items-center gap-2">
+            <BarChart3 size={14} className={theme.iconColor} />
+            <h3 className={`text-xs font-bold ${theme.highlight}`}>Article Usage Analytics</h3>
+          </div>
+          <ChevronDown size={14} className={`${theme.iconColor} transition-transform ${showAnalytics ? 'rotate-180' : ''}`} />
+        </button>
+        {showAnalytics && (
+          <div className="px-4 pb-4 space-y-3">
+            {/* Stats row */}
+            <div className="grid grid-cols-4 gap-2">
+              <div className={`p-2.5 rounded-lg ${theme.secondaryBg} text-center`}>
+                <p className={`text-sm font-bold ${theme.highlight}`}>{faqAnalytics.totalViews.toLocaleString()}</p>
+                <p className={`text-[9px] ${theme.iconColor}`}>Total Views</p>
+              </div>
+              <div className={`p-2.5 rounded-lg ${theme.secondaryBg} text-center`}>
+                <p className={`text-sm font-bold text-emerald-600`}>{faqAnalytics.helpfulRatio}%</p>
+                <p className={`text-[9px] ${theme.iconColor}`}>Helpful Ratio</p>
+              </div>
+              <div className={`p-2.5 rounded-lg ${theme.secondaryBg} text-center`}>
+                <p className={`text-sm font-bold ${theme.highlight}`}>{faqAnalytics.recentlyAdded}</p>
+                <p className={`text-[9px] ${theme.iconColor}`}>Added This Month</p>
+              </div>
+              <div className={`p-2.5 rounded-lg bg-amber-50 text-center`}>
+                <p className={`text-sm font-bold text-amber-600`}>{faqAnalytics.zeroResults.length}</p>
+                <p className={`text-[9px] text-amber-700`}>Zero-Result Queries</p>
+              </div>
+            </div>
+
+            {/* Most Searched Topics */}
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1`}>Most Searched Topics</p>
+              <div className="flex flex-wrap gap-1.5">
+                {faqAnalytics.topSearches.map((t, i) => (
+                  <span key={i} className={`text-[10px] px-2.5 py-1 rounded-full ${theme.secondaryBg} ${theme.highlight} font-medium flex items-center gap-1`}>
+                    <Search size={8} /> {t}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Zero-Result Searches */}
+            <div>
+              <p className={`text-[10px] font-bold text-amber-600 uppercase mb-1`}>Searches with No Results</p>
+              <div className="flex flex-wrap gap-1.5">
+                {faqAnalytics.zeroResults.map((t, i) => (
+                  <span key={i} className="text-[10px] px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-medium">{t}</span>
+                ))}
+              </div>
+            </div>
+
+            {/* Per-FAQ Analytics */}
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-1`}>FAQ Performance</p>
+              <div className="space-y-1.5">
+                {customFaqs.sort((a, b) => b.views - a.views).map(faq => (
+                  <div key={faq.id} className={`flex items-center gap-2 p-2 rounded-lg ${theme.secondaryBg}`}>
+                    <p className={`text-xs ${theme.highlight} flex-1 truncate`}>{faq.question}</p>
+                    <span className={`text-[9px] ${theme.iconColor} flex items-center gap-0.5`}><Eye size={8} /> {faq.views}</span>
+                    <div className="flex items-center gap-1">
+                      <ThumbsUp size={8} className="text-emerald-500" />
+                      <span className={`text-[9px] text-emerald-600 font-bold`}>82%</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {showFaq ? (

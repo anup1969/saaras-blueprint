@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { X, Plus, CheckCircle, Edit } from 'lucide-react';
-import { SSAToggle, SectionCard, ModuleHeader, InputField } from '../_helpers/components';
+import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import { MasterPermissionGrid } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
 
@@ -68,6 +68,33 @@ export default function CommunicationConfigModule({ theme }: { theme: Theme }) {
   const [autoArchive, setAutoArchive] = useState(true);
   const [archiveDays, setArchiveDays] = useState('7');
   const [notifySender, setNotifySender] = useState(true);
+
+  // Gallery & Media Settings
+  const [galleryStorageQuota, setGalleryStorageQuota] = useState('10');
+  const [galleryMaxFileSize, setGalleryMaxFileSize] = useState('10');
+  const [galleryCompress, setGalleryCompress] = useState(true);
+  const [galleryAutoApprove, setGalleryAutoApprove] = useState(false);
+  const [galleryAiTag, setGalleryAiTag] = useState(false);
+  const [galleryDisplayLocations, setGalleryDisplayLocations] = useState('Main Hall, Lobby, Corridor, Cafeteria');
+  const [galleryDefaultDuration, setGalleryDefaultDuration] = useState('7');
+
+  // News Publishing Settings
+  const [newsApprovalRequired, setNewsApprovalRequired] = useState(true);
+  const [newsDefaultAudience, setNewsDefaultAudience] = useState('All');
+  const [newsAutoArchiveDays, setNewsAutoArchiveDays] = useState('30');
+  const [newsNotifPush, setNewsNotifPush] = useState(true);
+  const [newsNotifSms, setNewsNotifSms] = useState(false);
+  const [newsNotifEmail, setNewsNotifEmail] = useState(false);
+  const [newsFeaturedLimit, setNewsFeaturedLimit] = useState('3');
+  const [newsEngagementTracking, setNewsEngagementTracking] = useState(true);
+
+  // Notification Center Settings
+  const [notifMaxPerDay, setNotifMaxPerDay] = useState('10');
+  const [notifQuietStart, setNotifQuietStart] = useState('21:00');
+  const [notifQuietEnd, setNotifQuietEnd] = useState('07:00');
+  const [notifRetention, setNotifRetention] = useState('90 days');
+  const [notifCriticalBypass, setNotifCriticalBypass] = useState(true);
+  const [notifAutoReport, setNotifAutoReport] = useState(true);
 
   return (
     <div className="space-y-4">
@@ -269,6 +296,159 @@ export default function CommunicationConfigModule({ theme }: { theme: Theme }) {
       <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
         <div className="space-y-4">
           <MasterPermissionGrid masterName="Communication Templates" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Gallery & Media Settings" subtitle="Photo albums, video gallery, and digital notice board configuration" theme={theme}>
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Storage Quota (GB)</p>
+              <InputField value={galleryStorageQuota} onChange={setGalleryStorageQuota} theme={theme} type="number" placeholder="10" />
+            </div>
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Max File Size (MB)</p>
+              <InputField value={galleryMaxFileSize} onChange={setGalleryMaxFileSize} theme={theme} type="number" placeholder="10" />
+            </div>
+          </div>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex-1 mr-3">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Image Compression</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Automatically compress uploaded images to save storage</p>
+            </div>
+            <SSAToggle on={galleryCompress} onChange={() => setGalleryCompress(!galleryCompress)} theme={theme} />
+          </div>
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Allowed Formats</p>
+            <div className="flex gap-3">
+              {['JPG', 'PNG', 'MP4', 'YouTube'].map(fmt => (
+                <label key={fmt} className="flex items-center gap-1">
+                  <input type="checkbox" className="accent-slate-600" defaultChecked />
+                  <span className={`text-xs ${theme.iconColor}`}>{fmt}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex-1 mr-3">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Auto-approve Teacher Uploads</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Teacher-uploaded albums go live without admin approval</p>
+            </div>
+            <SSAToggle on={galleryAutoApprove} onChange={() => setGalleryAutoApprove(!galleryAutoApprove)} theme={theme} />
+          </div>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex-1 mr-3">
+              <p className={`text-xs font-bold ${theme.highlight}`}>AI Auto-tagging</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Automatically tag photos by faces and objects (future feature)</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] px-2 py-0.5 rounded-full font-bold bg-amber-100 text-amber-700">Coming Soon</span>
+              <SSAToggle on={galleryAiTag} onChange={() => setGalleryAiTag(!galleryAiTag)} theme={theme} />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Display Locations (Digital Notice Board)</p>
+              <InputField value={galleryDisplayLocations} onChange={setGalleryDisplayLocations} theme={theme} placeholder="Main Hall, Lobby, Corridor, Cafeteria" />
+            </div>
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Default Display Duration (days)</p>
+              <InputField value={galleryDefaultDuration} onChange={setGalleryDefaultDuration} theme={theme} type="number" placeholder="7" />
+            </div>
+          </div>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="News Publishing Settings" subtitle="Configure news article publishing and distribution" theme={theme}>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex-1 mr-3">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Approval Required for Teacher-authored News</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Articles by teachers need admin/principal approval before publishing</p>
+            </div>
+            <SSAToggle on={newsApprovalRequired} onChange={() => setNewsApprovalRequired(!newsApprovalRequired)} theme={theme} />
+          </div>
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Default Audience</p>
+            <SelectField options={['All', 'Students', 'Parents', 'Staff']} value={newsDefaultAudience} onChange={setNewsDefaultAudience} theme={theme} />
+          </div>
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Auto-archive after (days)</p>
+            <InputField value={newsAutoArchiveDays} onChange={setNewsAutoArchiveDays} theme={theme} type="number" placeholder="30" />
+          </div>
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Notification Channels on Publish</p>
+            <div className="space-y-2">
+              {[
+                { label: 'Push notification', state: newsNotifPush, toggle: () => setNewsNotifPush(!newsNotifPush) },
+                { label: 'SMS', state: newsNotifSms, toggle: () => setNewsNotifSms(!newsNotifSms) },
+                { label: 'Email', state: newsNotifEmail, toggle: () => setNewsNotifEmail(!newsNotifEmail) },
+              ].map(ch => (
+                <div key={ch.label} className={`flex items-center justify-between p-2 rounded-xl ${theme.secondaryBg}`}>
+                  <span className={`text-xs font-bold ${theme.highlight}`}>{ch.label}</span>
+                  <SSAToggle on={ch.state} onChange={ch.toggle} theme={theme} />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Featured Article Limit</p>
+            <InputField value={newsFeaturedLimit} onChange={setNewsFeaturedLimit} theme={theme} type="number" placeholder="3" />
+          </div>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex-1 mr-3">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Engagement Tracking</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Track views, read time, and clicks on news articles</p>
+            </div>
+            <SSAToggle on={newsEngagementTracking} onChange={() => setNewsEngagementTracking(!newsEngagementTracking)} theme={theme} />
+          </div>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Notification Center Settings" subtitle="Global notification delivery and channel configuration" theme={theme}>
+        <div className="space-y-3">
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Max Notifications per User per Day</p>
+            <InputField value={notifMaxPerDay} onChange={setNotifMaxPerDay} theme={theme} type="number" placeholder="10" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Quiet Hours Start</p>
+              <InputField value={notifQuietStart} onChange={setNotifQuietStart} theme={theme} type="time" />
+            </div>
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Quiet Hours End</p>
+              <InputField value={notifQuietEnd} onChange={setNotifQuietEnd} theme={theme} type="time" />
+            </div>
+          </div>
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Channel Priority Order</p>
+            <div className="space-y-1.5">
+              {['1. Push Notification', '2. SMS', '3. Email'].map((ch, i) => (
+                <div key={ch} className={`flex items-center gap-2 p-2 rounded-xl ${theme.secondaryBg}`}>
+                  <span className={`text-xs font-bold ${theme.primaryText}`}>{ch}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Notification Retention Period</p>
+            <SelectField options={['30 days', '60 days', '90 days', '180 days']} value={notifRetention} onChange={setNotifRetention} theme={theme} />
+          </div>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex-1 mr-3">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Critical Notifications Bypass Quiet Hours</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Emergency and critical priority notifications ignore quiet hours</p>
+            </div>
+            <SSAToggle on={notifCriticalBypass} onChange={() => setNotifCriticalBypass(!notifCriticalBypass)} theme={theme} />
+          </div>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex-1 mr-3">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Delivery Report Auto-generation</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Automatically generate delivery reports after each batch notification</p>
+            </div>
+            <SSAToggle on={notifAutoReport} onChange={() => setNotifAutoReport(!notifAutoReport)} theme={theme} />
+          </div>
         </div>
       </SectionCard>
     </div>

@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import { TabBar, SearchBar, MobileFrame, MobilePreviewToggle } from '@/components/shared';
 import { type Theme } from '@/lib/themes';
 import {
-  Plus, X, Search, Eye, Edit, Send, Notebook, Info, Bell
+  Plus, X, Search, Eye, Edit, Send, Notebook, Info, Bell,
+  Calendar, Clock, CheckCircle, Users, BookOpen, ChevronDown, ChevronUp,
 } from 'lucide-react';
 
 // ─── MOCK DATA ──────────────────────────────────────
@@ -22,9 +23,23 @@ const diaryEntries = [
   { id: 'D006', date: '10 Feb 2026', class: '8-A', subject: 'Mathematics', message: 'Linear Equations practice complete. Chapter test next Monday.', readCount: 35, totalParents: 35 },
 ];
 
+// ─── PTM MOCK DATA ──────────────────────────────────
+const myPtmSlots = [
+  { time: '09:00 - 09:10', student: 'Aarav Patel', class: '10-A', parent: 'Rajesh Patel', status: 'Scheduled' as string, notes: '' },
+  { time: '09:10 - 09:20', student: 'Siya Sharma', class: '10-A', parent: 'Pooja Sharma', status: 'Scheduled' as string, notes: '' },
+  { time: '09:20 - 09:30', student: 'Ishita Gupta', class: '10-A', parent: 'Neha Gupta', status: 'Scheduled' as string, notes: '' },
+  { time: '09:30 - 09:40', student: 'Ananya Verma', class: '10-A', parent: 'Sunita Verma', status: 'Completed' as string, notes: 'Strong in Algebra. Needs Geometry focus. Suggest extra worksheets.' },
+  { time: '10:00 - 10:10', student: 'Rohan Mehta', class: '10-B', parent: 'Ravi Mehta', status: 'Scheduled' as string, notes: '' },
+  { time: '10:10 - 10:20', student: 'Kabir Joshi', class: '10-B', parent: 'Meera Joshi', status: 'Completed' as string, notes: 'Good progress. Encourage Science Fair participation.' },
+  { time: '10:20 - 10:30', student: 'Diya Reddy', class: '9-A', parent: 'Sunita Reddy', status: 'Scheduled' as string, notes: '' },
+  { time: '10:30 - 10:40', student: 'Vivaan Singh', class: '9-A', parent: 'Priya Singh', status: 'Cancelled' as string, notes: '' },
+];
+
 export default function DiaryModule({ theme }: { theme: Theme }) {
   const [tab, setTab] = useState('All Entries');
   const [showCreate, setShowCreate] = useState(false);
+  const [showPtmNotes, setShowPtmNotes] = useState<number | null>(null);
+  const [expandedPtmSlot, setExpandedPtmSlot] = useState<number | null>(null);
 
   return (
     <div className="space-y-4">
@@ -37,7 +52,7 @@ export default function DiaryModule({ theme }: { theme: Theme }) {
           <Plus size={14} /> New Entry
         </button>
       </div>
-      <TabBar tabs={['All Entries', 'Today', 'This Week']} active={tab} onChange={setTab} theme={theme} />
+      <TabBar tabs={['All Entries', 'Today', 'This Week', 'PTM']} active={tab} onChange={setTab} theme={theme} />
 
       {/* ── MOBILE APP PREVIEW ── */}
       <MobilePreviewToggle
@@ -196,6 +211,7 @@ export default function DiaryModule({ theme }: { theme: Theme }) {
       )}
 
       {/* Diary Entries */}
+      {tab !== 'PTM' && (
       <div className="space-y-3">
         {diaryEntries
           .filter(d => {
@@ -246,6 +262,121 @@ export default function DiaryModule({ theme }: { theme: Theme }) {
             );
           })}
       </div>
+      )}
+
+      {/* ── PTM Tab ── */}
+      {tab === 'PTM' && (
+        <div className="space-y-4">
+          {/* Quick Stats */}
+          <div className="grid grid-cols-4 gap-4">
+            <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 flex items-center gap-3 shadow-sm`}>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-500 text-white shadow-sm"><Calendar size={18} /></div>
+              <div><p className={`text-lg font-bold ${theme.highlight}`}>{myPtmSlots.length}</p><p className={`text-xs ${theme.iconColor}`}>Total Slots Today</p></div>
+            </div>
+            <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 flex items-center gap-3 shadow-sm`}>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-emerald-500 text-white shadow-sm"><CheckCircle size={18} /></div>
+              <div><p className={`text-lg font-bold ${theme.highlight}`}>{myPtmSlots.filter(s => s.status === 'Completed').length}</p><p className={`text-xs ${theme.iconColor}`}>Completed</p></div>
+            </div>
+            <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 flex items-center gap-3 shadow-sm`}>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-amber-500 text-white shadow-sm"><Clock size={18} /></div>
+              <div><p className={`text-lg font-bold ${theme.highlight}`}>{myPtmSlots.filter(s => s.status === 'Scheduled').length}</p><p className={`text-xs ${theme.iconColor}`}>Remaining</p></div>
+            </div>
+            <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 flex items-center gap-3 shadow-sm`}>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-red-500 text-white shadow-sm"><X size={18} /></div>
+              <div><p className={`text-lg font-bold ${theme.highlight}`}>{myPtmSlots.filter(s => s.status === 'Cancelled').length}</p><p className={`text-xs ${theme.iconColor}`}>Cancelled</p></div>
+            </div>
+          </div>
+
+          {/* PTM Info Banner */}
+          <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-50 border border-blue-200">
+            <Calendar size={14} className="text-blue-500" />
+            <p className="text-xs text-blue-700 font-medium">
+              Term 1 PTM | 05 Mar 2026 | 09:00 AM - 01:00 PM | School Campus
+            </p>
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-bold ml-auto">Today</span>
+          </div>
+
+          {/* My PTM Slots */}
+          <div className="space-y-2">
+            {myPtmSlots.map((slot, idx) => {
+              const slotColor = slot.status === 'Completed' ? 'border-l-emerald-500' : slot.status === 'Cancelled' ? 'border-l-red-400' : 'border-l-blue-500';
+              return (
+                <div key={idx} className={`${theme.cardBg} rounded-2xl border ${theme.border} border-l-4 ${slotColor} overflow-hidden`}>
+                  <div
+                    className="flex items-center gap-3 p-4 cursor-pointer"
+                    onClick={() => setExpandedPtmSlot(expandedPtmSlot === idx ? null : idx)}
+                  >
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white ${slot.status === 'Completed' ? 'bg-emerald-500' : slot.status === 'Cancelled' ? 'bg-red-400' : 'bg-blue-500'}`}>
+                      {slot.status === 'Completed' ? <CheckCircle size={14} /> : slot.status === 'Cancelled' ? <X size={14} /> : <Clock size={14} />}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className={`font-mono text-xs font-bold ${theme.primaryText}`}>{slot.time}</span>
+                        <span className={`text-xs font-bold ${theme.highlight}`}>{slot.student}</span>
+                        <span className={`text-[10px] ${theme.iconColor}`}>({slot.class})</span>
+                      </div>
+                      <p className={`text-[10px] ${theme.iconColor}`}>Parent: {slot.parent}</p>
+                    </div>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                      slot.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' :
+                      slot.status === 'Cancelled' ? 'bg-red-100 text-red-600' :
+                      'bg-blue-100 text-blue-700'
+                    }`}>{slot.status}</span>
+                    {expandedPtmSlot === idx ? <ChevronUp size={14} className={theme.iconColor} /> : <ChevronDown size={14} className={theme.iconColor} />}
+                  </div>
+
+                  {/* Expanded: Notes section */}
+                  {expandedPtmSlot === idx && (
+                    <div className={`px-4 pb-4 border-t ${theme.border} pt-3 space-y-3`}>
+                      {slot.notes ? (
+                        <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+                          <p className={`text-[10px] ${theme.iconColor} uppercase font-bold mb-1`}>Meeting Notes</p>
+                          <p className={`text-xs ${theme.highlight} leading-relaxed`}>{slot.notes}</p>
+                        </div>
+                      ) : (
+                        <div className={`p-3 rounded-xl ${theme.secondaryBg} text-center`}>
+                          <p className={`text-[10px] ${theme.iconColor}`}>{slot.status === 'Cancelled' ? 'Slot was cancelled' : 'No notes added yet'}</p>
+                        </div>
+                      )}
+                      {slot.status !== 'Cancelled' && (
+                        <div className="space-y-2">
+                          <div>
+                            <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>
+                              {slot.notes ? 'Update Notes' : 'Add Meeting Notes'}
+                            </label>
+                            <textarea
+                              rows={3}
+                              placeholder="Discussion summary, observations, recommendations..."
+                              className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none resize-none`}
+                              defaultValue={slot.notes}
+                            />
+                          </div>
+                          <div>
+                            <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Action Items</label>
+                            <textarea
+                              rows={2}
+                              placeholder="- Action item 1&#10;- Action item 2"
+                              className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs outline-none resize-none`}
+                            />
+                          </div>
+                          <div className="flex gap-2 justify-end">
+                            <button
+                              onClick={() => { alert('Meeting notes saved! (Blueprint demo)'); setExpandedPtmSlot(null); }}
+                              className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold flex items-center gap-1`}
+                            >
+                              <BookOpen size={12} /> Save Notes
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
