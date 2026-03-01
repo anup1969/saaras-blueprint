@@ -149,7 +149,7 @@ function AccountManagerDashboard({ theme, themeIdx, onThemeChange, currentUser }
 
       {/* Module content */}
       <div className="flex-1 p-6 space-y-4 overflow-x-hidden">
-        {activeModule === 'dashboard' && <DashboardHome theme={theme} onProfileClick={() => setActiveModule('profile')} />}
+        {activeModule === 'dashboard' && <DashboardHome theme={theme} onProfileClick={() => setActiveModule('profile')} onNavigate={setActiveModule} />}
         {activeModule === 'my-schools' && <MySchoolsModule theme={theme} />}
         {activeModule === 'tickets' && <TicketsModule theme={theme} />}
         {activeModule === 'analytics' && <AnalyticsModule theme={theme} />}
@@ -165,7 +165,7 @@ function AccountManagerDashboard({ theme, themeIdx, onThemeChange, currentUser }
 }
 
 // ─── DASHBOARD HOME ────────────────────────────────
-function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick: () => void }) {
+function DashboardHome({ theme, onProfileClick, onNavigate }: { theme: Theme; onProfileClick: () => void; onNavigate?: (id: string) => void }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -178,16 +178,16 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
 
       {/* Top Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Building2} label="Assigned Schools" value={4} color="bg-blue-500" sub="2 Enterprise, 1 Pro, 1 Starter" theme={theme} />
-        <StatCard icon={Headphones} label="Open Tickets" value={5} color="bg-amber-500" sub="1 urgent, 2 high" theme={theme} />
-        <StatCard icon={RefreshCcw} label="Upcoming Renewals" value={2} color="bg-purple-500" sub="within 30 days" theme={theme} />
-        <StatCard icon={DollarSign} label="Portfolio MRR" value="₹4.67L" color="bg-emerald-500" sub="+8% vs last quarter" theme={theme} />
+        <StatCard icon={Building2} label="Assigned Schools" value={4} color="bg-blue-500" sub="2 Enterprise, 1 Pro, 1 Starter" theme={theme} onClick={() => onNavigate?.('my-schools')} />
+        <StatCard icon={Headphones} label="Open Tickets" value={5} color="bg-amber-500" sub="1 urgent, 2 high" theme={theme} onClick={() => onNavigate?.('tickets')} />
+        <StatCard icon={RefreshCcw} label="Upcoming Renewals" value={2} color="bg-purple-500" sub="within 30 days" theme={theme} onClick={() => onNavigate?.('renewals')} />
+        <StatCard icon={DollarSign} label="Portfolio MRR" value="₹4.67L" color="bg-emerald-500" sub="+8% vs last quarter" theme={theme} onClick={() => onNavigate?.('analytics')} />
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={ThumbsUp} label="Avg NPS Score" value="7.3" color="bg-indigo-500" sub="target: 8.0" theme={theme} />
-        <StatCard icon={Activity} label="Avg Health Score" value="73%" color="bg-teal-500" theme={theme} />
-        <StatCard icon={Percent} label="Avg Adoption Rate" value="73%" color="bg-orange-500" sub="across all schools" theme={theme} />
-        <StatCard icon={Rocket} label="Onboarding Pipeline" value={4} color="bg-pink-500" sub="1 going live this week" theme={theme} />
+        <StatCard icon={ThumbsUp} label="Avg NPS Score" value="7.3" color="bg-indigo-500" sub="target: 8.0" theme={theme} onClick={() => onNavigate?.('analytics')} />
+        <StatCard icon={Activity} label="Avg Health Score" value="73%" color="bg-teal-500" theme={theme} onClick={() => onNavigate?.('my-schools')} />
+        <StatCard icon={Percent} label="Avg Adoption Rate" value="73%" color="bg-orange-500" sub="across all schools" theme={theme} onClick={() => onNavigate?.('analytics')} />
+        <StatCard icon={Rocket} label="Onboarding Pipeline" value={4} color="bg-pink-500" sub="1 going live this week" theme={theme} onClick={() => onNavigate?.('onboarding')} />
       </div>
 
       {/* Portfolio Health at a Glance */}

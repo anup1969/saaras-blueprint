@@ -1,12 +1,18 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Upload, CheckCircle } from 'lucide-react';
+import React, { useState, useCallback } from 'react';
+import { Upload, CheckCircle, AlertTriangle, Circle } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
 
+type StepStatus = 'pending' | 'incomplete' | 'complete';
+
 export default function OnboardingWizardModule({ theme }: { theme: Theme }) {
   const [currentStep, setCurrentStep] = useState(1);
+  const [stepStatus, setStepStatus] = useState<Record<number, StepStatus>>({
+    1: 'incomplete', 2: 'pending', 3: 'pending', 4: 'pending', 5: 'pending', 6: 'pending',
+  });
+  const [jumpWarning, setJumpWarning] = useState<string | null>(null);
   const [schoolName, setSchoolName] = useState(''); const [address, setAddress] = useState(''); const [contact, setContact] = useState('');
   const [schoolBoard, setSchoolBoard] = useState('CBSE'); const [schoolType, setSchoolType] = useState('Co-educational');
   const [trustName, setTrustName] = useState(''); const [orgType, setOrgType] = useState('Single School'); const [numSchools, setNumSchools] = useState('1');
@@ -22,26 +28,86 @@ export default function OnboardingWizardModule({ theme }: { theme: Theme }) {
   const [schoolLaunched, setSchoolLaunched] = useState(false);
   const [logoFile, setLogoFile] = useState<string | null>(null);
 
-  const steps = [
-    { num: 1, label: 'School Basic Info' }, { num: 2, label: 'Organisation Setup' },
-    { num: 3, label: 'Academic Config' }, { num: 4, label: 'Module Selection' },
-    { num: 5, label: 'Admin Account' }, { num: 6, label: 'Review & Launch' },
-  ];
+  const stepLabels: Record<number, string> = {
+    1: 'School Basic Info', 2: 'Organisation Setup', 3: 'Academic Config',
+    4: 'Module Selection', 5: 'Admin Account', 6: 'Review & Launch',
+  };
+  const steps = Object.entries(stepLabels).map(([num, label]) => ({ num: Number(num), label }));
+
+  // Mark current step as complete and advance
+  const markCompleteAndAdvance = useCallback(() => {
+    setStepStatus(prev => {
+      const next = { ...prev, [currentStep]: 'complete' as StepStatus };
+      const nextStep = currentStep + 1;
+      if (nextStep <= 6 && prev[nextStep] === 'pending') {
+        next[nextStep] = 'incomplete';
+      }
+      return next;
+    });
+    setJumpWarning(null);
+    setCurrentStep(p => Math.min(6, p + 1));
+  }, [currentStep]);
+
+  // Handle step tab click — mark visited steps as incomplete, warn if jumping ahead
+  const handleStepClick = useCallback((targetStep: number) => {
+    setJumpWarning(null);
+    // If jumping 2+ steps ahead and current step is not complete, show warning
+    if (targetStep > currentStep + 1 && stepStatus[currentStep] !== 'complete') {
+      setJumpWarning(`Please complete Step ${currentStep} (${stepLabels[currentStep]}) before proceeding`);
+    }
+    // Mark target step as incomplete if it was pending (first visit)
+    setStepStatus(prev => {
+      const next = { ...prev };
+      if (prev[targetStep] === 'pending') {
+        next[targetStep] = 'incomplete';
+      }
+      // Also mark any skipped steps as incomplete
+      for (let i = currentStep + 1; i < targetStep; i++) {
+        if (prev[i] === 'pending') {
+          next[i] = 'incomplete';
+        }
+      }
+      return next;
+    });
+    setCurrentStep(targetStep);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStep, stepStatus]);
+
+  // Render step status icon
+  const renderStepIcon = (stepNum: number) => {
+    const status = stepStatus[stepNum];
+    if (status === 'complete') return <CheckCircle size={14} className="text-emerald-500" />;
+    if (status === 'incomplete') return <AlertTriangle size={14} className="text-amber-500" />;
+    return <Circle size={14} className={theme.iconColor} />;
+  };
 
   return (
     <div className="space-y-4">
       <ModuleHeader title="Onboarding Wizard" subtitle="Step-by-step school setup flow" theme={theme} />
 
+      {/* Jump Warning Banner */}
+      {jumpWarning && (
+        <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold animate-pulse">
+          <AlertTriangle size={14} className="text-amber-500 shrink-0" />
+          {jumpWarning}
+          <button onClick={() => setJumpWarning(null)} className="ml-auto text-amber-400 hover:text-amber-600 font-bold text-sm">&times;</button>
+        </div>
+      )}
+
       {/* Step Indicators */}
       <div className="flex items-center gap-1">
         {steps.map(s => (
-          <button key={s.num} onClick={() => setCurrentStep(s.num)}
+          <button key={s.num} onClick={() => handleStepClick(s.num)}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
-              currentStep === s.num ? `${theme.primary} text-white` : currentStep > s.num ? 'bg-emerald-100 text-emerald-700' : `${theme.secondaryBg} ${theme.iconColor}`
+              currentStep === s.num ? `${theme.primary} text-white` : stepStatus[s.num] === 'complete' ? 'bg-emerald-100 text-emerald-700' : stepStatus[s.num] === 'incomplete' ? 'bg-amber-50 text-amber-700 border border-amber-200' : `${theme.secondaryBg} ${theme.iconColor}`
             }`}>
-            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-              currentStep === s.num ? 'bg-white/30 text-white' : currentStep > s.num ? 'bg-emerald-500 text-white' : `${theme.cardBg} ${theme.iconColor}`
-            }`}>{currentStep > s.num ? '\u2713' : s.num}</span>
+            <span className="flex items-center justify-center w-5 h-5">
+              {currentStep === s.num ? (
+                <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold bg-white/30 text-white">{s.num}</span>
+              ) : (
+                renderStepIcon(s.num)
+              )}
+            </span>
             {s.label}
           </button>
         ))}
@@ -211,13 +277,13 @@ export default function OnboardingWizardModule({ theme }: { theme: Theme }) {
 
       {/* Navigation Buttons */}
       <div className="flex items-center justify-between">
-        <button onClick={() => setCurrentStep(p => Math.max(1, p - 1))} disabled={currentStep === 1}
+        <button onClick={() => { setJumpWarning(null); setCurrentStep(p => Math.max(1, p - 1)); }} disabled={currentStep === 1}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${currentStep === 1 ? 'opacity-30 cursor-not-allowed' : `${theme.buttonHover} ${theme.iconColor}`} border ${theme.border}`}>
           Previous
         </button>
         <span className={`text-[10px] font-bold ${theme.iconColor}`}>Step {currentStep} of 6</span>
         {currentStep < 6 ? (
-          <button onClick={() => setCurrentStep(p => Math.min(6, p + 1))}
+          <button onClick={markCompleteAndAdvance}
             className={`px-4 py-2 rounded-xl text-xs font-bold text-white ${theme.primary} hover:opacity-90 transition-all`}>
             Next
           </button>
@@ -227,7 +293,7 @@ export default function OnboardingWizardModule({ theme }: { theme: Theme }) {
               <CheckCircle size={14} /> School Launched Successfully!
             </span>
           ) : (
-            <button onClick={() => setSchoolLaunched(true)}
+            <button onClick={() => { setStepStatus(prev => ({ ...prev, 6: 'complete' })); setSchoolLaunched(true); }}
               className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-emerald-500 hover:bg-emerald-600 transition-all">
               Launch School
             </button>

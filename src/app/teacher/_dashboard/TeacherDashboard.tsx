@@ -94,7 +94,7 @@ export default function TeacherDashboard({ theme, themeIdx, onThemeChange, isPre
         </div>
 
         <div className="px-6 pb-6 space-y-4">
-          {activeModule === 'dashboard' && <DashboardHome theme={theme} isPreschool={isPreschool} />}
+          {activeModule === 'dashboard' && <DashboardHome theme={theme} isPreschool={isPreschool} onNavigate={setActiveModule} />}
           {activeModule === 'classes' && <MyClassesModule theme={theme} />}
           {activeModule === 'attendance' && <AttendanceModule theme={theme} />}
           {activeModule === 'homework' && <HomeworkModule theme={theme} />}

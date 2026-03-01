@@ -10,7 +10,7 @@ import {
   ClipboardCheck, Star, FileText, ShieldCheck, Award, User, Sparkles,
   Radio, Cake, Heart, Moon, Sun, Image, LayoutGrid, X, Eye, EyeOff,
   Timer, Phone, Stethoscope, ChevronDown, ChevronUp, Shield, MessageSquare,
-  HelpCircle,
+  HelpCircle, Smartphone,
 } from 'lucide-react';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import RecurringTasksCard from '@/components/RecurringTasksCard';
@@ -21,6 +21,8 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
   const [drillDown, setDrillDown] = useState<'students' | 'academic' | 'non-academic' | null>(null);
   const [showEnquiryPipeline, setShowEnquiryPipeline] = useState(false);
   const [showFeeDrillDown, setShowFeeDrillDown] = useState(false);
+  const [showApprovalsDrillDown, setShowApprovalsDrillDown] = useState(false);
+  const [showCollectionDrillDown, setShowCollectionDrillDown] = useState(false);
 
   {/* Gap 13 — Dark Mode state */}
   const [darkMode, setDarkMode] = useState(false);
@@ -46,8 +48,12 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
   {/* Gap 18 — Sensitive Data Masking state */}
   const [dataMasked, setDataMasked] = useState(false);
 
+  {/* Mobile App Preview side-panel state */}
+  const [showMobilePreview, setShowMobilePreview] = useState(false);
+
   return (
-    <div className="space-y-4">
+    <div className="flex gap-4">
+      <div className={`${showMobilePreview ? 'flex-1 min-w-0' : 'w-full'} space-y-4 transition-all`}>
       <div className="flex items-center justify-between">
         <div>
           <h1 className={`text-2xl font-bold ${theme.highlight}`}>{isPreschool ? 'Principal / Centre Head Dashboard' : 'Principal Dashboard'}</h1>
@@ -71,6 +77,10 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
           <button onClick={() => setDarkMode(!darkMode)} title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'} className={`relative w-9 h-9 rounded-full ${theme.secondaryBg} flex items-center justify-center ${theme.buttonHover} transition-all`}>
             {darkMode ? <Sun size={16} className="text-amber-500" /> : <Moon size={16} className={theme.iconColor} />}
           </button>
+          {/* Mobile App Preview Toggle */}
+          <button onClick={() => setShowMobilePreview(!showMobilePreview)} title="Mobile App Preview" className={`relative w-9 h-9 rounded-full ${showMobilePreview ? 'bg-green-500 text-white' : theme.secondaryBg} flex items-center justify-center ${theme.buttonHover} transition-all`}>
+            <Smartphone size={16} className={showMobilePreview ? 'text-white' : theme.iconColor} />
+          </button>
           {/* Notification Bell */}
           <button title="Notifications" className={`relative w-9 h-9 rounded-full ${theme.secondaryBg} flex items-center justify-center ${theme.buttonHover} transition-all`}>
             <Bell size={16} className={theme.iconColor} />
@@ -83,9 +93,6 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
         </div>
       </div>
 
-
-      {/* ─── MOBILE APP PREVIEW ─── */}
-      <PrincipalMobileApp theme={theme} />
 
       {/* Gap 16 — Force-Push Mandatory Dashlet */}
       <div className="rounded-2xl border-l-4 border-amber-500 bg-amber-50 border border-amber-200 p-4">
@@ -155,52 +162,6 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
                 ))}
               </tbody>
             </table>
-          </div>
-        </div>
-      )}
-
-      {/* Gap #147 — Student Grievance Tracker */}
-      {!isPreschool && (
-        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <MessageSquare size={16} className="text-indigo-500" />
-              <h3 className={`text-sm font-bold ${theme.highlight}`}>Student Grievances</h3>
-            </div>
-            <button className={`text-xs px-3 py-1 rounded-xl ${theme.secondaryBg} ${theme.highlight} font-bold ${theme.buttonHover}`}>View All</button>
-          </div>
-          <div className="grid grid-cols-3 gap-3 mb-3">
-            <div className={`${theme.secondaryBg} rounded-xl p-3 text-center`}>
-              <p className="text-lg font-bold text-amber-600">2</p>
-              <p className={`text-[10px] ${theme.iconColor}`}>Open</p>
-            </div>
-            <div className={`${theme.secondaryBg} rounded-xl p-3 text-center`}>
-              <p className="text-lg font-bold text-emerald-600">15</p>
-              <p className={`text-[10px] ${theme.iconColor}`}>Resolved</p>
-            </div>
-            <div className={`${theme.secondaryBg} rounded-xl p-3 text-center`}>
-              <p className="text-lg font-bold text-blue-600">4 days</p>
-              <p className={`text-[10px] ${theme.iconColor}`}>Avg Resolution</p>
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            {[
-              { id: 'GR-042', subject: 'Bullying complaint — Class 7A', date: 'Feb 25', status: 'Open', priority: 'High' },
-              { id: 'GR-041', subject: 'Canteen food quality concern', date: 'Feb 23', status: 'Open', priority: 'Medium' },
-            ].map((g, i) => (
-              <div key={i} className={`flex items-center gap-3 p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <div className={`w-7 h-7 rounded-lg ${g.priority === 'High' ? 'bg-red-100' : 'bg-amber-100'} flex items-center justify-center shrink-0`}>
-                  <MessageSquare size={13} className={g.priority === 'High' ? 'text-red-500' : 'text-amber-500'} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className={`text-[11px] font-bold ${theme.highlight} truncate`}>{g.id}: {g.subject}</p>
-                  <p className={`text-[10px] ${theme.iconColor}`}>{g.date}</p>
-                </div>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold shrink-0 ${
-                  g.priority === 'High' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
-                }`}>{g.priority}</span>
-              </div>
-            ))}
           </div>
         </div>
       )}
@@ -302,14 +263,10 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
 
       {/* Stat Cards + Quick Actions — same row */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-        <button onClick={() => setShowFeeDrillDown(!showFeeDrillDown)} className="text-left">
-          <StatCard icon={Banknote} label="Fee This Month" value={dataMasked ? '\u20B9 **** / \u20B9 ****' : '\u20B912.4L / \u20B918L'} color="bg-emerald-500" sub="Click for breakdown" theme={theme} />
-        </button>
-        <button onClick={() => setShowEnquiryPipeline(!showEnquiryPipeline)} className="text-left">
-          <StatCard icon={Users} label="New Enquiries" value={dataMasked ? '***' : '12'} color="bg-purple-500" sub={dataMasked ? 'Click to view pipeline | *** seats open' : 'Click to view pipeline | 45 seats open'} theme={theme} />
-        </button>
-        <StatCard icon={Clock} label="Pending Approvals" value="8" color="bg-amber-500" theme={theme} />
-        <StatCard icon={Banknote} label="Today's Collection" value={dataMasked ? '\u20B9 ****' : '\u20B92,45,000'} color="bg-green-500" sub={dataMasked ? 'Outstanding: \u20B9 ****' : 'Outstanding: \u20B918.5L'} theme={theme} />
+        <StatCard icon={Banknote} label="Fee This Month" value={dataMasked ? '\u20B9 **** / \u20B9 ****' : '\u20B912.4L / \u20B918L'} color="bg-emerald-500" sub="Click for breakdown" theme={theme} onClick={() => setShowFeeDrillDown(!showFeeDrillDown)} />
+        <StatCard icon={Users} label="New Enquiries" value={dataMasked ? '***' : '12'} color="bg-purple-500" sub={dataMasked ? 'Click to view pipeline | *** seats open' : 'Click to view pipeline | 45 seats open'} theme={theme} onClick={() => setShowEnquiryPipeline(!showEnquiryPipeline)} />
+        <StatCard icon={Clock} label="Pending Approvals" value="8" color="bg-amber-500" theme={theme} onClick={() => setShowApprovalsDrillDown(!showApprovalsDrillDown)} />
+        <StatCard icon={Banknote} label="Today's Collection" value={dataMasked ? '\u20B9 ****' : '\u20B92,45,000'} color="bg-green-500" sub={dataMasked ? 'Outstanding: \u20B9 ****' : 'Outstanding: \u20B918.5L'} theme={theme} onClick={() => setShowCollectionDrillDown(!showCollectionDrillDown)} />
         {/* Quick Actions — compact icon row */}
         <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-3 flex flex-col justify-center`}>
           <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-2`}>Quick Actions</p>
@@ -449,6 +406,127 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
                     <td className={`py-2 px-2 ${theme.iconColor}`}>{dataMasked ? '\u20B9 ****' : r.collected}</td>
                     <td className={`py-2 px-2 ${theme.iconColor}`}>{dataMasked ? '\u20B9 ****' : r.outstanding}</td>
                     <td className={`py-2 px-2 font-bold ${r.pct >= 90 ? 'text-emerald-600' : r.pct >= 75 ? 'text-amber-600' : 'text-red-600'}`}>{r.pct}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Pending Approvals Drill-Down */}
+      {showApprovalsDrillDown && (
+        <div className={`${theme.cardBg} rounded-2xl border-2 border-amber-400 ring-1 ring-amber-400/30 p-4`}>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>Pending Approvals — Action Required</h3>
+            <button onClick={() => setShowApprovalsDrillDown(false)} className={`text-xs ${theme.iconColor} hover:text-red-500`}>Close</button>
+          </div>
+          <div className="grid grid-cols-4 gap-2 mb-4">
+            {[
+              { label: 'Leave Requests', value: '3', color: 'text-blue-600', bgColor: 'bg-blue-50 border-blue-200' },
+              { label: 'Fee Concessions', value: '2', color: 'text-amber-600', bgColor: 'bg-amber-50 border-amber-200' },
+              { label: 'TC Requests', value: '1', color: 'text-purple-600', bgColor: 'bg-purple-50 border-purple-200' },
+              { label: 'Other', value: '2', color: 'text-gray-600', bgColor: 'bg-gray-50 border-gray-200' },
+            ].map(s => (
+              <div key={s.label} className={`${s.bgColor} border rounded-xl p-3 text-center`}>
+                <p className={`text-[10px] ${theme.iconColor} mb-1`}>{s.label}</p>
+                <p className={`text-sm font-bold ${s.color}`}>{s.value}</p>
+              </div>
+            ))}
+          </div>
+          <div className="space-y-2">
+            {[
+              { type: 'Leave', from: 'Mrs. Priya Sharma', detail: 'Casual Leave \u2014 3 days (Mar 5\u20137)', date: 'Today', priority: 'Urgent' },
+              { type: 'Leave', from: 'Mr. Suresh Mehta', detail: 'Sick Leave \u2014 2 days', date: 'Yesterday', priority: 'Normal' },
+              { type: 'Fee Waiver', from: 'Rajesh Patel (Class 6A)', detail: 'Fee concession request \u2014 \u20B915,000 (50%)', date: 'Today', priority: 'Normal' },
+              { type: 'TC', from: 'Aarav Singh (Class 8B)', detail: 'Transfer Certificate \u2014 relocating to Pune', date: '2 days ago', priority: 'Normal' },
+              { type: 'Budget', from: 'Admin Office', detail: 'Sports Day budget \u2014 \u20B945,000', date: '3 days ago', priority: 'Normal' },
+              { type: 'Leave', from: 'Ms. Anita Desai', detail: 'Maternity Leave \u2014 26 weeks', date: '3 days ago', priority: 'Urgent' },
+              { type: 'Event', from: 'Activity Coordinator', detail: 'Science Fair proposal \u2014 Mar 15', date: '4 days ago', priority: 'Normal' },
+              { type: 'Purchase', from: 'Lab Dept', detail: 'Chemistry lab equipment \u2014 \u20B928,000', date: '5 days ago', priority: 'Normal' },
+            ].map((a, i) => (
+              <div key={i} className={`flex items-center gap-3 p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                  a.type === 'Leave' ? 'bg-blue-100' : a.type === 'Fee Waiver' ? 'bg-amber-100' : a.type === 'TC' ? 'bg-purple-100' : 'bg-gray-100'
+                }`}>
+                  <span className={`text-[10px] font-bold ${
+                    a.type === 'Leave' ? 'text-blue-600' : a.type === 'Fee Waiver' ? 'text-amber-600' : a.type === 'TC' ? 'text-purple-600' : 'text-gray-600'
+                  }`}>{a.type.charAt(0)}</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-[11px] font-bold ${theme.highlight} truncate`}>{a.from}</p>
+                  <p className={`text-[10px] ${theme.iconColor} truncate`}>{a.detail}</p>
+                </div>
+                <span className={`text-[10px] ${theme.iconColor} shrink-0`}>{a.date}</span>
+                {a.priority === 'Urgent' && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 font-bold shrink-0">Urgent</span>}
+                <div className="flex gap-1 shrink-0">
+                  <button className="w-6 h-6 rounded-lg bg-emerald-100 flex items-center justify-center hover:bg-emerald-200 transition-colors">
+                    <CheckCircle size={12} className="text-emerald-600" />
+                  </button>
+                  <button className="w-6 h-6 rounded-lg bg-red-100 flex items-center justify-center hover:bg-red-200 transition-colors">
+                    <X size={12} className="text-red-500" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Today's Collection Drill-Down */}
+      {showCollectionDrillDown && (
+        <div className={`${theme.cardBg} rounded-2xl border-2 border-green-400 ring-1 ring-green-400/30 p-4`}>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>Today&apos;s Collection — Live</h3>
+            <button onClick={() => setShowCollectionDrillDown(false)} className={`text-xs ${theme.iconColor} hover:text-red-500`}>Close</button>
+          </div>
+          <div className="grid grid-cols-4 gap-2 mb-4">
+            {[
+              { label: 'Cash', value: '\u20B978,000', color: 'text-emerald-600', bgColor: 'bg-emerald-50 border-emerald-200' },
+              { label: 'Online/UPI', value: '\u20B91,42,000', color: 'text-blue-600', bgColor: 'bg-blue-50 border-blue-200' },
+              { label: 'Cheque', value: '\u20B925,000', color: 'text-purple-600', bgColor: 'bg-purple-50 border-purple-200' },
+              { label: 'Total', value: '\u20B92,45,000', color: 'text-gray-800', bgColor: 'bg-gray-100 border-gray-300' },
+            ].map(s => (
+              <div key={s.label} className={`${s.bgColor} border rounded-xl p-3 text-center`}>
+                <p className={`text-[10px] ${theme.iconColor} mb-1`}>{s.label}</p>
+                <p className={`text-sm font-bold ${s.color}`}>{s.value}</p>
+              </div>
+            ))}
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className={`border-b ${theme.border}`}>
+                  <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Receipt #</th>
+                  <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Student</th>
+                  <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Class</th>
+                  <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Amount</th>
+                  <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Mode</th>
+                  <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { receipt: 'R-4521', student: 'Aarav Singh', cls: '8B', amount: '\u20B912,500', mode: 'UPI', time: '10:45 AM' },
+                  { receipt: 'R-4520', student: 'Priya Verma', cls: '5A', amount: '\u20B98,000', mode: 'Cash', time: '10:30 AM' },
+                  { receipt: 'R-4519', student: 'Kabir Joshi', cls: '3C', amount: '\u20B915,000', mode: 'Online', time: '10:15 AM' },
+                  { receipt: 'R-4518', student: 'Sneha Patel', cls: '7A', amount: '\u20B925,000', mode: 'Cheque', time: '9:45 AM' },
+                  { receipt: 'R-4517', student: 'Rahul Kumar', cls: '10B', amount: '\u20B918,500', mode: 'UPI', time: '9:30 AM' },
+                ].map((t, i) => (
+                  <tr key={i} className={`border-b ${theme.border} ${theme.buttonHover}`}>
+                    <td className={`py-2 px-2 font-bold text-blue-600`}>{t.receipt}</td>
+                    <td className={`py-2 px-2 ${theme.highlight} font-bold`}>{t.student}</td>
+                    <td className={`py-2 px-2 ${theme.iconColor}`}>{t.cls}</td>
+                    <td className={`py-2 px-2 font-bold text-emerald-600`}>{t.amount}</td>
+                    <td className="py-2 px-2">
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                        t.mode === 'UPI' ? 'bg-blue-100 text-blue-700' :
+                        t.mode === 'Online' ? 'bg-indigo-100 text-indigo-700' :
+                        t.mode === 'Cheque' ? 'bg-purple-100 text-purple-700' :
+                        'bg-emerald-100 text-emerald-700'
+                      }`}>{t.mode}</span>
+                    </td>
+                    <td className={`py-2 px-2 ${theme.iconColor}`}>{t.time}</td>
                   </tr>
                 ))}
               </tbody>
@@ -639,6 +717,52 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Gap #147 — Student Grievance Tracker */}
+      {!isPreschool && (
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <MessageSquare size={16} className="text-indigo-500" />
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>Student Grievances</h3>
+            </div>
+            <button className={`text-xs px-3 py-1 rounded-xl ${theme.secondaryBg} ${theme.highlight} font-bold ${theme.buttonHover}`}>View All</button>
+          </div>
+          <div className="grid grid-cols-3 gap-3 mb-3">
+            <div className={`${theme.secondaryBg} rounded-xl p-3 text-center`}>
+              <p className="text-lg font-bold text-amber-600">2</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Open</p>
+            </div>
+            <div className={`${theme.secondaryBg} rounded-xl p-3 text-center`}>
+              <p className="text-lg font-bold text-emerald-600">15</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Resolved</p>
+            </div>
+            <div className={`${theme.secondaryBg} rounded-xl p-3 text-center`}>
+              <p className="text-lg font-bold text-blue-600">4 days</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Avg Resolution</p>
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            {[
+              { id: 'GR-042', subject: 'Bullying complaint — Class 7A', date: 'Feb 25', status: 'Open', priority: 'High' },
+              { id: 'GR-041', subject: 'Canteen food quality concern', date: 'Feb 23', status: 'Open', priority: 'Medium' },
+            ].map((g, i) => (
+              <div key={i} className={`flex items-center gap-3 p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <div className={`w-7 h-7 rounded-lg ${g.priority === 'High' ? 'bg-red-100' : 'bg-amber-100'} flex items-center justify-center shrink-0`}>
+                  <MessageSquare size={13} className={g.priority === 'High' ? 'text-red-500' : 'text-amber-500'} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-[11px] font-bold ${theme.highlight} truncate`}>{g.id}: {g.subject}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{g.date}</p>
+                </div>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold shrink-0 ${
+                  g.priority === 'High' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
+                }`}>{g.priority}</span>
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -872,6 +996,18 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
       )}
 
 
+      </div>
+      {showMobilePreview && (
+        <div className="w-[380px] shrink-0 sticky top-0 h-[calc(100vh-120px)] overflow-y-auto">
+          <div className="flex items-center justify-between mb-2">
+            <p className={`text-xs font-bold ${theme.iconColor}`}>Mobile App Preview</p>
+            <button onClick={() => setShowMobilePreview(false)} className={`text-xs ${theme.iconColor} hover:text-red-500`}>
+              <X size={14} />
+            </button>
+          </div>
+          <PrincipalMobileApp theme={theme} alwaysShow />
+        </div>
+      )}
     </div>
   );
 }

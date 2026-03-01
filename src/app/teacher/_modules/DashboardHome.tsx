@@ -69,7 +69,7 @@ const roomMap: Record<string, string> = {
   'PTM Slot': 'Room 301',
 };
 
-export default function DashboardHome({ theme, isPreschool }: { theme: Theme; isPreschool?: boolean }) {
+export default function DashboardHome({ theme, isPreschool, onNavigate }: { theme: Theme; isPreschool?: boolean; onNavigate?: (id: string) => void }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
 
@@ -417,10 +417,10 @@ export default function DashboardHome({ theme, isPreschool }: { theme: Theme; is
           SECTION 4: QUICK STATS
           ══════════════════════════════════════════════════════ */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={BookOpen} label="Classes Today" value="5" color="bg-blue-500" sub="of 6 total" theme={theme} />
-        <StatCard icon={ClipboardCheck} label="Attendance Pending" value="2" color="bg-amber-500" sub="10-A, 8-A" theme={theme} />
-        <StatCard icon={FileText} label="Homework Due" value="3" color="bg-purple-500" sub="submissions today" theme={theme} />
-        <StatCard icon={Users} label="Total Students" value="225" color="bg-emerald-500" sub="6 sections" theme={theme} />
+        <StatCard icon={BookOpen} label="Classes Today" value="5" color="bg-blue-500" sub="of 6 total" theme={theme} onClick={() => onNavigate?.('timetable')} />
+        <StatCard icon={ClipboardCheck} label="Attendance Pending" value="2" color="bg-amber-500" sub="10-A, 8-A" theme={theme} onClick={() => onNavigate?.('attendance')} />
+        <StatCard icon={FileText} label="Homework Due" value="3" color="bg-purple-500" sub="submissions today" theme={theme} onClick={() => onNavigate?.('homework')} />
+        <StatCard icon={Users} label="Total Students" value="225" color="bg-emerald-500" sub="6 sections" theme={theme} onClick={() => onNavigate?.('classes')} />
       </div>
 
       {isPreschool && (

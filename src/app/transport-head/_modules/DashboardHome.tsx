@@ -73,18 +73,18 @@ export default function DashboardHome({ theme, onProfileClick, setActiveModule, 
 
       {/* Stats Row 1 */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Bus} label="Total Vehicles" value={6} color="bg-blue-500" theme={theme} />
-        <StatCard icon={Route} label="Active Routes" value={6} color="bg-emerald-500" sub="all active" theme={theme} />
-        <StatCard icon={Users} label="Students Using Transport" value={222} color="bg-indigo-500" theme={theme} />
-        <StatCard icon={Navigation} label="Vehicles On Road" value={6} color="bg-teal-500" sub="all running on time" theme={theme} />
+        <StatCard icon={Bus} label="Total Vehicles" value={6} color="bg-blue-500" theme={theme} onClick={() => setActiveModule('vehicles')} />
+        <StatCard icon={Route} label="Active Routes" value={6} color="bg-emerald-500" sub="all active" theme={theme} onClick={() => setActiveModule('routes')} />
+        <StatCard icon={Users} label="Students Using Transport" value={222} color="bg-indigo-500" theme={theme} onClick={() => setActiveModule('students')} />
+        <StatCard icon={Navigation} label="Vehicles On Road" value={6} color="bg-teal-500" sub="all running on time" theme={theme} onClick={() => setActiveModule('gps-tracking')} />
       </div>
 
       {/* Stats Row 2 */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={User} label="Drivers Present" value="6/6" color="bg-purple-500" sub="100% attendance" theme={theme} />
-        <StatCard icon={CheckCircle} label="Trips Completed Today" value={12} color="bg-emerald-500" sub="6 morning + 6 pickup" theme={theme} />
-        <StatCard icon={AlertTriangle} label="Maintenance Due" value={2} color="bg-amber-500" sub="next 30 days" theme={theme} />
-        <StatCard icon={IndianRupee} label="Monthly Fuel Cost" value="₹1.85L" color="bg-orange-500" sub="Feb 2026" theme={theme} />
+        <StatCard icon={User} label="Drivers Present" value="6/6" color="bg-purple-500" sub="100% attendance" theme={theme} onClick={() => setActiveModule('drivers')} />
+        <StatCard icon={CheckCircle} label="Trips Completed Today" value={12} color="bg-emerald-500" sub="6 morning + 6 pickup" theme={theme} onClick={() => setActiveModule('gps-tracking')} />
+        <StatCard icon={AlertTriangle} label="Maintenance Due" value={2} color="bg-amber-500" sub="next 30 days" theme={theme} onClick={() => setActiveModule('maintenance')} />
+        <StatCard icon={IndianRupee} label="Monthly Fuel Cost" value="₹1.85L" color="bg-orange-500" sub="Feb 2026" theme={theme} onClick={() => setActiveModule('fees')} />
       </div>
 
       {/* Fees Overview Card (clickable → fees module) */}

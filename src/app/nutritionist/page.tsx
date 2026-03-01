@@ -113,7 +113,7 @@ function NutritionistDashboard({ theme, themeIdx, onThemeChange, isPreschool, cu
 
       {/* Module content */}
       <div className="flex-1 p-6 space-y-4 overflow-x-hidden">
-        {activeModule === 'dashboard' && <DashboardHome theme={theme} onProfileClick={() => setActiveModule('profile')} />}
+        {activeModule === 'dashboard' && <DashboardHome theme={theme} onProfileClick={() => setActiveModule('profile')} onNavigate={setActiveModule} />}
         {activeModule === 'meal-plans' && <MealPlansModule theme={theme} />}
         {activeModule === 'allergy-register' && <AllergyRegisterModule theme={theme} />}
         {activeModule === 'weekly-menu' && <WeeklyMenuModule theme={theme} />}
@@ -128,7 +128,7 @@ function NutritionistDashboard({ theme, themeIdx, onThemeChange, isPreschool, cu
 }
 
 // ─── DASHBOARD HOME ──────────────────────────────────
-function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick: () => void }) {
+function DashboardHome({ theme, onProfileClick, onNavigate }: { theme: Theme; onProfileClick: () => void; onNavigate?: (id: string) => void }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -140,9 +140,9 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={UtensilsCrossed} label="Today's Menu" value="Paneer + Rice" color="bg-emerald-500" sub="Wednesday special" theme={theme} />
-        <StatCard icon={AlertTriangle} label="Allergies Flagged" value={3} color="bg-red-500" sub="Peanut, Lactose, Gluten" theme={theme} />
-        <StatCard icon={Heart} label="Children with Special Diet" value={5} color="bg-amber-500" sub="Active diet plans" theme={theme} />
+        <StatCard icon={UtensilsCrossed} label="Today's Menu" value="Paneer + Rice" color="bg-emerald-500" sub="Wednesday special" theme={theme} onClick={() => onNavigate?.('weekly-menu')} />
+        <StatCard icon={AlertTriangle} label="Allergies Flagged" value={3} color="bg-red-500" sub="Peanut, Lactose, Gluten" theme={theme} onClick={() => onNavigate?.('allergy-register')} />
+        <StatCard icon={Heart} label="Children with Special Diet" value={5} color="bg-amber-500" sub="Active diet plans" theme={theme} onClick={() => onNavigate?.('meal-plans')} />
         <StatCard icon={Users} label="Meals Served Today" value="142/156" color="bg-blue-500" sub="91% served" theme={theme} />
       </div>
 

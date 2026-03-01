@@ -121,12 +121,12 @@ function DashboardView({ theme, setActiveModule }: { theme: Theme; setActiveModu
 
       {/* Stat Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <StatCard icon={GraduationCap} label="Schools Onboarded" value="12" color="bg-blue-500" theme={theme} />
-        <StatCard icon={CheckCircle} label="Active Subscriptions" value="11" color="bg-emerald-500" sub="1 expired" theme={theme} />
-        <StatCard icon={IndianRupee} label="Total Commission" value="₹4,85,000" color="bg-purple-500" theme={theme} />
-        <StatCard icon={Clock} label="Pending Payout" value="₹72,500" color="bg-amber-500" theme={theme} />
-        <StatCard icon={TrendingUp} label="This Month Revenue" value="₹2,40,000" color="bg-teal-500" sub="From schools" theme={theme} />
-        <StatCard icon={Target} label="Avg Commission Rate" value="18%" color="bg-indigo-500" theme={theme} />
+        <StatCard icon={GraduationCap} label="Schools Onboarded" value="12" color="bg-blue-500" theme={theme} onClick={() => setActiveModule('schools')} />
+        <StatCard icon={CheckCircle} label="Active Subscriptions" value="11" color="bg-emerald-500" sub="1 expired" theme={theme} onClick={() => setActiveModule('schools')} />
+        <StatCard icon={IndianRupee} label="Total Commission" value="₹4,85,000" color="bg-purple-500" theme={theme} onClick={() => setActiveModule('earnings')} />
+        <StatCard icon={Clock} label="Pending Payout" value="₹72,500" color="bg-amber-500" theme={theme} onClick={() => setActiveModule('earnings')} />
+        <StatCard icon={TrendingUp} label="This Month Revenue" value="₹2,40,000" color="bg-teal-500" sub="From schools" theme={theme} onClick={() => setActiveModule('earnings')} />
+        <StatCard icon={Target} label="Avg Commission Rate" value="18%" color="bg-indigo-500" theme={theme} onClick={() => setActiveModule('earnings')} />
       </div>
 
       {/* Quick Summary Cards */}

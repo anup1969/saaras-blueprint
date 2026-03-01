@@ -194,10 +194,10 @@ function DashboardView({ theme, setActiveModule }: { theme: Theme; setActiveModu
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard icon={Banknote} label="Collected (Feb)" value={'\u20B912.4L'} color="bg-emerald-500" sub={'+\u20B92.4L today'} theme={theme} />
-        <StatCard icon={AlertTriangle} label="Pending Fees" value={'\u20B98.2L'} color="bg-amber-500" sub="124 students" theme={theme} />
-        <StatCard icon={TrendingDown} label="Expenses (Feb)" value={'\u20B99.8L'} color="bg-red-500" theme={theme} />
-        <StatCard icon={Wallet} label="Bank Balance" value={'\u20B918.45L'} color="bg-blue-500" theme={theme} />
+        <StatCard icon={Banknote} label="Collected (Feb)" value={'\u20B912.4L'} color="bg-emerald-500" sub={'+\u20B92.4L today'} theme={theme} onClick={() => setActiveModule('collections')} />
+        <StatCard icon={AlertTriangle} label="Pending Fees" value={'\u20B98.2L'} color="bg-amber-500" sub="124 students" theme={theme} onClick={() => setActiveModule('collections')} />
+        <StatCard icon={TrendingDown} label="Expenses (Feb)" value={'\u20B99.8L'} color="bg-red-500" theme={theme} onClick={() => setActiveModule('expenses')} />
+        <StatCard icon={Wallet} label="Bank Balance" value={'\u20B918.45L'} color="bg-blue-500" theme={theme} onClick={() => setActiveModule('bank')} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

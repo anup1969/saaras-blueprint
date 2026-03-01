@@ -12,7 +12,7 @@ import {
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import RecurringTasksCard from '@/components/RecurringTasksCard';
 
-export default function DashboardHome({ theme, stats, onProfileClick }: { theme: Theme; stats: typeof dashboardStats.schoolAdmin; onProfileClick: () => void }) {
+export default function DashboardHome({ theme, stats, onProfileClick, onNavigate }: { theme: Theme; stats: typeof dashboardStats.schoolAdmin; onProfileClick: () => void; onNavigate?: (id: string) => void }) {
   {/* Gap 13 — Dark Mode state */}
   const [darkMode, setDarkMode] = useState(false);
 
@@ -38,16 +38,16 @@ export default function DashboardHome({ theme, stats, onProfileClick }: { theme:
         </div>
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Users} label="Total Students" value={stats.totalStudents} color="bg-blue-500" theme={theme} />
-        <StatCard icon={Briefcase} label="Total Staff" value={stats.totalStaff} color="bg-indigo-500" theme={theme} />
-        <StatCard icon={Banknote} label="Fee Collected" value={stats.feeCollected} color="bg-emerald-500" sub={stats.feeCollectedPercent} theme={theme} />
-        <StatCard icon={CheckCircle} label="Pending Approvals" value={stats.pendingApprovals} color="bg-amber-500" theme={theme} />
+        <StatCard icon={Users} label="Total Students" value={stats.totalStudents} color="bg-blue-500" theme={theme} onClick={() => onNavigate?.('students')} />
+        <StatCard icon={Briefcase} label="Total Staff" value={stats.totalStaff} color="bg-indigo-500" theme={theme} onClick={() => onNavigate?.('staff')} />
+        <StatCard icon={Banknote} label="Fee Collected" value={stats.feeCollected} color="bg-emerald-500" sub={stats.feeCollectedPercent} theme={theme} onClick={() => onNavigate?.('fees')} />
+        <StatCard icon={CheckCircle} label="Pending Approvals" value={stats.pendingApprovals} color="bg-amber-500" theme={theme} onClick={() => onNavigate?.('approvals')} />
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={ClipboardCheck} label="Today Attendance" value={stats.todayAttendance} color="bg-teal-500" theme={theme} />
-        <StatCard icon={UserPlus} label="New Enquiries" value={stats.newEnquiries} color="bg-purple-500" sub="this month" theme={theme} />
-        <StatCard icon={Shield} label="Active Visitors" value={stats.activeVisitors} color="bg-orange-500" theme={theme} />
-        <StatCard icon={Bell} label="Notifications" value="5" color="bg-red-500" sub="unread" theme={theme} />
+        <StatCard icon={ClipboardCheck} label="Today Attendance" value={stats.todayAttendance} color="bg-teal-500" theme={theme} onClick={() => onNavigate?.('attendance')} />
+        <StatCard icon={UserPlus} label="New Enquiries" value={stats.newEnquiries} color="bg-purple-500" sub="this month" theme={theme} onClick={() => onNavigate?.('enquiries')} />
+        <StatCard icon={Shield} label="Active Visitors" value={stats.activeVisitors} color="bg-orange-500" theme={theme} onClick={() => onNavigate?.('visitors')} />
+        <StatCard icon={Bell} label="Notifications" value="5" color="bg-red-500" sub="unread" theme={theme} onClick={() => onNavigate?.('notifications')} />
       </div>
 
       {/* Gap 28: User Profile Completeness Score */}

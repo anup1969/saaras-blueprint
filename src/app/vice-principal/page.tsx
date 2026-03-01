@@ -140,7 +140,7 @@ function VicePrincipalDashboard({ theme, themeIdx, onThemeChange, currentUser }:
 
       {/* Module content */}
       <div className="flex-1 p-6 space-y-4 overflow-x-hidden">
-        {activeModule === 'dashboard' && <DashboardHome theme={theme} onProfileClick={() => setActiveModule('profile')} />}
+        {activeModule === 'dashboard' && <DashboardHome theme={theme} onProfileClick={() => setActiveModule('profile')} onNavigate={setActiveModule} />}
         {activeModule === 'substitutions' && <SubstitutionsModule theme={theme} />}
         {activeModule === 'discipline' && <DisciplineModule theme={theme} />}
         {activeModule === 'timetable' && <TimetableModule theme={theme} />}
@@ -159,7 +159,7 @@ function VicePrincipalDashboard({ theme, themeIdx, onThemeChange, currentUser }:
 
 // ─── DASHBOARD HOME ─────────────────────────────────
 
-function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick: () => void }) {
+function DashboardHome({ theme, onProfileClick, onNavigate }: { theme: Theme; onProfileClick: () => void; onNavigate?: (id: string) => void }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -171,14 +171,14 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Repeat} label="Today's Substitutions" value={4} color="bg-blue-500" sub="2 pending" theme={theme} />
-        <StatCard icon={Gavel} label="Open Discipline Cases" value={3} color="bg-red-500" theme={theme} />
-        <StatCard icon={BookOpen} label="Upcoming Exams" value={6} color="bg-purple-500" sub="this week" theme={theme} />
+        <StatCard icon={Repeat} label="Today's Substitutions" value={4} color="bg-blue-500" sub="2 pending" theme={theme} onClick={() => onNavigate?.('substitutions')} />
+        <StatCard icon={Gavel} label="Open Discipline Cases" value={3} color="bg-red-500" theme={theme} onClick={() => onNavigate?.('discipline')} />
+        <StatCard icon={BookOpen} label="Upcoming Exams" value={6} color="bg-purple-500" sub="this week" theme={theme} onClick={() => onNavigate?.('examinations')} />
         <StatCard icon={ClipboardCheck} label="Today Attendance" value="94.2%" color="bg-emerald-500" theme={theme} />
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={UserMinus} label="Teachers Absent" value={3} color="bg-amber-500" sub="today" theme={theme} />
-        <StatCard icon={Megaphone} label="Active Circulars" value={5} color="bg-indigo-500" theme={theme} />
+        <StatCard icon={UserMinus} label="Teachers Absent" value={3} color="bg-amber-500" sub="today" theme={theme} onClick={() => onNavigate?.('substitutions')} />
+        <StatCard icon={Megaphone} label="Active Circulars" value={5} color="bg-indigo-500" theme={theme} onClick={() => onNavigate?.('circulars')} />
         <StatCard icon={Calendar} label="PTM Scheduled" value="22 Feb" color="bg-teal-500" theme={theme} />
         <StatCard icon={Bell} label="Notifications" value={7} color="bg-orange-500" sub="unread" theme={theme} />
       </div>

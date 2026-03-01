@@ -202,10 +202,10 @@ function DashboardView({ theme, setActiveModule }: { theme: Theme; setActiveModu
 
       {/* Financial KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard icon={DollarSign} label="Total Revenue" value={financialSummary.totalRevenue} color="bg-emerald-500" theme={theme} />
-        <StatCard icon={Banknote} label="Fee Collected" value={financialSummary.feeCollected} color="bg-blue-500" sub={financialSummary.feeCollectedPercent} theme={theme} />
-        <StatCard icon={TrendingDown} label="Total Expenses" value={financialSummary.totalExpenses} color="bg-amber-500" theme={theme} />
-        <StatCard icon={TrendingUp} label="Net Surplus" value={financialSummary.netSurplus} color="bg-purple-500" theme={theme} />
+        <StatCard icon={DollarSign} label="Total Revenue" value={financialSummary.totalRevenue} color="bg-emerald-500" theme={theme} onClick={() => setActiveModule('financial')} />
+        <StatCard icon={Banknote} label="Fee Collected" value={financialSummary.feeCollected} color="bg-blue-500" sub={financialSummary.feeCollectedPercent} theme={theme} onClick={() => setActiveModule('financial')} />
+        <StatCard icon={TrendingDown} label="Total Expenses" value={financialSummary.totalExpenses} color="bg-amber-500" theme={theme} onClick={() => setActiveModule('financial')} />
+        <StatCard icon={TrendingUp} label="Net Surplus" value={financialSummary.netSurplus} color="bg-purple-500" theme={theme} onClick={() => setActiveModule('financial')} />
       </div>
 
       {/* Fees Card */}

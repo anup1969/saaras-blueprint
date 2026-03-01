@@ -69,11 +69,11 @@ export default function SSADashboardHome({ theme, onNavigate }: { theme: Theme; 
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <StatCard icon={Settings} label="Modules Configured" value="18 / 27" color="bg-indigo-500" theme={theme} />
-        <StatCard icon={CheckCircle} label="Config Complete" value="67%" color="bg-emerald-500" theme={theme} />
-        <StatCard icon={Clock} label="Last Change" value="2 hrs ago" color="bg-blue-500" theme={theme} />
-        <StatCard icon={AlertTriangle} label="Pending Setup" value="9" color="bg-amber-500" theme={theme} />
-        <StatCard icon={Lock} label="Critical Locks Active" value="6" color="bg-rose-500" theme={theme} />
+        <StatCard icon={Settings} label="Modules Configured" value="18 / 27" color="bg-indigo-500" theme={theme} onClick={() => onNavigate('onboarding-wizard')} />
+        <StatCard icon={CheckCircle} label="Config Complete" value="67%" color="bg-emerald-500" theme={theme} onClick={() => onNavigate('onboarding-wizard')} />
+        <StatCard icon={Clock} label="Last Change" value="2 hrs ago" color="bg-blue-500" theme={theme} onClick={() => onNavigate('audit-log')} />
+        <StatCard icon={AlertTriangle} label="Pending Setup" value="9" color="bg-amber-500" theme={theme} onClick={() => onNavigate('onboarding-wizard')} />
+        <StatCard icon={Lock} label="Critical Locks Active" value="6" color="bg-rose-500" theme={theme} onClick={() => onNavigate('critical-locks')} />
       </div>
 
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>

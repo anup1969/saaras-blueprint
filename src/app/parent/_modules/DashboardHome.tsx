@@ -14,7 +14,7 @@ import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import type { ChildProfile } from '../_components/types';
 import { attendanceData, feesData, homeworkData, communicationData } from '../_components/data';
 
-export default function DashboardHome({ theme, child, onProfileClick }: { theme: Theme; child: ChildProfile; onProfileClick: () => void }) {
+export default function DashboardHome({ theme, child, onProfileClick, onNavigate }: { theme: Theme; child: ChildProfile; onProfileClick: () => void; onNavigate?: (id: string) => void }) {
   const att = attendanceData[child.id];
   const fees = feesData[child.id];
   const hw = homeworkData[child.id];
@@ -94,10 +94,10 @@ export default function DashboardHome({ theme, child, onProfileClick }: { theme:
 
       {/* Stat Cards */}
       <div className="grid grid-cols-4 gap-3">
-        <StatCard icon={ClipboardCheck} label="Today's Attendance" value="Present" color="bg-emerald-500" sub={`${att.percentage}% overall`} theme={theme} />
-        <StatCard icon={BookMarked} label="Pending Homework" value={pendingHW} color="bg-amber-500" sub={pendingHW > 0 ? 'Needs attention' : 'All done!'} theme={theme} />
-        <StatCard icon={IndianRupee} label="Fee Dues" value={fees.currentDue > 0 ? `Rs.${fees.currentDue.toLocaleString('en-IN')}` : 'No Dues'} color={fees.currentDue > 0 ? 'bg-red-500' : 'bg-emerald-500'} sub={fees.currentDue > 0 ? `Due: ${fees.nextDueDate}` : 'All paid up'} theme={theme} />
-        <StatCard icon={MessageSquare} label="Unread Messages" value={unreadMsg} color="bg-blue-500" sub={unreadMsg > 0 ? 'New messages' : 'All read'} theme={theme} />
+        <StatCard icon={ClipboardCheck} label="Today's Attendance" value="Present" color="bg-emerald-500" sub={`${att.percentage}% overall`} theme={theme} onClick={() => onNavigate?.('attendance')} />
+        <StatCard icon={BookMarked} label="Pending Homework" value={pendingHW} color="bg-amber-500" sub={pendingHW > 0 ? 'Needs attention' : 'All done!'} theme={theme} onClick={() => onNavigate?.('homework')} />
+        <StatCard icon={IndianRupee} label="Fee Dues" value={fees.currentDue > 0 ? `Rs.${fees.currentDue.toLocaleString('en-IN')}` : 'No Dues'} color={fees.currentDue > 0 ? 'bg-red-500' : 'bg-emerald-500'} sub={fees.currentDue > 0 ? `Due: ${fees.nextDueDate}` : 'All paid up'} theme={theme} onClick={() => onNavigate?.('fees')} />
+        <StatCard icon={MessageSquare} label="Unread Messages" value={unreadMsg} color="bg-blue-500" sub={unreadMsg > 0 ? 'New messages' : 'All read'} theme={theme} onClick={() => onNavigate?.('communication')} />
       </div>
 
       {/* Two Column Layout */}

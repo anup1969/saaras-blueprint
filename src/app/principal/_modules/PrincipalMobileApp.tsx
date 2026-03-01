@@ -60,7 +60,7 @@ const priorityColors: Record<string, string> = { high: 'bg-red-500', medium: 'bg
 // ═══════════════════════════════════════════════════
 // PRINCIPAL MOBILE APP — Full Interactive Preview
 // ═══════════════════════════════════════════════════
-export default function PrincipalMobileApp({ theme }: { theme: Theme }) {
+export default function PrincipalMobileApp({ theme, alwaysShow }: { theme: Theme; alwaysShow?: boolean }) {
   const [showApp, setShowApp] = useState(false);
   const [screen, setScreen] = useState<Screen>('home');
   const [prevScreen, setPrevScreen] = useState<Screen>('home');
@@ -133,7 +133,7 @@ export default function PrincipalMobileApp({ theme }: { theme: Theme }) {
     </div>
   );
 
-  if (!showApp) {
+  if (!showApp && !alwaysShow) {
     return (
       <button
         onClick={() => setShowApp(true)}
@@ -146,12 +146,14 @@ export default function PrincipalMobileApp({ theme }: { theme: Theme }) {
   }
 
   return (
-    <div className="mt-2 mb-4">
-      <button onClick={() => setShowApp(false)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-green-600 text-white mb-3">
-        <Smartphone size={14} /> Hide Mobile App View
-      </button>
+    <div className={alwaysShow ? '' : 'mt-2 mb-4'}>
+      {!alwaysShow && (
+        <button onClick={() => setShowApp(false)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-green-600 text-white mb-3">
+          <Smartphone size={14} /> Hide Mobile App View
+        </button>
+      )}
 
-      <div className="flex flex-col items-center">
+      <div className={alwaysShow ? '' : 'flex flex-col items-center'}>
         <div className="w-[340px] border-[3px] border-gray-800 rounded-[2.5rem] overflow-hidden shadow-2xl bg-white relative">
           {/* Notch */}
           <div className="bg-gray-900 h-7 flex items-center justify-center">

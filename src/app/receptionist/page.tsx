@@ -129,7 +129,7 @@ function ReceptionistDashboard({ theme, themeIdx, onThemeChange, currentUser }: 
 
       {/* Module content */}
       <div className="flex-1 p-6 space-y-4 overflow-x-hidden">
-        {activeModule === 'dashboard' && <DashboardHome theme={theme} onProfileClick={() => setActiveModule('profile')} />}
+        {activeModule === 'dashboard' && <DashboardHome theme={theme} onProfileClick={() => setActiveModule('profile')} onNavigate={setActiveModule} />}
         {activeModule === 'visitors' && <VisitorsModule theme={theme} />}
         {activeModule === 'enquiries' && <EnquiriesModule theme={theme} />}
         {activeModule === 'calls' && <CallsModule theme={theme} />}
@@ -149,7 +149,7 @@ function ReceptionistDashboard({ theme, themeIdx, onThemeChange, currentUser }: 
 
 // ─── DASHBOARD HOME ─────────────────────────────────
 
-function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick: () => void }) {
+function DashboardHome({ theme, onProfileClick, onNavigate }: { theme: Theme; onProfileClick: () => void; onNavigate?: (id: string) => void }) {
   const inCampus = mockVisitors.filter(v => v.status === 'In Campus').length;
   const newEnquiries = mockEnquiries.filter(e => e.status === 'New').length;
   const todayAppointments = mockAppointments.filter(a => a.date === '14 Feb 2026' || a.date === '13 Feb 2026').length;
@@ -167,17 +167,17 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
 
       {/* Stat Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Shield} label="Visitors In Campus" value={inCampus} color="bg-orange-500" sub="3 checked out" theme={theme} />
-        <StatCard icon={UserPlus} label="Pending Enquiries" value={newEnquiries} color="bg-blue-500" sub="2 follow-ups today" theme={theme} />
-        <StatCard icon={Calendar} label="Today's Appointments" value={todayAppointments} color="bg-purple-500" sub="next at 10:00 AM" theme={theme} />
-        <StatCard icon={PhoneCall} label="Calls Logged" value={todayCalls} color="bg-teal-500" sub="4 incoming, 2 outgoing" theme={theme} />
+        <StatCard icon={Shield} label="Visitors In Campus" value={inCampus} color="bg-orange-500" sub="3 checked out" theme={theme} onClick={() => onNavigate?.('visitors')} />
+        <StatCard icon={UserPlus} label="Pending Enquiries" value={newEnquiries} color="bg-blue-500" sub="2 follow-ups today" theme={theme} onClick={() => onNavigate?.('enquiries')} />
+        <StatCard icon={Calendar} label="Today's Appointments" value={todayAppointments} color="bg-purple-500" sub="next at 10:00 AM" theme={theme} onClick={() => onNavigate?.('appointments')} />
+        <StatCard icon={PhoneCall} label="Calls Logged" value={todayCalls} color="bg-teal-500" sub="4 incoming, 2 outgoing" theme={theme} onClick={() => onNavigate?.('calls')} />
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Package} label="Pending Pickups" value="2" color="bg-amber-500" sub="courier/mail" theme={theme} />
+        <StatCard icon={Package} label="Pending Pickups" value="2" color="bg-amber-500" sub="courier/mail" theme={theme} onClick={() => onNavigate?.('courier')} />
         <StatCard icon={Bell} label="Reminders" value="3" color="bg-red-500" sub="follow-ups due" theme={theme} />
-        <StatCard icon={CheckCircle} label="Enquiries Converted" value="1" color="bg-emerald-500" sub="this week" theme={theme} />
-        <StatCard icon={BadgeCheck} label="Badges Issued" value="6" color="bg-indigo-500" sub="today" theme={theme} />
+        <StatCard icon={CheckCircle} label="Enquiries Converted" value="1" color="bg-emerald-500" sub="this week" theme={theme} onClick={() => onNavigate?.('enquiries')} />
+        <StatCard icon={BadgeCheck} label="Badges Issued" value="6" color="bg-indigo-500" sub="today" theme={theme} onClick={() => onNavigate?.('visitors')} />
       </div>
 
       {/* Quick Actions */}

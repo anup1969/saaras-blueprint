@@ -178,10 +178,10 @@ function ActivityCoordinatorDashboard({ theme, themeIdx, onThemeChange, currentU
           <>
             {/* Stat Cards */}
             <div className="grid grid-cols-4 gap-3">
-              <StatCard label="Today's Activities" value="6" sub="2 completed, 1 in progress" icon={Calendar} color="bg-blue-500" theme={theme} />
-              <StatCard label="Upcoming Events" value="4" sub="Next: Mother Language Day (Feb 20)" icon={Award} color="bg-amber-500" theme={theme} />
-              <StatCard label="Milestones This Week" value="12" sub="85% children on track" icon={Star} color="bg-emerald-500" theme={theme} />
-              <StatCard label="Photo Uploads" value="24" sub="Last 7 days — shared with parents" icon={Camera} color="bg-purple-500" theme={theme} />
+              <StatCard label="Today's Activities" value="6" sub="2 completed, 1 in progress" icon={Calendar} color="bg-blue-500" theme={theme} onClick={() => setActiveModule('activity-calendar')} />
+              <StatCard label="Upcoming Events" value="4" sub="Next: Mother Language Day (Feb 20)" icon={Award} color="bg-amber-500" theme={theme} onClick={() => setActiveModule('events')} />
+              <StatCard label="Milestones This Week" value="12" sub="85% children on track" icon={Star} color="bg-emerald-500" theme={theme} onClick={() => setActiveModule('milestone-curriculum')} />
+              <StatCard label="Photo Uploads" value="24" sub="Last 7 days — shared with parents" icon={Camera} color="bg-purple-500" theme={theme} onClick={() => setActiveModule('art-gallery')} />
             </div>
 
             {/* Today's Activity Schedule */}

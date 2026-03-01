@@ -5,11 +5,12 @@ import { type Theme } from '@/lib/themes';
 import { LucideIcon, Download, Upload, FileText, CheckCircle, AlertTriangle, ChevronRight } from 'lucide-react';
 
 // ─── STAT CARD ───────────────────────────────────────
-export function StatCard({ icon: Icon, label, value, color, sub, theme }: {
-  icon: LucideIcon; label: string; value: string | number; color: string; sub?: string; theme: Theme;
+export function StatCard({ icon: Icon, label, value, color, sub, theme, onClick }: {
+  icon: LucideIcon; label: string; value: string | number; color: string; sub?: string; theme: Theme; onClick?: () => void;
 }) {
+  const Wrapper = onClick ? 'button' : 'div';
   return (
-    <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 flex items-center gap-3 shadow-sm`}>
+    <Wrapper onClick={onClick} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 flex items-center gap-3 shadow-sm ${onClick ? 'cursor-pointer hover:shadow-md hover:scale-[1.01] transition-all text-left w-full' : ''}`}>
       <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${color} text-white shadow-sm`}>
         <Icon size={18} />
       </div>
@@ -18,7 +19,7 @@ export function StatCard({ icon: Icon, label, value, color, sub, theme }: {
         <p className={`text-xs ${theme.iconColor}`}>{label}</p>
         {sub && <p className="text-[10px] text-emerald-600 font-bold mt-0.5">{sub}</p>}
       </div>
-    </div>
+    </Wrapper>
   );
 }
 

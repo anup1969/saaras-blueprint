@@ -69,7 +69,7 @@ export default function ParentDashboard({ theme, themeIdx, onThemeChange, curren
           {childrenData}
         </ChildSelector>
 
-        {activeModule === 'dashboard' && <DashboardHome theme={theme} child={child} onProfileClick={() => setActiveModule('profile')} />}
+        {activeModule === 'dashboard' && <DashboardHome theme={theme} child={child} onProfileClick={() => setActiveModule('profile')} onNavigate={setActiveModule} />}
         {activeModule === 'attendance' && <AttendanceModule theme={theme} child={child} />}
         {activeModule === 'academics' && <AcademicsModule theme={theme} child={child} />}
         {activeModule === 'fees' && <FeesModule theme={theme} child={child} />}

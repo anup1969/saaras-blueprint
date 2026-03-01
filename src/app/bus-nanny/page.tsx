@@ -102,7 +102,7 @@ function BusNannyDashboard({ theme, themeIdx, onThemeChange, isPreschool, curren
 
       {/* Module content */}
       <div className="flex-1 p-6 space-y-4 overflow-x-hidden">
-        {activeModule === 'dashboard' && <DashboardHome theme={theme} onProfileClick={() => setActiveModule('profile')} />}
+        {activeModule === 'dashboard' && <DashboardHome theme={theme} onProfileClick={() => setActiveModule('profile')} onNavigate={setActiveModule} />}
         {activeModule === 'trip-log' && <TripLogModule theme={theme} />}
         {activeModule === 'safety-checklist' && <SafetyChecklistModule theme={theme} />}
         {activeModule === 'students-assigned' && <StudentsAssignedModule theme={theme} />}
@@ -116,7 +116,7 @@ function BusNannyDashboard({ theme, themeIdx, onThemeChange, isPreschool, curren
 }
 
 // ─── DASHBOARD HOME ──────────────────────────────────
-function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick: () => void }) {
+function DashboardHome({ theme, onProfileClick, onNavigate }: { theme: Theme; onProfileClick: () => void; onNavigate?: (id: string) => void }) {
   const [handoverLog, setHandoverLog] = useState([
     { stop: 'Jodhpur Cross Roads', child: 'Aarav Patel', handedTo: 'Rajesh Patel (Father)', time: '03:40 PM', photo: true, verified: true },
     { stop: 'Satellite Circle', child: 'Priya Sharma', handedTo: 'Vikram Sharma (Father)', time: '03:45 PM', photo: true, verified: true },
@@ -158,9 +158,9 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Bus} label="Today's Trips" value={4} color="bg-blue-500" sub="2 completed, 1 active" theme={theme} />
-        <StatCard icon={Baby} label="Children Assigned" value={28} color="bg-emerald-500" sub="Across all routes" theme={theme} />
-        <StatCard icon={ClipboardCheck} label="Safety Checklists Done" value="3/4" color="bg-amber-500" sub="Trip 4 in progress" theme={theme} />
+        <StatCard icon={Bus} label="Today's Trips" value={4} color="bg-blue-500" sub="2 completed, 1 active" theme={theme} onClick={() => onNavigate?.('trip-log')} />
+        <StatCard icon={Baby} label="Children Assigned" value={28} color="bg-emerald-500" sub="Across all routes" theme={theme} onClick={() => onNavigate?.('students-assigned')} />
+        <StatCard icon={ClipboardCheck} label="Safety Checklists Done" value="3/4" color="bg-amber-500" sub="Trip 4 in progress" theme={theme} onClick={() => onNavigate?.('safety-checklist')} />
         <StatCard icon={AlertTriangle} label="Incidents Today" value={0} color="bg-red-500" sub="All clear" theme={theme} />
       </div>
 

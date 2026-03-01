@@ -106,7 +106,7 @@ export default function SchoolAdminDashboard({ theme, themeIdx, onThemeChange, c
 
       {/* Module content */}
       <div className="flex-1 p-6 space-y-4 overflow-x-hidden">
-        {activeModule === 'dashboard' && <DashboardHome theme={theme} stats={stats} onProfileClick={() => setActiveModule('profile')} />}
+        {activeModule === 'dashboard' && <DashboardHome theme={theme} stats={stats} onProfileClick={() => setActiveModule('profile')} onNavigate={setActiveModule} />}
         {activeModule === 'students' && <StudentsModule theme={theme} />}
         {activeModule === 'enquiries' && <EnquiriesModule theme={theme} />}
         {activeModule === 'staff' && <StaffModule theme={theme} />}

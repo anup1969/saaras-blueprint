@@ -132,7 +132,7 @@ function SecurityDashboard({ theme, themeIdx, onThemeChange, currentUser }: { th
 
       {/* Module content */}
       <div className="flex-1 p-6 space-y-4 overflow-x-hidden">
-        {activeModule === 'dashboard' && <DashboardHome theme={theme} onProfileClick={() => setActiveModule('profile')} />}
+        {activeModule === 'dashboard' && <DashboardHome theme={theme} onProfileClick={() => setActiveModule('profile')} onNavigate={setActiveModule} />}
         {activeModule === 'visitor-checkin' && <VisitorCheckinModule theme={theme} />}
         {activeModule === 'student-pickup' && <StudentPickupModule theme={theme} />}
         {activeModule === 'gate-log' && <GateLogModule theme={theme} />}
@@ -152,7 +152,7 @@ function SecurityDashboard({ theme, themeIdx, onThemeChange, currentUser }: { th
 }
 
 // ─── DASHBOARD HOME ──────────────────────────────────
-function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick: () => void }) {
+function DashboardHome({ theme, onProfileClick, onNavigate }: { theme: Theme; onProfileClick: () => void; onNavigate?: (id: string) => void }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -225,16 +225,16 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
       } />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Users} label="Visitors Inside Campus" value={4} color="bg-blue-500" sub="6 total today" theme={theme} />
-        <StatCard icon={LogIn} label="Today's Entries" value={16} color="bg-emerald-500" sub="All gates" theme={theme} />
-        <StatCard icon={Baby} label="Pending Pickups" value={3} color="bg-amber-500" sub="2 verified" theme={theme} />
-        <StatCard icon={AlertTriangle} label="Active Alerts" value={1} color="bg-red-500" sub="Fire ext. expired" theme={theme} />
+        <StatCard icon={Users} label="Visitors Inside Campus" value={4} color="bg-blue-500" sub="6 total today" theme={theme} onClick={() => onNavigate?.('visitor-checkin')} />
+        <StatCard icon={LogIn} label="Today's Entries" value={16} color="bg-emerald-500" sub="All gates" theme={theme} onClick={() => onNavigate?.('gate-log')} />
+        <StatCard icon={Baby} label="Pending Pickups" value={3} color="bg-amber-500" sub="2 verified" theme={theme} onClick={() => onNavigate?.('student-pickup')} />
+        <StatCard icon={AlertTriangle} label="Active Alerts" value={1} color="bg-red-500" sub="Fire ext. expired" theme={theme} onClick={() => onNavigate?.('emergency')} />
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Car} label="Vehicles Inside" value={8} color="bg-indigo-500" theme={theme} />
+        <StatCard icon={Car} label="Vehicles Inside" value={8} color="bg-indigo-500" theme={theme} onClick={() => onNavigate?.('gate-log')} />
         <StatCard icon={Shield} label="Guards On Duty" value={3} color="bg-teal-500" sub="of 4 total" theme={theme} />
-        <StatCard icon={Footprints} label="Patrols Completed" value="7/10" color="bg-purple-500" theme={theme} />
+        <StatCard icon={Footprints} label="Patrols Completed" value="7/10" color="bg-purple-500" theme={theme} onClick={() => onNavigate?.('patrol-log')} />
         <StatCard icon={Camera} label="CCTV Active" value="11/12" color="bg-orange-500" sub="#7 shifted" theme={theme} />
       </div>
 

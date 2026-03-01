@@ -307,7 +307,7 @@ function StudentDashboard({ theme, themeIdx, onThemeChange, currentUser }: { the
 
       {/* Module content */}
       <div className="flex-1 p-6 space-y-4 overflow-x-hidden">
-        {activeModule === 'dashboard' && <DashboardHome theme={theme} onProfileClick={() => setActiveModule('profile')} />}
+        {activeModule === 'dashboard' && <DashboardHome theme={theme} onProfileClick={() => setActiveModule('profile')} onNavigate={setActiveModule} />}
         {activeModule === 'timetable' && <TimetableModule theme={theme} />}
         {activeModule === 'homework' && <HomeworkModule theme={theme} />}
         {activeModule === 'results' && <ResultsModule theme={theme} />}
@@ -333,7 +333,7 @@ function StudentDashboard({ theme, themeIdx, onThemeChange, currentUser }: { the
 }
 
 // ─── DASHBOARD HOME ─────────────────────────────────
-function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick: () => void }) {
+function DashboardHome({ theme, onProfileClick, onNavigate }: { theme: Theme; onProfileClick: () => void; onNavigate?: (id: string) => void }) {
   const [showCustomize, setShowCustomize] = useState(false);
   const [widgetConfig, setWidgetConfig] = useState<Record<string, boolean>>({
     'Attendance': true, 'Timetable': true, 'Homework': true, 'Fee Status': true,
@@ -492,10 +492,10 @@ function DashboardHome({ theme, onProfileClick }: { theme: Theme; onProfileClick
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={ClipboardCheck} label="Today's Classes" value={8} color="bg-blue-500" sub="2 complete" theme={theme} />
-        <StatCard icon={BookOpen} label="Pending Homework" value={2} color="bg-amber-500" sub="due this week" theme={theme} />
-        <StatCard icon={Award} label="Upcoming Exams" value="Pre-Board" color="bg-purple-500" sub="20 Feb 2026" theme={theme} />
-        <StatCard icon={TrendingUp} label="Attendance" value="93.2%" color="bg-emerald-500" sub="this session" theme={theme} />
+        <StatCard icon={ClipboardCheck} label="Today's Classes" value={8} color="bg-blue-500" sub="2 complete" theme={theme} onClick={() => onNavigate?.('timetable')} />
+        <StatCard icon={BookOpen} label="Pending Homework" value={2} color="bg-amber-500" sub="due this week" theme={theme} onClick={() => onNavigate?.('homework')} />
+        <StatCard icon={Award} label="Upcoming Exams" value="Pre-Board" color="bg-purple-500" sub="20 Feb 2026" theme={theme} onClick={() => onNavigate?.('my-exams')} />
+        <StatCard icon={TrendingUp} label="Attendance" value="93.2%" color="bg-emerald-500" sub="this session" theme={theme} onClick={() => onNavigate?.('attendance')} />
       </div>
 
       {/* Today's Schedule */}

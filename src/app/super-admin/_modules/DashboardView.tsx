@@ -21,10 +21,10 @@ export default function DashboardView({ theme, setActiveModule, onStartWizard }:
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard icon={Building2} label="Active Schools" value="6" color="bg-blue-500" sub="+1 this month" theme={theme} />
-        <StatCard icon={Users} label="Total Users" value="12,480" color="bg-emerald-500" sub="Across all schools" theme={theme} />
-        <StatCard icon={DollarSign} label="MRR" value="₹5.45L" color="bg-purple-500" sub="+12% vs last month" theme={theme} />
-        <StatCard icon={Activity} label="System Uptime" value="99.97%" color="bg-amber-500" theme={theme} />
+        <StatCard icon={Building2} label="Active Schools" value="6" color="bg-blue-500" sub="+1 this month" theme={theme} onClick={() => setActiveModule('schools')} />
+        <StatCard icon={Users} label="Total Users" value="12,480" color="bg-emerald-500" sub="Across all schools" theme={theme} onClick={() => setActiveModule('users')} />
+        <StatCard icon={DollarSign} label="MRR" value="₹5.45L" color="bg-purple-500" sub="+12% vs last month" theme={theme} onClick={() => setActiveModule('analytics')} />
+        <StatCard icon={Activity} label="System Uptime" value="99.97%" color="bg-amber-500" theme={theme} onClick={() => setActiveModule('config')} />
       </div>
 
       {/* Quick Actions + Recent Activity */}
