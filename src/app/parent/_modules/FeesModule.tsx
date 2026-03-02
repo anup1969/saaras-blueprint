@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { type Theme } from '@/lib/themes';
-import { StatCard, TabBar, StatusBadge, DataTable, MobileFrame, MobilePreviewToggle } from '@/components/shared';
+import { StatCard, TabBar, StatusBadge, MobileFrame, MobilePreviewToggle } from '@/components/shared';
 import {
   Calendar, CheckCircle,
   AlertTriangle, CreditCard, Download,
@@ -77,7 +77,7 @@ export default function FeesModule({ theme, child }: { theme: Theme; child: Chil
         )}
       </div>
 
-      <TabBar tabs={['Overview', 'Payment History', 'Upcoming', 'Fee Structure', 'Ledger', 'Scholarships']} active={activeTab} onChange={setActiveTab} theme={theme} />
+      <TabBar tabs={['Overview', 'Fee Structure', 'Ledger', 'Scholarships']} active={activeTab} onChange={setActiveTab} theme={theme} />
 
       {/* ── Mobile App Preview ── */}
       <MobilePreviewToggle theme={theme} mobileContent={
@@ -220,45 +220,6 @@ export default function FeesModule({ theme, child }: { theme: Theme; child: Chil
               </div>
             ))}
           </div>
-        </div>
-      )}
-
-      {activeTab === 'Payment History' && (
-        <DataTable
-          headers={['Date', 'Description', 'Amount', 'Mode', 'Receipt No.', 'Status', 'Action']}
-          rows={fees.payments.map(p => [
-            <span key="dt" className={`text-xs ${theme.iconColor}`}>{p.date}</span>,
-            <span key="desc" className={`font-bold ${theme.highlight}`}>{p.description}</span>,
-            <span key="amt" className={`font-bold ${theme.highlight}`}>Rs.{p.amount.toLocaleString('en-IN')}</span>,
-            <span key="mode" className={`text-xs ${theme.iconColor}`}>{p.mode}</span>,
-            <span key="rec" className={`text-xs font-mono ${theme.primaryText}`}>{p.receiptNo}</span>,
-            <StatusBadge key="st" status={p.status} theme={theme} />,
-            <button key="dl" className={`flex items-center gap-1 text-xs ${theme.primaryText} font-bold`}>
-              <Download size={12} /> Receipt
-            </button>,
-          ])}
-          theme={theme}
-        />
-      )}
-
-      {activeTab === 'Upcoming' && (
-        <div className="space-y-3">
-          {fees.upcoming.map((inst, i) => (
-            <div key={i} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5`}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className={`text-sm font-bold ${theme.highlight}`}>{inst.installment}</h3>
-                  <p className={`text-xs ${theme.iconColor} mt-1`}>Due Date: {inst.dueDate}</p>
-                </div>
-                <div className="text-right">
-                  <p className={`text-lg font-bold ${theme.highlight}`}>Rs.{inst.amount.toLocaleString('en-IN')}</p>
-                  <button className="mt-1 px-4 py-1.5 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 transition-all">
-                    Pay Now
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
         </div>
       )}
 

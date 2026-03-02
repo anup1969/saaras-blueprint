@@ -99,19 +99,24 @@ export default function SSADashboardHome({ theme, onNavigate }: { theme: Theme; 
                 mod.status === 'complete' ? 'hover:ring-emerald-400' :
                 mod.status === 'partial' ? 'hover:ring-amber-400' : 'hover:ring-slate-300'
               }`}>
-              <mod.icon size={14} className={
-                mod.status === 'complete' ? 'text-emerald-500 mt-0.5 shrink-0' :
-                mod.status === 'partial' ? 'text-amber-500 mt-0.5 shrink-0' : 'text-slate-400 mt-0.5 shrink-0'
-              } />
+              <div className="relative shrink-0 mt-0.5">
+                <mod.icon size={14} className={
+                  mod.status === 'complete' ? 'text-emerald-500' :
+                  mod.status === 'partial' ? 'text-amber-500' : 'text-slate-400'
+                } />
+                {mod.status === 'complete' && <CheckCircle size={8} className="absolute -bottom-0.5 -right-0.5 text-emerald-500 bg-white rounded-full" />}
+                {mod.status === 'partial' && <AlertTriangle size={8} className="absolute -bottom-0.5 -right-0.5 text-amber-500 bg-white rounded-full" />}
+                {mod.status === 'pending' && <Clock size={8} className="absolute -bottom-0.5 -right-0.5 text-slate-400 bg-white rounded-full" />}
+              </div>
               <div className="flex-1 min-w-0">
                 <p className={`text-xs font-bold ${theme.highlight}`}>{mod.name}</p>
                 <p className={`text-[10px] ${theme.iconColor}`}>{mod.items}</p>
                 <div className="flex items-center justify-between mt-1">
-                  <span className={`text-[9px] px-1.5 py-0.5 rounded inline-block font-bold ${
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded inline-flex items-center gap-1 font-bold ${
                     mod.status === 'complete' ? 'bg-emerald-100 text-emerald-700' :
-                    mod.status === 'partial' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'
+                    mod.status === 'partial' ? 'bg-amber-100 text-amber-700' : 'bg-red-50 text-red-500'
                   }`}>
-                    {mod.status === 'complete' ? 'COMPLETE' : mod.status === 'partial' ? 'IN PROGRESS' : 'NOT STARTED'}
+                    {mod.status === 'complete' ? <><CheckCircle size={8} /> COMPLETE</> : mod.status === 'partial' ? <><AlertTriangle size={8} /> INCOMPLETE</> : <><Clock size={8} /> NOT STARTED</>}
                   </span>
                   <span className={`text-[9px] ${theme.iconColor} opacity-0 group-hover:opacity-100 transition-opacity`}>Configure →</span>
                 </div>

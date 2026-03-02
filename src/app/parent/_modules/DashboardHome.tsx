@@ -144,7 +144,7 @@ export default function DashboardHome({ theme, child, onProfileClick, onNavigate
         </div>
       </div>
 
-      {/* Three Column: Events | Messages | Consent */}
+      {/* Three Column: Events | Messages | AI Assistant */}
       <div className="grid grid-cols-3 gap-4">
         {/* Upcoming Exams / Events */}
         <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
@@ -200,36 +200,8 @@ export default function DashboardHome({ theme, child, onProfileClick, onNavigate
           </div>
         </div>
 
-        {/* Consent & Permissions — moved up from below */}
-        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-          <div className="flex items-center justify-between mb-3">
-            <h3 className={`text-sm font-bold ${theme.highlight}`}>Consent &amp; Permissions</h3>
-            <ClipboardCheck size={14} className={theme.iconColor} />
-          </div>
-          <div className="space-y-2">
-            <div className={`p-2.5 rounded-xl ${theme.secondaryBg} border-l-2 border-amber-500`}>
-              <p className={`text-[11px] font-bold ${theme.highlight}`}>Science Museum Field Trip</p>
-              <p className={`text-[9px] ${theme.iconColor} mt-0.5`}>March 8, 2026 — Bus transport included</p>
-              <div className="flex gap-1.5 mt-2">
-                <button className="px-2.5 py-1 bg-emerald-500 text-white rounded-lg text-[10px] font-bold">Accept</button>
-                <button className="px-2.5 py-1 bg-red-100 text-red-600 rounded-lg text-[10px] font-bold">Decline</button>
-              </div>
-            </div>
-            <div className={`p-2.5 rounded-xl ${theme.secondaryBg} border-l-2 border-amber-500`}>
-              <p className={`text-[11px] font-bold ${theme.highlight}`}>Annual Day Photography</p>
-              <p className={`text-[9px] ${theme.iconColor} mt-0.5`}>Photos/videos for official use</p>
-              <div className="flex gap-1.5 mt-2">
-                <button className="px-2.5 py-1 bg-emerald-500 text-white rounded-lg text-[10px] font-bold">Accept</button>
-                <button className="px-2.5 py-1 bg-red-100 text-red-600 rounded-lg text-[10px] font-bold">Decline</button>
-              </div>
-            </div>
-            <div className={`p-2.5 rounded-xl ${theme.secondaryBg} border-l-2 border-emerald-500`}>
-              <p className={`text-[11px] font-bold ${theme.highlight}`}>Swimming Classes</p>
-              <p className={`text-[9px] ${theme.iconColor} mt-0.5`}>Wednesdays 2-3 PM</p>
-              <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold inline-block mt-1">Approved</span>
-            </div>
-          </div>
-        </div>
+        {/* AI School Assistant — prominent placement */}
+        <AISchoolAssistantCompact theme={theme} child={child} />
       </div>
 
       {/* Quick Links + Homework */}
@@ -420,9 +392,6 @@ export default function DashboardHome({ theme, child, onProfileClick, onNavigate
         </div>
       </div>
 
-      {/* ── AI School Assistant ── */}
-      <AISchoolAssistant theme={theme} child={child} />
-
       {/* ── Parent Community Directory ── */}
       <ParentDirectory theme={theme} child={child} />
 
@@ -432,20 +401,20 @@ export default function DashboardHome({ theme, child, onProfileClick, onNavigate
   );
 }
 
-// ─── AI School Assistant Component ──────────────────
-function AISchoolAssistant({ theme, child }: { theme: Theme; child: ChildProfile }) {
+// ─── AI School Assistant Compact (for 3-column grid) ──────────────────
+function AISchoolAssistantCompact({ theme, child }: { theme: Theme; child: ChildProfile }) {
   const [chatInput, setChatInput] = useState('');
   const [messages, setMessages] = useState([
-    { role: 'assistant' as const, text: `Hello! I'm your AI School Assistant. Ask me anything about ${child.name}'s school life. How can I help you today?` },
+    { role: 'assistant' as const, text: `Hi! Ask me anything about ${child.name}'s school life.` },
     { role: 'user' as const, text: 'What\'s today\'s homework?' },
-    { role: 'assistant' as const, text: `${child.name} has 2 pending homework items:\n1. Mathematics — Ch-12 Surface Areas (due Feb 13)\n2. Science — Experiment report on Magnetic Effects (due Feb 12)\nWould you like me to show more details?` },
+    { role: 'assistant' as const, text: `2 pending:\n1. Maths — Ch-12 Surface Areas (Feb 13)\n2. Science — Magnetic Effects (Feb 12)` },
   ]);
 
   const quickQuestions = [
-    "What's today's homework?",
+    "Today's homework?",
     'Fee due date?',
-    'Next PTM date?',
-    'Bus arrival time?',
+    'Next PTM?',
+    'Bus ETA?',
   ];
 
   const handleSend = () => {
@@ -453,42 +422,42 @@ function AISchoolAssistant({ theme, child }: { theme: Theme; child: ChildProfile
     setMessages(prev => [
       ...prev,
       { role: 'user', text: chatInput },
-      { role: 'assistant', text: 'Let me look that up for you... (AI response would appear here in the live system)' },
+      { role: 'assistant', text: 'Looking that up... (AI response in live system)' },
     ]);
     setChatInput('');
   };
 
   return (
-    <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-      <div className="flex items-center justify-between mb-3">
+    <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 flex flex-col`}>
+      <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white">
             <Bot size={14} />
           </div>
           <div>
-            <h3 className={`text-sm font-bold ${theme.highlight}`}>AI School Assistant</h3>
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>AI Assistant</h3>
             <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center gap-0.5 w-fit">
-              <Sparkles size={8} /> Powered by AI
+              <Sparkles size={8} /> AI Powered
             </span>
           </div>
         </div>
-        <button onClick={() => alert('Connecting to school office... (Blueprint demo)')} className={`text-[10px] px-3 py-1.5 rounded-lg ${theme.secondaryBg} ${theme.iconColor} font-bold flex items-center gap-1`}>
-          <Phone size={10} /> Connect with School Office
+        <button onClick={() => alert('Connecting to school office... (Blueprint demo)')} className={`text-[10px] px-2 py-1 rounded-lg ${theme.secondaryBg} ${theme.iconColor} font-bold flex items-center gap-1`}>
+          <Phone size={9} /> Office
         </button>
       </div>
 
       {/* Quick Questions */}
-      <div className="flex gap-1.5 mb-3 flex-wrap">
+      <div className="flex gap-1 mb-2 flex-wrap">
         {quickQuestions.map((q, i) => (
           <button
             key={i}
             onClick={() => {
               setMessages(prev => [...prev, { role: 'user', text: q }]);
               setTimeout(() => {
-                setMessages(prev => [...prev, { role: 'assistant', text: 'Looking that up for you... (AI response in live system)' }]);
+                setMessages(prev => [...prev, { role: 'assistant', text: 'Looking that up... (AI response in live system)' }]);
               }, 500);
             }}
-            className={`text-[10px] px-2.5 py-1.5 rounded-lg ${theme.secondaryBg} ${theme.iconColor} font-bold ${theme.buttonHover} transition-all`}
+            className={`text-[9px] px-2 py-1 rounded-lg ${theme.secondaryBg} ${theme.iconColor} font-bold ${theme.buttonHover} transition-all`}
           >
             {q}
           </button>
@@ -496,15 +465,15 @@ function AISchoolAssistant({ theme, child }: { theme: Theme; child: ChildProfile
       </div>
 
       {/* Chat Messages */}
-      <div className={`${theme.secondaryBg} rounded-xl p-3 space-y-2.5 max-h-52 overflow-y-auto mb-3`}>
+      <div className={`${theme.secondaryBg} rounded-xl p-2 space-y-1.5 flex-1 overflow-y-auto mb-2`} style={{ maxHeight: '180px' }}>
         {messages.map((msg, i) => (
-          <div key={i} className={`flex gap-2 ${msg.role === 'user' ? 'justify-end' : ''}`}>
+          <div key={i} className={`flex gap-1.5 ${msg.role === 'user' ? 'justify-end' : ''}`}>
             {msg.role === 'assistant' && (
-              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white shrink-0">
-                <Bot size={10} />
+              <div className="w-5 h-5 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white shrink-0 mt-0.5">
+                <Bot size={8} />
               </div>
             )}
-            <div className={`max-w-[75%] px-3 py-2 rounded-xl text-[10px] leading-relaxed ${
+            <div className={`max-w-[80%] px-2 py-1.5 rounded-lg text-[10px] leading-relaxed ${
               msg.role === 'user' ? `${theme.primary} text-white` : `${theme.cardBg} border ${theme.border} ${theme.highlight}`
             }`}>
               {msg.text.split('\n').map((line, li) => <p key={li}>{line}</p>)}
@@ -514,17 +483,17 @@ function AISchoolAssistant({ theme, child }: { theme: Theme; child: ChildProfile
       </div>
 
       {/* Input */}
-      <div className="flex gap-2">
+      <div className="flex gap-1.5">
         <input
           type="text"
           value={chatInput}
           onChange={e => setChatInput(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && handleSend()}
-          placeholder="Ask about homework, fees, attendance, events..."
-          className={`flex-1 text-xs p-2.5 rounded-xl border ${theme.border} ${theme.cardBg} ${theme.highlight}`}
+          placeholder="Ask anything..."
+          className={`flex-1 text-[11px] p-2 rounded-lg border ${theme.border} ${theme.cardBg} ${theme.highlight}`}
         />
-        <button onClick={handleSend} className={`px-3 py-2 rounded-xl ${theme.primary} text-white`}>
-          <Send size={14} />
+        <button onClick={handleSend} className={`px-2.5 py-1.5 rounded-lg ${theme.primary} text-white`}>
+          <Send size={12} />
         </button>
       </div>
     </div>

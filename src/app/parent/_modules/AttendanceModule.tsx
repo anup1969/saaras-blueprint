@@ -14,7 +14,7 @@ export default function AttendanceModule({ theme, child }: { theme: Theme; child
   const att = attendanceData[child.id];
   const [selectedMonth] = useState('February 2026');
 
-  const dayNames = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const firstDayOffset = 0; // Feb 2026 starts on Sunday
 
   const statusDot = (s: string) => {
@@ -85,20 +85,20 @@ export default function AttendanceModule({ theme, child }: { theme: Theme; child
         <div className="grid grid-cols-7 gap-px">
           {/* Day headers */}
           {dayNames.map((d, i) => (
-            <div key={i} className={`text-center text-[9px] font-bold ${theme.iconColor} py-1`}>{d}</div>
+            <div key={i} className={`text-center text-[11px] font-bold ${theme.iconColor} py-1`}>{d}</div>
           ))}
           {/* Empty offset cells */}
           {Array.from({ length: firstDayOffset }).map((_, i) => (
-            <div key={`empty-${i}`} className="h-8" />
+            <div key={`empty-${i}`} className="h-9" />
           ))}
           {/* Day cells — compact */}
           {att.monthly.map((day) => (
             <div
               key={day.date}
-              className={`h-8 rounded-lg flex items-center justify-center relative group cursor-default transition-all hover:ring-1 hover:ring-current`}
+              className={`h-9 rounded-lg flex items-center justify-center relative group cursor-default transition-all hover:ring-1 hover:ring-current`}
               title={`${day.date} Feb — ${day.status.charAt(0).toUpperCase() + day.status.slice(1)}`}
             >
-              <span className={`text-[11px] font-medium ${day.status === 'future' ? theme.iconColor + ' opacity-40' : statusText(day.status)}`}>
+              <span className={`text-sm font-medium ${day.status === 'future' ? theme.iconColor + ' opacity-40' : statusText(day.status)}`}>
                 {day.date}
               </span>
               {day.status !== 'future' && (
