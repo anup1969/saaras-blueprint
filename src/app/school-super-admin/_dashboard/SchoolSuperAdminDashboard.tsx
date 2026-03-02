@@ -31,7 +31,6 @@ import ComplianceConfigModule from '../_modules/ComplianceConfigModule';
 import RolePermissionModule from '../_modules/RolePermissionModule';
 import HomeworkConfigModule from '../_modules/HomeworkConfigModule';
 import EnquiryAdmissionConfigModule from '../_modules/EnquiryAdmissionConfigModule';
-import OnlinePaymentConfigModule from '../_modules/OnlinePaymentConfigModule';
 import DataMigrationModule from '../_modules/DataMigrationModule';
 import CriticalLocksModule from '../_modules/CriticalLocksModule';
 import AuditLogModule from '../_modules/AuditLogModule';
@@ -82,7 +81,6 @@ const MODULE_COMPONENTS: Record<string, React.ComponentType<{ theme: Theme }>> =
   'role-management': RolePermissionModule,
   'homework-config': HomeworkConfigModule,
   'enquiry-config': EnquiryAdmissionConfigModule,
-  'payment-config': OnlinePaymentConfigModule,
   'data-migration': DataMigrationModule,
   'critical-locks': CriticalLocksModule,
   'audit-log': AuditLogModule,
