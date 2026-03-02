@@ -5,7 +5,6 @@ import BlueprintLayout from '@/components/BlueprintLayout';
 import { StatCard, TabBar, StatusBadge, DataTable, MobileFrame, MobilePreviewToggle } from '@/components/shared';
 import { ChatsView } from '@/components/ChatModule';
 import SupportModule from '@/components/SupportModule';
-import YourInputsModule from '@/components/YourInputsModule';
 import { type TeamMember } from '@/lib/auth';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
@@ -18,7 +17,7 @@ import {
   Briefcase, Clock, Target, ChevronRight, User,
   PanelLeftClose, PanelLeftOpen, Headphones,
   MessageSquare, Megaphone, Plus, X, Send, Bell, Edit, Paperclip, Radio, Sparkles, ShieldCheck,
-  BookOpen, ClipboardList, ClipboardCheck
+  BookOpen, ClipboardList
 } from 'lucide-react';
 
 // ─── MOCK DATA ────────────────────────────────────────
@@ -101,7 +100,6 @@ const modules = [
   { id: 'board-meetings', label: 'Board Meetings', icon: ClipboardList },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
   { id: 'approvals', label: 'Approvals', icon: CheckCircle },
-  { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
   { id: 'support', label: 'Support', icon: Headphones },
 ];
 
@@ -1576,7 +1574,6 @@ function TrusteeDashboard({ theme, themeIdx, onThemeChange, currentUser }: { the
       case 'board-meetings': return <BoardMeetingsView theme={theme} />;
       case 'communication': return <CommunicationView theme={theme} />;
       case 'approvals': return <ApprovalsView theme={theme} />;
-      case 'your-inputs': return <YourInputsModule theme={theme} userName={currentUser?.name || ''} />;
       case 'support': return <SupportModule theme={theme} role="trustee" />;
       case 'profile': return <StakeholderProfile role="trustee" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />;
       default: return <DashboardView theme={theme} setActiveModule={setActiveModule} />;

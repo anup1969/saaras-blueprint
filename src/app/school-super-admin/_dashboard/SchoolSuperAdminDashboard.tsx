@@ -1,11 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import React, { useState } from 'react';
+import { PanelLeftClose, PanelLeftOpen, ChevronDown, ChevronRight } from 'lucide-react';
 import type { Theme } from '../_helpers/types';
 import { modules } from '../_helpers/modules';
 import SupportModule from '@/components/SupportModule';
-import YourInputsModule from '@/components/YourInputsModule';
 import { type TeamMember } from '@/lib/auth';
 
 // ─── Module imports ──────────────────────────────────
@@ -62,7 +61,6 @@ import FormBuilderConfigModule from '../_modules/FormBuilderConfigModule';
 const MODULE_COMPONENTS: Record<string, React.ComponentType<{ theme: Theme }>> = {
   'onboarding-wizard': OnboardingWizardModule,
   'subscription-mgmt': SubscriptionMgmtModule,
-  'fee-config': FeeConfigModule,
   'academic-config': AcademicConfigModule,
   'hr-config': HRConfigModule,
   'transport-config': TransportConfigModule,
@@ -112,9 +110,29 @@ const MODULE_COMPONENTS: Record<string, React.ComponentType<{ theme: Theme }>> =
 export default function SchoolSuperAdminDashboard({ theme, currentUser }: { theme?: Theme; currentUser?: TeamMember }) {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({});
   if (!theme) return null;
 
+  const isFeeModule = activeModule.startsWith('fee-config');
+  const feeTab = activeModule.startsWith('fee-config:') ? activeModule.split(':')[1] : 'structure';
   const ActiveComponent = MODULE_COMPONENTS[activeModule];
+
+  const toggleExpand = (id: string) => {
+    setExpandedMenus(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const handleModuleClick = (m: typeof modules[0]) => {
+    if ('children' in m && m.children) {
+      if (!expandedMenus[m.id]) {
+        toggleExpand(m.id);
+        setActiveModule(`${m.id}:${m.children[0].id.split(':')[1]}`);
+      } else {
+        toggleExpand(m.id);
+      }
+    } else {
+      setActiveModule(m.id);
+    }
+  };
 
   return (
     <div className="flex gap-4 -m-6">
@@ -125,21 +143,52 @@ export default function SchoolSuperAdminDashboard({ theme, currentUser }: { them
             {sidebarCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={14} />}
           </button>
         </div>
-        {modules.map(m => (
-          <button key={m.id} onClick={() => setActiveModule(m.id)} title={sidebarCollapsed ? m.label : undefined}
-            className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center px-2 py-2.5' : 'gap-2 px-3 py-2'} rounded-lg text-xs font-medium transition-all ${
-              activeModule === m.id ? `${theme.primary} text-white` : `${theme.iconColor} ${theme.buttonHover}`
-            }`}>
-            <m.icon size={sidebarCollapsed ? 18 : 14} /> {!sidebarCollapsed && m.label}
-          </button>
-        ))}
+        {modules.map(m => {
+          const hasChildren = 'children' in m && m.children;
+          const isParentActive = activeModule.startsWith(m.id);
+          const isExpanded = expandedMenus[m.id] || isParentActive;
+
+          return (
+            <React.Fragment key={m.id}>
+              <button
+                onClick={() => handleModuleClick(m)}
+                title={sidebarCollapsed ? m.label : undefined}
+                className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center px-2 py-2.5' : 'gap-2 px-3 py-2'} rounded-lg text-xs font-medium transition-all ${
+                  (hasChildren ? isParentActive : activeModule === m.id) ? `${theme.primary} text-white` : `${theme.iconColor} ${theme.buttonHover}`
+                }`}
+              >
+                <m.icon size={sidebarCollapsed ? 18 : 14} />
+                {!sidebarCollapsed && (
+                  <>
+                    <span className="flex-1 text-left">{m.label}</span>
+                    {hasChildren && (
+                      isExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />
+                    )}
+                  </>
+                )}
+              </button>
+              {hasChildren && isExpanded && !sidebarCollapsed && m.children!.map(child => (
+                <button
+                  key={child.id}
+                  onClick={() => setActiveModule(child.id)}
+                  className={`w-full flex items-center gap-2 pl-8 pr-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
+                    activeModule === child.id ? `${theme.accentBg} ${theme.primaryText} font-bold` : `${theme.iconColor} ${theme.buttonHover}`
+                  }`}
+                >
+                  <span className={`w-1 h-1 rounded-full ${activeModule === child.id ? 'bg-current' : 'bg-current opacity-30'}`} />
+                  {child.label}
+                </button>
+              ))}
+            </React.Fragment>
+          );
+        })}
       </div>
 
       <div className="flex-1 p-6 space-y-4 overflow-x-hidden">
         {activeModule === 'dashboard' && <SSADashboardHome theme={theme} onNavigate={setActiveModule} />}
-        {activeModule === 'your-inputs' && <YourInputsModule theme={theme} userName={currentUser?.name || ''} />}
         {activeModule === 'support' && <SupportModule theme={theme} role="school-super-admin" />}
-        {ActiveComponent && activeModule !== 'dashboard' && activeModule !== 'support' && activeModule !== 'your-inputs' && <ActiveComponent theme={theme} />}
+        {isFeeModule && <FeeConfigModule theme={theme} activeTab={feeTab} onTabChange={(tab: string) => setActiveModule(`fee-config:${tab}`)} />}
+        {ActiveComponent && !isFeeModule && activeModule !== 'dashboard' && activeModule !== 'support' && <ActiveComponent theme={theme} />}
       </div>
     </div>
   );

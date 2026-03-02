@@ -8,13 +8,12 @@ import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import { ChatsView } from '@/components/ChatModule';
 import SupportModule from '@/components/SupportModule';
-import YourInputsModule from '@/components/YourInputsModule';
 import { type TeamMember } from '@/lib/auth';
 import {
   Home, Calendar, Star, Image, MessageSquare, Clock,
   Search, Plus, Filter, Download, Eye, Edit, CheckCircle,
   AlertTriangle, Users, Palette, Music, Dribbble, BookOpen,
-  PanelLeftClose, PanelLeftOpen, Headphones, Award, Camera, Heart, ClipboardCheck,
+  PanelLeftClose, PanelLeftOpen, Headphones, Award, Camera, Heart,
   Shield, Dumbbell, Swords, Wrench, Trophy, Target, TrendingUp, BarChart3, X
 } from 'lucide-react';
 
@@ -30,7 +29,6 @@ const modules = [
   { id: 'competitions', label: 'Competitions', icon: Swords },
   { id: 'equipment', label: 'Equipment', icon: Wrench },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
-  { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
   { id: 'support', label: 'Support', icon: Headphones },
 ];
 
@@ -1036,7 +1034,6 @@ function ActivityCoordinatorDashboard({ theme, themeIdx, onThemeChange, currentU
 
         {activeModule === 'communication' && <ChatsView theme={theme} />}
 
-        {activeModule === 'your-inputs' && <YourInputsModule theme={theme} userName={currentUser?.name || ''} />}
         {activeModule === 'support' && <SupportModule theme={theme} role="Activity Coordinator" />}
       </div>
     </div>

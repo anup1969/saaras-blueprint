@@ -4,7 +4,7 @@ import {
   IndianRupee,
   ClipboardCheck, BookMarked,
   GraduationCap,
-  Headphones,
+  Headphones, Lock,
 } from 'lucide-react';
 import type { ChildProfile } from './types';
 
@@ -327,6 +327,6 @@ export const modules = [
   { id: 'communication', label: 'Communication', icon: MessageSquare },
   { id: 'transport', label: 'Transport', icon: Bus },
   { id: 'pickup', label: 'Pickup Auth', icon: Shield },
-  { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
+  { id: 'parents-corner', label: 'Parents Corner', icon: Lock },
   { id: 'support', label: 'Support', icon: Headphones },
 ];

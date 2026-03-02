@@ -5,11 +5,10 @@ import { type Theme } from '@/lib/themes';
 import {
   Home, BookOpen, Briefcase, ShieldCheck, MessageSquare,
   CalendarDays, CalendarClock, CheckCircle, BarChart3, Headphones,
-  PanelLeftClose, PanelLeftOpen, ChevronDown, ClipboardCheck,
+  PanelLeftClose, PanelLeftOpen, ChevronDown,
 } from 'lucide-react';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import SupportModule from '@/components/SupportModule';
-import YourInputsModule from '@/components/YourInputsModule';
 import { type TeamMember } from '@/lib/auth';
 
 // ─── Module imports ──────────────────────────────────
@@ -37,7 +36,6 @@ const modules = [
   ]},
   { id: 'approvals', label: 'Approvals', icon: CheckCircle },
   { id: 'reports', label: 'Reports', icon: BarChart3 },
-  { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
   { id: 'support', label: 'Support', icon: Headphones },
 ];
 
@@ -110,7 +108,6 @@ export default function PrincipalDashboard({ theme, themeIdx, onThemeChange, isP
         {activeModule === 'yearly-planner' && <YearlyPlannerModule theme={theme} />}
         {activeModule === 'approvals' && <ApprovalsModule theme={theme} />}
         {activeModule === 'reports' && <ReportsModule theme={theme} />}
-        {activeModule === 'your-inputs' && <YourInputsModule theme={theme} userName={currentUser?.name || ''} />}
         {activeModule === 'support' && <SupportModule theme={theme} role="principal" />}
         {activeModule === 'profile' && <StakeholderProfile role="principal" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>

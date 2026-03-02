@@ -22,7 +22,6 @@ import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import { ChatsView } from '@/components/ChatModule';
 import SupportModule from '@/components/SupportModule';
-import YourInputsModule from '@/components/YourInputsModule';
 import { type TeamMember } from '@/lib/auth';
 
 // ─── STUDENT PROFILE ────────────────────────────────
@@ -271,7 +270,6 @@ const modules = [
   { id: 'study-planner', label: 'Study Planner', icon: Calendar },
   { id: 'wellness', label: 'Wellness', icon: Heart },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
-  { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
   { id: 'support', label: 'Support', icon: Headphones },
 ];
 
@@ -324,7 +322,6 @@ function StudentDashboard({ theme, themeIdx, onThemeChange, currentUser }: { the
         {activeModule === 'study-planner' && <StudyPlannerModule theme={theme} />}
         {activeModule === 'wellness' && <WellnessModule theme={theme} />}
         {activeModule === 'communication' && <CommunicationModule theme={theme} />}
-        {activeModule === 'your-inputs' && <YourInputsModule theme={theme} userName={currentUser?.name || ''} />}
         {activeModule === 'support' && <SupportModule theme={theme} role="student" />}
         {activeModule === 'profile' && <StakeholderProfile role="student" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>

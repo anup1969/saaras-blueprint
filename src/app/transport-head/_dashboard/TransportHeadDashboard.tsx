@@ -4,12 +4,11 @@ import React, { useState } from 'react';
 import { type Theme } from '@/lib/themes';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import SupportModule from '@/components/SupportModule';
-import YourInputsModule from '@/components/YourInputsModule';
 import { type TeamMember } from '@/lib/auth';
 import {
   Home, Route, Car, Users, MapPinned, Wrench, Navigation, IndianRupee,
   MessageSquare, Headphones, UserCheck, UserPlus, GraduationCap,
-  PanelLeftClose, PanelLeftOpen, ClipboardCheck, CreditCard
+  PanelLeftClose, PanelLeftOpen, CreditCard
 } from 'lucide-react';
 
 import DashboardHome from '../_modules/DashboardHome';
@@ -41,7 +40,6 @@ const modules = [
   { id: 'bus-pass', label: 'Bus Pass', icon: CreditCard },
   { id: 'fees', label: 'Fees', icon: IndianRupee },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
-  { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
   { id: 'support', label: 'Support', icon: Headphones },
 ];
 
@@ -90,7 +88,6 @@ export default function TransportHeadDashboard({ theme, themeIdx, onThemeChange,
         {activeModule === 'bus-pass' && <BusPassModule theme={theme} />}
         {activeModule === 'fees' && <FeesModule theme={theme} />}
         {activeModule === 'communication' && <CommunicationModule theme={theme} />}
-        {activeModule === 'your-inputs' && <YourInputsModule theme={theme} userName={currentUser?.name || ''} />}
         {activeModule === 'support' && <SupportModule theme={theme} role="transport-head" />}
         {activeModule === 'profile' && <StakeholderProfile role="transport-head" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>

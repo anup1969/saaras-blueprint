@@ -8,14 +8,13 @@ import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import { ChatsView } from '@/components/ChatModule';
 import SupportModule from '@/components/SupportModule';
-import YourInputsModule from '@/components/YourInputsModule';
 import { type TeamMember } from '@/lib/auth';
 import {
   Home, Users, UserPlus, Phone, Mail, Calendar, Clock, Search, Plus, Eye, Edit,
   Filter, Download, CheckCircle, AlertTriangle, ArrowRight, PhoneCall, PhoneIncoming,
   PhoneOutgoing, Package, BookOpen, Shield, UserCheck, Briefcase, Building2,
   MapPin, Bell, MessageSquare, LogIn, LogOut, BadgeCheck, Hash, FileText, Send, User,
-  PanelLeftClose, PanelLeftOpen, Headphones, Banknote, CreditCard, X, IndianRupee, ClipboardCheck
+  PanelLeftClose, PanelLeftOpen, Headphones, Banknote, CreditCard, X, IndianRupee
 } from 'lucide-react';
 
 // ─── MODULE SIDEBAR ────────────────────────────────
@@ -30,7 +29,6 @@ const modules = [
   { id: 'search-dir', label: 'Search Directory', icon: Search },
   { id: 'directory', label: 'Staff Directory', icon: BookOpen },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
-  { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
   { id: 'support', label: 'Support', icon: Headphones },
 ];
 
@@ -139,7 +137,6 @@ function ReceptionistDashboard({ theme, themeIdx, onThemeChange, currentUser }: 
         {activeModule === 'appointments' && <AppointmentsModule theme={theme} />}
         {activeModule === 'directory' && <DirectoryModule theme={theme} />}
         {activeModule === 'communication' && <CommunicationModule theme={theme} />}
-        {activeModule === 'your-inputs' && <YourInputsModule theme={theme} userName={currentUser?.name || ''} />}
         {activeModule === 'support' && <SupportModule theme={theme} role="receptionist" />}
         {activeModule === 'profile' && <StakeholderProfile role="receptionist" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>

@@ -8,7 +8,6 @@ import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import { ChatsView } from '@/components/ChatModule';
 import SupportModule from '@/components/SupportModule';
-import YourInputsModule from '@/components/YourInputsModule';
 import { type TeamMember } from '@/lib/auth';
 import {
   Home, Bus, ClipboardCheck, Users, MessageSquare, Shield,
@@ -26,7 +25,6 @@ const modules = [
   { id: 'safety-checklist', label: 'Safety Checklist', icon: ClipboardCheck },
   { id: 'students-assigned', label: 'Students Assigned', icon: Users },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
-  { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
   { id: 'support', label: 'Support', icon: Headphones },
 ];
 
@@ -107,7 +105,6 @@ function BusNannyDashboard({ theme, themeIdx, onThemeChange, isPreschool, curren
         {activeModule === 'safety-checklist' && <SafetyChecklistModule theme={theme} />}
         {activeModule === 'students-assigned' && <StudentsAssignedModule theme={theme} />}
         {activeModule === 'communication' && <CommunicationModule theme={theme} />}
-        {activeModule === 'your-inputs' && <YourInputsModule theme={theme} userName={currentUser?.name || ''} />}
         {activeModule === 'support' && <SupportModule theme={theme} role="bus-nanny" />}
         {activeModule === 'profile' && <StakeholderProfile role="bus-nanny" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>

@@ -13,7 +13,14 @@ export const modules = [
   { id: 'onboarding-wizard', label: 'Onboarding Wizard', icon: School },
   { id: 'dashboard', label: 'Dashboard', icon: Home },
   { id: 'subscription-mgmt', label: 'Subscriptions', icon: CreditCard },
-  { id: 'fee-config', label: 'Fee Management', icon: Banknote },
+  { id: 'fee-config', label: 'Fee Management', icon: Banknote, children: [
+    { id: 'fee-config:structure', label: 'Fee Structure' },
+    { id: 'fee-config:concessions', label: 'Concessions' },
+    { id: 'fee-config:payments', label: 'Payments' },
+    { id: 'fee-config:rules', label: 'Rules & Reminders' },
+    { id: 'fee-config:reports', label: 'Reports' },
+    { id: 'fee-config:settings', label: 'Settings' },
+  ] },
   { id: 'academic-config', label: 'Academic Config', icon: GraduationCap },
   { id: 'hr-config', label: 'HR & Payroll', icon: Briefcase },
   { id: 'transport-config', label: 'Transport', icon: Bus },
@@ -58,6 +65,5 @@ export const modules = [
   { id: 'accreditation-config', label: 'Accreditation', icon: BadgeCheck },
   { id: 'consent-config', label: 'Consent & E-Sign', icon: FileSignature },
   { id: 'form-builder-config', label: 'Form Builder', icon: FileInput },
-  { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
   { id: 'support', label: 'Support', icon: Headphones },
 ];

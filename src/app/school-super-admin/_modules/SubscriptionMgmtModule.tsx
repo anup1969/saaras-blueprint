@@ -29,13 +29,9 @@ export default function SubscriptionMgmtModule({ theme }: { theme: Theme }) {
   const [autoDetectTz, setAutoDetectTz] = useState(false);
   const [displayFormat, setDisplayFormat] = useState('12-hour');
   const [dateFormat, setDateFormat] = useState('DD/MM/YYYY');
-  const [defaultLanguage, setDefaultLanguage] = useState('English');
+  const [defaultLanguage] = useState('English');
   const [rtlSupport, setRtlSupport] = useState(false);
   const [autoTranslateNotifications, setAutoTranslateNotifications] = useState(false);
-  const [availableLanguages, setAvailableLanguages] = useState<Record<string, boolean>>({
-    'Hindi': true, 'Marathi': false, 'Gujarati': true, 'Tamil': false,
-    'Telugu': false, 'Bengali': false, 'Kannada': false, 'Malayalam': false,
-  });
 
   return (
     <div className="space-y-4">
@@ -323,24 +319,10 @@ export default function SubscriptionMgmtModule({ theme }: { theme: Theme }) {
             <div className={`p-3 rounded-xl ${theme.secondaryBg} space-y-3`}>
               <div>
                 <p className={`text-[10px] ${theme.iconColor} mb-1`}>Default Language</p>
-                <SelectField
-                  options={['English', 'Hindi', 'Marathi', 'Gujarati', 'Tamil', 'Telugu', 'Bengali', 'Kannada', 'Malayalam']}
-                  value={defaultLanguage}
-                  onChange={setDefaultLanguage}
-                  theme={theme}
-                />
-              </div>
-
-              <div>
-                <p className={`text-[10px] font-bold ${theme.highlight} mb-2`}>Available Languages</p>
-                <div className="space-y-1.5">
-                  {Object.entries(availableLanguages).map(([lang, enabled]) => (
-                    <div key={lang} className="flex items-center justify-between">
-                      <span className={`text-[10px] ${theme.iconColor}`}>{lang}</span>
-                      <SSAToggle on={enabled} onChange={() => setAvailableLanguages(p => ({ ...p, [lang]: !p[lang] }))} theme={theme} />
-                    </div>
-                  ))}
+                <div className={`px-3 py-2 rounded-xl ${theme.secondaryBg} text-xs font-bold ${theme.highlight}`}>
+                  English
                 </div>
+                <p className={`text-[9px] ${theme.iconColor} mt-1.5 italic`}>Phase 1: English only. Multi-language support available in Phase 2.</p>
               </div>
 
               <div className={`p-2.5 rounded-xl border ${theme.border} space-y-2`}>

@@ -12,7 +12,6 @@ import {
 } from 'lucide-react';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import SupportModule from '@/components/SupportModule';
-import YourInputsModule from '@/components/YourInputsModule';
 import { type TeamMember } from '@/lib/auth';
 
 import DashboardHome from '../_modules/DashboardHome';
@@ -70,7 +69,6 @@ const modules = [
   { id: 'complaints', label: 'Complaints', icon: MessageSquareWarning },
   { id: 'surveys', label: 'Surveys & Polls', icon: ListChecks },
   { id: 'help-desk', label: 'Help Desk', icon: HelpCircle },
-  { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
   { id: 'support', label: 'Support', icon: Headphones },
 ];
 
@@ -132,7 +130,6 @@ export default function SchoolAdminDashboard({ theme, themeIdx, onThemeChange, c
         {activeModule === 'complaints' && <ComplaintTicketModule theme={theme} />}
         {activeModule === 'surveys' && <SurveyPollModule theme={theme} />}
         {activeModule === 'help-desk' && <HelpDeskModule theme={theme} />}
-        {activeModule === 'your-inputs' && <YourInputsModule theme={theme} userName={currentUser?.name || ''} />}
         {activeModule === 'support' && <SupportModule theme={theme} role="school-admin" />}
         {activeModule === 'profile' && <StakeholderProfile role="school-admin" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>

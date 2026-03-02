@@ -24,8 +24,10 @@ const tabs: { id: TabId; label: string }[] = [
   { id: 'settings', label: 'Settings' },
 ];
 
-export default function FeeConfigModule({ theme }: { theme: Theme }) {
-  const [activeTab, setActiveTab] = useState<TabId>('structure');
+export default function FeeConfigModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
+  const [internalTab, setInternalTab] = useState<TabId>('structure');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
 
   // ═══════ Fee Structure state ═══════
   const [feeTemplate, setFeeTemplate] = useState('component-based');

@@ -6,7 +6,6 @@ import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import { ChatsView } from '@/components/ChatModule';
 import SupportModule from '@/components/SupportModule';
-import YourInputsModule from '@/components/YourInputsModule';
 import { type TeamMember } from '@/lib/auth';
 import { TabBar } from '@/components/shared';
 import { type Theme } from '@/lib/themes';
@@ -15,7 +14,7 @@ import {
   Settings, Bell, ChevronLeft, ChevronRight, Check, X, Plus,
   Eye, Edit, Phone, Mail, Trash2, Camera, Award, CheckCircle, XCircle,
   GripVertical, Cake, Briefcase, Upload, MinusCircle, Wallet, GitBranch, Shield, User, MessageSquare, Megaphone,
-  PanelLeftClose, PanelLeftOpen, Headphones, ClipboardCheck,
+  PanelLeftClose, PanelLeftOpen, Headphones,
   Info, Download, RefreshCw, Link, AlertCircle, Building2, Calculator, Gift, Lock, Smartphone, TrendingDown, ChevronDown, DollarSign, CreditCard, IndianRupee
 } from 'lucide-react';
 
@@ -46,7 +45,6 @@ const modules = [
   { id: 'reports', label: 'Reports', icon: BarChart3 },
   { id: 'settings', label: 'Settings', icon: Settings },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
-  { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
   { id: 'support', label: 'Support', icon: Headphones },
 ];
 
@@ -1266,7 +1264,6 @@ function HRManagerDashboard({ theme, themeIdx, onThemeChange, currentUser }: { t
         {activeModule === 'reports' && <ReportsModule theme={theme} />}
         {activeModule === 'settings' && <SettingsModule theme={theme} />}
         {activeModule === 'communication' && <CommunicationModule theme={theme} />}
-        {activeModule === 'your-inputs' && <YourInputsModule theme={theme} userName={currentUser?.name || ''} />}
         {activeModule === 'support' && <SupportModule theme={theme} role="hr-manager" />}
         {activeModule === 'my-profile' && <StakeholderProfile role="hr-manager" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>

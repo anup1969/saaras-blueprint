@@ -5,7 +5,6 @@ import { type Theme } from '@/lib/themes';
 import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import SupportModule from '@/components/SupportModule';
 import StakeholderProfile from '@/components/StakeholderProfile';
-import YourInputsModule from '@/components/YourInputsModule';
 import { type TeamMember } from '@/lib/auth';
 import ChildSelector from '../_components/ChildSelector';
 import { childrenData, modules } from '../_components/data';
@@ -17,6 +16,7 @@ import HomeworkModule from '../_modules/HomeworkModule';
 import CommunicationModule from '../_modules/CommunicationModule';
 import TransportModule from '../_modules/TransportModule';
 import PickupAuthModule from '../_modules/PickupAuthModule';
+import ParentsCornerModule from '../_modules/ParentsCornerModule';
 
 export default function ParentDashboard({ theme, themeIdx, onThemeChange, currentUser }: { theme?: Theme; themeIdx?: number; onThemeChange?: (idx: number) => void; currentUser?: TeamMember }) {
   const [activeModule, setActiveModule] = useState('dashboard');
@@ -49,15 +49,23 @@ export default function ParentDashboard({ theme, themeIdx, onThemeChange, curren
           </button>
         ))}
 
-        {/* Parent Info */}
+        {/* Parent & Student Info */}
         {!sidebarCollapsed && (
-          <div className={`mt-4 pt-4 border-t ${theme.border} px-3`}>
+          <div className={`mt-4 pt-4 border-t ${theme.border} px-3 space-y-2`}>
             <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mb-2`}>Logged in as</p>
             <div className={`p-2 rounded-xl ${theme.secondaryBg}`}>
               <p className={`text-xs font-bold ${theme.highlight}`}>Rajesh Patel</p>
-              <p className={`text-[10px] ${theme.iconColor}`}>Father</p>
-              <p className={`text-[10px] ${theme.iconColor}`}>+91 98250 12345</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Father | +91 98250 12345</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Meena Patel (Mother)</p>
             </div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} uppercase mt-2`}>Children</p>
+            {childrenData.map(c => (
+              <div key={c.id} className={`p-2 rounded-xl ${c.id === selectedChild ? theme.primary + ' text-white' : theme.secondaryBg}`}>
+                <p className={`text-[10px] font-bold ${c.id === selectedChild ? '' : theme.highlight}`}>{c.name}</p>
+                <p className={`text-[9px] ${c.id === selectedChild ? 'opacity-80' : theme.iconColor}`}>Class {c.class}-{c.section} | Roll #{c.roll}</p>
+                <p className={`text-[9px] ${c.id === selectedChild ? 'opacity-80' : theme.iconColor}`}>{c.admissionNo} | {c.bloodGroup}</p>
+              </div>
+            ))}
           </div>
         )}
       </div>
@@ -77,7 +85,7 @@ export default function ParentDashboard({ theme, themeIdx, onThemeChange, curren
         {activeModule === 'communication' && <CommunicationModule theme={theme} child={child} />}
         {activeModule === 'transport' && <TransportModule theme={theme} child={child} />}
         {activeModule === 'pickup' && <PickupAuthModule theme={theme} child={child} />}
-        {activeModule === 'your-inputs' && <YourInputsModule theme={theme} userName={currentUser?.name || ''} />}
+        {activeModule === 'parents-corner' && <ParentsCornerModule theme={theme} child={child} />}
         {activeModule === 'support' && <SupportModule theme={theme} role="parent" />}
         {activeModule === 'profile' && <StakeholderProfile role="parent" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
       </div>

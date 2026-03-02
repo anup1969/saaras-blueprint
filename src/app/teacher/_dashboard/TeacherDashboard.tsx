@@ -9,7 +9,6 @@ import {
 } from 'lucide-react';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import SupportModule from '@/components/SupportModule';
-import YourInputsModule from '@/components/YourInputsModule';
 import { type TeamMember } from '@/lib/auth';
 
 import DashboardHome from '../_modules/DashboardHome';
@@ -46,7 +45,6 @@ const modules = [
   { id: 'lesson-plans', label: 'Lesson Plans', icon: BookOpen },
   { id: 'remarks', label: 'Student Remarks', icon: MessageSquareText },
   { id: 'lms', label: 'LMS / E-Learning', icon: MonitorPlay },
-  { id: 'your-inputs', label: 'Your Inputs', icon: ClipboardCheck },
   { id: 'support', label: 'Support', icon: Headphones },
 ];
 
@@ -107,7 +105,6 @@ export default function TeacherDashboard({ theme, themeIdx, onThemeChange, isPre
           {activeModule === 'lesson-plans' && <LessonPlanModule theme={theme} />}
           {activeModule === 'remarks' && <RemarksModule theme={theme} />}
           {activeModule === 'lms' && <LMSModule theme={theme} />}
-          {activeModule === 'your-inputs' && <YourInputsModule theme={theme} userName={currentUser?.name || ''} />}
           {activeModule === 'support' && <SupportModule theme={theme} role="teacher" />}
           {activeModule === 'profile' && <StakeholderProfile role="teacher" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
         </div>
