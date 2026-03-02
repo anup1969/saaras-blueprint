@@ -22,6 +22,11 @@ export default function YearEndOperationsModule({ theme }: { theme: Theme }) {
   const [copyFees, setCopyFees] = useState(true);
   const [feeAdjustment, setFeeAdjustment] = useState('+5');
   const [feeEffectiveDate, setFeeEffectiveDate] = useState('2026-04-01');
+  const [copyFeeHeads, setCopyFeeHeads] = useState(true);
+  const [copyGradeAmounts, setCopyGradeAmounts] = useState(true);
+  const [copyConcessionRules, setCopyConcessionRules] = useState(true);
+  const [copyLateFeeRules, setCopyLateFeeRules] = useState(false);
+  const [copyConfirmed, setCopyConfirmed] = useState(false);
 
   // Data Archival
   const [archiveOldRecords, setArchiveOldRecords] = useState(true);
@@ -113,20 +118,45 @@ export default function YearEndOperationsModule({ theme }: { theme: Theme }) {
             <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
               <div>
                 <p className={`text-xs font-bold ${theme.highlight}`}>Copy Fees to Next Year</p>
-                <p className={`text-[10px] ${theme.iconColor}`}>Duplicate current fee heads and amounts for the new academic year</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Duplicate {currentYear} fee structure to {nextYear}</p>
               </div>
               <SSAToggle on={copyFees} onChange={() => setCopyFees(!copyFees)} theme={theme} />
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Adjustment % (+/-)</p>
-                <InputField value={feeAdjustment} onChange={setFeeAdjustment} theme={theme} placeholder="+5 or -3" />
-              </div>
-              <div>
-                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Effective Date</p>
-                <InputField value={feeEffectiveDate} onChange={setFeeEffectiveDate} theme={theme} type="date" />
-              </div>
-            </div>
+            {copyFees && (
+              <>
+                <div>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>What to copy</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { label: 'Fee Heads', val: copyFeeHeads, set: setCopyFeeHeads },
+                      { label: 'Grade Amounts', val: copyGradeAmounts, set: setCopyGradeAmounts },
+                      { label: 'Concession Rules', val: copyConcessionRules, set: setCopyConcessionRules },
+                      { label: 'Late Fee Rules', val: copyLateFeeRules, set: setCopyLateFeeRules },
+                    ].map(item => (
+                      <label key={item.label} className={`flex items-center gap-2 p-2.5 rounded-xl ${theme.secondaryBg} cursor-pointer`}>
+                        <input type="checkbox" checked={item.val} onChange={() => item.set(!item.val)} className="accent-emerald-500 w-3.5 h-3.5" />
+                        <span className={`text-xs font-medium ${theme.highlight}`}>{item.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Adjustment % (+/-)</p>
+                    <InputField value={feeAdjustment} onChange={setFeeAdjustment} theme={theme} placeholder="+5 or -3" />
+                  </div>
+                  <div>
+                    <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Effective Date</p>
+                    <InputField value={feeEffectiveDate} onChange={setFeeEffectiveDate} theme={theme} type="date" />
+                  </div>
+                </div>
+                <button onClick={() => { setCopyConfirmed(true); setTimeout(() => setCopyConfirmed(false), 3000); }}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white ${theme.primary}`}>
+                  Copy to {nextYear}
+                </button>
+                {copyConfirmed && <p className="text-xs text-emerald-600 font-bold animate-pulse">Fee structure copied to {nextYear} successfully!</p>}
+              </>
+            )}
           </div>
         </SectionCard>
       </div>

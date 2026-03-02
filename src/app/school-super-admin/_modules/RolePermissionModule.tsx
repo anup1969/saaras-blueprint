@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Plus, X, Edit, Lock, Trash2, Eye, CheckCircle, AlertTriangle, ChevronDown, ChevronUp, Search, LogIn, ShieldAlert } from 'lucide-react';
-import { TabBar } from '@/components/shared';
+import { TabBar, MasterPermissionGrid } from '@/components/shared';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
 
@@ -574,6 +574,141 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
               className={`flex items-center gap-1.5 px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}>
               <Plus size={14} /> Create Custom Role
             </button>
+          </div>
+        </SectionCard>
+
+        {/* ── Master-Level CRUD Permissions (all modules) ── */}
+        <SectionCard title="Master-Level Permissions" subtitle="CRUD permissions for each module's configurable entities (Fee Heads, Subjects, Routes, etc.)" theme={theme}>
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-2.5 flex items-center gap-2 mb-4">
+            <ShieldAlert size={13} className="text-blue-500 shrink-0" />
+            <p className="text-[10px] text-blue-700">Control who can <strong>View, Create, Edit, Delete, Import, and Export</strong> each master table across all modules.</p>
+          </div>
+          <div className="space-y-6">
+            {/* Fee Management */}
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Fee Management</p>
+              <div className="space-y-3">
+                <MasterPermissionGrid masterName="Fee Heads" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+                <MasterPermissionGrid masterName="Concession Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+              </div>
+            </div>
+            {/* Academic Config */}
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Academic Config</p>
+              <div className="space-y-3">
+                <MasterPermissionGrid masterName="Subjects" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+                <MasterPermissionGrid masterName="Classes & Sections" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+              </div>
+            </div>
+            {/* HR & Payroll */}
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>HR & Payroll</p>
+              <div className="space-y-3">
+                <MasterPermissionGrid masterName="Departments" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+                <MasterPermissionGrid masterName="Designations" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+              </div>
+            </div>
+            {/* Transport */}
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Transport</p>
+              <div className="space-y-3">
+                <MasterPermissionGrid masterName="Routes" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+                <MasterPermissionGrid masterName="Vehicles" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+              </div>
+            </div>
+            {/* Attendance */}
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Attendance</p>
+              <MasterPermissionGrid masterName="Attendance Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+            </div>
+            {/* Exams & Grading */}
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Exams & Grading</p>
+              <div className="space-y-3">
+                <MasterPermissionGrid masterName="Exam Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+                <MasterPermissionGrid masterName="Grade Scales" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+              </div>
+            </div>
+            {/* Communication */}
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Communication</p>
+              <MasterPermissionGrid masterName="Communication Templates" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+            </div>
+            {/* Timetable & Bell */}
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Timetable & Bell</p>
+              <div className="space-y-3">
+                <MasterPermissionGrid masterName="Periods" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+                <MasterPermissionGrid masterName="Room Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+              </div>
+            </div>
+            {/* Leave Policy */}
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Leave Policy</p>
+              <MasterPermissionGrid masterName="Leave Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+            </div>
+            {/* Visitor Rules */}
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Visitor Rules</p>
+              <MasterPermissionGrid masterName="Visitor Categories" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+            </div>
+            {/* Certificates */}
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Certificates</p>
+              <MasterPermissionGrid masterName="Certificate Templates" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+            </div>
+            {/* Library */}
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Library</p>
+              <MasterPermissionGrid masterName="Book Categories" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+            </div>
+            {/* Canteen / Meal */}
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Canteen / Meal</p>
+              <div className="space-y-3">
+                <MasterPermissionGrid masterName="Menu Items" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+                <MasterPermissionGrid masterName="Meal Plans" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+              </div>
+            </div>
+            {/* Hostel */}
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Hostel</p>
+              <div className="space-y-3">
+                <MasterPermissionGrid masterName="Hostel Blocks" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+                <MasterPermissionGrid masterName="Hostel Room Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+              </div>
+            </div>
+            {/* Inventory & Assets */}
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Inventory & Assets</p>
+              <div className="space-y-3">
+                <MasterPermissionGrid masterName="Asset Categories" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+                <MasterPermissionGrid masterName="Vendor List" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+              </div>
+            </div>
+            {/* Homework & Assignment */}
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Homework & Assignment</p>
+              <MasterPermissionGrid masterName="Assignment Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+            </div>
+            {/* Enquiry & Admission */}
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Enquiry & Admission</p>
+              <div className="space-y-3">
+                <MasterPermissionGrid masterName="Enquiry Sources" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+                <MasterPermissionGrid masterName="Admission Stages" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+              </div>
+            </div>
+            {/* LMS / E-Learning */}
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>LMS / E-Learning</p>
+              <MasterPermissionGrid masterName="Course Categories" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+            </div>
+            {/* Remark Bank */}
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Remark Bank</p>
+              <MasterPermissionGrid masterName="Remark Categories" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+            </div>
           </div>
         </SectionCard>
       </>}
@@ -1233,6 +1368,7 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
       </>}
+
     </div>
   );
 }

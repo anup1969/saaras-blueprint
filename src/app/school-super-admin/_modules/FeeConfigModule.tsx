@@ -58,11 +58,6 @@ export default function FeeConfigModule({ theme }: { theme: Theme }) {
     'Grade 12': { 'Tuition Fee': '7000', 'Admission Fee': '30000', 'Annual Charges': '18000', 'Transport Fee': '3000', 'Activity Fee': '3500', 'Lab Fee': '5000', 'Exam Fee': '2500' },
   });
   const [customFeeHeads, setCustomFeeHeads] = useState<{ name: string; frequency: string; enabled: boolean }[]>([]);
-  const [copyFeeHeadsChecked, setCopyFeeHeadsChecked] = useState(true);
-  const [copyGradeAmountsChecked, setCopyGradeAmountsChecked] = useState(true);
-  const [copyConcessionRulesChecked, setCopyConcessionRulesChecked] = useState(true);
-  const [copyLateFeeRulesChecked, setCopyLateFeeRulesChecked] = useState(false);
-  const [copyConfirmed, setCopyConfirmed] = useState(false);
 
   // ═══════ Concessions state ═══════
   const [concessions, setConcessions] = useState([
@@ -341,34 +336,6 @@ export default function FeeConfigModule({ theme }: { theme: Theme }) {
             </SectionCard>
           </div>
 
-          {/* Copy Fee Structure */}
-          <SectionCard title="Copy Fee Structure" subtitle="Replicate current year's fee setup for new academic year" theme={theme}>
-            <div className="flex items-center mb-3">
-              <p className={`text-[10px] font-bold ${theme.iconColor}`}>Duplicate 2025-26 structure to 2026-27</p>
-              <InfoIcon tip="Replicate current year's fee setup for new academic year" />
-            </div>
-            <div className="space-y-3">
-              <p className={`text-xs font-bold ${theme.highlight}`}>Copy 2025-26 fee structure to 2026-27?</p>
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { label: 'Fee Heads', val: copyFeeHeadsChecked, set: setCopyFeeHeadsChecked },
-                  { label: 'Grade Amounts', val: copyGradeAmountsChecked, set: setCopyGradeAmountsChecked },
-                  { label: 'Concession Rules', val: copyConcessionRulesChecked, set: setCopyConcessionRulesChecked },
-                  { label: 'Late Fee Rules', val: copyLateFeeRulesChecked, set: setCopyLateFeeRulesChecked },
-                ].map(item => (
-                  <label key={item.label} className={`flex items-center gap-2 p-2.5 rounded-xl ${theme.secondaryBg} cursor-pointer`}>
-                    <input type="checkbox" checked={item.val} onChange={() => item.set(!item.val)} className="accent-emerald-500 w-3.5 h-3.5" />
-                    <span className={`text-xs font-medium ${theme.highlight}`}>{item.label}</span>
-                  </label>
-                ))}
-              </div>
-              <button onClick={() => { setCopyConfirmed(true); setTimeout(() => setCopyConfirmed(false), 3000); }}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold ${theme.primary} text-white`}>
-                Copy to Next Year
-              </button>
-              {copyConfirmed && <p className="text-xs text-emerald-600 font-bold animate-pulse">Fee structure copied successfully!</p>}
-            </div>
-          </SectionCard>
         </div>
       )}
 
