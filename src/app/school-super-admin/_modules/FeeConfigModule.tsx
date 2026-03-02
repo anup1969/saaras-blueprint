@@ -58,6 +58,7 @@ export default function FeeConfigModule({ theme }: { theme: Theme }) {
     'Grade 12': { 'Tuition Fee': '7000', 'Admission Fee': '30000', 'Annual Charges': '18000', 'Transport Fee': '3000', 'Activity Fee': '3500', 'Lab Fee': '5000', 'Exam Fee': '2500' },
   });
   const [customFeeHeads, setCustomFeeHeads] = useState<{ name: string; frequency: string; enabled: boolean }[]>([]);
+  const [feeHeadSearch, setFeeHeadSearch] = useState('');
 
   // ═══════ Concessions state ═══════
   const [concessions, setConcessions] = useState([
@@ -168,6 +169,10 @@ export default function FeeConfigModule({ theme }: { theme: Theme }) {
   // ═══════ Derived ═══════
   const activeHeads = Object.entries(feeHeads).filter(([, v]) => v).map(([k]) => k);
   const frequencies = ['Monthly', 'Quarterly', 'Term-wise', 'Half-yearly', 'Yearly', 'One-time'];
+  const allFeeHeadNames = Object.keys(feeHeads);
+  const filteredFeeHeads = feeHeadSearch
+    ? allFeeHeadNames.filter(h => h.toLowerCase().includes(feeHeadSearch.toLowerCase()))
+    : allFeeHeadNames;
   const filteredConcessions = concessionSearch
     ? concessions.filter(c => c.type.toLowerCase().includes(concessionSearch.toLowerCase()))
     : concessions;
@@ -221,53 +226,100 @@ export default function FeeConfigModule({ theme }: { theme: Theme }) {
             </SectionCard>
           </div>
 
-          {/* Fee Heads */}
-          {feeTemplate !== 'simple-annual' && (
-            <SectionCard title="Fee Heads" subtitle="Toggle fee components on/off and set frequency" theme={theme}>
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
-                {Object.entries(feeHeads).map(([head, enabled]) => (
-                  <div key={head} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <SSAToggle on={enabled} onChange={() => setFeeHeads(p => ({ ...p, [head]: !p[head] }))} theme={theme} label={head} />
-                      <span className={`text-xs font-medium ${theme.highlight} truncate`}>{head}</span>
-                    </div>
-                    {enabled && (
-                      <select value={feeFrequency[head] || 'Yearly'} onChange={e => setFeeFrequency(p => ({ ...p, [head]: e.target.value }))}
-                        className={`text-[10px] px-1.5 py-0.5 rounded-lg border ${theme.border} ${theme.inputBg} ${theme.highlight} ml-2`}>
-                        {(feeTemplate === 'term-wise' ? ['Term 1', 'Term 2', 'Term 3', 'All Terms'] : frequencies).map(f => <option key={f} value={f}>{f}</option>)}
-                      </select>
-                    )}
-                  </div>
-                ))}
-              </div>
-              {customFeeHeads.length > 0 && (
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 mt-2">
-                  {customFeeHeads.map((cfh, idx) => (
-                    <div key={idx} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg} ring-1 ring-emerald-200`}>
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <SSAToggle on={cfh.enabled} onChange={() => setCustomFeeHeads(p => p.map((h, i) => i === idx ? { ...h, enabled: !h.enabled } : h))} theme={theme} label={cfh.name} />
-                        <input value={cfh.name} onChange={e => setCustomFeeHeads(p => p.map((h, i) => i === idx ? { ...h, name: e.target.value } : h))}
-                          placeholder="Fee head name..."
-                          className={`text-xs font-medium ${theme.highlight} bg-transparent border-b ${theme.border} outline-none flex-1 min-w-0 px-1 py-0.5 focus:border-emerald-400`} />
-                      </div>
-                      {cfh.enabled && (
-                        <select value={cfh.frequency} onChange={e => setCustomFeeHeads(p => p.map((h, i) => i === idx ? { ...h, frequency: e.target.value } : h))}
-                          className={`text-[10px] px-1.5 py-0.5 rounded-lg border ${theme.border} ${theme.inputBg} ${theme.highlight} ml-2`}>
-                          {(feeTemplate === 'term-wise' ? ['Term 1', 'Term 2', 'Term 3', 'All Terms'] : frequencies).map(f => <option key={f} value={f}>{f}</option>)}
-                        </select>
-                      )}
-                      <button onClick={() => setCustomFeeHeads(p => p.filter((_, i) => i !== idx))}
-                        className="text-red-400 hover:text-red-600 ml-2 shrink-0"><X size={12} /></button>
-                    </div>
-                  ))}
+          {/* Fee Heads — CRUD Master Table */}
+          {feeTemplate !== 'simple-annual' && (<>
+            {/* CRUD Toolbar */}
+            <div className={`flex items-center justify-between p-3 rounded-xl ${theme.secondaryBg}`}>
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <Search size={14} className={`absolute left-2.5 top-1/2 -translate-y-1/2 ${theme.iconColor}`} />
+                  <input value={feeHeadSearch} onChange={e => setFeeHeadSearch(e.target.value)}
+                    placeholder="Search fee heads..."
+                    className={`pl-8 pr-3 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none w-52`} />
                 </div>
-              )}
-              <button onClick={() => setCustomFeeHeads(p => [...p, { name: '', frequency: 'Monthly', enabled: true }])}
-                className="flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 px-3 py-2 rounded-xl mt-3 transition-colors">
-                <Plus size={12} /> Add Fee Head
-              </button>
+                <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${theme.accentBg} ${theme.iconColor}`}>
+                  {activeHeads.length} active / {allFeeHeadNames.length + customFeeHeads.length} total
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-colors">
+                  <Download size={12} /> Export
+                </button>
+                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors">
+                  <Plus size={12} /> Import
+                </button>
+              </div>
+            </div>
+
+            <SectionCard title="Fee Heads Master" subtitle="Create, update, delete, enable/disable fee components" theme={theme}>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead><tr className={theme.secondaryBg}>
+                    {['Fee Head Name', 'Frequency', 'Active', ''].map(h => (
+                      <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
+                    ))}
+                  </tr></thead>
+                  <tbody>
+                    {filteredFeeHeads.map(head => (
+                      <tr key={head} className={`border-t ${theme.border}`}>
+                        <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{head}</td>
+                        <td className="px-3 py-1.5">
+                          <select value={feeFrequency[head] || 'Yearly'} onChange={e => setFeeFrequency(p => ({ ...p, [head]: e.target.value }))}
+                            className={`px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] font-bold ${theme.highlight}`}>
+                            {(feeTemplate === 'term-wise' ? ['Term 1', 'Term 2', 'Term 3', 'All Terms'] : frequencies).map(f => <option key={f} value={f}>{f}</option>)}
+                          </select>
+                        </td>
+                        <td className="px-3 py-1.5">
+                          <SSAToggle on={feeHeads[head]} onChange={() => setFeeHeads(p => ({ ...p, [head]: !p[head] }))} theme={theme} label={head} />
+                        </td>
+                        <td className="px-3 py-1.5">
+                          <button onClick={() => {
+                            setFeeHeads(p => { const n = { ...p }; delete n[head]; return n; });
+                            setFeeFrequency(p => { const n = { ...p }; delete n[head]; return n; });
+                          }} className="text-red-400 hover:text-red-600"><X size={12} /></button>
+                        </td>
+                      </tr>
+                    ))}
+                    {/* Custom fee heads */}
+                    {customFeeHeads.filter(cfh => !feeHeadSearch || cfh.name.toLowerCase().includes(feeHeadSearch.toLowerCase())).map((cfh, idx) => (
+                      <tr key={`custom-${idx}`} className={`border-t ${theme.border} bg-emerald-50/30`}>
+                        <td className="px-3 py-1.5">
+                          <input value={cfh.name} onChange={e => setCustomFeeHeads(p => p.map((h, i) => i === idx ? { ...h, name: e.target.value } : h))}
+                            placeholder="New fee head name..."
+                            className={`w-full px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} />
+                        </td>
+                        <td className="px-3 py-1.5">
+                          <select value={cfh.frequency} onChange={e => setCustomFeeHeads(p => p.map((h, i) => i === idx ? { ...h, frequency: e.target.value } : h))}
+                            className={`px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] font-bold ${theme.highlight}`}>
+                            {(feeTemplate === 'term-wise' ? ['Term 1', 'Term 2', 'Term 3', 'All Terms'] : frequencies).map(f => <option key={f} value={f}>{f}</option>)}
+                          </select>
+                        </td>
+                        <td className="px-3 py-1.5">
+                          <SSAToggle on={cfh.enabled} onChange={() => setCustomFeeHeads(p => p.map((h, i) => i === idx ? { ...h, enabled: !h.enabled } : h))} theme={theme} label={cfh.name} />
+                        </td>
+                        <td className="px-3 py-1.5">
+                          <button onClick={() => setCustomFeeHeads(p => p.filter((_, i) => i !== idx))} className="text-red-400 hover:text-red-600"><X size={12} /></button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="flex items-center justify-between mt-3 flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setCustomFeeHeads(p => [...p, { name: '', frequency: 'Monthly', enabled: true }])}
+                    className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
+                    <Plus size={12} /> Add Fee Head
+                  </button>
+                  <button onClick={() => setFeeHeads(p => { const n = { ...p }; Object.keys(n).forEach(k => n[k] = true); return n; })}
+                    className="px-2.5 py-1.5 rounded-lg text-[9px] font-bold bg-emerald-100 text-emerald-700 hover:bg-emerald-200">Enable All</button>
+                  <button onClick={() => setFeeHeads(p => { const n = { ...p }; Object.keys(n).forEach(k => n[k] = false); return n; })}
+                    className="px-2.5 py-1.5 rounded-lg text-[9px] font-bold bg-gray-100 text-gray-600 hover:bg-gray-200">Disable All</button>
+                </div>
+                <p className={`text-[10px] ${theme.iconColor}`}>Showing {filteredFeeHeads.length} of {allFeeHeadNames.length} fee heads</p>
+              </div>
             </SectionCard>
-          )}
+          </>)}
 
           {/* Grade-wise Fee Amounts */}
           <div className="relative">
