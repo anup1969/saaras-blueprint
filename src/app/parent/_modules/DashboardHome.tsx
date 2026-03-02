@@ -100,8 +100,52 @@ export default function DashboardHome({ theme, child, onProfileClick, onNavigate
         <StatCard icon={MessageSquare} label="Unread Messages" value={unreadMsg} color="bg-blue-500" sub={unreadMsg > 0 ? 'New messages' : 'All read'} theme={theme} onClick={() => onNavigate?.('communication')} />
       </div>
 
-      {/* Two Column Layout */}
-      <div className="grid grid-cols-2 gap-4">
+      {/* Attendance Overview — clickable to Attendance page */}
+      <div
+        onClick={() => onNavigate?.('attendance')}
+        className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 cursor-pointer ${theme.buttonHover} transition-all`}
+      >
+        <div className="flex items-center justify-between mb-3">
+          <h3 className={`text-sm font-bold ${theme.highlight}`}>Attendance Overview</h3>
+          <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${att.percentage >= 75 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+            {att.percentage}% Overall
+          </span>
+        </div>
+        <div className="flex items-center gap-4">
+          {/* Donut-style ring */}
+          <div className="relative w-16 h-16 shrink-0">
+            <svg viewBox="0 0 36 36" className="w-16 h-16 -rotate-90">
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="currentColor" className={theme.iconColor} opacity={0.15} strokeWidth="3" />
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke={att.percentage >= 75 ? '#10b981' : '#ef4444'} strokeWidth="3" strokeDasharray={`${att.percentage} ${100 - att.percentage}`} strokeLinecap="round" />
+            </svg>
+            <span className={`absolute inset-0 flex items-center justify-center text-xs font-bold ${theme.highlight}`}>{att.percentage}%</span>
+          </div>
+          <div className="flex-1 grid grid-cols-4 gap-3">
+            <div className="text-center">
+              <p className="text-sm font-bold text-emerald-600">{att.totalPresent}</p>
+              <p className={`text-[9px] ${theme.iconColor}`}>Present</p>
+            </div>
+            <div className="text-center">
+              <p className="text-sm font-bold text-red-500">{att.totalAbsent}</p>
+              <p className={`text-[9px] ${theme.iconColor}`}>Absent</p>
+            </div>
+            <div className="text-center">
+              <p className="text-sm font-bold text-amber-500">{att.totalLate}</p>
+              <p className={`text-[9px] ${theme.iconColor}`}>Late</p>
+            </div>
+            <div className="text-center">
+              <p className="text-sm font-bold text-blue-500">#{att.rank}</p>
+              <p className={`text-[9px] ${theme.iconColor}`}>Class Rank</p>
+            </div>
+          </div>
+          <div className={`text-xs ${theme.iconColor} flex items-center gap-1 shrink-0`}>
+            View Details <ArrowRight size={12} />
+          </div>
+        </div>
+      </div>
+
+      {/* Three Column: Events | Messages | Consent */}
+      <div className="grid grid-cols-3 gap-4">
         {/* Upcoming Exams / Events */}
         <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
           <div className="flex items-center justify-between mb-3">
@@ -110,30 +154,27 @@ export default function DashboardHome({ theme, child, onProfileClick, onNavigate
           </div>
           <div className="space-y-2">
             {[
-              { event: 'PTM - Parent Teacher Meeting', date: child.id === 'child1' ? '20 Feb 2026' : '22 Feb 2026', type: 'Meeting' },
-              { event: 'Annual Day Celebration', date: '25 Feb 2026', type: 'Event' },
+              { event: 'PTM', date: child.id === 'child1' ? '20 Feb 2026' : '22 Feb 2026', type: 'Meeting' },
+              { event: 'Annual Day', date: '25 Feb 2026', type: 'Event' },
               ...(child.id === 'child1' ? [
-                { event: 'Board Exam Revision Classes Start', date: '17 Feb 2026', type: 'Academic' },
-                { event: 'School Picnic - Imagica', date: '28 Feb 2026', type: 'Event' },
-                { event: 'Pre-Board Examination', date: '05 Mar 2026', type: 'Exam' },
+                { event: 'Revision Classes', date: '17 Feb 2026', type: 'Academic' },
+                { event: 'School Picnic', date: '28 Feb 2026', type: 'Event' },
+                { event: 'Pre-Board Exam', date: '05 Mar 2026', type: 'Exam' },
               ] : [
                 { event: 'Drawing Competition', date: '18 Feb 2026', type: 'Competition' },
                 { event: 'Unit Test 3', date: '10 Mar 2026', type: 'Exam' },
               ]),
             ].map((e, i) => (
-              <div key={i} className={`flex items-center gap-3 p-2 rounded-xl ${theme.secondaryBg}`}>
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white text-[10px] font-bold ${
+              <div key={i} className={`flex items-center gap-2 p-2 rounded-xl ${theme.secondaryBg}`}>
+                <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-white text-[9px] font-bold shrink-0 ${
                   e.type === 'Exam' ? 'bg-red-500' : e.type === 'Meeting' ? 'bg-purple-500' : e.type === 'Academic' ? 'bg-blue-500' : 'bg-emerald-500'
                 }`}>
                   {e.date.split(' ')[0]}
                 </div>
-                <div className="flex-1">
-                  <p className={`text-xs font-bold ${theme.highlight}`}>{e.event}</p>
-                  <p className={`text-[10px] ${theme.iconColor}`}>{e.date}</p>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-[11px] font-bold ${theme.highlight} truncate`}>{e.event}</p>
+                  <p className={`text-[9px] ${theme.iconColor}`}>{e.date}</p>
                 </div>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
-                  e.type === 'Exam' ? 'bg-red-100 text-red-700' : e.type === 'Meeting' ? 'bg-purple-100 text-purple-700' : e.type === 'Academic' ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700'
-                }`}>{e.type}</span>
               </div>
             ))}
           </div>
@@ -147,16 +188,46 @@ export default function DashboardHome({ theme, child, onProfileClick, onNavigate
           </div>
           <div className="space-y-2">
             {comm.messages.map((msg) => (
-              <div key={msg.id} className={`p-3 rounded-xl ${theme.secondaryBg} ${!msg.read ? `border-l-2 border-blue-500` : ''}`}>
-                <div className="flex items-center justify-between mb-1">
-                  <p className={`text-xs font-bold ${theme.highlight}`}>{msg.subject}</p>
-                  {!msg.read && <span className="w-2 h-2 bg-blue-500 rounded-full" />}
+              <div key={msg.id} className={`p-2.5 rounded-xl ${theme.secondaryBg} ${!msg.read ? `border-l-2 border-blue-500` : ''}`}>
+                <div className="flex items-center justify-between mb-0.5">
+                  <p className={`text-[11px] font-bold ${theme.highlight} truncate`}>{msg.subject}</p>
+                  {!msg.read && <span className="w-2 h-2 bg-blue-500 rounded-full shrink-0" />}
                 </div>
-                <p className={`text-[10px] ${theme.iconColor} mb-1`}>{msg.from}</p>
-                <p className={`text-[10px] ${theme.iconColor} line-clamp-2`}>{msg.content}</p>
-                <p className={`text-[10px] ${theme.iconColor} mt-1 opacity-60`}>{msg.date}</p>
+                <p className={`text-[9px] ${theme.iconColor} truncate`}>{msg.from}</p>
+                <p className={`text-[9px] ${theme.iconColor} line-clamp-2 mt-0.5`}>{msg.content}</p>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Consent & Permissions — moved up from below */}
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>Consent &amp; Permissions</h3>
+            <ClipboardCheck size={14} className={theme.iconColor} />
+          </div>
+          <div className="space-y-2">
+            <div className={`p-2.5 rounded-xl ${theme.secondaryBg} border-l-2 border-amber-500`}>
+              <p className={`text-[11px] font-bold ${theme.highlight}`}>Science Museum Field Trip</p>
+              <p className={`text-[9px] ${theme.iconColor} mt-0.5`}>March 8, 2026 — Bus transport included</p>
+              <div className="flex gap-1.5 mt-2">
+                <button className="px-2.5 py-1 bg-emerald-500 text-white rounded-lg text-[10px] font-bold">Accept</button>
+                <button className="px-2.5 py-1 bg-red-100 text-red-600 rounded-lg text-[10px] font-bold">Decline</button>
+              </div>
+            </div>
+            <div className={`p-2.5 rounded-xl ${theme.secondaryBg} border-l-2 border-amber-500`}>
+              <p className={`text-[11px] font-bold ${theme.highlight}`}>Annual Day Photography</p>
+              <p className={`text-[9px] ${theme.iconColor} mt-0.5`}>Photos/videos for official use</p>
+              <div className="flex gap-1.5 mt-2">
+                <button className="px-2.5 py-1 bg-emerald-500 text-white rounded-lg text-[10px] font-bold">Accept</button>
+                <button className="px-2.5 py-1 bg-red-100 text-red-600 rounded-lg text-[10px] font-bold">Decline</button>
+              </div>
+            </div>
+            <div className={`p-2.5 rounded-xl ${theme.secondaryBg} border-l-2 border-emerald-500`}>
+              <p className={`text-[11px] font-bold ${theme.highlight}`}>Swimming Classes</p>
+              <p className={`text-[9px] ${theme.iconColor} mt-0.5`}>Wednesdays 2-3 PM</p>
+              <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold inline-block mt-1">Approved</span>
+            </div>
           </div>
         </div>
       </div>
@@ -281,53 +352,6 @@ export default function DashboardHome({ theme, child, onProfileClick, onNavigate
           <button className="px-3 py-1.5 rounded-xl bg-amber-600 text-white text-xs font-bold hover:bg-amber-700 transition-all shrink-0">View Attendance Details</button>
         </div>
       )}
-
-      {/* ── Consent & Permissions (Gap #150) ── */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <div className="flex items-center justify-between mb-3">
-          <h3 className={`text-sm font-bold ${theme.highlight}`}>Consent &amp; Permissions</h3>
-          <ClipboardCheck size={14} className={theme.iconColor} />
-        </div>
-        <p className={`text-[10px] ${theme.iconColor} mb-3`}>Your consent responses are recorded and shared with the school</p>
-        <div className="space-y-3">
-          {/* Pending consent 1 */}
-          <div className={`p-3 rounded-xl ${theme.secondaryBg} border-l-2 border-amber-500`}>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className={`text-xs font-bold ${theme.highlight}`}>Science Museum Field Trip &mdash; March 8, 2026</p>
-                <p className={`text-[10px] ${theme.iconColor} mt-1`}>Class {child.class} students will visit the Science Museum. Bus transport included. Return by 4 PM.</p>
-              </div>
-              <div className="flex gap-2 shrink-0 ml-4">
-                <button className="px-3 py-1.5 bg-emerald-500 text-white rounded-lg text-xs font-bold">Accept</button>
-                <button className="px-3 py-1.5 bg-red-100 text-red-600 rounded-lg text-xs font-bold">Decline</button>
-              </div>
-            </div>
-          </div>
-          {/* Pending consent 2 */}
-          <div className={`p-3 rounded-xl ${theme.secondaryBg} border-l-2 border-amber-500`}>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className={`text-xs font-bold ${theme.highlight}`}>Annual Day Photography Consent</p>
-                <p className={`text-[10px] ${theme.iconColor} mt-1`}>School photographer will capture photos/videos of Annual Day for official use.</p>
-              </div>
-              <div className="flex gap-2 shrink-0 ml-4">
-                <button className="px-3 py-1.5 bg-emerald-500 text-white rounded-lg text-xs font-bold">Accept</button>
-                <button className="px-3 py-1.5 bg-red-100 text-red-600 rounded-lg text-xs font-bold">Decline</button>
-              </div>
-            </div>
-          </div>
-          {/* Approved consent */}
-          <div className={`p-3 rounded-xl ${theme.secondaryBg} border-l-2 border-emerald-500`}>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className={`text-xs font-bold ${theme.highlight}`}>Swimming Classes Permission</p>
-                <p className={`text-[10px] ${theme.iconColor} mt-1`}>Weekly swimming sessions at school pool, Wednesdays 2-3 PM.</p>
-              </div>
-              <span className="px-2 py-1 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-700 shrink-0 ml-4">Approved</span>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* ── Permission Slip Status (Gap #150) ── */}
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>

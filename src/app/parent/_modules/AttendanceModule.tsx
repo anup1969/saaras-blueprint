@@ -5,7 +5,7 @@ import { type Theme } from '@/lib/themes';
 import { StatCard } from '@/components/shared';
 import {
   Calendar, Clock, CheckCircle, XCircle,
-  Percent, Award, ChevronDown,
+  Percent, Award, ChevronDown, ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import type { ChildProfile } from '../_components/types';
 import { attendanceData } from '../_components/data';
@@ -14,18 +14,27 @@ export default function AttendanceModule({ theme, child }: { theme: Theme; child
   const att = attendanceData[child.id];
   const [selectedMonth] = useState('February 2026');
 
-  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  // Feb 2026 starts on Sunday
-  const firstDayOffset = 0;
+  const dayNames = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+  const firstDayOffset = 0; // Feb 2026 starts on Sunday
 
-  const statusColor = (s: string) => {
+  const statusDot = (s: string) => {
     switch (s) {
-      case 'present': return 'bg-emerald-500 text-white';
-      case 'absent': return 'bg-red-500 text-white';
-      case 'late': return 'bg-amber-500 text-white';
-      case 'holiday': return 'bg-purple-200 text-purple-700';
-      case 'future': return `${theme.secondaryBg} ${theme.iconColor}`;
-      default: return `${theme.secondaryBg} ${theme.iconColor}`;
+      case 'present': return 'bg-emerald-500';
+      case 'absent': return 'bg-red-500';
+      case 'late': return 'bg-amber-500';
+      case 'holiday': return 'bg-purple-400';
+      case 'future': return `${theme.secondaryBg}`;
+      default: return `${theme.secondaryBg}`;
+    }
+  };
+
+  const statusText = (s: string) => {
+    switch (s) {
+      case 'present': return 'text-emerald-600';
+      case 'absent': return 'text-red-600';
+      case 'late': return 'text-amber-600';
+      case 'holiday': return 'text-purple-600';
+      default: return theme.iconColor;
     }
   };
 
@@ -50,46 +59,51 @@ export default function AttendanceModule({ theme, child }: { theme: Theme; child
         <StatCard icon={Award} label="Class Rank" value={`#${att.rank}`} color="bg-purple-500" sub={`of 42 students`} theme={theme} />
       </div>
 
-      {/* Calendar Grid */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5`}>
-        <h3 className={`text-sm font-bold ${theme.highlight} mb-4`}>{selectedMonth}</h3>
-        <div className="grid grid-cols-7 gap-2">
-          {dayNames.map(d => (
-            <div key={d} className={`text-center text-[10px] font-bold ${theme.iconColor} py-1`}>{d}</div>
+      {/* Compact Calendar */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <button className={`p-1 rounded-lg ${theme.buttonHover} ${theme.iconColor}`}><ChevronLeft size={14} /></button>
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>{selectedMonth}</h3>
+            <button className={`p-1 rounded-lg ${theme.buttonHover} ${theme.iconColor}`}><ChevronRight size={14} /></button>
+          </div>
+          <div className="flex items-center gap-3">
+            {[
+              { label: 'P', color: 'bg-emerald-500', text: 'Present' },
+              { label: 'A', color: 'bg-red-500', text: 'Absent' },
+              { label: 'L', color: 'bg-amber-500', text: 'Late' },
+              { label: 'H', color: 'bg-purple-400', text: 'Holiday' },
+            ].map(l => (
+              <div key={l.label} className="flex items-center gap-1" title={l.text}>
+                <div className={`w-2.5 h-2.5 rounded-full ${l.color}`} />
+                <span className={`text-[9px] ${theme.iconColor}`}>{l.text}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-7 gap-px">
+          {/* Day headers */}
+          {dayNames.map((d, i) => (
+            <div key={i} className={`text-center text-[9px] font-bold ${theme.iconColor} py-1`}>{d}</div>
           ))}
-          {/* Empty cells for offset */}
+          {/* Empty offset cells */}
           {Array.from({ length: firstDayOffset }).map((_, i) => (
-            <div key={`empty-${i}`} />
+            <div key={`empty-${i}`} className="h-8" />
           ))}
-          {/* Day cells */}
+          {/* Day cells — compact */}
           {att.monthly.map((day) => (
             <div
               key={day.date}
-              className={`aspect-square rounded-xl flex flex-col items-center justify-center text-xs font-bold transition-all ${statusColor(day.status)}`}
-              title={`${day.date} Feb - ${day.status}`}
+              className={`h-8 rounded-lg flex items-center justify-center relative group cursor-default transition-all hover:ring-1 hover:ring-current`}
+              title={`${day.date} Feb — ${day.status.charAt(0).toUpperCase() + day.status.slice(1)}`}
             >
-              <span>{day.date}</span>
+              <span className={`text-[11px] font-medium ${day.status === 'future' ? theme.iconColor + ' opacity-40' : statusText(day.status)}`}>
+                {day.date}
+              </span>
               {day.status !== 'future' && (
-                <span className="text-[8px] mt-0.5 opacity-80">
-                  {day.status === 'present' ? 'P' : day.status === 'absent' ? 'A' : day.status === 'late' ? 'L' : 'H'}
-                </span>
+                <span className={`absolute bottom-0.5 w-1.5 h-1.5 rounded-full ${statusDot(day.status)}`} />
               )}
-            </div>
-          ))}
-        </div>
-
-        {/* Legend */}
-        <div className="flex items-center gap-4 mt-4 pt-4 border-t border-dashed" style={{ borderColor: 'rgba(0,0,0,0.1)' }}>
-          {[
-            { label: 'Present', color: 'bg-emerald-500' },
-            { label: 'Absent', color: 'bg-red-500' },
-            { label: 'Late', color: 'bg-amber-500' },
-            { label: 'Holiday', color: 'bg-purple-200' },
-            { label: 'Upcoming', color: 'bg-gray-200' },
-          ].map(l => (
-            <div key={l.label} className="flex items-center gap-1.5">
-              <div className={`w-3 h-3 rounded ${l.color}`} />
-              <span className={`text-[10px] ${theme.iconColor}`}>{l.label}</span>
             </div>
           ))}
         </div>
@@ -104,8 +118,8 @@ export default function AttendanceModule({ theme, child }: { theme: Theme; child
               <span className={`text-xs ${theme.highlight}`}>{child.name}</span>
               <span className={`text-xs font-bold ${theme.highlight}`}>{att.percentage}%</span>
             </div>
-            <div className={`h-3 rounded-full ${theme.secondaryBg}`}>
-              <div className="h-3 rounded-full bg-emerald-500 transition-all" style={{ width: `${att.percentage}%` }} />
+            <div className={`h-2.5 rounded-full ${theme.secondaryBg}`}>
+              <div className="h-2.5 rounded-full bg-emerald-500 transition-all" style={{ width: `${att.percentage}%` }} />
             </div>
           </div>
           <div>
@@ -113,8 +127,8 @@ export default function AttendanceModule({ theme, child }: { theme: Theme; child
               <span className={`text-xs ${theme.iconColor}`}>Class {child.class}-{child.section} Average</span>
               <span className={`text-xs font-bold ${theme.iconColor}`}>{att.classAverage}%</span>
             </div>
-            <div className={`h-3 rounded-full ${theme.secondaryBg}`}>
-              <div className="h-3 rounded-full bg-blue-400 transition-all" style={{ width: `${att.classAverage}%` }} />
+            <div className={`h-2.5 rounded-full ${theme.secondaryBg}`}>
+              <div className="h-2.5 rounded-full bg-blue-400 transition-all" style={{ width: `${att.classAverage}%` }} />
             </div>
           </div>
         </div>
