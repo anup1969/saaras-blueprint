@@ -7,7 +7,7 @@ import {
   BookOpen, ClipboardCheck, FileText, Award, Calendar, Clock,
   Bell, Users, CheckCircle, AlertTriangle, ArrowRight,
   PenTool, BookMarked, CalendarDays, TrendingUp,
-  Pencil, ListTodo, CircleDot, Mail, Megaphone, MessageSquare, Notebook
+  Pencil, ListTodo, CircleDot, Mail, Megaphone, MessageSquare, Notebook, X
 } from 'lucide-react';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 
@@ -71,6 +71,7 @@ const roomMap: Record<string, string> = {
 
 export default function DashboardHome({ theme, isPreschool, onNavigate }: { theme: Theme; isPreschool?: boolean; onNavigate?: (id: string) => void }) {
   const [showNotifications, setShowNotifications] = useState(false);
+  const [caughtUpDismissed, setCaughtUpDismissed] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -176,16 +177,23 @@ export default function DashboardHome({ theme, isPreschool, onNavigate }: { them
         </div>
       </div>
 
-      {/* Gap 20: All Caught Up success card */}
-      <div className={`flex items-center gap-3 p-4 rounded-2xl bg-emerald-50 border border-emerald-200`}>
-        <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
-          <CheckCircle size={20} className="text-emerald-600" />
+      {/* Gap 20: All Caught Up success card — dismissible */}
+      {!caughtUpDismissed && (
+        <div className={`flex items-center gap-3 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 relative`}>
+          <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+            <CheckCircle size={20} className="text-emerald-600" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-bold text-emerald-800">All Caught Up!</p>
+            <p className="text-xs text-emerald-600">No pending submissions, approvals, or overdue tasks. Great work!</p>
+          </div>
+          <button onClick={() => setCaughtUpDismissed(true)}
+            className="p-1 rounded-lg hover:bg-emerald-100 text-emerald-400 hover:text-emerald-600 transition-colors shrink-0"
+            title="Dismiss">
+            <X size={16} />
+          </button>
         </div>
-        <div>
-          <p className="text-sm font-bold text-emerald-800">All Caught Up!</p>
-          <p className="text-xs text-emerald-600">No pending submissions, approvals, or overdue tasks. Great work!</p>
-        </div>
-      </div>
+      )}
 
       {/* ══════════════════════════════════════════════════════
           SECTION 1: TODAY'S TIMETABLE — Period-wise schedule
