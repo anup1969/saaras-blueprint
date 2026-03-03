@@ -56,7 +56,7 @@ export default function HRManagementModule({ theme }: { theme: Theme }) {
             { label: 'Leave Requests', icon: Calendar, color: 'bg-amber-500', sub: '3 pending approvals' },
             { label: 'Attendance Report', icon: ClipboardCheck, color: 'bg-blue-500', sub: 'Staff attendance trends' },
           ].map(a => (
-            <button key={a.label} className={`flex items-center gap-3 p-4 rounded-xl ${theme.secondaryBg} ${theme.buttonHover} transition-all text-left`}>
+            <button key={a.label} onClick={() => alert(`${a.label}\n\n${a.sub}\n\nThis will open the detailed ${a.label.toLowerCase()} page.`)} className={`flex items-center gap-3 p-4 rounded-xl ${theme.secondaryBg} ${theme.buttonHover} transition-all text-left`}>
               <div className={`w-10 h-10 rounded-xl ${a.color} flex items-center justify-center text-white`}><a.icon size={18} /></div>
               <div>
                 <span className={`text-xs font-bold ${theme.highlight} block`}>{a.label}</span>

@@ -1094,6 +1094,26 @@ export default function CalendarModule({ theme }: { theme: Theme }) {
         </div>
       </div>
 
+      {/* Colour Code Legend */}
+      <div className={`flex items-center gap-4 flex-wrap px-4 py-2.5 rounded-xl ${theme.secondaryBg} border ${theme.border}`}>
+        <span className={`text-[10px] font-bold ${theme.iconColor} uppercase`}>Legend:</span>
+        {[
+          { type: 'Exam', color: 'bg-blue-400' },
+          { type: 'Holiday', color: 'bg-red-400' },
+          { type: 'Event', color: 'bg-purple-400' },
+          { type: 'Sports', color: 'bg-green-400' },
+          { type: 'PTM', color: 'bg-amber-400' },
+          { type: 'Meeting', color: 'bg-sky-400' },
+          { type: 'Finance', color: 'bg-orange-400' },
+          { type: 'Training', color: 'bg-indigo-400' },
+        ].map(c => (
+          <div key={c.type} className="flex items-center gap-1.5">
+            <span className={`w-2.5 h-2.5 rounded-full ${c.color}`} />
+            <span className={`text-[10px] font-medium ${theme.highlight}`}>{c.type}</span>
+          </div>
+        ))}
+      </div>
+
       {/* View Toggle Buttons */}
       <div className={`flex gap-1 p-1 rounded-xl ${theme.secondaryBg} w-fit`}>
         {viewButtons.map(v => (

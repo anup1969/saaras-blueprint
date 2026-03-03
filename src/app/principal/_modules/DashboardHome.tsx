@@ -42,6 +42,9 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
   const [galleryExpanded, setGalleryExpanded] = useState(false);
   const [infirmaryExpanded, setInfirmaryExpanded] = useState(false);
 
+  {/* RTE Quota collapsible state */}
+  const [rteExpanded, setRteExpanded] = useState(false);
+
   {/* Gap 22 — Mini-Profile Popup state */}
   const [miniProfile, setMiniProfile] = useState<{name: string; class?: string; role?: string} | null>(null);
 
@@ -97,29 +100,23 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
       </div>
 
 
-      {/* Gap 16 — Force-Push Mandatory Dashlet */}
+      {/* Gap 16 — Force-Push Mandatory Dashlet (compact) */}
       {!dismissedAlerts.includes('fee-collection-drive') && (
-            <div className="rounded-2xl border-l-4 border-amber-500 bg-amber-50 border border-amber-200 p-4">
-        <div className="flex items-start gap-3">
-          <AlertTriangle size={18} className="text-amber-600 shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <h3 className="text-sm font-bold text-amber-800 mb-1">Required Action</h3>
-            <p className="text-xs text-amber-700">Fee Collection Drive — All class teachers must verify student fee status by March 5, 2026.</p>
-            <p className="text-[10px] text-amber-600 mt-1 italic">This dashlet will remain visible until the task is completed.</p>
-            <div className="flex items-center gap-2 mt-3">
-              <button onClick={() => alert('Marked as complete')} className="px-3 py-1.5 rounded-xl bg-amber-600 text-white text-[10px] font-bold hover:bg-amber-700 transition-colors">
-                Mark as Done
-              </button>
-              <button className="px-3 py-1.5 rounded-xl bg-white border border-amber-300 text-amber-700 text-[10px] font-bold hover:bg-amber-100 transition-colors">
-                View Details
+        <div className="rounded-xl border-l-4 border-amber-500 bg-amber-50 border border-amber-200 px-3 py-2.5">
+          <div className="flex items-center gap-2.5">
+            <AlertTriangle size={14} className="text-amber-600 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-bold text-amber-800">Required: Fee Collection Drive — verify by Mar 5</p>
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button onClick={() => alert('Marked as complete')} className="px-2.5 py-1 rounded-lg bg-amber-600 text-white text-[10px] font-bold hover:bg-amber-700 transition-colors">Done</button>
+              <button className="px-2.5 py-1 rounded-lg bg-white border border-amber-300 text-amber-700 text-[10px] font-bold hover:bg-amber-100 transition-colors">Details</button>
+              <button onClick={() => setDismissedAlerts(prev => [...prev, 'fee-collection-drive'])} className="text-amber-400 hover:text-amber-600 transition-colors">
+                <X size={12} />
               </button>
             </div>
           </div>
-          <button onClick={() => setDismissedAlerts(prev => [...prev, 'fee-collection-drive'])} className="ml-auto text-amber-400 hover:text-amber-600 transition-colors shrink-0">
-            <X size={14} />
-          </button>
         </div>
-      </div>
       )}
 
       {/* Gap 20 — Bottleneck Alert (Principal-specific) */}
@@ -653,26 +650,22 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
                 { name: 'Arjun P.', reason: 'Minor cut', time: '1:45 PM', cls: '9A' },
                 { name: 'Meera D.', reason: 'Fever (100.2F)', time: '2:10 PM', cls: '4C' },
               ].map((v, i) => (
-                <div key={i} className={`flex items-center justify-between px-2 py-1.5 rounded-xl ${theme.secondaryBg}`}>
-                  <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                    <Heart size={11} className="text-red-400 shrink-0" />
-                    <button
-                      onClick={() => setMiniProfile({ name: v.name, class: v.cls })}
-                      className={`text-[11px] font-bold ${theme.highlight} hover:underline cursor-pointer`}
-                    >
-                      {v.name}
-                    </button>
-                    <span className={`text-[10px] ${theme.iconColor}`}>— {v.reason}</span>
-                  </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <span className={`text-[10px] ${theme.iconColor} font-medium`}>{v.time}</span>
-                    <button title="Call Parent" className="w-5 h-5 rounded-md bg-blue-500/20 flex items-center justify-center hover:bg-blue-500/30 transition-colors">
-                      <Phone size={9} className="text-blue-600" />
-                    </button>
-                    <button title="Refer to Doctor" className="w-5 h-5 rounded-md bg-red-500/20 flex items-center justify-center hover:bg-red-500/30 transition-colors">
-                      <Stethoscope size={9} className="text-red-600" />
-                    </button>
-                  </div>
+                <div key={i} className={`flex items-center gap-1.5 px-2 py-1 rounded-xl ${theme.secondaryBg}`}>
+                  <Heart size={10} className="text-red-400 shrink-0" />
+                  <button
+                    onClick={() => setMiniProfile({ name: v.name, class: v.cls })}
+                    className={`text-[11px] font-bold ${theme.highlight} hover:underline cursor-pointer`}
+                  >
+                    {v.name}
+                  </button>
+                  <span className={`text-[10px] ${theme.iconColor}`}>— {v.reason}</span>
+                  <span className={`text-[10px] ${theme.iconColor} ml-auto`}>{v.time}</span>
+                  <button title="Call Parent" className="w-5 h-5 rounded-md bg-blue-500/20 flex items-center justify-center hover:bg-blue-500/30 transition-colors">
+                    <Phone size={9} className="text-blue-600" />
+                  </button>
+                  <button title="Refer to Doctor" className="w-5 h-5 rounded-md bg-red-500/20 flex items-center justify-center hover:bg-red-500/30 transition-colors">
+                    <Stethoscope size={9} className="text-red-600" />
+                  </button>
                 </div>
               ))}
             </div>
@@ -780,52 +773,57 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
 
       {/* Gap 6 — Academic Progress Ring MOVED to AcademicsModule.tsx */}
 
-      {/* Gap 7 — RTE Quota Tracking Dashlet */}
+      {/* Gap 7 — RTE Quota Tracking Dashlet (collapsible) */}
       {dashletVisibility['rteQuota'] && (
-        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-          <div className="flex items-center justify-between mb-3">
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} overflow-hidden`}>
+          <button onClick={() => setRteExpanded(!rteExpanded)} className={`w-full flex items-center justify-between p-4 ${theme.buttonHover}`}>
             <div className="flex items-center gap-2">
               <ShieldCheck size={16} className={theme.iconColor} />
               <h3 className={`text-sm font-bold ${theme.highlight}`}>RTE 25% Quota Tracking</h3>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold">83% — On Track</span>
             </div>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold">On Track</span>
-          </div>
-          <div className="mb-3">
-            <div className="flex items-center justify-between mb-1">
-              <span className={`text-xs ${theme.iconColor}`}>62 / 75 seats filled</span>
-              <span className={`text-xs font-bold text-emerald-600`}>83%</span>
+            <ChevronDown size={14} className={`${theme.iconColor} transition-transform ${rteExpanded ? 'rotate-180' : ''}`} />
+          </button>
+          {rteExpanded && (
+            <div className="px-4 pb-4">
+              <div className="mb-3">
+                <div className="flex items-center justify-between mb-1">
+                  <span className={`text-xs ${theme.iconColor}`}>62 / 75 seats filled</span>
+                  <span className={`text-xs font-bold text-emerald-600`}>83%</span>
+                </div>
+                <div className={`w-full h-3 rounded-full ${theme.secondaryBg}`}>
+                  <div className="h-3 rounded-full bg-emerald-500 transition-all" style={{ width: '83%' }} />
+                </div>
+              </div>
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className={`border-b ${theme.border}`}>
+                    <th className={`text-left py-1 px-2 ${theme.iconColor} font-bold`}>Grade</th>
+                    <th className={`text-left py-1 px-2 ${theme.iconColor} font-bold`}>Filled</th>
+                    <th className={`text-left py-1 px-2 ${theme.iconColor} font-bold`}>Quota</th>
+                    <th className={`text-left py-1 px-2 ${theme.iconColor} font-bold`}>%</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { grade: 'Grade 1', filled: 12, quota: 15 },
+                    { grade: 'Grade 2', filled: 10, quota: 12 },
+                    { grade: 'Grade 3', filled: 8, quota: 10 },
+                    { grade: 'Grade 4', filled: 11, quota: 13 },
+                    { grade: 'Grade 5', filled: 9, quota: 10 },
+                    { grade: 'Grade 6', filled: 12, quota: 15 },
+                  ].map((r, i) => (
+                    <tr key={i} className={`border-b ${theme.border}`}>
+                      <td className={`py-1.5 px-2 ${theme.highlight} font-bold`}>{r.grade}</td>
+                      <td className={`py-1.5 px-2 ${theme.iconColor}`}>{r.filled}</td>
+                      <td className={`py-1.5 px-2 ${theme.iconColor}`}>{r.quota}</td>
+                      <td className={`py-1.5 px-2 font-bold ${Math.round((r.filled / r.quota) * 100) >= 80 ? 'text-emerald-600' : 'text-amber-600'}`}>{Math.round((r.filled / r.quota) * 100)}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-            <div className={`w-full h-3 rounded-full ${theme.secondaryBg}`}>
-              <div className="h-3 rounded-full bg-emerald-500 transition-all" style={{ width: '83%' }} />
-            </div>
-          </div>
-          <table className="w-full text-xs">
-            <thead>
-              <tr className={`border-b ${theme.border}`}>
-                <th className={`text-left py-1 px-2 ${theme.iconColor} font-bold`}>Grade</th>
-                <th className={`text-left py-1 px-2 ${theme.iconColor} font-bold`}>Filled</th>
-                <th className={`text-left py-1 px-2 ${theme.iconColor} font-bold`}>Quota</th>
-                <th className={`text-left py-1 px-2 ${theme.iconColor} font-bold`}>%</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[
-                { grade: 'Grade 1', filled: 12, quota: 15 },
-                { grade: 'Grade 2', filled: 10, quota: 12 },
-                { grade: 'Grade 3', filled: 8, quota: 10 },
-                { grade: 'Grade 4', filled: 11, quota: 13 },
-                { grade: 'Grade 5', filled: 9, quota: 10 },
-                { grade: 'Grade 6', filled: 12, quota: 15 },
-              ].map((r, i) => (
-                <tr key={i} className={`border-b ${theme.border}`}>
-                  <td className={`py-1.5 px-2 ${theme.highlight} font-bold`}>{r.grade}</td>
-                  <td className={`py-1.5 px-2 ${theme.iconColor}`}>{r.filled}</td>
-                  <td className={`py-1.5 px-2 ${theme.iconColor}`}>{r.quota}</td>
-                  <td className={`py-1.5 px-2 font-bold ${Math.round((r.filled / r.quota) * 100) >= 80 ? 'text-emerald-600' : 'text-amber-600'}`}>{Math.round((r.filled / r.quota) * 100)}%</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          )}
         </div>
       )}
 

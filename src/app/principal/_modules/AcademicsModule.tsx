@@ -194,7 +194,7 @@ export default function AcademicsModule({ theme }: { theme: Theme }) {
               <ClipboardList size={16} className={theme.iconColor} />
               <h3 className={`text-sm font-bold ${theme.highlight}`}>Lesson Plan Submission Status</h3>
             </div>
-            <p className={`text-[10px] ${theme.iconColor} mb-3 ml-6`}>Department-wise lesson plan submission tracking for the current term</p>
+            <p className={`text-[10px] ${theme.iconColor} mb-3 ml-6`}>Subject-wise lesson plan submission tracking for the current term</p>
             <div className="mb-3 px-3 py-2 rounded-xl bg-amber-50 border border-amber-200">
               <p className="text-xs font-bold text-amber-800">Overall: 78% submitted — Deadline: Mar 5, 2026</p>
             </div>

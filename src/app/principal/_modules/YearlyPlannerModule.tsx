@@ -93,11 +93,11 @@ export default function YearlyPlannerModule({ theme }: { theme: Theme }) {
       icon: Star,
       color: 'bg-purple-500',
       milestones: [
-        { label: 'Theme finalization & committee formation', days: '60 days before', responsible: 'Principal', done: true },
-        { label: 'Script writing & participant selection', days: '45 days before', responsible: 'Activity Coordinator', done: true },
-        { label: 'Costume procurement & stage booking', days: '30 days before', responsible: 'Admin', done: true },
-        { label: 'Full dress rehearsals begin', days: '14 days before', responsible: 'Teachers', done: false },
-        { label: 'Final rehearsal & logistics check', days: '7 days before', responsible: 'VP + Admin', done: false },
+        { label: 'Theme finalization & committee formation', days: 'T-60 days', responsible: 'Principal', done: true },
+        { label: 'Script writing & participant selection', days: 'T-45 days', responsible: 'Activity Coordinator', done: true },
+        { label: 'Costume procurement & stage booking', days: 'T-30 days', responsible: 'Admin', done: true },
+        { label: 'Full dress rehearsals begin', days: 'T-14 days', responsible: 'Teachers', done: false },
+        { label: 'Final rehearsal & logistics check', days: 'T-7 days', responsible: 'VP + Admin', done: false },
         { label: 'Event day — D-Day execution', days: 'D-Day', responsible: 'All Staff', done: false },
       ],
       budget: [
@@ -115,10 +115,10 @@ export default function YearlyPlannerModule({ theme }: { theme: Theme }) {
       icon: Trophy,
       color: 'bg-green-500',
       milestones: [
-        { label: 'Event list & house allocation', days: '60 days before', responsible: 'Sports Teacher', done: true },
-        { label: 'Practice sessions & selection trials', days: '30 days before', responsible: 'PE Department', done: true },
-        { label: 'Track/field prep & equipment check', days: '14 days before', responsible: 'Admin', done: false },
-        { label: 'March-past rehearsal & chief guest confirmation', days: '7 days before', responsible: 'Principal', done: false },
+        { label: 'Event list & house allocation', days: 'T-60 days', responsible: 'Sports Teacher', done: true },
+        { label: 'Practice sessions & selection trials', days: 'T-30 days', responsible: 'PE Department', done: true },
+        { label: 'Track/field prep & equipment check', days: 'T-14 days', responsible: 'Admin', done: false },
+        { label: 'March-past rehearsal & chief guest confirmation', days: 'T-7 days', responsible: 'Principal', done: false },
         { label: 'Sports Day — D-Day execution', days: 'D-Day', responsible: 'All Staff', done: false },
       ],
       budget: [
@@ -135,9 +135,9 @@ export default function YearlyPlannerModule({ theme }: { theme: Theme }) {
       icon: Flag,
       color: 'bg-orange-500',
       milestones: [
-        { label: 'Program schedule & speech assignments', days: '14 days before', responsible: 'VP', done: true },
-        { label: 'Flag hoisting arrangements & decoration', days: '7 days before', responsible: 'Admin', done: true },
-        { label: 'Rehearsals for cultural programs', days: '3 days before', responsible: 'Teachers', done: false },
+        { label: 'Program schedule & speech assignments', days: 'T-14 days', responsible: 'VP', done: true },
+        { label: 'Flag hoisting arrangements & decoration', days: 'T-7 days', responsible: 'Admin', done: true },
+        { label: 'Rehearsals for cultural programs', days: 'T-3 days', responsible: 'Teachers', done: false },
         { label: 'Independence Day celebration', days: 'D-Day', responsible: 'Principal', done: false },
       ],
       budget: [
@@ -152,9 +152,9 @@ export default function YearlyPlannerModule({ theme }: { theme: Theme }) {
       icon: Flag,
       color: 'bg-blue-500',
       milestones: [
-        { label: 'Program finalization & chief guest invite', days: '14 days before', responsible: 'Principal', done: true },
-        { label: 'March-past practice & cultural rehearsals', days: '7 days before', responsible: 'PE + Teachers', done: true },
-        { label: 'Flag, stage & seating arrangements', days: '2 days before', responsible: 'Admin', done: false },
+        { label: 'Program finalization & chief guest invite', days: 'T-14 days', responsible: 'Principal', done: true },
+        { label: 'March-past practice & cultural rehearsals', days: 'T-7 days', responsible: 'PE + Teachers', done: true },
+        { label: 'Flag, stage & seating arrangements', days: 'T-2 days', responsible: 'Admin', done: false },
         { label: 'Republic Day celebration', days: 'D-Day', responsible: 'All Staff', done: false },
       ],
       budget: [
@@ -873,9 +873,13 @@ export default function YearlyPlannerModule({ theme }: { theme: Theme }) {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className={`text-xs font-bold ${ms.done ? 'text-emerald-600' : theme.highlight}`}>{ms.label}</p>
-                      <p className={`text-[10px] ${theme.iconColor}`}>{ms.responsible}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold bg-blue-50 text-blue-700 border border-blue-200 flex items-center gap-1`}>
+                          <User size={8} /> {ms.responsible}
+                        </span>
+                      </div>
                     </div>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold shrink-0 ${
                       ms.days === 'D-Day' ? 'bg-red-100 text-red-700' : ms.done ? 'bg-emerald-100 text-emerald-700' : `${theme.secondaryBg} ${theme.iconColor}`
                     }`}>{ms.days}</span>
                   </div>
@@ -916,7 +920,7 @@ export default function YearlyPlannerModule({ theme }: { theme: Theme }) {
               className={`px-3 py-1.5 rounded-xl border ${theme.border} text-xs font-bold ${theme.highlight} ${theme.buttonHover} flex items-center gap-1`}>
               <Eye size={12} /> {showInterSchool ? 'Collapse' : 'Expand'}
             </button>
-            <button className={`px-3 py-1.5 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-1`}>
+            <button onClick={() => alert('Event Registration\n\nA registration form will open to enroll students/staff for the selected inter-school event. School coordinator will be notified.')} className={`px-3 py-1.5 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-1`}>
               <Plus size={12} /> Register for Event
             </button>
           </div>

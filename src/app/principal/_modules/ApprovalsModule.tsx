@@ -1,10 +1,15 @@
 'use client';
 
+import { useState } from 'react';
 import { StatCard, StatusBadge, DataTable } from '@/components/shared';
 import { type Theme } from '@/lib/themes';
-import { Clock, AlertTriangle, CheckCircle, Check, X } from 'lucide-react';
+import { Clock, AlertTriangle, CheckCircle, Check, X, Filter } from 'lucide-react';
 
 export default function ApprovalsModule({ theme }: { theme: Theme }) {
+  const [filterType, setFilterType] = useState<string>('All');
+  const [filterDate, setFilterDate] = useState<string>('All');
+  const [priorityFilter, setPriorityFilter] = useState<string>('All');
+
   const pendingApprovals = [
     {
       id: 1, type: 'Leave', requestedBy: 'Ms. Sunita Verma', date: '10-Feb-2026',
@@ -59,9 +64,20 @@ export default function ApprovalsModule({ theme }: { theme: Theme }) {
 
       {/* Pending Approvals */}
       <div>
-        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Pending Approvals</h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className={`text-sm font-bold ${theme.highlight}`}>Pending Approvals</h3>
+          <div className="flex items-center gap-2">
+            <Filter size={12} className={theme.iconColor} />
+            {['All', 'Urgent', 'High', 'Normal'].map(p => (
+              <button key={p} onClick={() => setPriorityFilter(p)}
+                className={`text-[10px] px-2.5 py-1 rounded-full font-bold transition-all ${
+                  priorityFilter === p ? 'bg-blue-500 text-white' : `${theme.secondaryBg} ${theme.iconColor} hover:ring-1 hover:ring-blue-300`
+                }`}>{p}</button>
+            ))}
+          </div>
+        </div>
         <div className="space-y-3">
-          {pendingApprovals.map(a => (
+          {pendingApprovals.filter(a => priorityFilter === 'All' || a.priority === priorityFilter).map(a => (
             <div key={a.id} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
@@ -73,9 +89,9 @@ export default function ApprovalsModule({ theme }: { theme: Theme }) {
               <p className={`text-sm font-bold ${theme.highlight}`}>{a.details}</p>
               <p className={`text-xs ${theme.iconColor} mt-1`}>Requested by: {a.requestedBy}</p>
               <div className="flex gap-2 mt-3">
-                <button className="px-3 py-1.5 rounded-xl bg-emerald-500 text-white text-xs font-bold flex items-center gap-1"><Check size={10} /> Approve</button>
-                <button className="px-3 py-1.5 rounded-xl bg-red-500 text-white text-xs font-bold flex items-center gap-1"><X size={10} /> Reject</button>
-                <button className={`px-3 py-1.5 rounded-xl border ${theme.border} text-xs font-bold ${theme.highlight}`}>View Details</button>
+                <button onClick={() => alert(`Approved: ${a.details}\n\nThis action has been logged.`)} className="px-3 py-1.5 rounded-xl bg-emerald-500 text-white text-xs font-bold flex items-center gap-1"><Check size={10} /> Approve</button>
+                <button onClick={() => alert(`Rejected: ${a.details}\n\nThis action has been logged.`)} className="px-3 py-1.5 rounded-xl bg-red-500 text-white text-xs font-bold flex items-center gap-1"><X size={10} /> Reject</button>
+                <button onClick={() => alert(`Details:\n\nType: ${a.type}\nRequested by: ${a.requestedBy}\nDate: ${a.date}\nPriority: ${a.priority}\n\n${a.details}`)} className={`px-3 py-1.5 rounded-xl border ${theme.border} text-xs font-bold ${theme.highlight}`}>View Details</button>
               </div>
             </div>
           ))}
@@ -84,10 +100,29 @@ export default function ApprovalsModule({ theme }: { theme: Theme }) {
 
       {/* Approval History */}
       <div>
-        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Approval History</h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className={`text-sm font-bold ${theme.highlight}`}>Approval History</h3>
+          <div className="flex items-center gap-2">
+            <select value={filterType} onChange={e => setFilterType(e.target.value)}
+              className={`text-xs px-2.5 py-1.5 rounded-xl ${theme.secondaryBg} border ${theme.border} ${theme.highlight} cursor-pointer`}>
+              <option value="All">All Types</option>
+              <option value="Leave">Leave</option>
+              <option value="Purchase">Purchase</option>
+              <option value="Event">Event</option>
+              <option value="Transfer">Transfer</option>
+            </select>
+            <select value={filterDate} onChange={e => setFilterDate(e.target.value)}
+              className={`text-xs px-2.5 py-1.5 rounded-xl ${theme.secondaryBg} border ${theme.border} ${theme.highlight} cursor-pointer`}>
+              <option value="All">All Dates</option>
+              <option value="7">Last 7 Days</option>
+              <option value="30">Last 30 Days</option>
+              <option value="90">Last 90 Days</option>
+            </select>
+          </div>
+        </div>
         <DataTable
           headers={['Type', 'Requested By', 'Date', 'Details', 'Decision', 'Decided On']}
-          rows={approvalHistory.map(h => [
+          rows={approvalHistory.filter(h => filterType === 'All' || h.type === filterType).map(h => [
             <span key="type" className={`text-xs font-bold ${theme.secondaryBg} px-2 py-1 rounded-lg ${theme.iconColor}`}>{h.type}</span>,
             <span key="by" className={`font-bold ${theme.highlight}`}>{h.requestedBy}</span>,
             <span key="date" className={theme.iconColor}>{h.date}</span>,

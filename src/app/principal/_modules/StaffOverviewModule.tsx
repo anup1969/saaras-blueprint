@@ -24,7 +24,7 @@ export default function StaffOverviewModule({ theme }: { theme: Theme }) {
       </div>
 
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Department-wise Overview</h3>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Subject-wise Overview</h3>
         <DataTable
           headers={['Department', 'Head', 'Strength', 'Attendance %', 'Performance']}
           rows={departments.map(d => [
