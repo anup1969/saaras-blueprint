@@ -10,7 +10,6 @@ import {
   Pencil, ListTodo, CircleDot, Mail, Megaphone, MessageSquare, Notebook, X,
   User, ChevronDown
 } from 'lucide-react';
-import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 
 // ─── MOCK DATA ──────────────────────────────────────
 
@@ -374,19 +373,18 @@ export default function DashboardHome({ theme, isPreschool, onNavigate }: { them
           </div>
         </div>
         {todayKey === 'Sun' ? (
-          <div className={`p-6 rounded-xl ${theme.secondaryBg} text-center`}>
-            <CalendarDays size={24} className={`${theme.iconColor} mx-auto mb-2`} />
+          <div className={`p-4 rounded-xl ${theme.secondaryBg} text-center`}>
+            <CalendarDays size={20} className={`${theme.iconColor} mx-auto mb-1`} />
             <p className={`text-xs font-bold ${theme.highlight}`}>It&apos;s Sunday — Enjoy your day off!</p>
           </div>
         ) : (
-          <div className="space-y-1">
+          <div className="grid grid-cols-4 lg:grid-cols-8 gap-1.5">
             {todaySchedule.map((entry, i) => {
               if (!entry && !periodTimings[i]) return null;
               const isCurrent = i === currentPeriodIdx;
               const isNext = i === nextPeriodIdx;
               const isCompleted = i < (currentPeriodIdx >= 0 ? currentPeriodIdx : nextPeriodIdx >= 0 ? nextPeriodIdx : 999);
               const isFree = !entry || entry === 'Free';
-              const room = !isFree ? (roomMap[entry] || '—') : '—';
 
               let displaySubject = entry || 'Free';
               let displayClass = '';
@@ -394,35 +392,23 @@ export default function DashboardHome({ theme, isPreschool, onNavigate }: { them
                 const parts = entry.split(' ');
                 displayClass = parts[0];
                 const subjectCode = parts.slice(1).join(' ');
-                displaySubject = subjectCode === 'Math' ? 'Mathematics' : subjectCode === 'Science' ? 'Science' : subjectCode;
-                if (entry === 'Staff Meeting' || entry === 'Lab Duty' || entry === 'PTM Slot') {
-                  displaySubject = entry; displayClass = '';
-                }
+                displaySubject = subjectCode === 'Math' ? 'Math' : subjectCode === 'Science' ? 'Sci' : subjectCode;
+                if (entry === 'Staff Meeting') { displaySubject = 'Meeting'; displayClass = ''; }
+                if (entry === 'Lab Duty') { displaySubject = 'Lab'; displayClass = ''; }
+                if (entry === 'PTM Slot') { displaySubject = 'PTM'; displayClass = ''; }
               }
 
               return (
-                <div key={i} className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg transition-all ${
-                  isCurrent ? `${theme.primary} text-white shadow-md` : isNext ? `border border-dashed border-blue-400 ${theme.secondaryBg}` : isCompleted ? `${theme.secondaryBg} opacity-50` : isFree ? `${theme.secondaryBg} opacity-40` : theme.secondaryBg
-                }`}>
-                  <span className={`text-[10px] font-bold w-5 shrink-0 ${isCurrent ? 'text-white' : theme.primaryText}`}>P{i + 1}</span>
-                  <span className={`text-[10px] w-16 shrink-0 ${isCurrent ? 'text-white/70' : theme.iconColor}`}>{periodTimings[i]}</span>
-                  <span className={`text-[11px] font-bold flex-1 ${isCurrent ? 'text-white' : isCompleted ? theme.iconColor : theme.highlight}`}>
-                    {isFree ? 'Free' : displaySubject}
-                  </span>
-                  {displayClass && <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${isCurrent ? 'bg-white/20 text-white' : `${theme.accentBg} ${theme.iconColor}`}`}>{displayClass}</span>}
-                  {!isFree && <span className={`text-[9px] ${isCurrent ? 'text-white/60' : theme.iconColor}`}>{room}</span>}
-                  {isCurrent && <CircleDot size={10} className="text-white animate-pulse shrink-0" />}
-                  {isNext && <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold shrink-0">NEXT</span>}
+                <div key={i} className={`rounded-lg px-2 py-1.5 text-center transition-all ${
+                  isCurrent ? `${theme.primary} text-white shadow-md ring-2 ring-blue-300` : isNext ? `border border-dashed border-blue-400 ${theme.secondaryBg}` : isCompleted ? `${theme.secondaryBg} opacity-50` : isFree ? `${theme.secondaryBg} opacity-30` : theme.secondaryBg
+                }`} title={`P${i + 1}: ${periodTimings[i]} — ${entry || 'Free'}`}>
+                  <p className={`text-[9px] font-bold ${isCurrent ? 'text-white/70' : theme.iconColor}`}>P{i + 1} {isCurrent && <CircleDot size={8} className="inline text-white animate-pulse" />}{isNext && <span className="text-[7px] text-blue-600 font-bold">NEXT</span>}</p>
+                  <p className={`text-[10px] font-bold truncate ${isCurrent ? 'text-white' : isFree ? theme.iconColor : theme.highlight}`}>{isFree ? 'Free' : displaySubject}</p>
+                  {displayClass && <p className={`text-[8px] font-bold ${isCurrent ? 'text-white/60' : theme.iconColor}`}>{displayClass}</p>}
+                  <p className={`text-[8px] ${isCurrent ? 'text-white/50' : theme.iconColor} opacity-70`}>{periodTimings[i]?.split(' - ')[0]}</p>
                 </div>
               );
             })}
-            {todayKey !== 'Sat' && (
-              <div className="flex items-center gap-2 px-2 py-0.5">
-                <div className={`flex-1 h-px ${theme.border} border-t border-dashed`} />
-                <span className={`text-[8px] ${theme.iconColor}`}>Break: 9:50-10:05 | Lunch: 11:25-12:00</span>
-                <div className={`flex-1 h-px ${theme.border} border-t border-dashed`} />
-              </div>
-            )}
           </div>
         )}
       </div>
@@ -545,10 +531,6 @@ export default function DashboardHome({ theme, isPreschool, onNavigate }: { them
         </div>
       </div>
 
-      {/* ══════════════════════════════════════════════════════
-          SECTION 3: TASK TRACKER (Remark #1 — removed duplicate My Tasks card)
-          ══════════════════════════════════════════════════════ */}
-      <TaskTrackerPanel theme={theme} role="teacher" />
 
       {/* ══════════════════════════════════════════════════════
           SECTION 3B: LESSON PLAN REMINDER

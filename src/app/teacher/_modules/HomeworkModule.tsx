@@ -546,6 +546,143 @@ export default function HomeworkModule({ theme }: { theme: Theme }) {
             </div>
           </div>
 
+          {/* ── SUBJECT-WISE / SECTION-WISE PROGRESS ── */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+            <div className="flex items-center justify-between mb-3">
+              <h4 className={`text-xs font-bold ${theme.highlight}`}>Subject-wise & Section-wise Progress</h4>
+              <div className="flex gap-1.5">
+                {['All', 'Mathematics', 'Science'].map(s => (
+                  <button key={s} className={`text-[10px] px-2.5 py-1 rounded-lg font-bold ${s === 'All' ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.iconColor}`}`}>{s}</button>
+                ))}
+              </div>
+            </div>
+            <div className={`rounded-xl border ${theme.border} overflow-hidden`}>
+              <table className="w-full text-sm">
+                <thead className={theme.secondaryBg}>
+                  <tr>
+                    <th className={`text-left px-3 py-2 text-[10px] font-bold ${theme.iconColor} uppercase`}>Section</th>
+                    <th className={`text-left px-3 py-2 text-[10px] font-bold ${theme.iconColor} uppercase`}>Subject</th>
+                    <th className={`text-center px-3 py-2 text-[10px] font-bold ${theme.iconColor} uppercase`}>HW Given</th>
+                    <th className={`text-center px-3 py-2 text-[10px] font-bold ${theme.iconColor} uppercase`}>Avg Submission %</th>
+                    <th className={`text-center px-3 py-2 text-[10px] font-bold ${theme.iconColor} uppercase`}>Avg Score</th>
+                    <th className={`text-center px-3 py-2 text-[10px] font-bold ${theme.iconColor} uppercase`}>On-time %</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { section: '10-A', subject: 'Mathematics', given: 5, submitPct: 88, avgScore: 76, ontimePct: 72 },
+                    { section: '10-B', subject: 'Mathematics', given: 4, submitPct: 95, avgScore: 82, ontimePct: 85 },
+                    { section: '9-A', subject: 'Science', given: 3, submitPct: 92, avgScore: 71, ontimePct: 68 },
+                    { section: '9-B', subject: 'Science', given: 3, submitPct: 89, avgScore: 68, ontimePct: 64 },
+                    { section: '8-A', subject: 'Mathematics', given: 4, submitPct: 97, avgScore: 84, ontimePct: 90 },
+                    { section: '6-A', subject: 'Mathematics', given: 3, submitPct: 76, avgScore: 70, ontimePct: 58 },
+                  ].map((r, i) => (
+                    <tr key={i} className={`border-t ${theme.border} cursor-pointer hover:${theme.secondaryBg} transition-colors`}>
+                      <td className={`px-3 py-2 text-xs font-bold ${theme.primaryText}`}>{r.section}</td>
+                      <td className={`px-3 py-2 text-xs ${theme.highlight}`}>{r.subject}</td>
+                      <td className={`px-3 py-2 text-xs text-center ${theme.highlight}`}>{r.given}</td>
+                      <td className="px-3 py-2 text-center">
+                        <span className={`text-xs font-bold ${r.submitPct >= 90 ? 'text-emerald-600' : r.submitPct >= 75 ? 'text-amber-600' : 'text-red-600'}`}>{r.submitPct}%</span>
+                      </td>
+                      <td className={`px-3 py-2 text-xs font-bold text-center ${theme.highlight}`}>{r.avgScore}%</td>
+                      <td className="px-3 py-2 text-center">
+                        <span className={`text-xs font-bold ${r.ontimePct >= 80 ? 'text-emerald-600' : r.ontimePct >= 60 ? 'text-amber-600' : 'text-red-600'}`}>{r.ontimePct}%</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* ── STUDENT-WISE DRILL-DOWN ── */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+            <div className="flex items-center justify-between mb-3">
+              <h4 className={`text-xs font-bold ${theme.highlight}`}>Student-wise Detail — 10-A Mathematics</h4>
+              <span className={`text-[10px] ${theme.iconColor}`}>Click student name for question-level detail</span>
+            </div>
+            <div className={`rounded-xl border ${theme.border} overflow-hidden`}>
+              <table className="w-full text-sm">
+                <thead className={theme.secondaryBg}>
+                  <tr>
+                    <th className={`text-left px-3 py-2 text-[10px] font-bold ${theme.iconColor} uppercase`}>Student</th>
+                    <th className={`text-center px-3 py-2 text-[10px] font-bold ${theme.iconColor} uppercase`}>Submitted</th>
+                    <th className={`text-center px-3 py-2 text-[10px] font-bold ${theme.iconColor} uppercase`}>Avg Score</th>
+                    <th className={`text-center px-3 py-2 text-[10px] font-bold ${theme.iconColor} uppercase`}>On-time</th>
+                    <th className={`text-center px-3 py-2 text-[10px] font-bold ${theme.iconColor} uppercase`}>Time Spent</th>
+                    <th className={`text-center px-3 py-2 text-[10px] font-bold ${theme.iconColor} uppercase`}>Trend</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { name: 'Aarav Mehta', submitted: '5/5', avgScore: 88, ontime: '4/5', timeSpent: '45 min', trend: 'up' },
+                    { name: 'Ananya Iyer', submitted: '5/5', avgScore: 91, ontime: '5/5', timeSpent: '38 min', trend: 'up' },
+                    { name: 'Arjun Nair', submitted: '4/5', avgScore: 62, ontime: '2/5', timeSpent: '52 min', trend: 'down' },
+                    { name: 'Diya Kulkarni', submitted: '5/5', avgScore: 78, ontime: '4/5', timeSpent: '40 min', trend: 'same' },
+                    { name: 'Harsh Patel', submitted: '3/5', avgScore: 55, ontime: '1/5', timeSpent: '25 min', trend: 'down' },
+                    { name: 'Isha Reddy', submitted: '5/5', avgScore: 95, ontime: '5/5', timeSpent: '35 min', trend: 'up' },
+                  ].map((s, i) => (
+                    <tr key={i} className={`border-t ${theme.border} cursor-pointer hover:${theme.secondaryBg} transition-colors`}>
+                      <td className={`px-3 py-2 text-xs font-bold ${theme.primaryText} underline decoration-dotted`}>{s.name}</td>
+                      <td className={`px-3 py-2 text-xs text-center ${theme.highlight}`}>{s.submitted}</td>
+                      <td className="px-3 py-2 text-center">
+                        <span className={`text-xs font-bold ${s.avgScore >= 80 ? 'text-emerald-600' : s.avgScore >= 60 ? 'text-amber-600' : 'text-red-600'}`}>{s.avgScore}%</span>
+                      </td>
+                      <td className={`px-3 py-2 text-xs text-center ${theme.highlight}`}>{s.ontime}</td>
+                      <td className={`px-3 py-2 text-xs text-center ${theme.iconColor}`}>{s.timeSpent}</td>
+                      <td className="px-3 py-2 text-center text-xs">
+                        {s.trend === 'up' && <span className="text-emerald-600 font-bold">&#9650;</span>}
+                        {s.trend === 'down' && <span className="text-red-600 font-bold">&#9660;</span>}
+                        {s.trend === 'same' && <span className={`${theme.iconColor} font-bold`}>&#9644;</span>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {/* Expanded student view — question-level mock */}
+            <div className={`mt-3 ${theme.secondaryBg} rounded-xl p-3 border ${theme.border}`}>
+              <div className="flex items-center justify-between mb-2">
+                <p className={`text-[11px] font-bold ${theme.highlight}`}>Aarav Mehta — Ch 7 Coordinate Geometry (HW001)</p>
+                <span className={`text-[9px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold`}>88% — Grade A</span>
+              </div>
+              <div className={`rounded-lg border ${theme.border} overflow-hidden`}>
+                <table className="w-full text-sm">
+                  <thead className={theme.cardBg}>
+                    <tr>
+                      <th className={`text-left px-2 py-1.5 text-[9px] font-bold ${theme.iconColor} uppercase`}>Q#</th>
+                      <th className={`text-left px-2 py-1.5 text-[9px] font-bold ${theme.iconColor} uppercase`}>Question</th>
+                      <th className={`text-center px-2 py-1.5 text-[9px] font-bold ${theme.iconColor} uppercase`}>Answer</th>
+                      <th className={`text-center px-2 py-1.5 text-[9px] font-bold ${theme.iconColor} uppercase`}>Marks</th>
+                      <th className={`text-center px-2 py-1.5 text-[9px] font-bold ${theme.iconColor} uppercase`}>Time</th>
+                      <th className={`text-center px-2 py-1.5 text-[9px] font-bold ${theme.iconColor} uppercase`}>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { q: 1, question: 'Find distance between (2,3) and (5,7)', answer: '5 units', marks: '5/5', time: '3m 12s', correct: true },
+                      { q: 2, question: 'Find midpoint of (1,4) and (7,2)', answer: '(4, 3)', marks: '5/5', time: '2m 45s', correct: true },
+                      { q: 3, question: 'Area of triangle with vertices (0,0),(4,0),(0,3)', answer: '6 sq units', marks: '4/5', time: '5m 20s', correct: false },
+                      { q: 4, question: 'Equation of line through (2,1) slope 3', answer: 'y = 3x - 5', marks: '5/5', time: '4m 08s', correct: true },
+                      { q: 5, question: 'Section formula: divide (1,2)(4,5) in 2:1', answer: '(3, 4)', marks: '3/5', time: '6m 30s', correct: false },
+                    ].map(q => (
+                      <tr key={q.q} className={`border-t ${theme.border}`}>
+                        <td className={`px-2 py-1.5 text-[10px] font-bold ${theme.primaryText}`}>Q{q.q}</td>
+                        <td className={`px-2 py-1.5 text-[10px] ${theme.highlight}`}>{q.question}</td>
+                        <td className={`px-2 py-1.5 text-[10px] text-center font-mono ${theme.highlight}`}>{q.answer}</td>
+                        <td className={`px-2 py-1.5 text-[10px] text-center font-bold ${q.correct ? 'text-emerald-600' : 'text-amber-600'}`}>{q.marks}</td>
+                        <td className={`px-2 py-1.5 text-[10px] text-center ${theme.iconColor}`}>{q.time}</td>
+                        <td className="px-2 py-1.5 text-center">
+                          {q.correct ? <CheckCircle size={12} className="text-emerald-500 mx-auto" /> : <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 font-bold">Partial</span>}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
           {/* Export Button */}
           <div className="flex justify-end">
             <button className={`px-4 py-2 rounded-xl border ${theme.border} ${theme.cardBg} text-sm font-bold ${theme.iconColor} flex items-center gap-1`}>
