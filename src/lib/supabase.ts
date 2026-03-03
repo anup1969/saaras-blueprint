@@ -24,6 +24,8 @@ export interface FeedbackItem {
   viewport_width?: number | null;
   viewport_height?: number | null;
   screenshot_base64?: string | null;
+  review_status?: 'pending_review' | 'accepted' | 'needs_changes' | null;
+  reviewer_comment?: string | null;
 }
 
 export async function submitFeedback(
@@ -184,6 +186,36 @@ export async function updateUser(userId: string, updates: Partial<Omit<Blueprint
     return res.ok;
   } catch (e) {
     console.error('Update user error:', e);
+    return false;
+  }
+}
+
+// ─── Reviewer ─────────────────────────────────────────
+
+export async function getMyRemarks(submittedBy: string): Promise<FeedbackItem[]> {
+  try {
+    const res = await fetch(`/api/feedback?submittedBy=${encodeURIComponent(submittedBy)}`);
+    if (res.ok) return await res.json();
+  } catch (e) {
+    console.error('Get my remarks error:', e);
+  }
+  return [];
+}
+
+export async function updateReviewStatus(
+  id: string,
+  review_status: 'accepted' | 'needs_changes',
+  reviewer_comment?: string
+): Promise<boolean> {
+  try {
+    const res = await fetch('/api/feedback/review', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, review_status, reviewer_comment }),
+    });
+    return res.ok;
+  } catch (e) {
+    console.error('Update review status error:', e);
     return false;
   }
 }

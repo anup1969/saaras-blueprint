@@ -665,6 +665,17 @@ function ModerationTab({ theme, currentUser }: { theme: Theme; currentUser: Team
                         item.moderation_status === 'rejected' ? 'bg-red-500/20 text-red-400' :
                         'bg-blue-500/20 text-blue-400'
                       }`}>{item.moderation_status}</span>
+                      {item.status === 'resolved' && (item as any).review_status && (
+                        <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
+                          (item as any).review_status === 'accepted' ? 'bg-emerald-500/20 text-emerald-400' :
+                          (item as any).review_status === 'needs_changes' ? 'bg-red-500/20 text-red-400' :
+                          'bg-purple-500/20 text-purple-400'
+                        }`}>
+                          {(item as any).review_status === 'accepted' ? 'Reviewer: OK' :
+                           (item as any).review_status === 'needs_changes' ? 'Reviewer: Changes' :
+                           'Awaiting Review'}
+                        </span>
+                      )}
                       {item.click_x != null && (
                         <span className={`text-[9px] font-mono ${theme.iconColor} opacity-50`}>
                           ({item.click_x},{item.click_y})

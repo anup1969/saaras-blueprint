@@ -295,22 +295,32 @@ export default function BlueprintLayout({ children }: { children: React.ReactNod
               </Link>
             );
           })}
+          {/* Reviewer Dashboard — visible to all logged-in users */}
+          <div className={`my-2 border-t ${theme.border}`} />
+          <Link
+            href="/reviewer"
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+              pathname === '/reviewer'
+                ? `bg-purple-600 text-white`
+                : `text-purple-400 ${theme.buttonHover}`
+            }`}
+          >
+            <Eye size={14} />
+            My Remarks
+          </Link>
           {/* Admin Panel — only for admins */}
           {currentUser?.is_admin && (
-            <>
-              <div className={`my-2 border-t ${theme.border}`} />
-              <Link
-                href="/blueprint-admin"
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                  pathname === '/blueprint-admin'
-                    ? `bg-amber-600 text-white`
-                    : `text-amber-500 ${theme.buttonHover}`
-                }`}
-              >
-                <ShieldAlert size={14} />
-                Admin Panel
-              </Link>
-            </>
+            <Link
+              href="/blueprint-admin"
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                pathname === '/blueprint-admin'
+                  ? `bg-amber-600 text-white`
+                  : `text-amber-500 ${theme.buttonHover}`
+              }`}
+            >
+              <ShieldAlert size={14} />
+              Admin Panel
+            </Link>
           )}
         </nav>
 

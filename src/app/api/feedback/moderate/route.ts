@@ -33,9 +33,17 @@ export async function PUT(req: NextRequest) {
   const { id, status } = await req.json();
   const supabase = getServerSupabase();
   if (!supabase) return NextResponse.json({ error: 'No DB connection' }, { status: 500 });
+  const updates: Record<string, unknown> = {
+    status,
+    resolved_at: status === 'resolved' ? new Date().toISOString() : null,
+  };
+  // Auto-trigger reviewer review when marking as resolved
+  if (status === 'resolved') {
+    updates.review_status = 'pending_review';
+  }
   const { error } = await supabase
     .from('feedback')
-    .update({ status, resolved_at: status === 'resolved' ? new Date().toISOString() : null })
+    .update(updates)
     .eq('id', id);
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   return NextResponse.json({ ok: true });
