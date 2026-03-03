@@ -136,6 +136,18 @@ export default function DashboardHome({ theme, isPreschool, onNavigate }: { them
           <p className={`text-xs ${theme.iconColor} mt-1`}>{todayDayLabel} | Employee ID: {teacherProfile.empId}</p>
         </div>
         <div className="flex gap-2 items-center">
+          {/* All Caught Up — compact inline badge between greeting & bell */}
+          {!caughtUpDismissed && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200">
+              <CheckCircle size={14} className="text-emerald-500 shrink-0" />
+              <span className="text-xs font-semibold text-emerald-700 whitespace-nowrap">All Caught Up!</span>
+              <button onClick={() => setCaughtUpDismissed(true)}
+                className="p-0.5 rounded-full hover:bg-emerald-100 text-emerald-400 hover:text-emerald-600 transition-colors"
+                title="Dismiss">
+                <X size={12} />
+              </button>
+            </div>
+          )}
           <div ref={notifRef} className="relative">
             <button
               onClick={() => setShowNotifications(prev => !prev)}
@@ -177,23 +189,6 @@ export default function DashboardHome({ theme, isPreschool, onNavigate }: { them
         </div>
       </div>
 
-      {/* Gap 20: All Caught Up success card — dismissible */}
-      {!caughtUpDismissed && (
-        <div className={`flex items-center gap-3 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 relative`}>
-          <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
-            <CheckCircle size={20} className="text-emerald-600" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-bold text-emerald-800">All Caught Up!</p>
-            <p className="text-xs text-emerald-600">No pending submissions, approvals, or overdue tasks. Great work!</p>
-          </div>
-          <button onClick={() => setCaughtUpDismissed(true)}
-            className="p-1 rounded-lg hover:bg-emerald-100 text-emerald-400 hover:text-emerald-600 transition-colors shrink-0"
-            title="Dismiss">
-            <X size={16} />
-          </button>
-        </div>
-      )}
 
       {/* ══════════════════════════════════════════════════════
           SECTION 1: TODAY'S TIMETABLE — Period-wise schedule
