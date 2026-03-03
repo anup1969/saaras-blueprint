@@ -7,7 +7,8 @@ import {
   BookOpen, ClipboardCheck, FileText, Award, Calendar, Clock,
   Bell, Users, CheckCircle, AlertTriangle, ArrowRight,
   PenTool, BookMarked, CalendarDays, TrendingUp,
-  Pencil, ListTodo, CircleDot, Mail, Megaphone, MessageSquare, Notebook, X
+  Pencil, ListTodo, CircleDot, Mail, Megaphone, MessageSquare, Notebook, X,
+  User, ChevronDown
 } from 'lucide-react';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 
@@ -49,12 +50,27 @@ const pendingDeadlines = [
   { title: 'Lab Report Review — 8-A', due: '18 Feb 2026', status: 'Upcoming' },
 ];
 
-const myTasksList = [
-  { title: 'Prepare UT-3 question paper — 10-A & 10-B', status: 'In Progress', priority: 'High', due: '14 Feb 2026', icon: Pencil, priorityColor: 'bg-amber-500', statusColor: 'text-amber-600' },
-  { title: 'Submit Science Fair project list to HOD', status: 'Not Started', priority: 'Medium', due: '15 Feb 2026', icon: FileText, priorityColor: 'bg-blue-500', statusColor: 'text-slate-500' },
-  { title: 'Complete lesson plan — Ch 8 Trigonometry', status: 'In Progress', priority: 'High', due: '16 Feb 2026', icon: BookMarked, priorityColor: 'bg-amber-500', statusColor: 'text-amber-600' },
-  { title: 'Review lab report submissions — Class 8-A', status: 'Not Started', priority: 'Low', due: '18 Feb 2026', icon: ClipboardCheck, priorityColor: 'bg-emerald-500', statusColor: 'text-slate-500' },
-];
+
+// ─── ASSIGNMENT OVERVIEW (Remark #5 — visual bracelet/widget) ──────
+const assignmentOverview = {
+  homework: { given: 7, submitted: 5, graded: 3, pending: 2 },
+  tests: { given: 4, submitted: 4, graded: 2, pending: 0 },
+  assignments: { given: 3, submitted: 2, graded: 1, pending: 1 },
+};
+
+// ─── ATTENDANCE MOCK DATA (Remark #3 — functional take attendance) ──
+const classStudents: Record<string, { name: string; roll: number; present?: boolean }[]> = {
+  '10-A': [
+    { name: 'Aarav Mehta', roll: 1 }, { name: 'Ananya Iyer', roll: 2 }, { name: 'Arjun Nair', roll: 3 },
+    { name: 'Diya Kulkarni', roll: 4 }, { name: 'Harsh Patel', roll: 5 }, { name: 'Isha Reddy', roll: 6 },
+    { name: 'Karan Singh', roll: 7 }, { name: 'Meera Joshi', roll: 8 }, { name: 'Nikhil Verma', roll: 9 },
+    { name: 'Pooja Sharma', roll: 10 }, { name: 'Rahul Deshmukh', roll: 11 }, { name: 'Sneha Patil', roll: 12 },
+  ],
+  '10-B': [
+    { name: 'Aditya Gupta', roll: 1 }, { name: 'Bhavna Reddy', roll: 2 }, { name: 'Chirag Modi', roll: 3 },
+    { name: 'Deepa Nair', roll: 4 }, { name: 'Esha Kapoor', roll: 5 }, { name: 'Farhan Khan', roll: 6 },
+  ],
+};
 
 // Room mapping for timetable entries
 const roomMap: Record<string, string> = {
@@ -72,7 +88,12 @@ const roomMap: Record<string, string> = {
 export default function DashboardHome({ theme, isPreschool, onNavigate }: { theme: Theme; isPreschool?: boolean; onNavigate?: (id: string) => void }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [caughtUpDismissed, setCaughtUpDismissed] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [activeView, setActiveView] = useState<'dashboard' | 'attendance' | 'students'>('dashboard');
+  const [selectedClass, setSelectedClass] = useState('10-A');
+  const [attendanceMarked, setAttendanceMarked] = useState<Record<string, Record<number, boolean>>>({});
   const notifRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -85,6 +106,16 @@ export default function DashboardHome({ theme, isPreschool, onNavigate }: { them
     }
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showNotifications]);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setShowProfileMenu(false);
+      }
+    }
+    if (showProfileMenu) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showProfileMenu]);
 
   const notifications = [
     { id: 1, icon: ClipboardCheck, title: 'Attendance not marked for 10-A', time: '10 min ago', color: 'border-amber-500', read: false },
@@ -136,7 +167,7 @@ export default function DashboardHome({ theme, isPreschool, onNavigate }: { them
           <p className={`text-xs ${theme.iconColor} mt-1`}>{todayDayLabel} | Employee ID: {teacherProfile.empId}</p>
         </div>
         <div className="flex gap-2 items-center">
-          {/* All Caught Up — compact inline badge between greeting & bell */}
+          {/* All Caught Up — compact inline badge */}
           {!caughtUpDismissed && (
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200">
               <CheckCircle size={14} className="text-emerald-500 shrink-0" />
@@ -148,6 +179,7 @@ export default function DashboardHome({ theme, isPreschool, onNavigate }: { them
               </button>
             </div>
           )}
+          {/* Bell */}
           <div ref={notifRef} className="relative">
             <button
               onClick={() => setShowNotifications(prev => !prev)}
@@ -186,26 +218,160 @@ export default function DashboardHome({ theme, isPreschool, onNavigate }: { them
               </div>
             )}
           </div>
+          {/* Profile pic + My Profile dropdown (#32) */}
+          <div ref={profileRef} className="relative">
+            <button onClick={() => setShowProfileMenu(prev => !prev)}
+              className={`w-9 h-9 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-bold ring-2 ring-blue-200 hover:ring-blue-400 transition-all`}
+              title="My Profile">
+              PS
+            </button>
+            {showProfileMenu && (
+              <div className={`absolute right-0 top-11 w-48 ${theme.cardBg} rounded-xl border ${theme.border} shadow-2xl z-50 overflow-hidden`}>
+                <div className={`px-4 py-3 border-b ${theme.border}`}>
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{teacherProfile.name}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{teacherProfile.empId} | {teacherProfile.department}</p>
+                </div>
+                <div className="py-1">
+                  {[
+                    { label: 'My Profile', icon: User },
+                    { label: 'Edit Profile', icon: Pencil },
+                    { label: 'Settings', icon: Calendar },
+                  ].map(item => (
+                    <button key={item.label} className={`w-full flex items-center gap-2 px-4 py-2 text-xs ${theme.highlight} hover:${theme.secondaryBg} transition-colors`}>
+                      <item.icon size={12} className={theme.iconColor} /> {item.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
+      {/* ── ATTENDANCE / STUDENT VIEW (Remark #3) ── */}
+      {activeView === 'attendance' && (
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 space-y-3`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <ClipboardCheck size={16} className="text-teal-500" />
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>Take Attendance</h3>
+            </div>
+            <div className="flex items-center gap-2">
+              <select value={selectedClass} onChange={e => setSelectedClass(e.target.value)}
+                className={`px-3 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight}`}>
+                {teacherProfile.classes.map(c => <option key={c}>{c}</option>)}
+              </select>
+              <button onClick={() => setActiveView('dashboard')} className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><X size={14} className={theme.iconColor} /></button>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 mb-2">
+            <button onClick={() => {
+              const all: Record<number, boolean> = {};
+              (classStudents[selectedClass] || []).forEach(s => { all[s.roll] = true; });
+              setAttendanceMarked(prev => ({ ...prev, [selectedClass]: all }));
+            }} className="text-[10px] px-3 py-1 rounded-lg bg-emerald-100 text-emerald-700 font-bold">Mark All Present</button>
+            <button onClick={() => setAttendanceMarked(prev => ({ ...prev, [selectedClass]: {} }))}
+              className="text-[10px] px-3 py-1 rounded-lg bg-red-100 text-red-700 font-bold">Mark All Absent</button>
+            <span className={`text-[10px] ${theme.iconColor} ml-auto`}>
+              {Object.values(attendanceMarked[selectedClass] || {}).filter(Boolean).length} / {(classStudents[selectedClass] || []).length} present
+            </span>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+            {(classStudents[selectedClass] || []).map(s => {
+              const isPresent = attendanceMarked[selectedClass]?.[s.roll] ?? true;
+              return (
+                <button key={s.roll}
+                  onClick={() => setAttendanceMarked(prev => ({
+                    ...prev,
+                    [selectedClass]: { ...(prev[selectedClass] || {}), [s.roll]: !isPresent }
+                  }))}
+                  className={`flex items-center gap-2 p-2.5 rounded-xl border transition-all ${
+                    isPresent ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'
+                  }`}>
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white ${isPresent ? 'bg-emerald-500' : 'bg-red-500'}`}>
+                    {s.roll}
+                  </div>
+                  <div className="text-left">
+                    <p className={`text-[11px] font-bold ${isPresent ? 'text-emerald-800' : 'text-red-800'}`}>{s.name}</p>
+                    <p className={`text-[9px] ${isPresent ? 'text-emerald-600' : 'text-red-600'}`}>{isPresent ? 'Present' : 'Absent'}</p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          <div className="flex justify-end">
+            <button onClick={() => { alert('Attendance saved (Blueprint demo)'); setActiveView('dashboard'); }}
+              className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>Save Attendance</button>
+          </div>
+        </div>
+      )}
+
+      {activeView === 'students' && (
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 space-y-3`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Users size={16} className="text-blue-500" />
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>View Students — Class {selectedClass}</h3>
+            </div>
+            <div className="flex items-center gap-2">
+              <select value={selectedClass} onChange={e => setSelectedClass(e.target.value)}
+                className={`px-3 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight}`}>
+                {teacherProfile.classes.map(c => <option key={c}>{c}</option>)}
+              </select>
+              <button onClick={() => setActiveView('dashboard')} className={`p-1.5 rounded-lg ${theme.secondaryBg}`}><X size={14} className={theme.iconColor} /></button>
+            </div>
+          </div>
+          <div className={`rounded-xl border ${theme.border} overflow-hidden`}>
+            <table className="w-full text-sm">
+              <thead className={theme.secondaryBg}>
+                <tr>
+                  <th className={`text-left px-3 py-2 text-[10px] font-bold ${theme.iconColor} uppercase`}>Roll</th>
+                  <th className={`text-left px-3 py-2 text-[10px] font-bold ${theme.iconColor} uppercase`}>Name</th>
+                  <th className={`text-center px-3 py-2 text-[10px] font-bold ${theme.iconColor} uppercase`}>Attendance %</th>
+                  <th className={`text-center px-3 py-2 text-[10px] font-bold ${theme.iconColor} uppercase`}>Homework</th>
+                  <th className={`text-center px-3 py-2 text-[10px] font-bold ${theme.iconColor} uppercase`}>Last Active</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(classStudents[selectedClass] || []).map(s => (
+                  <tr key={s.roll} className={`border-t ${theme.border}`}>
+                    <td className={`px-3 py-2 text-xs font-mono ${theme.primaryText}`}>{s.roll}</td>
+                    <td className={`px-3 py-2 text-xs font-bold ${theme.highlight}`}>{s.name}</td>
+                    <td className={`px-3 py-2 text-xs text-center ${theme.iconColor}`}>{85 + (s.roll % 12)}%</td>
+                    <td className={`px-3 py-2 text-xs text-center ${theme.iconColor}`}>{5 + (s.roll % 3)}/7</td>
+                    <td className={`px-3 py-2 text-xs text-center ${theme.iconColor}`}>Today</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {activeView === 'dashboard' && (<>
 
       {/* ══════════════════════════════════════════════════════
           SECTION 1: TODAY'S TIMETABLE — Period-wise schedule
           This is the FIRST thing a teacher sees on their dashboard.
           ══════════════════════════════════════════════════════ */}
-      <div className={`${theme.cardBg} rounded-2xl border-2 ${theme.border} p-4 ring-1 ring-blue-200`}>
-        <div className="flex items-center justify-between mb-3">
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-3`}>
+        <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center text-white shrink-0">
-              <Clock size={16} />
-            </div>
+            <Clock size={14} className="text-blue-500 shrink-0" />
             <div>
-              <h3 className={`text-sm font-bold ${theme.highlight}`}>Today&apos;s Timetable</h3>
-              <p className={`text-[10px] ${theme.iconColor}`}>{todayKey === 'Sun' ? 'No classes on Sunday' : `${todayKey} — ${todaySchedule.filter(s => s && s !== 'Free').length} teaching periods`}</p>
+              <h3 className={`text-xs font-bold ${theme.highlight}`}>Today&apos;s Timetable</h3>
+              <p className={`text-[9px] ${theme.iconColor}`}>{todayKey === 'Sun' ? 'No classes on Sunday' : `${todayKey} — ${todaySchedule.filter(s => s && s !== 'Free').length} teaching periods`}</p>
             </div>
           </div>
-          <button className={`text-xs ${theme.primaryText} font-bold flex items-center gap-1`}>Full Timetable <ArrowRight size={12} /></button>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setActiveView('students')} className={`text-[10px] px-2.5 py-1 rounded-lg ${theme.secondaryBg} ${theme.buttonHover} font-bold ${theme.iconColor} flex items-center gap-1`}>
+              <Users size={10} /> View Students
+            </button>
+            <button onClick={() => setActiveView('attendance')} className={`text-[10px] px-2.5 py-1 rounded-lg bg-teal-500 text-white font-bold flex items-center gap-1`}>
+              <ClipboardCheck size={10} /> Take Attendance
+            </button>
+            <button onClick={() => onNavigate?.('timetable')} className={`text-[10px] ${theme.primaryText} font-bold flex items-center gap-1`}>Full <ArrowRight size={10} /></button>
+          </div>
         </div>
         {todayKey === 'Sun' ? (
           <div className={`p-6 rounded-xl ${theme.secondaryBg} text-center`}>
@@ -213,87 +379,104 @@ export default function DashboardHome({ theme, isPreschool, onNavigate }: { them
             <p className={`text-xs font-bold ${theme.highlight}`}>It&apos;s Sunday — Enjoy your day off!</p>
           </div>
         ) : (
-          <div className="space-y-1.5">
+          <div className="space-y-1">
             {todaySchedule.map((entry, i) => {
-              if (!entry && !periodTimings[i]) return null; // skip empty Saturday slots
+              if (!entry && !periodTimings[i]) return null;
               const isCurrent = i === currentPeriodIdx;
               const isNext = i === nextPeriodIdx;
               const isCompleted = i < (currentPeriodIdx >= 0 ? currentPeriodIdx : nextPeriodIdx >= 0 ? nextPeriodIdx : 999);
               const isFree = !entry || entry === 'Free';
               const room = !isFree ? (roomMap[entry] || '—') : '—';
 
-              // Extract class and subject for display
-              let displaySubject = entry || 'Free Period';
+              let displaySubject = entry || 'Free';
               let displayClass = '';
               if (entry && entry !== 'Free' && entry.includes(' ')) {
                 const parts = entry.split(' ');
-                displayClass = parts[0]; // e.g., "10-A"
-                const subjectCode = parts.slice(1).join(' '); // e.g., "Math" or "Science"
+                displayClass = parts[0];
+                const subjectCode = parts.slice(1).join(' ');
                 displaySubject = subjectCode === 'Math' ? 'Mathematics' : subjectCode === 'Science' ? 'Science' : subjectCode;
                 if (entry === 'Staff Meeting' || entry === 'Lab Duty' || entry === 'PTM Slot') {
-                  displaySubject = entry;
-                  displayClass = '';
+                  displaySubject = entry; displayClass = '';
                 }
               }
 
               return (
-                <div
-                  key={i}
-                  className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
-                    isCurrent
-                      ? `${theme.primary} text-white ring-2 ring-blue-300 shadow-lg`
-                      : isNext
-                      ? `border-2 border-dashed border-blue-400 ${theme.secondaryBg}`
-                      : isCompleted
-                      ? `${theme.secondaryBg} opacity-60`
-                      : isFree
-                      ? `${theme.secondaryBg} opacity-50`
-                      : theme.secondaryBg
-                  }`}
-                >
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                    isCurrent ? 'bg-white/20' : isNext ? theme.accentBg : theme.accentBg
-                  }`}>
-                    <span className={`text-sm font-bold ${isCurrent ? 'text-white' : theme.primaryText}`}>P{i + 1}</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className={`text-xs font-bold ${isCurrent ? 'text-white' : isCompleted ? theme.iconColor : theme.highlight}`}>
-                        {isFree ? 'Free Period' : displaySubject}
-                      </p>
-                      {displayClass && (
-                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
-                          isCurrent ? 'bg-white/20 text-white' : `${theme.accentBg} ${theme.iconColor}`
-                        }`}>{displayClass}</span>
-                      )}
-                      {isNext && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold animate-pulse">UP NEXT</span>}
-                    </div>
-                    <p className={`text-[10px] mt-0.5 ${isCurrent ? 'text-white/70' : theme.iconColor}`}>
-                      {periodTimings[i]}{!isFree ? ` | ${room}` : ''}
-                    </p>
-                  </div>
-                  {isCurrent && (
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/20 text-white font-bold">NOW</span>
-                      <CircleDot size={14} className="text-white animate-pulse" />
-                    </div>
-                  )}
-                  {isCompleted && !isCurrent && (
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold shrink-0 bg-emerald-100 text-emerald-700`}>Done</span>
-                  )}
+                <div key={i} className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg transition-all ${
+                  isCurrent ? `${theme.primary} text-white shadow-md` : isNext ? `border border-dashed border-blue-400 ${theme.secondaryBg}` : isCompleted ? `${theme.secondaryBg} opacity-50` : isFree ? `${theme.secondaryBg} opacity-40` : theme.secondaryBg
+                }`}>
+                  <span className={`text-[10px] font-bold w-5 shrink-0 ${isCurrent ? 'text-white' : theme.primaryText}`}>P{i + 1}</span>
+                  <span className={`text-[10px] w-16 shrink-0 ${isCurrent ? 'text-white/70' : theme.iconColor}`}>{periodTimings[i]}</span>
+                  <span className={`text-[11px] font-bold flex-1 ${isCurrent ? 'text-white' : isCompleted ? theme.iconColor : theme.highlight}`}>
+                    {isFree ? 'Free' : displaySubject}
+                  </span>
+                  {displayClass && <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${isCurrent ? 'bg-white/20 text-white' : `${theme.accentBg} ${theme.iconColor}`}`}>{displayClass}</span>}
+                  {!isFree && <span className={`text-[9px] ${isCurrent ? 'text-white/60' : theme.iconColor}`}>{room}</span>}
+                  {isCurrent && <CircleDot size={10} className="text-white animate-pulse shrink-0" />}
+                  {isNext && <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold shrink-0">NEXT</span>}
                 </div>
               );
             })}
-            {/* Break indicators */}
             {todayKey !== 'Sat' && (
-              <div className="flex items-center gap-2 px-3 py-1">
+              <div className="flex items-center gap-2 px-2 py-0.5">
                 <div className={`flex-1 h-px ${theme.border} border-t border-dashed`} />
-                <span className={`text-[9px] ${theme.iconColor} font-medium`}>Break: 9:50-10:05 | Lunch: 11:25-12:00</span>
+                <span className={`text-[8px] ${theme.iconColor}`}>Break: 9:50-10:05 | Lunch: 11:25-12:00</span>
                 <div className={`flex-1 h-px ${theme.border} border-t border-dashed`} />
               </div>
             )}
           </div>
         )}
+      </div>
+
+      {/* ══════════════════════════════════════════════════════
+          SECTION 1B: ASSIGNMENT PROGRESS OVERVIEW (Remark #5)
+          Visual bracelet showing homework/test/assignment given vs submitted
+          ══════════════════════════════════════════════════════ */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-3`}>
+        <div className="flex items-center gap-2 mb-2">
+          <TrendingUp size={14} className="text-indigo-500" />
+          <h3 className={`text-xs font-bold ${theme.highlight}`}>Assignment Progress Overview</h3>
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          {([
+            { label: 'Homework', data: assignmentOverview.homework, color: 'blue' },
+            { label: 'Tests', data: assignmentOverview.tests, color: 'purple' },
+            { label: 'Assignments', data: assignmentOverview.assignments, color: 'teal' },
+          ] as const).map(item => {
+            const submitPct = item.data.given > 0 ? Math.round((item.data.submitted / item.data.given) * 100) : 0;
+            const gradePct = item.data.given > 0 ? Math.round((item.data.graded / item.data.given) * 100) : 0;
+            return (
+              <div key={item.label} className={`${theme.secondaryBg} rounded-xl p-3`}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className={`text-[11px] font-bold ${theme.highlight}`}>{item.label}</span>
+                  <span className={`text-[10px] font-bold text-${item.color}-600`}>{item.data.given} given</span>
+                </div>
+                <div className="space-y-1.5">
+                  <div>
+                    <div className="flex items-center justify-between mb-0.5">
+                      <span className={`text-[9px] ${theme.iconColor}`}>Submitted</span>
+                      <span className={`text-[9px] font-bold ${theme.highlight}`}>{item.data.submitted}/{item.data.given}</span>
+                    </div>
+                    <div className={`h-1.5 rounded-full ${theme.cardBg} border ${theme.border}`}>
+                      <div className={`h-1.5 rounded-full bg-${item.color}-500`} style={{ width: `${submitPct}%` }} />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-0.5">
+                      <span className={`text-[9px] ${theme.iconColor}`}>Graded</span>
+                      <span className={`text-[9px] font-bold ${theme.highlight}`}>{item.data.graded}/{item.data.given}</span>
+                    </div>
+                    <div className={`h-1.5 rounded-full ${theme.cardBg} border ${theme.border}`}>
+                      <div className={`h-1.5 rounded-full bg-emerald-500`} style={{ width: `${gradePct}%` }} />
+                    </div>
+                  </div>
+                </div>
+                {item.data.pending > 0 && (
+                  <p className="text-[9px] text-amber-600 font-bold mt-1.5">{item.data.pending} pending review</p>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* ══════════════════════════════════════════════════════
@@ -363,42 +546,9 @@ export default function DashboardHome({ theme, isPreschool, onNavigate }: { them
       </div>
 
       {/* ══════════════════════════════════════════════════════
-          SECTION 3: MY TASKS (from Task Tracker)
-          Shows 4 pending tasks prominently on dashboard + full Task Tracker panel
+          SECTION 3: TASK TRACKER (Remark #1 — removed duplicate My Tasks card)
           ══════════════════════════════════════════════════════ */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* My Tasks Card */}
-        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <ListTodo size={16} className="text-teal-500" />
-              <h3 className={`text-sm font-bold ${theme.highlight}`}>My Tasks</h3>
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-teal-500 text-white font-bold">{myTasksList.length} pending</span>
-            </div>
-            <button className={`text-xs ${theme.primaryText} font-bold flex items-center gap-1`}>All Tasks <ArrowRight size={12} /></button>
-          </div>
-          <div className="space-y-2">
-            {myTasksList.map((task, i) => (
-              <div key={i} className={`flex items-center gap-3 p-3 rounded-xl ${theme.secondaryBg} ${theme.buttonHover} transition-all`}>
-                <div className={`w-8 h-8 rounded-lg ${task.priorityColor} flex items-center justify-center text-white shrink-0`}>
-                  <task.icon size={14} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className={`text-xs font-bold ${theme.highlight}`}>{task.title}</p>
-                  <p className={`text-[10px] ${theme.iconColor} mt-0.5`}>Due: {task.due}</p>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className={`text-[10px] font-bold ${task.statusColor}`}>{task.status}</span>
-                  <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold text-white ${task.priorityColor}`}>{task.priority}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Task Tracker Panel (full component) */}
-        <TaskTrackerPanel theme={theme} role="teacher" />
-      </div>
+      <TaskTrackerPanel theme={theme} role="teacher" />
 
       {/* ══════════════════════════════════════════════════════
           SECTION 3B: LESSON PLAN REMINDER
@@ -439,43 +589,7 @@ export default function DashboardHome({ theme, isPreschool, onNavigate }: { them
       )}
 
       {/* ══════════════════════════════════════════════════════
-          SECTION 5: TO-DO / REMINDERS
-          ══════════════════════════════════════════════════════ */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <ListTodo size={16} className="text-amber-500" />
-            <h3 className={`text-sm font-bold ${theme.highlight}`}>Important To-Dos</h3>
-            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500 text-white font-bold">4 pending</span>
-          </div>
-          <button className={`text-xs ${theme.primaryText} font-bold flex items-center gap-1`}>Manage Tasks <ArrowRight size={12} /></button>
-        </div>
-        <div className="space-y-2">
-          {[
-            { task: 'Mark attendance for 10-A & 8-A (today)', due: 'Today by 9:30 AM', priority: 'Urgent', priorityColor: 'bg-red-500', status: 'Overdue', statusColor: 'text-red-600', icon: ClipboardCheck },
-            { task: 'Enter UT-3 marks for Class 10-B — Ch 4 & Ch 5', due: 'Due: 17 Feb 2026', priority: 'High', priorityColor: 'bg-amber-500', status: 'Pending', statusColor: 'text-amber-600', icon: PenTool },
-            { task: 'Review & grade homework — Ch 3 Linear Equations (8-A)', due: 'Due: 13 Feb 2026', priority: 'Medium', priorityColor: 'bg-blue-500', status: 'In Progress', statusColor: 'text-blue-600', icon: FileText },
-            { task: 'Prepare question paper for UT-3 — Class 10-A & 10-B', due: 'Due: 14 Feb 2026', priority: 'High', priorityColor: 'bg-amber-500', status: 'Not Started', statusColor: 'text-slate-500', icon: Pencil },
-          ].map((todo, i) => (
-            <div key={i} className={`flex items-center gap-3 p-3 rounded-xl ${theme.secondaryBg} ${theme.buttonHover} transition-all`}>
-              <div className={`w-8 h-8 rounded-lg ${todo.priorityColor} flex items-center justify-center text-white shrink-0`}>
-                <todo.icon size={14} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className={`text-xs font-bold ${theme.highlight}`}>{todo.task}</p>
-                <p className={`text-[10px] ${theme.iconColor} mt-0.5`}>{todo.due}</p>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <span className={`text-[10px] font-bold ${todo.statusColor}`}>{todo.status}</span>
-                <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold text-white ${todo.priorityColor}`}>{todo.priority}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ══════════════════════════════════════════════════════
-          SECTION 6: RECENT ACTIVITY — Messages, Circulars, Quick Actions
+          SECTION 5: QUICK ACTIONS + MESSAGES + CIRCULARS
           ══════════════════════════════════════════════════════ */}
 
       {/* Quick Actions */}
@@ -483,12 +597,12 @@ export default function DashboardHome({ theme, isPreschool, onNavigate }: { them
         <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Quick Actions</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           {[
-            { label: 'Mark Attendance', icon: ClipboardCheck, color: 'bg-teal-500' },
-            { label: 'Assign Homework', icon: FileText, color: 'bg-blue-500' },
-            { label: 'Enter Marks', icon: PenTool, color: 'bg-purple-500' },
-            { label: 'Apply Leave', icon: CalendarDays, color: 'bg-amber-500' },
+            { label: 'Mark Attendance', icon: ClipboardCheck, color: 'bg-teal-500', action: () => setActiveView('attendance') },
+            { label: 'Assign Homework', icon: FileText, color: 'bg-blue-500', action: () => onNavigate?.('homework') },
+            { label: 'Enter Marks', icon: PenTool, color: 'bg-purple-500', action: () => onNavigate?.('gradebook') },
+            { label: 'Apply Leave', icon: CalendarDays, color: 'bg-amber-500', action: () => onNavigate?.('leave') },
           ].map(a => (
-            <button key={a.label} className={`flex items-center gap-2 p-3 rounded-xl ${theme.secondaryBg} ${theme.buttonHover} transition-all`}>
+            <button key={a.label} onClick={a.action} className={`flex items-center gap-2 p-3 rounded-xl ${theme.secondaryBg} ${theme.buttonHover} transition-all`}>
               <div className={`w-8 h-8 rounded-lg ${a.color} flex items-center justify-center text-white`}><a.icon size={14} /></div>
               <span className={`text-xs font-bold ${theme.highlight}`}>{a.label}</span>
             </button>
@@ -560,6 +674,7 @@ export default function DashboardHome({ theme, isPreschool, onNavigate }: { them
           </div>
         </div>
       </div>
+      </>)}
     </div>
   );
 }
