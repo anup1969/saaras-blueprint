@@ -6,6 +6,7 @@ import { StatCard, TabBar, StatusBadge, SearchBar, DataTable, Toggle, MobileFram
 import { type Theme } from '@/lib/themes';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
+import { DraggableDashboard, DashletSection } from '@/components/DraggableDashboard';
 import { ChatsView } from '@/components/ChatModule';
 import SupportModule from '@/components/SupportModule';
 import { type TeamMember } from '@/lib/auth';
@@ -151,7 +152,7 @@ function SecurityDashboard({ theme, themeIdx, onThemeChange, currentUser }: { th
 // ─── DASHBOARD HOME ──────────────────────────────────
 function DashboardHome({ theme, onProfileClick, onNavigate }: { theme: Theme; onProfileClick: () => void; onNavigate?: (id: string) => void }) {
   return (
-    <div className="space-y-4">
+    <DraggableDashboard dashboardId="security" theme={theme} className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h1 className={`text-2xl font-bold ${theme.highlight}`}>Security Dashboard</h1>
@@ -161,6 +162,7 @@ function DashboardHome({ theme, onProfileClick, onNavigate }: { theme: Theme; on
       </div>
 
       {/* Mobile App Preview */}
+      <DashletSection id="mobile-preview" label="Mobile Preview">
       <MobilePreviewToggle theme={theme} mobileContent={
         <MobileFrame title="Security Dashboard" theme={theme}>
           <div className="bg-emerald-500 text-white rounded-xl p-3 flex items-center justify-between">
@@ -220,22 +222,28 @@ function DashboardHome({ theme, onProfileClick, onNavigate }: { theme: Theme; on
           </div>
         </MobileFrame>
       } />
+      </DashletSection>
 
+      <DashletSection id="stats-1" label="Visitor Stats">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon={Users} label="Visitors Inside Campus" value={4} color="bg-blue-500" sub="6 total today" theme={theme} onClick={() => onNavigate?.('visitor-checkin')} />
         <StatCard icon={LogIn} label="Today's Entries" value={16} color="bg-emerald-500" sub="All gates" theme={theme} onClick={() => onNavigate?.('gate-log')} />
         <StatCard icon={Baby} label="Pending Pickups" value={3} color="bg-amber-500" sub="2 verified" theme={theme} onClick={() => onNavigate?.('student-pickup')} />
         <StatCard icon={AlertTriangle} label="Active Alerts" value={1} color="bg-red-500" sub="Fire ext. expired" theme={theme} onClick={() => onNavigate?.('emergency')} />
       </div>
+      </DashletSection>
 
+      <DashletSection id="stats-2" label="Security Stats">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon={Car} label="Vehicles Inside" value={8} color="bg-indigo-500" theme={theme} onClick={() => onNavigate?.('gate-log')} />
         <StatCard icon={Shield} label="Guards On Duty" value={3} color="bg-teal-500" sub="of 4 total" theme={theme} />
         <StatCard icon={Footprints} label="Patrols Completed" value="7/10" color="bg-purple-500" theme={theme} onClick={() => onNavigate?.('patrol-log')} />
         <StatCard icon={Camera} label="CCTV Active" value="11/12" color="bg-orange-500" sub="#7 shifted" theme={theme} />
       </div>
+      </DashletSection>
 
       {/* Quick Actions */}
+      <DashletSection id="quick-actions" label="Quick Actions">
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
         <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Quick Actions</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -252,8 +260,10 @@ function DashboardHome({ theme, onProfileClick, onNavigate }: { theme: Theme; on
           ))}
         </div>
       </div>
+      </DashletSection>
 
       {/* Currently Inside Campus */}
+      <DashletSection id="campus-visitors" label="Campus Visitors">
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
         <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Currently Inside Campus</h3>
         <div className="space-y-2">
@@ -274,8 +284,10 @@ function DashboardHome({ theme, onProfileClick, onNavigate }: { theme: Theme; on
           ))}
         </div>
       </div>
+      </DashletSection>
 
       {/* Recent Gate Activity */}
+      <DashletSection id="gate-activity" label="Gate Activity">
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
         <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Recent Gate Activity</h3>
         <div className="space-y-2">
@@ -292,8 +304,10 @@ function DashboardHome({ theme, onProfileClick, onNavigate }: { theme: Theme; on
           ))}
         </div>
       </div>
+      </DashletSection>
 
       {/* Alerts */}
+      <DashletSection id="active-alerts" label="Active Alerts">
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
         <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Active Alerts</h3>
         <div className="space-y-2">
@@ -323,10 +337,13 @@ function DashboardHome({ theme, onProfileClick, onNavigate }: { theme: Theme; on
           </div>
         </div>
       </div>
+      </DashletSection>
 
       {/* Task Tracker */}
+      <DashletSection id="tasks" label="Task Tracker">
       <TaskTrackerPanel theme={theme} role="security" />
-    </div>
+      </DashletSection>
+    </DraggableDashboard>
   );
 }
 

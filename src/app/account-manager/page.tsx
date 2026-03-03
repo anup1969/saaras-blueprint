@@ -6,6 +6,7 @@ import { StatCard, TabBar, StatusBadge, SearchBar, DataTable } from '@/component
 import { type Theme } from '@/lib/themes';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
+import { DraggableDashboard, DashletSection } from '@/components/DraggableDashboard';
 import { ChatsView } from '@/components/ChatModule';
 import SupportModule from '@/components/SupportModule';
 import YourInputsModule from '@/components/YourInputsModule';
@@ -167,7 +168,7 @@ function AccountManagerDashboard({ theme, themeIdx, onThemeChange, currentUser }
 // ─── DASHBOARD HOME ────────────────────────────────
 function DashboardHome({ theme, onProfileClick, onNavigate }: { theme: Theme; onProfileClick: () => void; onNavigate?: (id: string) => void }) {
   return (
-    <div className="space-y-4">
+    <DraggableDashboard dashboardId="account-manager" theme={theme} className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h1 className={`text-2xl font-bold ${theme.highlight}`}>Account Manager Dashboard</h1>
@@ -177,20 +178,25 @@ function DashboardHome({ theme, onProfileClick, onNavigate }: { theme: Theme; on
       </div>
 
       {/* Top Stats */}
+      <DashletSection id="stats-1" label="Key Stats">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon={Building2} label="Assigned Schools" value={4} color="bg-blue-500" sub="2 Enterprise, 1 Pro, 1 Starter" theme={theme} onClick={() => onNavigate?.('my-schools')} />
         <StatCard icon={Headphones} label="Open Tickets" value={5} color="bg-amber-500" sub="1 urgent, 2 high" theme={theme} onClick={() => onNavigate?.('tickets')} />
         <StatCard icon={RefreshCcw} label="Upcoming Renewals" value={2} color="bg-purple-500" sub="within 30 days" theme={theme} onClick={() => onNavigate?.('renewals')} />
         <StatCard icon={DollarSign} label="Portfolio MRR" value="₹4.67L" color="bg-emerald-500" sub="+8% vs last quarter" theme={theme} onClick={() => onNavigate?.('analytics')} />
       </div>
+      </DashletSection>
+      <DashletSection id="stats-2" label="Performance">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon={ThumbsUp} label="Avg NPS Score" value="7.3" color="bg-indigo-500" sub="target: 8.0" theme={theme} onClick={() => onNavigate?.('analytics')} />
         <StatCard icon={Activity} label="Avg Health Score" value="73%" color="bg-teal-500" theme={theme} onClick={() => onNavigate?.('my-schools')} />
         <StatCard icon={Percent} label="Avg Adoption Rate" value="73%" color="bg-orange-500" sub="across all schools" theme={theme} onClick={() => onNavigate?.('analytics')} />
         <StatCard icon={Rocket} label="Onboarding Pipeline" value={4} color="bg-pink-500" sub="1 going live this week" theme={theme} onClick={() => onNavigate?.('onboarding')} />
       </div>
+      </DashletSection>
 
       {/* Portfolio Health at a Glance */}
+      <DashletSection id="portfolio" label="Portfolio Health">
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
         <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Portfolio Health at a Glance</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -222,8 +228,10 @@ function DashboardHome({ theme, onProfileClick, onNavigate }: { theme: Theme; on
           ))}
         </div>
       </div>
+      </DashletSection>
 
       {/* Action Items & Recent Activity */}
+      <DashletSection id="actions-activity" label="Actions & Activity">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Action Items */}
         <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
@@ -268,10 +276,13 @@ function DashboardHome({ theme, onProfileClick, onNavigate }: { theme: Theme; on
           </div>
         </div>
       </div>
+      </DashletSection>
 
       {/* Task Tracker */}
+      <DashletSection id="tasks" label="Task Tracker">
       <TaskTrackerPanel theme={theme} role="account-manager" />
-    </div>
+      </DashletSection>
+    </DraggableDashboard>
   );
 }
 

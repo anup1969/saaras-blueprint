@@ -9,6 +9,7 @@ import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import { ChatsView } from '@/components/ChatModule';
 import SupportModule from '@/components/SupportModule';
 import { type TeamMember } from '@/lib/auth';
+import { DraggableDashboard, DashletSection } from '@/components/DraggableDashboard';
 import {
   Home, Users, UserPlus, Phone, Mail, Calendar, Clock, Search, Plus, Eye, Edit,
   Filter, Download, CheckCircle, AlertTriangle, ArrowRight, PhoneCall, PhoneIncoming,
@@ -153,7 +154,7 @@ function DashboardHome({ theme, onProfileClick, onNavigate }: { theme: Theme; on
   const todayCalls = mockCalls.length;
 
   return (
-    <div className="space-y-4">
+    <DraggableDashboard dashboardId="receptionist" theme={theme} className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h1 className={`text-2xl font-bold ${theme.highlight}`}>Front Desk Overview</h1>
@@ -162,94 +163,101 @@ function DashboardHome({ theme, onProfileClick, onNavigate }: { theme: Theme; on
         <button onClick={onProfileClick} title="My Profile" className={`w-9 h-9 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold hover:opacity-90 transition-opacity`}>AD</button>
       </div>
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Shield} label="Visitors In Campus" value={inCampus} color="bg-orange-500" sub="3 checked out" theme={theme} onClick={() => onNavigate?.('visitors')} />
-        <StatCard icon={UserPlus} label="Pending Enquiries" value={newEnquiries} color="bg-blue-500" sub="2 follow-ups today" theme={theme} onClick={() => onNavigate?.('enquiries')} />
-        <StatCard icon={Calendar} label="Today's Appointments" value={todayAppointments} color="bg-purple-500" sub="next at 10:00 AM" theme={theme} onClick={() => onNavigate?.('appointments')} />
-        <StatCard icon={PhoneCall} label="Calls Logged" value={todayCalls} color="bg-teal-500" sub="4 incoming, 2 outgoing" theme={theme} onClick={() => onNavigate?.('calls')} />
-      </div>
-
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Package} label="Pending Pickups" value="2" color="bg-amber-500" sub="courier/mail" theme={theme} onClick={() => onNavigate?.('courier')} />
-        <StatCard icon={Bell} label="Reminders" value="3" color="bg-red-500" sub="follow-ups due" theme={theme} />
-        <StatCard icon={CheckCircle} label="Enquiries Converted" value="1" color="bg-emerald-500" sub="this week" theme={theme} onClick={() => onNavigate?.('enquiries')} />
-        <StatCard icon={BadgeCheck} label="Badges Issued" value="6" color="bg-indigo-500" sub="today" theme={theme} onClick={() => onNavigate?.('visitors')} />
-      </div>
-
-      {/* Quick Actions */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Quick Actions</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-          {[
-            { label: 'Check-in Visitor', icon: LogIn, color: 'bg-orange-500' },
-            { label: 'New Enquiry', icon: UserPlus, color: 'bg-blue-500' },
-            { label: 'Log Call', icon: PhoneCall, color: 'bg-teal-500' },
-            { label: 'Schedule Appointment', icon: Calendar, color: 'bg-purple-500' },
-            { label: 'Register Courier', icon: Package, color: 'bg-amber-500' },
-            { label: 'Search Directory', icon: BookOpen, color: 'bg-indigo-500' },
-            { label: 'Send SMS to Parent', icon: Send, color: 'bg-emerald-500' },
-            { label: 'Print Badge', icon: BadgeCheck, color: 'bg-slate-500' },
-          ].map(a => (
-            <button key={a.label} className={`flex items-center gap-2 p-3 rounded-xl ${theme.secondaryBg} ${theme.buttonHover} transition-all`}>
-              <div className={`w-8 h-8 rounded-lg ${a.color} flex items-center justify-center text-white`}><a.icon size={14} /></div>
-              <span className={`text-xs font-bold ${theme.highlight}`}>{a.label}</span>
-            </button>
-          ))}
+      <DashletSection id="stats-1" label="Visitor Stats">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard icon={Shield} label="Visitors In Campus" value={inCampus} color="bg-orange-500" sub="3 checked out" theme={theme} onClick={() => onNavigate?.('visitors')} />
+          <StatCard icon={UserPlus} label="Pending Enquiries" value={newEnquiries} color="bg-blue-500" sub="2 follow-ups today" theme={theme} onClick={() => onNavigate?.('enquiries')} />
+          <StatCard icon={Calendar} label="Today's Appointments" value={todayAppointments} color="bg-purple-500" sub="next at 10:00 AM" theme={theme} onClick={() => onNavigate?.('appointments')} />
+          <StatCard icon={PhoneCall} label="Calls Logged" value={todayCalls} color="bg-teal-500" sub="4 incoming, 2 outgoing" theme={theme} onClick={() => onNavigate?.('calls')} />
         </div>
-      </div>
+      </DashletSection>
 
-      {/* Today's Activity Feed */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Today&apos;s Activity</h3>
-        <div className="space-y-2">
-          {[
-            { text: 'Visitor check-in: Inspector R.K. Singh — CBSE Inspection (Badge B-01)', time: '11:00 AM', type: 'visitor' },
-            { text: 'Outgoing call: Vendor follow-up for Science lab equipment delivery', time: '11:00 AM', type: 'call' },
-            { text: 'Courier received from CBSE Regional Office — handed to Principal', time: '10:45 AM', type: 'courier' },
-            { text: 'New enquiry: Mr. Vikram Mehta for Nursery admission (walk-in)', time: '10:15 AM', type: 'enquiry' },
-            { text: 'Visitor check-out: Smt. Kavita Joshi — Admission Enquiry completed', time: '10:30 AM', type: 'visitor' },
-            { text: 'Stationery delivery received from Suresh Verma (Vendor)', time: '10:20 AM', type: 'courier' },
-            { text: 'Bus #7 delay announced — informed waiting parents at gate', time: '08:30 AM', type: 'call' },
-            { text: 'Dr. Meena Kulkarni checked in for Health Checkup Camp', time: '08:30 AM', type: 'visitor' },
-          ].map((a, i) => (
-            <div key={i} className={`flex items-center gap-3 p-2 rounded-xl ${theme.accentBg}`}>
-              <div className={`w-2 h-2 rounded-full ${a.type === 'visitor' ? 'bg-orange-500' : a.type === 'call' ? 'bg-teal-500' : a.type === 'courier' ? 'bg-amber-500' : 'bg-blue-500'}`} />
-              <p className={`text-xs ${theme.highlight} flex-1`}>{a.text}</p>
-              <span className={`text-[10px] ${theme.iconColor} whitespace-nowrap`}>{a.time}</span>
-            </div>
-          ))}
+      <DashletSection id="stats-2" label="More Stats">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard icon={Package} label="Pending Pickups" value="2" color="bg-amber-500" sub="courier/mail" theme={theme} onClick={() => onNavigate?.('courier')} />
+          <StatCard icon={Bell} label="Reminders" value="3" color="bg-red-500" sub="follow-ups due" theme={theme} />
+          <StatCard icon={CheckCircle} label="Enquiries Converted" value="1" color="bg-emerald-500" sub="this week" theme={theme} onClick={() => onNavigate?.('enquiries')} />
+          <StatCard icon={BadgeCheck} label="Badges Issued" value="6" color="bg-indigo-500" sub="today" theme={theme} onClick={() => onNavigate?.('visitors')} />
         </div>
-      </div>
+      </DashletSection>
 
-      {/* Upcoming Appointments Today */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <div className="flex items-center justify-between mb-3">
-          <h3 className={`text-sm font-bold ${theme.highlight}`}>Upcoming Appointments</h3>
-          <span className={`text-[10px] ${theme.iconColor}`}>Next 3 days</span>
+      <DashletSection id="quick-actions" label="Quick Actions">
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Quick Actions</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            {[
+              { label: 'Check-in Visitor', icon: LogIn, color: 'bg-orange-500' },
+              { label: 'New Enquiry', icon: UserPlus, color: 'bg-blue-500' },
+              { label: 'Log Call', icon: PhoneCall, color: 'bg-teal-500' },
+              { label: 'Schedule Appointment', icon: Calendar, color: 'bg-purple-500' },
+              { label: 'Register Courier', icon: Package, color: 'bg-amber-500' },
+              { label: 'Search Directory', icon: BookOpen, color: 'bg-indigo-500' },
+              { label: 'Send SMS to Parent', icon: Send, color: 'bg-emerald-500' },
+              { label: 'Print Badge', icon: BadgeCheck, color: 'bg-slate-500' },
+            ].map(a => (
+              <button key={a.label} className={`flex items-center gap-2 p-3 rounded-xl ${theme.secondaryBg} ${theme.buttonHover} transition-all`}>
+                <div className={`w-8 h-8 rounded-lg ${a.color} flex items-center justify-center text-white`}><a.icon size={14} /></div>
+                <span className={`text-xs font-bold ${theme.highlight}`}>{a.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="space-y-2">
-          {mockAppointments.filter(a => a.status === 'Confirmed').slice(0, 4).map(a => (
-            <div key={a.id} className={`flex items-center gap-3 p-3 rounded-xl ${theme.accentBg}`}>
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${a.type === 'Parent Meeting' ? 'bg-purple-100 text-purple-600' : a.type === 'Vendor Visit' ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'}`}>
-                {a.type === 'Parent Meeting' ? <Users size={16} /> : a.type === 'Vendor Visit' ? <Briefcase size={16} /> : <Building2 size={16} />}
+      </DashletSection>
+
+      <DashletSection id="todays-activity" label="Today's Activity">
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Today&apos;s Activity</h3>
+          <div className="space-y-2">
+            {[
+              { text: 'Visitor check-in: Inspector R.K. Singh — CBSE Inspection (Badge B-01)', time: '11:00 AM', type: 'visitor' },
+              { text: 'Outgoing call: Vendor follow-up for Science lab equipment delivery', time: '11:00 AM', type: 'call' },
+              { text: 'Courier received from CBSE Regional Office — handed to Principal', time: '10:45 AM', type: 'courier' },
+              { text: 'New enquiry: Mr. Vikram Mehta for Nursery admission (walk-in)', time: '10:15 AM', type: 'enquiry' },
+              { text: 'Visitor check-out: Smt. Kavita Joshi — Admission Enquiry completed', time: '10:30 AM', type: 'visitor' },
+              { text: 'Stationery delivery received from Suresh Verma (Vendor)', time: '10:20 AM', type: 'courier' },
+              { text: 'Bus #7 delay announced — informed waiting parents at gate', time: '08:30 AM', type: 'call' },
+              { text: 'Dr. Meena Kulkarni checked in for Health Checkup Camp', time: '08:30 AM', type: 'visitor' },
+            ].map((a, i) => (
+              <div key={i} className={`flex items-center gap-3 p-2 rounded-xl ${theme.accentBg}`}>
+                <div className={`w-2 h-2 rounded-full ${a.type === 'visitor' ? 'bg-orange-500' : a.type === 'call' ? 'bg-teal-500' : a.type === 'courier' ? 'bg-amber-500' : 'bg-blue-500'}`} />
+                <p className={`text-xs ${theme.highlight} flex-1`}>{a.text}</p>
+                <span className={`text-[10px] ${theme.iconColor} whitespace-nowrap`}>{a.time}</span>
               </div>
-              <div className="flex-1">
-                <p className={`text-xs font-bold ${theme.highlight}`}>{a.visitor}</p>
-                <p className={`text-[10px] ${theme.iconColor}`}>{a.purpose} — with {a.with}</p>
-              </div>
-              <div className="text-right">
-                <p className={`text-xs font-bold ${theme.primaryText}`}>{a.time}</p>
-                <p className={`text-[10px] ${theme.iconColor}`}>{a.date}</p>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      </DashletSection>
 
-      {/* Task Tracker */}
-      <TaskTrackerPanel theme={theme} role="receptionist" />
-    </div>
+      <DashletSection id="appointments" label="Appointments">
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>Upcoming Appointments</h3>
+            <span className={`text-[10px] ${theme.iconColor}`}>Next 3 days</span>
+          </div>
+          <div className="space-y-2">
+            {mockAppointments.filter(a => a.status === 'Confirmed').slice(0, 4).map(a => (
+              <div key={a.id} className={`flex items-center gap-3 p-3 rounded-xl ${theme.accentBg}`}>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${a.type === 'Parent Meeting' ? 'bg-purple-100 text-purple-600' : a.type === 'Vendor Visit' ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'}`}>
+                  {a.type === 'Parent Meeting' ? <Users size={16} /> : a.type === 'Vendor Visit' ? <Briefcase size={16} /> : <Building2 size={16} />}
+                </div>
+                <div className="flex-1">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{a.visitor}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{a.purpose} — with {a.with}</p>
+                </div>
+                <div className="text-right">
+                  <p className={`text-xs font-bold ${theme.primaryText}`}>{a.time}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{a.date}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </DashletSection>
+
+      <DashletSection id="tasks" label="Task Tracker">
+        <TaskTrackerPanel theme={theme} role="receptionist" />
+      </DashletSection>
+    </DraggableDashboard>
   );
 }
 

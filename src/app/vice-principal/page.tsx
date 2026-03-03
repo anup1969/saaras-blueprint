@@ -9,6 +9,7 @@ import { ChatsView } from '@/components/ChatModule';
 import SupportModule from '@/components/SupportModule';
 import { type TeamMember } from '@/lib/auth';
 import { type Theme } from '@/lib/themes';
+import { DraggableDashboard, DashletSection } from '@/components/DraggableDashboard';
 import {
   Home, Users, UserCheck, Calendar, Clock, Shield, Search, Plus, Filter, Download,
   Eye, Edit, AlertTriangle, FileText, Send, BookOpen, ArrowRight,
@@ -158,7 +159,7 @@ function VicePrincipalDashboard({ theme, themeIdx, onThemeChange, currentUser }:
 
 function DashboardHome({ theme, onProfileClick, onNavigate }: { theme: Theme; onProfileClick: () => void; onNavigate?: (id: string) => void }) {
   return (
-    <div className="space-y-4">
+    <DraggableDashboard dashboardId="vice-principal" theme={theme} className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h1 className={`text-2xl font-bold ${theme.highlight}`}>Vice Principal Dashboard</h1>
@@ -167,79 +168,90 @@ function DashboardHome({ theme, onProfileClick, onNavigate }: { theme: Theme; on
         <button onClick={onProfileClick} title="My Profile" className={`w-9 h-9 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold hover:opacity-90 transition-opacity`}>RJ</button>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Repeat} label="Today's Substitutions" value={4} color="bg-blue-500" sub="2 pending" theme={theme} onClick={() => onNavigate?.('substitutions')} />
-        <StatCard icon={Gavel} label="Open Discipline Cases" value={3} color="bg-red-500" theme={theme} onClick={() => onNavigate?.('discipline')} />
-        <StatCard icon={BookOpen} label="Upcoming Exams" value={6} color="bg-purple-500" sub="this week" theme={theme} onClick={() => onNavigate?.('examinations')} />
-        <StatCard icon={ClipboardCheck} label="Today Attendance" value="94.2%" color="bg-emerald-500" theme={theme} />
-      </div>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={UserMinus} label="Teachers Absent" value={3} color="bg-amber-500" sub="today" theme={theme} onClick={() => onNavigate?.('substitutions')} />
-        <StatCard icon={Megaphone} label="Active Circulars" value={5} color="bg-indigo-500" theme={theme} onClick={() => onNavigate?.('circulars')} />
-        <StatCard icon={Calendar} label="PTM Scheduled" value="22 Feb" color="bg-teal-500" theme={theme} />
-        <StatCard icon={Bell} label="Notifications" value={7} color="bg-orange-500" sub="unread" theme={theme} />
-      </div>
+      <DashletSection id="stats-1" label="Key Stats">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard icon={Repeat} label="Today's Substitutions" value={4} color="bg-blue-500" sub="2 pending" theme={theme} onClick={() => onNavigate?.('substitutions')} />
+          <StatCard icon={Gavel} label="Open Discipline Cases" value={3} color="bg-red-500" theme={theme} onClick={() => onNavigate?.('discipline')} />
+          <StatCard icon={BookOpen} label="Upcoming Exams" value={6} color="bg-purple-500" sub="this week" theme={theme} onClick={() => onNavigate?.('examinations')} />
+          <StatCard icon={ClipboardCheck} label="Today Attendance" value="94.2%" color="bg-emerald-500" theme={theme} />
+        </div>
+      </DashletSection>
+
+      <DashletSection id="stats-2" label="More Stats">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard icon={UserMinus} label="Teachers Absent" value={3} color="bg-amber-500" sub="today" theme={theme} onClick={() => onNavigate?.('substitutions')} />
+          <StatCard icon={Megaphone} label="Active Circulars" value={5} color="bg-indigo-500" theme={theme} onClick={() => onNavigate?.('circulars')} />
+          <StatCard icon={Calendar} label="PTM Scheduled" value="22 Feb" color="bg-teal-500" theme={theme} />
+          <StatCard icon={Bell} label="Notifications" value={7} color="bg-orange-500" sub="unread" theme={theme} />
+        </div>
+      </DashletSection>
 
       {/* Today's Substitutions Summary */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Today&apos;s Substitutions</h3>
-        <div className="space-y-2">
-          {mockSubstitutions.filter(s => s.date === '12 Feb 2026').slice(0, 4).map((s, i) => (
-            <div key={i} className={`flex items-center gap-3 p-2 rounded-xl ${theme.accentBg}`}>
-              <div className={`w-2 h-2 rounded-full ${s.status === 'Assigned' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-              <p className={`text-xs ${theme.highlight} flex-1`}>
-                <span className="font-bold">{s.absentTeacher}</span> &rarr; {s.substitute !== '—' ? s.substitute : <span className="text-red-500 font-bold">Unassigned</span>} | {s.period} | {s.class} ({s.subject})
-              </p>
-              <StatusBadge status={s.status === 'Assigned' ? 'Active' : 'Pending'} theme={theme} />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Quick Actions</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-          {[
-            { label: 'Assign Substitute', icon: Repeat, color: 'bg-blue-500' },
-            { label: 'New Discipline Case', icon: Gavel, color: 'bg-red-500' },
-            { label: 'Create Circular', icon: Send, color: 'bg-indigo-500' },
-            { label: 'Assign Duty', icon: ClipboardCheck, color: 'bg-teal-500' },
-          ].map(a => (
-            <button key={a.label} className={`flex items-center gap-2 p-3 rounded-xl ${theme.secondaryBg} ${theme.buttonHover} transition-all`}>
-              <div className={`w-8 h-8 rounded-lg ${a.color} flex items-center justify-center text-white`}><a.icon size={14} /></div>
-              <span className={`text-xs font-bold ${theme.highlight}`}>{a.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Recent Activity + Task Tracker — Side by Side */}
-      <div className="grid grid-cols-2 gap-4">
-        {/* Recent Activity */}
+      <DashletSection id="substitutions" label="Substitutions">
         <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-          <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Recent Activity</h3>
+          <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Today&apos;s Substitutions</h3>
           <div className="space-y-2">
-            {[
-              { text: 'Substitution assigned: Mr. Rajeev Nair covering Maths for Mrs. Sharma (Class 10-A, P3)', time: '15 min ago', type: 'sub' },
-              { text: 'Discipline case opened: Arjun Malhotra (9-B) — Bullying complaint', time: '1 hour ago', type: 'discipline' },
-              { text: 'Circular published: Unit Test 3 Schedule — Classes 8 to 10', time: '2 hours ago', type: 'circular' },
-              { text: 'Exam schedule finalized: Pre-Board Exams Class 12 (24-28 Feb)', time: '3 hours ago', type: 'exam' },
-              { text: 'Duty roster updated: Sports Day assignments for 28 Feb', time: '5 hours ago', type: 'duty' },
-            ].map((a, i) => (
+            {mockSubstitutions.filter(s => s.date === '12 Feb 2026').slice(0, 4).map((s, i) => (
               <div key={i} className={`flex items-center gap-3 p-2 rounded-xl ${theme.accentBg}`}>
-                <div className={`w-2 h-2 rounded-full ${a.type === 'sub' ? 'bg-blue-500' : a.type === 'discipline' ? 'bg-red-500' : a.type === 'circular' ? 'bg-indigo-500' : a.type === 'exam' ? 'bg-purple-500' : 'bg-teal-500'}`} />
-                <p className={`text-xs ${theme.highlight} flex-1`}>{a.text}</p>
-                <span className={`text-[10px] ${theme.iconColor}`}>{a.time}</span>
+                <div className={`w-2 h-2 rounded-full ${s.status === 'Assigned' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                <p className={`text-xs ${theme.highlight} flex-1`}>
+                  <span className="font-bold">{s.absentTeacher}</span> &rarr; {s.substitute !== '—' ? s.substitute : <span className="text-red-500 font-bold">Unassigned</span>} | {s.period} | {s.class} ({s.subject})
+                </p>
+                <StatusBadge status={s.status === 'Assigned' ? 'Active' : 'Pending'} theme={theme} />
               </div>
             ))}
           </div>
         </div>
+      </DashletSection>
 
-        {/* Task Tracker */}
-        <TaskTrackerPanel theme={theme} role="vice-principal" />
-      </div>
-    </div>
+      {/* Quick Actions */}
+      <DashletSection id="quick-actions" label="Quick Actions">
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Quick Actions</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            {[
+              { label: 'Assign Substitute', icon: Repeat, color: 'bg-blue-500' },
+              { label: 'New Discipline Case', icon: Gavel, color: 'bg-red-500' },
+              { label: 'Create Circular', icon: Send, color: 'bg-indigo-500' },
+              { label: 'Assign Duty', icon: ClipboardCheck, color: 'bg-teal-500' },
+            ].map(a => (
+              <button key={a.label} className={`flex items-center gap-2 p-3 rounded-xl ${theme.secondaryBg} ${theme.buttonHover} transition-all`}>
+                <div className={`w-8 h-8 rounded-lg ${a.color} flex items-center justify-center text-white`}><a.icon size={14} /></div>
+                <span className={`text-xs font-bold ${theme.highlight}`}>{a.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </DashletSection>
+
+      {/* Recent Activity + Task Tracker — Side by Side */}
+      <DashletSection id="activity-tasks" label="Activity & Tasks">
+        <div className="grid grid-cols-2 gap-4">
+          {/* Recent Activity */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+            <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Recent Activity</h3>
+            <div className="space-y-2">
+              {[
+                { text: 'Substitution assigned: Mr. Rajeev Nair covering Maths for Mrs. Sharma (Class 10-A, P3)', time: '15 min ago', type: 'sub' },
+                { text: 'Discipline case opened: Arjun Malhotra (9-B) — Bullying complaint', time: '1 hour ago', type: 'discipline' },
+                { text: 'Circular published: Unit Test 3 Schedule — Classes 8 to 10', time: '2 hours ago', type: 'circular' },
+                { text: 'Exam schedule finalized: Pre-Board Exams Class 12 (24-28 Feb)', time: '3 hours ago', type: 'exam' },
+                { text: 'Duty roster updated: Sports Day assignments for 28 Feb', time: '5 hours ago', type: 'duty' },
+              ].map((a, i) => (
+                <div key={i} className={`flex items-center gap-3 p-2 rounded-xl ${theme.accentBg}`}>
+                  <div className={`w-2 h-2 rounded-full ${a.type === 'sub' ? 'bg-blue-500' : a.type === 'discipline' ? 'bg-red-500' : a.type === 'circular' ? 'bg-indigo-500' : a.type === 'exam' ? 'bg-purple-500' : 'bg-teal-500'}`} />
+                  <p className={`text-xs ${theme.highlight} flex-1`}>{a.text}</p>
+                  <span className={`text-[10px] ${theme.iconColor}`}>{a.time}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Task Tracker */}
+          <TaskTrackerPanel theme={theme} role="vice-principal" />
+        </div>
+      </DashletSection>
+    </DraggableDashboard>
   );
 }
 

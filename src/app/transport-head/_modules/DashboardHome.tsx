@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { StatCard, StatusBadge } from '@/components/shared';
+import { DraggableDashboard, DashletSection } from '@/components/DraggableDashboard';
 import { type Theme } from '@/lib/themes';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import {
@@ -65,29 +66,34 @@ export default function DashboardHome({ theme, onProfileClick, setActiveModule, 
   const countPresent = (att: Record<string, AttStatus>) => Object.values(att).filter(v => v === 'P').length;
 
   return (
-    <div className="space-y-4">
+    <DraggableDashboard dashboardId="transport-head" theme={theme} className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className={`text-2xl font-bold ${theme.highlight}`}>Transport Dashboard</h1>
         <button onClick={onProfileClick} title="My Profile" className={`w-9 h-9 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold hover:opacity-90 transition-opacity`}>MI</button>
       </div>
 
       {/* Stats Row 1 */}
+      <DashletSection id="stats-1" label="Vehicle Stats">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon={Bus} label="Total Vehicles" value={6} color="bg-blue-500" theme={theme} onClick={() => setActiveModule('vehicles')} />
         <StatCard icon={Route} label="Active Routes" value={6} color="bg-emerald-500" sub="all active" theme={theme} onClick={() => setActiveModule('routes')} />
         <StatCard icon={Users} label="Students Using Transport" value={222} color="bg-indigo-500" theme={theme} onClick={() => setActiveModule('students')} />
         <StatCard icon={Navigation} label="Vehicles On Road" value={6} color="bg-teal-500" sub="all running on time" theme={theme} onClick={() => setActiveModule('gps-tracking')} />
       </div>
+      </DashletSection>
 
       {/* Stats Row 2 */}
+      <DashletSection id="stats-2" label="Operations Stats">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon={User} label="Drivers Present" value="6/6" color="bg-purple-500" sub="100% attendance" theme={theme} onClick={() => setActiveModule('drivers')} />
         <StatCard icon={CheckCircle} label="Trips Completed Today" value={12} color="bg-emerald-500" sub="6 morning + 6 pickup" theme={theme} onClick={() => setActiveModule('gps-tracking')} />
         <StatCard icon={AlertTriangle} label="Maintenance Due" value={2} color="bg-amber-500" sub="next 30 days" theme={theme} onClick={() => setActiveModule('maintenance')} />
         <StatCard icon={IndianRupee} label="Monthly Fuel Cost" value="₹1.85L" color="bg-orange-500" sub="Feb 2026" theme={theme} onClick={() => setActiveModule('fees')} />
       </div>
+      </DashletSection>
 
       {/* Fees Overview Card (clickable → fees module) */}
+      <DashletSection id="transport-fees" label="Transport Fees">
       <button onClick={() => setActiveModule('fees')} className={`w-full text-left ${theme.cardBg} rounded-2xl border ${theme.border} p-4 hover:ring-2 hover:ring-emerald-400 transition-all`}>
         <div className="flex items-center justify-between mb-3">
           <h3 className={`text-sm font-bold ${theme.highlight}`}>Transport Fees Overview</h3>
@@ -112,8 +118,10 @@ export default function DashboardHome({ theme, onProfileClick, setActiveModule, 
           </div>
         </div>
       </button>
+      </DashletSection>
 
       {/* Today's Trip Status */}
+      <DashletSection id="trip-status" label="Trip Status">
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
         <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Today&apos;s Trip Status</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -135,8 +143,10 @@ export default function DashboardHome({ theme, onProfileClick, setActiveModule, 
           ))}
         </div>
       </div>
+      </DashletSection>
 
       {/* Transport Staff Attendance */}
+      <DashletSection id="staff-attendance" label="Staff Attendance">
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
         <h3 className={`text-sm font-bold ${theme.highlight} mb-1`}>Transport Staff Attendance</h3>
         <p className={`text-[10px] ${theme.iconColor} mb-3`}>
@@ -212,8 +222,10 @@ export default function DashboardHome({ theme, onProfileClick, setActiveModule, 
           </div>
         </div>
       </div>
+      </DashletSection>
 
       {/* Quick Actions */}
+      <DashletSection id="quick-actions" label="Quick Actions">
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
         <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Quick Actions</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -235,8 +247,10 @@ export default function DashboardHome({ theme, onProfileClick, setActiveModule, 
           </button>
         </div>
       </div>
+      </DashletSection>
 
       {/* Recent Activity + Task Tracker — Side by Side */}
+      <DashletSection id="activity-tasks" label="Activity & Tasks">
       <div className="grid grid-cols-2 gap-4">
         {/* Recent Activity */}
         <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
@@ -267,6 +281,7 @@ export default function DashboardHome({ theme, onProfileClick, setActiveModule, 
         {/* Task Tracker */}
         <TaskTrackerPanel theme={theme} role="transport-head" />
       </div>
-    </div>
+      </DashletSection>
+    </DraggableDashboard>
   );
 }

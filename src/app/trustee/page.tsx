@@ -10,6 +10,7 @@ import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import RecurringTasksCard from '@/components/RecurringTasksCard';
 import { type Theme } from '@/lib/themes';
+import { DraggableDashboard, DashletSection } from '@/components/DraggableDashboard';
 import {
   Home, Eye, DollarSign, GraduationCap, Shield, Users, CheckCircle, XCircle,
   TrendingUp, TrendingDown, BarChart3, Calendar, FileText, AlertTriangle,
@@ -106,7 +107,7 @@ const modules = [
 // ─── DASHBOARD VIEW ────────────────────────────────────
 function DashboardView({ theme, setActiveModule }: { theme: Theme; setActiveModule: (m: string) => void }) {
   return (
-    <div className="space-y-6">
+    <DraggableDashboard dashboardId="trustee" theme={theme} className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className={`text-xl font-bold ${theme.highlight}`}>Hello, Mr. Jayanti</h2>
@@ -116,6 +117,7 @@ function DashboardView({ theme, setActiveModule }: { theme: Theme; setActiveModu
       </div>
 
       {/* Mobile App Preview */}
+      <DashletSection id="mobile-preview" label="Mobile Preview">
       <MobilePreviewToggle theme={theme} mobileContent={
         <MobileFrame title="Trustee Dashboard" theme={theme}>
           {/* KPI Cards */}
@@ -197,38 +199,44 @@ function DashboardView({ theme, setActiveModule }: { theme: Theme; setActiveModu
           </div>
         </MobileFrame>
       } />
+      </DashletSection>
 
       {/* Financial KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard icon={DollarSign} label="Total Revenue" value={financialSummary.totalRevenue} color="bg-emerald-500" theme={theme} onClick={() => setActiveModule('financial')} />
-        <StatCard icon={Banknote} label="Fee Collected" value={financialSummary.feeCollected} color="bg-blue-500" sub={financialSummary.feeCollectedPercent} theme={theme} onClick={() => setActiveModule('financial')} />
-        <StatCard icon={TrendingDown} label="Total Expenses" value={financialSummary.totalExpenses} color="bg-amber-500" theme={theme} onClick={() => setActiveModule('financial')} />
-        <StatCard icon={TrendingUp} label="Net Surplus" value={financialSummary.netSurplus} color="bg-purple-500" theme={theme} onClick={() => setActiveModule('financial')} />
-      </div>
+      <DashletSection id="financial-kpis" label="Financial KPIs">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <StatCard icon={DollarSign} label="Total Revenue" value={financialSummary.totalRevenue} color="bg-emerald-500" theme={theme} onClick={() => setActiveModule('financial')} />
+          <StatCard icon={Banknote} label="Fee Collected" value={financialSummary.feeCollected} color="bg-blue-500" sub={financialSummary.feeCollectedPercent} theme={theme} onClick={() => setActiveModule('financial')} />
+          <StatCard icon={TrendingDown} label="Total Expenses" value={financialSummary.totalExpenses} color="bg-amber-500" theme={theme} onClick={() => setActiveModule('financial')} />
+          <StatCard icon={TrendingUp} label="Net Surplus" value={financialSummary.netSurplus} color="bg-purple-500" theme={theme} onClick={() => setActiveModule('financial')} />
+        </div>
+      </DashletSection>
 
       {/* Fees Card */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <div className="flex items-center gap-2 mb-3">
-          <Banknote size={16} className={theme.iconColor} />
-          <h3 className={`text-sm font-bold ${theme.highlight}`}>Fees Overview</h3>
+      <DashletSection id="fees" label="Fees Overview">
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <div className="flex items-center gap-2 mb-3">
+            <Banknote size={16} className={theme.iconColor} />
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>Fees Overview</h3>
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            <div className={`${theme.secondaryBg} rounded-xl p-3 text-center`}>
+              <p className={`text-[10px] ${theme.iconColor} mb-1`}>Today&apos;s Collection</p>
+              <p className="text-lg font-bold text-emerald-600">{'\u20B9'}2,45,000</p>
+            </div>
+            <div className={`${theme.secondaryBg} rounded-xl p-3 text-center`}>
+              <p className={`text-[10px] ${theme.iconColor} mb-1`}>Total Collected (FY)</p>
+              <p className={`text-lg font-bold ${theme.highlight}`}>{'\u20B9'}1.2 Cr</p>
+            </div>
+            <div className={`${theme.secondaryBg} rounded-xl p-3 text-center`}>
+              <p className={`text-[10px] ${theme.iconColor} mb-1`}>Outstanding</p>
+              <p className="text-lg font-bold text-red-500">{'\u20B9'}18.5L</p>
+            </div>
+          </div>
         </div>
-        <div className="grid grid-cols-3 gap-4">
-          <div className={`${theme.secondaryBg} rounded-xl p-3 text-center`}>
-            <p className={`text-[10px] ${theme.iconColor} mb-1`}>Today&apos;s Collection</p>
-            <p className="text-lg font-bold text-emerald-600">{'\u20B9'}2,45,000</p>
-          </div>
-          <div className={`${theme.secondaryBg} rounded-xl p-3 text-center`}>
-            <p className={`text-[10px] ${theme.iconColor} mb-1`}>Total Collected (FY)</p>
-            <p className={`text-lg font-bold ${theme.highlight}`}>{'\u20B9'}1.2 Cr</p>
-          </div>
-          <div className={`${theme.secondaryBg} rounded-xl p-3 text-center`}>
-            <p className={`text-[10px] ${theme.iconColor} mb-1`}>Outstanding</p>
-            <p className="text-lg font-bold text-red-500">{'\u20B9'}18.5L</p>
-          </div>
-        </div>
-      </div>
+      </DashletSection>
 
       {/* Quick Cards Row */}
+      <DashletSection id="sqaaf-results-approvals" label="SQAAF & Results">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* SQAAF Score Summary */}
         <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
@@ -301,24 +309,28 @@ function DashboardView({ theme, setActiveModule }: { theme: Theme; setActiveModu
           </div>
         </div>
       </div>
+      </DashletSection>
 
       {/* Compliance Alerts */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Compliance Alerts</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          {complianceItems.filter(c => c.status !== 'Compliant').map(c => (
-            <div key={c.item} className={`flex items-center gap-3 p-3 rounded-xl ${c.priority === 'Urgent' ? 'bg-red-50 border border-red-200' : c.priority === 'High' ? 'bg-amber-50 border border-amber-200' : theme.secondaryBg}`}>
-              <AlertTriangle size={14} className={c.priority === 'Urgent' ? 'text-red-500' : 'text-amber-500'} />
-              <div className="flex-1">
-                <p className={`text-xs font-bold ${theme.highlight}`}>{c.item}</p>
-                <p className={`text-[10px] ${theme.iconColor}`}>Due: {c.dueDate} · {c.status}</p>
+      <DashletSection id="compliance" label="Compliance">
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Compliance Alerts</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {complianceItems.filter(c => c.status !== 'Compliant').map(c => (
+              <div key={c.item} className={`flex items-center gap-3 p-3 rounded-xl ${c.priority === 'Urgent' ? 'bg-red-50 border border-red-200' : c.priority === 'High' ? 'bg-amber-50 border border-amber-200' : theme.secondaryBg}`}>
+                <AlertTriangle size={14} className={c.priority === 'Urgent' ? 'text-red-500' : 'text-amber-500'} />
+                <div className="flex-1">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{c.item}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>Due: {c.dueDate} · {c.status}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      </DashletSection>
 
       {/* News Board + Task Tracker — Side by Side */}
+      <DashletSection id="news-tasks" label="News & Tasks">
       <div className="grid grid-cols-2 gap-4">
         {/* News Board — Live School Overview */}
         <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
@@ -394,7 +406,8 @@ function DashboardView({ theme, setActiveModule }: { theme: Theme; setActiveModu
         {/* Recurring Tasks — Streak Tracking Card */}
         <RecurringTasksCard theme={theme} role="trustee" />
       </div>
-    </div>
+      </DashletSection>
+    </DraggableDashboard>
   );
 }
 

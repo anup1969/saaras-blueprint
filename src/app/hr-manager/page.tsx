@@ -9,6 +9,7 @@ import SupportModule from '@/components/SupportModule';
 import { type TeamMember } from '@/lib/auth';
 import { TabBar } from '@/components/shared';
 import { type Theme } from '@/lib/themes';
+import { DraggableDashboard, DashletSection } from '@/components/DraggableDashboard';
 import {
   Users, Home, UserPlus, Calendar, Clock, Banknote, Star, FileText, UserMinus, BarChart3,
   Settings, Bell, ChevronLeft, ChevronRight, Check, X, Plus,
@@ -72,73 +73,79 @@ function Tgl({ on, theme }: { on: boolean; theme: Theme }) {
 function DashboardModule({ theme, setActive }: { theme: Theme; setActive: (s: string) => void }) {
   const weekData = [{ d: 'Mon', p: 125 }, { d: 'Tue', p: 130 }, { d: 'Wed', p: 128 }, { d: 'Thu', p: 126 }, { d: 'Fri', p: 132 }, { d: 'Sat', p: 118 }];
   return (
-    <div className="space-y-4">
+    <DraggableDashboard dashboardId="hr-manager" theme={theme} className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className={`text-xl font-bold ${theme.highlight}`}>HR Dashboard</h1>
         <button onClick={() => setActive('my-profile')} title="My Profile" className={`w-9 h-9 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold hover:opacity-90 transition-opacity`}>KR</button>
       </div>
-      <div className="grid grid-cols-6 gap-3">
-        <SC icon={Users} label="Total Staff" value="142" sub="+5 this month" color="bg-indigo-600" theme={theme} />
-        <SC icon={CheckCircle} label="Present" value="128" color="bg-emerald-500" theme={theme} />
-        <SC icon={Calendar} label="On Leave" value="8" color="bg-amber-500" theme={theme} />
-        <SC icon={XCircle} label="Absent" value="6" color="bg-red-500" theme={theme} />
-        <SC icon={Briefcase} label="Open Positions" value="3" color="bg-indigo-500" theme={theme} />
-        <SC icon={Clock} label="Pending" value="12" color="bg-orange-500" theme={theme} />
-      </div>
-      <div className="grid grid-cols-5 gap-4">
-        <div className={`col-span-3 ${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
-          <h3 className={`font-semibold mb-3 ${theme.highlight}`}>Weekly Attendance</h3>
-          <div className="flex items-end gap-3 h-32">{weekData.map((d, i) => (
-            <div key={i} className="flex-1 flex flex-col items-center">
-              <div className="w-full bg-emerald-500 rounded-t" style={{ height: (d.p - 100) * 2 + 'px' }} />
-              <span className={`text-xs ${theme.iconColor} mt-1`}>{d.d}</span>
-            </div>
-          ))}</div>
+      <DashletSection id="stats" label="Staff Stats">
+        <div className="grid grid-cols-6 gap-3">
+          <SC icon={Users} label="Total Staff" value="142" sub="+5 this month" color="bg-indigo-600" theme={theme} />
+          <SC icon={CheckCircle} label="Present" value="128" color="bg-emerald-500" theme={theme} />
+          <SC icon={Calendar} label="On Leave" value="8" color="bg-amber-500" theme={theme} />
+          <SC icon={XCircle} label="Absent" value="6" color="bg-red-500" theme={theme} />
+          <SC icon={Briefcase} label="Open Positions" value="3" color="bg-indigo-500" theme={theme} />
+          <SC icon={Clock} label="Pending" value="12" color="bg-orange-500" theme={theme} />
         </div>
-        <div className={`col-span-2 ${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
-          <h3 className={`font-semibold mb-3 ${theme.highlight}`}>Today&apos;s Highlights</h3>
-          <div className="space-y-2">
-            <div className={`flex items-center gap-2 p-2 rounded-lg text-sm ${theme.secondaryBg}`}><Cake size={14} className="text-pink-500" /><span className={theme.highlight}>Ravi Shankar&apos;s Birthday</span></div>
-            <div className={`flex items-center gap-2 p-2 rounded-lg text-sm ${theme.secondaryBg}`}><Award size={14} className="text-amber-500" /><span className={theme.highlight}>Vijay Kumar - 5 years</span></div>
-          </div>
-        </div>
-      </div>
-      <div className="grid grid-cols-3 gap-4">
-        <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
-          <h3 className={`font-semibold mb-3 ${theme.highlight}`}>Quick Actions</h3>
-          <div className="space-y-2">
-            <button onClick={() => setActive('addemployee')} className={`w-full flex items-center gap-2 px-3 py-2 ${theme.primary} text-white rounded-lg text-sm`}><UserPlus size={14} />Add Employee</button>
-            <button onClick={() => setActive('attendance')} className={`w-full flex items-center gap-2 px-3 py-2 border ${theme.border} rounded-lg text-sm ${theme.highlight}`}><Clock size={14} />Mark Attendance</button>
-            <button onClick={() => setActive('payroll')} className={`w-full flex items-center gap-2 px-3 py-2 border ${theme.border} rounded-lg text-sm ${theme.highlight}`}><Banknote size={14} />Process Payroll</button>
-          </div>
-        </div>
-        <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
-          <h3 className={`font-semibold mb-3 ${theme.highlight}`}>Pending Leaves</h3>
-          {[{ n: 'Amit Saxena', t: 'Casual' }, { n: 'Meera Iyer', t: 'Sick' }].map((r, i) => (
-            <div key={i} className={`flex items-center justify-between p-2 ${theme.secondaryBg} rounded-lg mb-2`}>
-              <div><p className={`text-sm font-medium ${theme.highlight}`}>{r.n}</p><p className={`text-xs ${theme.iconColor}`}>{r.t}</p></div>
-              <div className="flex gap-1">
-                <button className="p-1 bg-emerald-500/20 text-emerald-400 rounded"><Check size={12} /></button>
-                <button className="p-1 bg-red-500/20 text-red-400 rounded"><X size={12} /></button>
+      </DashletSection>
+      <DashletSection id="chart-highlights" label="Attendance & Highlights">
+        <div className="grid grid-cols-5 gap-4">
+          <div className={`col-span-3 ${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
+            <h3 className={`font-semibold mb-3 ${theme.highlight}`}>Weekly Attendance</h3>
+            <div className="flex items-end gap-3 h-32">{weekData.map((d, i) => (
+              <div key={i} className="flex-1 flex flex-col items-center">
+                <div className="w-full bg-emerald-500 rounded-t" style={{ height: (d.p - 100) * 2 + 'px' }} />
+                <span className={`text-xs ${theme.iconColor} mt-1`}>{d.d}</span>
               </div>
+            ))}</div>
+          </div>
+          <div className={`col-span-2 ${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
+            <h3 className={`font-semibold mb-3 ${theme.highlight}`}>Today&apos;s Highlights</h3>
+            <div className="space-y-2">
+              <div className={`flex items-center gap-2 p-2 rounded-lg text-sm ${theme.secondaryBg}`}><Cake size={14} className="text-pink-500" /><span className={theme.highlight}>Ravi Shankar&apos;s Birthday</span></div>
+              <div className={`flex items-center gap-2 p-2 rounded-lg text-sm ${theme.secondaryBg}`}><Award size={14} className="text-amber-500" /><span className={theme.highlight}>Vijay Kumar - 5 years</span></div>
             </div>
-          ))}
+          </div>
         </div>
-        <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
-          <h3 className={`font-semibold mb-3 ${theme.highlight}`}>Department Strength</h3>
-          {[{ n: 'Teaching-Primary', c: 22 }, { n: 'Teaching-Secondary', c: 24 }, { n: 'Teaching-Senior', c: 22 }, { n: 'Administration', c: 12 }, { n: 'Accounts', c: 6 }, { n: 'IT', c: 4 }, { n: 'Transport', c: 18 }, { n: 'Housekeeping', c: 10 }, { n: 'Security', c: 12 }, { n: 'Library', c: 4 }, { n: 'Lab', c: 8 }].map((d) => (
-            <div key={d.n} className="flex items-center gap-2 mb-2">
-              <span className={`text-xs w-16 ${theme.iconColor}`}>{d.n}</span>
-              <div className={`flex-1 ${theme.secondaryBg} rounded-full h-2`}><div className={`${theme.primary} h-2 rounded-full`} style={{ width: (d.c / 24) * 100 + '%' }} /></div>
-              <span className={`text-xs w-6 ${theme.highlight}`}>{d.c}</span>
+      </DashletSection>
+      <DashletSection id="actions-leaves-dept" label="Actions & Leaves">
+        <div className="grid grid-cols-3 gap-4">
+          <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
+            <h3 className={`font-semibold mb-3 ${theme.highlight}`}>Quick Actions</h3>
+            <div className="space-y-2">
+              <button onClick={() => setActive('addemployee')} className={`w-full flex items-center gap-2 px-3 py-2 ${theme.primary} text-white rounded-lg text-sm`}><UserPlus size={14} />Add Employee</button>
+              <button onClick={() => setActive('attendance')} className={`w-full flex items-center gap-2 px-3 py-2 border ${theme.border} rounded-lg text-sm ${theme.highlight}`}><Clock size={14} />Mark Attendance</button>
+              <button onClick={() => setActive('payroll')} className={`w-full flex items-center gap-2 px-3 py-2 border ${theme.border} rounded-lg text-sm ${theme.highlight}`}><Banknote size={14} />Process Payroll</button>
             </div>
-          ))}
+          </div>
+          <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
+            <h3 className={`font-semibold mb-3 ${theme.highlight}`}>Pending Leaves</h3>
+            {[{ n: 'Amit Saxena', t: 'Casual' }, { n: 'Meera Iyer', t: 'Sick' }].map((r, i) => (
+              <div key={i} className={`flex items-center justify-between p-2 ${theme.secondaryBg} rounded-lg mb-2`}>
+                <div><p className={`text-sm font-medium ${theme.highlight}`}>{r.n}</p><p className={`text-xs ${theme.iconColor}`}>{r.t}</p></div>
+                <div className="flex gap-1">
+                  <button className="p-1 bg-emerald-500/20 text-emerald-400 rounded"><Check size={12} /></button>
+                  <button className="p-1 bg-red-500/20 text-red-400 rounded"><X size={12} /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
+            <h3 className={`font-semibold mb-3 ${theme.highlight}`}>Department Strength</h3>
+            {[{ n: 'Teaching-Primary', c: 22 }, { n: 'Teaching-Secondary', c: 24 }, { n: 'Teaching-Senior', c: 22 }, { n: 'Administration', c: 12 }, { n: 'Accounts', c: 6 }, { n: 'IT', c: 4 }, { n: 'Transport', c: 18 }, { n: 'Housekeeping', c: 10 }, { n: 'Security', c: 12 }, { n: 'Library', c: 4 }, { n: 'Lab', c: 8 }].map((d) => (
+              <div key={d.n} className="flex items-center gap-2 mb-2">
+                <span className={`text-xs w-16 ${theme.iconColor}`}>{d.n}</span>
+                <div className={`flex-1 ${theme.secondaryBg} rounded-full h-2`}><div className={`${theme.primary} h-2 rounded-full`} style={{ width: (d.c / 24) * 100 + '%' }} /></div>
+                <span className={`text-xs w-6 ${theme.highlight}`}>{d.c}</span>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-
-      {/* Task Tracker */}
-      <TaskTrackerPanel theme={theme} role="hr-manager" />
-    </div>
+      </DashletSection>
+      <DashletSection id="tasks" label="Task Tracker">
+        <TaskTrackerPanel theme={theme} role="hr-manager" />
+      </DashletSection>
+    </DraggableDashboard>
   );
 }
 

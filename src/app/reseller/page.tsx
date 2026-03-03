@@ -5,6 +5,7 @@ import BlueprintLayout from '@/components/BlueprintLayout';
 import { StatCard, TabBar, StatusBadge, SearchBar, DataTable } from '@/components/shared';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
+import { DraggableDashboard, DashletSection } from '@/components/DraggableDashboard';
 import { ChatsView } from '@/components/ChatModule';
 import SupportModule from '@/components/SupportModule';
 import YourInputsModule from '@/components/YourInputsModule';
@@ -108,7 +109,7 @@ function ResellerProfileHeader({ theme }: { theme: Theme }) {
 // ─── DASHBOARD VIEW ────────────────────────────────────
 function DashboardView({ theme, setActiveModule }: { theme: Theme; setActiveModule: (m: string) => void }) {
   return (
-    <div className="space-y-6">
+    <DraggableDashboard dashboardId="reseller" theme={theme} className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className={`text-xl font-bold ${theme.highlight}`}>Reseller Dashboard</h2>
@@ -117,9 +118,12 @@ function DashboardView({ theme, setActiveModule }: { theme: Theme; setActiveModu
         <button onClick={() => setActiveModule('profile')} title="My Profile" className={`w-9 h-9 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold hover:opacity-90 transition-opacity`}>VM</button>
       </div>
 
+      <DashletSection id="reseller-profile" label="Profile">
       <ResellerProfileHeader theme={theme} />
+      </DashletSection>
 
       {/* Stat Cards */}
+      <DashletSection id="stats" label="Stats">
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <StatCard icon={GraduationCap} label="Schools Onboarded" value="12" color="bg-blue-500" theme={theme} onClick={() => setActiveModule('schools')} />
         <StatCard icon={CheckCircle} label="Active Subscriptions" value="11" color="bg-emerald-500" sub="1 expired" theme={theme} onClick={() => setActiveModule('schools')} />
@@ -128,8 +132,10 @@ function DashboardView({ theme, setActiveModule }: { theme: Theme; setActiveModu
         <StatCard icon={TrendingUp} label="This Month Revenue" value="₹2,40,000" color="bg-teal-500" sub="From schools" theme={theme} onClick={() => setActiveModule('earnings')} />
         <StatCard icon={Target} label="Avg Commission Rate" value="18%" color="bg-indigo-500" theme={theme} onClick={() => setActiveModule('earnings')} />
       </div>
+      </DashletSection>
 
       {/* Quick Summary Cards */}
+      <DashletSection id="payout-school-renewal" label="Payout & Renewals">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Next Payout */}
         <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
@@ -191,8 +197,10 @@ function DashboardView({ theme, setActiveModule }: { theme: Theme; setActiveModu
           <button onClick={() => setActiveModule('schools')} className={`mt-3 text-xs ${theme.primaryText} font-bold`}>View All Schools →</button>
         </div>
       </div>
+      </DashletSection>
 
       {/* Quick Actions */}
+      <DashletSection id="quick-actions" label="Quick Actions">
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
         <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Quick Actions</h3>
         <div className="flex flex-wrap gap-2">
@@ -209,10 +217,13 @@ function DashboardView({ theme, setActiveModule }: { theme: Theme; setActiveModu
           ))}
         </div>
       </div>
+      </DashletSection>
 
       {/* Task Tracker */}
+      <DashletSection id="tasks" label="Task Tracker">
       <TaskTrackerPanel theme={theme} role="reseller" />
-    </div>
+      </DashletSection>
+    </DraggableDashboard>
   );
 }
 

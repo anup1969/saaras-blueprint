@@ -16,6 +16,7 @@ import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import RecurringTasksCard from '@/components/RecurringTasksCard';
 import OnboardingTour from '@/components/OnboardingTour';
 import DrillDownPanel from './DrillDownPanel';
+import { DraggableDashboard, DashletSection } from '@/components/DraggableDashboard';
 
 export default function DashboardHome({ theme, onProfileClick, isPreschool }: { theme: Theme; onProfileClick: () => void; isPreschool?: boolean }) {
   const [drillDown, setDrillDown] = useState<'students' | 'academic' | 'non-academic' | null>(null);
@@ -59,7 +60,7 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
 
   return (
     <div className="flex gap-4">
-      <div className={`${showMobilePreview ? 'flex-1 min-w-0' : 'w-full'} space-y-4 transition-all`}>
+      <DraggableDashboard dashboardId="principal" theme={theme} className={`${showMobilePreview ? 'flex-1 min-w-0' : 'w-full'} space-y-4 transition-all`}>
       <div className="flex items-center justify-between">
         <div>
           <h1 className={`text-2xl font-bold ${theme.highlight}`}>{isPreschool ? 'Principal / Centre Head Dashboard' : 'Principal Dashboard'}</h1>
@@ -100,6 +101,7 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
       </div>
 
 
+      <DashletSection id="alerts" label="Alerts">
       {/* Gap 16 — Force-Push Mandatory Dashlet (compact) */}
       {!dismissedAlerts.includes('fee-collection-drive') && (
         <div className="rounded-xl border-l-4 border-amber-500 bg-amber-50 border border-amber-200 px-3 py-2.5">
@@ -140,6 +142,9 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
           </button>
         </div>
       )}
+      </DashletSection>
+
+      <DashletSection id="attendance" label="Attendance">
       {/* Attendance Row — Student + Academic Staff + Non-Academic Staff (Clickable) */}
       <div className="grid grid-cols-3 gap-3">
         {/* Student Attendance */}
@@ -227,7 +232,9 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
       {drillDown && (
         <DrillDownPanel type={drillDown} theme={theme} onClose={() => setDrillDown(null)} />
       )}
+      </DashletSection>
 
+      <DashletSection id="stats-actions" label="Stats & Actions">
       {/* Stat Cards + Quick Actions — same row */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <StatCard icon={Banknote} label="Fee This Month" value={dataMasked ? '\u20B9 **** / \u20B9 ****' : '\u20B912.4L / \u20B918L'} color="bg-emerald-500" sub="Click for breakdown" theme={theme} onClick={() => setShowFeeDrillDown(!showFeeDrillDown)} />
@@ -503,9 +510,11 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
       )}
 
       {/* Preschool-specific cards removed per PM feedback — will revisit if meaningful KPIs identified */}
+      </DashletSection>
 
       {/* ========== GAP DASHLETS (conditionally visible via dashlet gallery) ========== */}
 
+      <DashletSection id="compact-dashlets" label="Quick Dashlets">
       {/* Compact Dashlet Row — Birthday, Gallery, Infirmary */}
       <div className="grid grid-cols-3 gap-3">
         {/* Compact Birthday Card */}
@@ -673,6 +682,9 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
         </div>
       )}
 
+      </DashletSection>
+
+      <DashletSection id="chronic-attendance" label="Chronic Attendance">
       {/* Gap #149 — Child Safety / Chronic Attendance Alert */}
       {!isPreschool && (
         <div className={`${theme.cardBg} rounded-2xl border-2 border-red-300 ring-1 ring-red-300/30 p-4`}>
@@ -716,7 +728,9 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
           </div>
         </div>
       )}
+      </DashletSection>
 
+      <DashletSection id="grievances" label="Grievances">
       {/* Gap #147 — Student Grievance Tracker */}
       {!isPreschool && (
         <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
@@ -762,17 +776,15 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
           </div>
         </div>
       )}
+      </DashletSection>
 
       {/* Gap 2 — Bell Curve MOVED to AcademicsModule.tsx */}
-
       {/* Gap 3 — Student Rank Trend MOVED to ReportsModule.tsx */}
-
       {/* Gap 4 — Mark Entry Progress MOVED to AcademicsModule.tsx */}
-
       {/* Gap 5 — Infirmary MOVED to compact card row above */}
-
       {/* Gap 6 — Academic Progress Ring MOVED to AcademicsModule.tsx */}
 
+      <DashletSection id="rte-tracking" label="RTE Quota">
       {/* Gap 7 — RTE Quota Tracking Dashlet (collapsible) */}
       {dashletVisibility['rteQuota'] && (
         <div className={`${theme.cardBg} rounded-2xl border ${theme.border} overflow-hidden`}>
@@ -828,7 +840,9 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
       )}
 
       {/* Gap 8 — Event Countdown MOVED to compact card row above */}
+      </DashletSection>
 
+      <DashletSection id="news-tasks" label="News & Tasks">
       {/* News Board + Task Tracker — Side by Side */}
       <div className="grid grid-cols-2 gap-4">
         {/* News Board — Live School Overview */}
@@ -914,6 +928,7 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
         {/* Recurring Tasks — Streak Tracking Card */}
         <RecurringTasksCard theme={theme} role="principal" isPreschool={isPreschool} />
       </div>
+      </DashletSection>
 
       {/* Gap 12 — Dashlet Gallery / Browser Modal */}
       {showGallery && (
@@ -996,7 +1011,7 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
       )}
 
 
-      </div>
+      </DraggableDashboard>
       {showMobilePreview && (
         <div className="w-[380px] shrink-0 sticky top-0 h-[calc(100vh-120px)] overflow-y-auto">
           <div className="flex items-center justify-between mb-2">

@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
 import RecurringTasksCard from '@/components/RecurringTasksCard';
+import { DraggableDashboard, DashletSection } from '@/components/DraggableDashboard';
 
 export default function DashboardHome({ theme, stats, onProfileClick, onNavigate }: { theme: Theme; stats: typeof dashboardStats.schoolAdmin; onProfileClick: () => void; onNavigate?: (id: string) => void }) {
   {/* Gap 13 — Dark Mode state */}
@@ -20,7 +21,7 @@ export default function DashboardHome({ theme, stats, onProfileClick, onNavigate
   const [pinnedActions, setPinnedActions] = useState<Record<string, boolean>>({});
 
   return (
-    <div className="space-y-4">
+    <DraggableDashboard dashboardId="school-admin" theme={theme} className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className={`text-2xl font-bold ${theme.highlight}`}>School Admin Dashboard</h1>
         <div className="flex items-center gap-2">
@@ -37,6 +38,7 @@ export default function DashboardHome({ theme, stats, onProfileClick, onNavigate
           <button onClick={onProfileClick} title="My Profile" className={`w-9 h-9 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold hover:opacity-90 transition-opacity`}>DV</button>
         </div>
       </div>
+      <DashletSection id="stats-1" label="Key Stats">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon={Users} label="Total Students" value={stats.totalStudents} color="bg-blue-500" theme={theme} onClick={() => onNavigate?.('students')} />
         <StatCard icon={Briefcase} label="Total Staff" value={stats.totalStaff} color="bg-indigo-500" theme={theme} onClick={() => onNavigate?.('staff')} />
@@ -49,8 +51,10 @@ export default function DashboardHome({ theme, stats, onProfileClick, onNavigate
         <StatCard icon={Shield} label="Active Visitors" value={stats.activeVisitors} color="bg-orange-500" theme={theme} onClick={() => onNavigate?.('visitors')} />
         <StatCard icon={Bell} label="Notifications" value="5" color="bg-red-500" sub="unread" theme={theme} onClick={() => onNavigate?.('notifications')} />
       </div>
+      </DashletSection>
 
       {/* Gap 28: User Profile Completeness Score */}
+      <DashletSection id="profile-score" label="Profile Completeness">
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
         <div className="flex items-center gap-3">
           <div className="relative w-12 h-12">
@@ -69,8 +73,10 @@ export default function DashboardHome({ theme, stats, onProfileClick, onNavigate
           </div>
         </div>
       </div>
+      </DashletSection>
 
       {/* Fees Card */}
+      <DashletSection id="fees" label="Fees Overview">
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
         <div className="flex items-center gap-2 mb-3">
           <Banknote size={16} className={theme.iconColor} />
@@ -91,8 +97,10 @@ export default function DashboardHome({ theme, stats, onProfileClick, onNavigate
           </div>
         </div>
       </div>
+      </DashletSection>
 
       {/* Quick Actions — Gap 14: Pin / Favorite Quick Actions */}
+      <DashletSection id="quick-actions" label="Quick Actions">
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
         <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Quick Actions</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -117,8 +125,10 @@ export default function DashboardHome({ theme, stats, onProfileClick, onNavigate
           ))}
         </div>
       </div>
+      </DashletSection>
 
       {/* News Board + Task Tracker — Side by Side */}
+      <DashletSection id="news-tasks" label="News & Tasks">
       <div className="grid grid-cols-2 gap-4">
         {/* News Board — Live School Overview */}
         <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
@@ -194,6 +204,7 @@ export default function DashboardHome({ theme, stats, onProfileClick, onNavigate
         {/* Recurring Tasks — Streak Tracking Card */}
         <RecurringTasksCard theme={theme} role="school-admin" />
       </div>
-    </div>
+      </DashletSection>
+    </DraggableDashboard>
   );
 }

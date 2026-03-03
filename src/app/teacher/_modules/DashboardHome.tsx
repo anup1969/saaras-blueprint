@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { StatCard } from '@/components/shared';
+import { DraggableDashboard, DashletSection } from '@/components/DraggableDashboard';
 import { type Theme } from '@/lib/themes';
 import {
   BookOpen, ClipboardCheck, FileText, Award, Calendar, Clock,
@@ -87,12 +88,10 @@ const roomMap: Record<string, string> = {
 export default function DashboardHome({ theme, isPreschool, onNavigate }: { theme: Theme; isPreschool?: boolean; onNavigate?: (id: string) => void }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [caughtUpDismissed, setCaughtUpDismissed] = useState(false);
-  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [activeView, setActiveView] = useState<'dashboard' | 'attendance' | 'students'>('dashboard');
   const [selectedClass, setSelectedClass] = useState('10-A');
   const [attendanceMarked, setAttendanceMarked] = useState<Record<string, Record<number, boolean>>>({});
   const notifRef = useRef<HTMLDivElement>(null);
-  const profileRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -105,16 +104,6 @@ export default function DashboardHome({ theme, isPreschool, onNavigate }: { them
     }
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showNotifications]);
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
-        setShowProfileMenu(false);
-      }
-    }
-    if (showProfileMenu) document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showProfileMenu]);
 
   const notifications = [
     { id: 1, icon: ClipboardCheck, title: 'Attendance not marked for 10-A', time: '10 min ago', color: 'border-amber-500', read: false },
@@ -213,33 +202,6 @@ export default function DashboardHome({ theme, isPreschool, onNavigate }: { them
                 </div>
                 <div className={`px-4 py-2.5 border-t ${theme.border} text-center`}>
                   <button className={`text-xs font-bold ${theme.primaryText} hover:underline`}>View All Notifications</button>
-                </div>
-              </div>
-            )}
-          </div>
-          {/* Profile pic + My Profile dropdown (#32) */}
-          <div ref={profileRef} className="relative">
-            <button onClick={() => setShowProfileMenu(prev => !prev)}
-              className={`w-9 h-9 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-bold ring-2 ring-blue-200 hover:ring-blue-400 transition-all`}
-              title="My Profile">
-              PS
-            </button>
-            {showProfileMenu && (
-              <div className={`absolute right-0 top-11 w-48 ${theme.cardBg} rounded-xl border ${theme.border} shadow-2xl z-50 overflow-hidden`}>
-                <div className={`px-4 py-3 border-b ${theme.border}`}>
-                  <p className={`text-xs font-bold ${theme.highlight}`}>{teacherProfile.name}</p>
-                  <p className={`text-[10px] ${theme.iconColor}`}>{teacherProfile.empId} | {teacherProfile.department}</p>
-                </div>
-                <div className="py-1">
-                  {[
-                    { label: 'My Profile', icon: User },
-                    { label: 'Edit Profile', icon: Pencil },
-                    { label: 'Settings', icon: Calendar },
-                  ].map(item => (
-                    <button key={item.label} className={`w-full flex items-center gap-2 px-4 py-2 text-xs ${theme.highlight} hover:${theme.secondaryBg} transition-colors`}>
-                      <item.icon size={12} className={theme.iconColor} /> {item.label}
-                    </button>
-                  ))}
                 </div>
               </div>
             )}
@@ -347,12 +309,13 @@ export default function DashboardHome({ theme, isPreschool, onNavigate }: { them
         </div>
       )}
 
-      {activeView === 'dashboard' && (<>
+      {activeView === 'dashboard' && (<DraggableDashboard dashboardId="teacher" theme={theme} className="space-y-4">
 
       {/* ══════════════════════════════════════════════════════
           SECTION 1: TODAY'S TIMETABLE — Period-wise schedule
           This is the FIRST thing a teacher sees on their dashboard.
           ══════════════════════════════════════════════════════ */}
+      <DashletSection id="timetable" label="Timetable">
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-3`}>
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
@@ -412,11 +375,13 @@ export default function DashboardHome({ theme, isPreschool, onNavigate }: { them
           </div>
         )}
       </div>
+      </DashletSection>
 
       {/* ══════════════════════════════════════════════════════
           SECTION 1B: ASSIGNMENT PROGRESS OVERVIEW (Remark #5)
           Visual bracelet showing homework/test/assignment given vs submitted
           ══════════════════════════════════════════════════════ */}
+      <DashletSection id="assignments" label="Assignments">
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-3`}>
         <div className="flex items-center gap-2 mb-2">
           <TrendingUp size={14} className="text-indigo-500" />
@@ -464,11 +429,13 @@ export default function DashboardHome({ theme, isPreschool, onNavigate }: { them
           })}
         </div>
       </div>
+      </DashletSection>
 
       {/* ══════════════════════════════════════════════════════
           SECTION 2: EVENTS & DEADLINES
           Upcoming events where teacher is participating + pending submissions
           ══════════════════════════════════════════════════════ */}
+      <DashletSection id="events-deadlines" label="Events & Deadlines">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Upcoming Events */}
         <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
@@ -530,11 +497,13 @@ export default function DashboardHome({ theme, isPreschool, onNavigate }: { them
           </div>
         </div>
       </div>
+      </DashletSection>
 
 
       {/* ══════════════════════════════════════════════════════
           SECTION 3B: LESSON PLAN REMINDER
           ══════════════════════════════════════════════════════ */}
+      <DashletSection id="lesson-plan" label="Lesson Plan">
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 flex items-center gap-4`}>
         <div className="w-10 h-10 rounded-xl bg-purple-500 flex items-center justify-center text-white shrink-0">
           <BookMarked size={18} />
@@ -547,10 +516,12 @@ export default function DashboardHome({ theme, isPreschool, onNavigate }: { them
           View Plans <ArrowRight size={12} />
         </button>
       </div>
+      </DashletSection>
 
       {/* ══════════════════════════════════════════════════════
           SECTION 4: QUICK STATS
           ══════════════════════════════════════════════════════ */}
+      <DashletSection id="quick-stats" label="Quick Stats">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon={BookOpen} label="Classes Today" value="5" color="bg-blue-500" sub="of 6 total" theme={theme} onClick={() => onNavigate?.('timetable')} />
         <StatCard icon={ClipboardCheck} label="Attendance Pending" value="2" color="bg-amber-500" sub="10-A, 8-A" theme={theme} onClick={() => onNavigate?.('attendance')} />
@@ -569,12 +540,14 @@ export default function DashboardHome({ theme, isPreschool, onNavigate }: { them
           </div>
         </div>
       )}
+      </DashletSection>
 
       {/* ══════════════════════════════════════════════════════
           SECTION 5: QUICK ACTIONS + MESSAGES + CIRCULARS
           ══════════════════════════════════════════════════════ */}
 
       {/* Quick Actions */}
+      <DashletSection id="quick-actions" label="Quick Actions">
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
         <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Quick Actions</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -591,8 +564,10 @@ export default function DashboardHome({ theme, isPreschool, onNavigate }: { them
           ))}
         </div>
       </div>
+      </DashletSection>
 
       {/* Two-column layout: Messages + Circulars */}
+      <DashletSection id="messages-circulars" label="Messages & Circulars">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
         {/* Unread Messages */}
@@ -656,7 +631,8 @@ export default function DashboardHome({ theme, isPreschool, onNavigate }: { them
           </div>
         </div>
       </div>
-      </>)}
+      </DashletSection>
+      </DraggableDashboard>)}
     </div>
   );
 }

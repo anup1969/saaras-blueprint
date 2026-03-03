@@ -2,6 +2,7 @@
 
 import { StatCard, StatusBadge } from '@/components/shared';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
+import { DraggableDashboard, DashletSection } from '@/components/DraggableDashboard';
 import { type Theme } from '@/lib/themes';
 import {
   Building2, Users, Plus, Headphones, BarChart3, Activity, ArrowRight, DollarSign,
@@ -10,7 +11,7 @@ import { schools, plans, auditLogs, supportTickets } from './mockData';
 
 export default function DashboardView({ theme, setActiveModule, onStartWizard }: { theme: Theme; setActiveModule: (m: string) => void; onStartWizard: () => void }) {
   return (
-    <div className="space-y-6">
+    <DraggableDashboard dashboardId="super-admin" theme={theme} className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className={`text-xl font-bold ${theme.highlight}`}>Platform Overview</h2>
@@ -20,14 +21,17 @@ export default function DashboardView({ theme, setActiveModule, onStartWizard }:
       </div>
 
       {/* Stats */}
+      <DashletSection id="stats" label="Stats">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard icon={Building2} label="Active Schools" value="6" color="bg-blue-500" sub="+1 this month" theme={theme} onClick={() => setActiveModule('schools')} />
         <StatCard icon={Users} label="Total Users" value="12,480" color="bg-emerald-500" sub="Across all schools" theme={theme} onClick={() => setActiveModule('users')} />
         <StatCard icon={DollarSign} label="MRR" value="₹5.45L" color="bg-purple-500" sub="+12% vs last month" theme={theme} onClick={() => setActiveModule('analytics')} />
         <StatCard icon={Activity} label="System Uptime" value="99.97%" color="bg-amber-500" theme={theme} onClick={() => setActiveModule('config')} />
       </div>
+      </DashletSection>
 
       {/* Quick Actions + Recent Activity */}
+      <DashletSection id="actions-activity" label="Quick Actions">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Quick Actions */}
         <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
@@ -90,8 +94,10 @@ export default function DashboardView({ theme, setActiveModule, onStartWizard }:
           </div>
         </div>
       </div>
+      </DashletSection>
 
       {/* Open Tickets */}
+      <DashletSection id="tickets" label="Support Tickets">
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
         <div className="flex items-center justify-between mb-3">
           <h3 className={`text-sm font-bold ${theme.highlight}`}>Open Support Tickets</h3>
@@ -112,9 +118,12 @@ export default function DashboardView({ theme, setActiveModule, onStartWizard }:
           ))}
         </div>
       </div>
+      </DashletSection>
 
       {/* Task Tracker */}
+      <DashletSection id="tasks" label="Task Tracker">
       <TaskTrackerPanel theme={theme} role="super-admin" />
-    </div>
+      </DashletSection>
+    </DraggableDashboard>
   );
 }

@@ -11,6 +11,7 @@ import {
   Send, Users, Bot, Phone, Sparkles, Search, Shield,
 } from 'lucide-react';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
+import { DraggableDashboard, DashletSection } from '@/components/DraggableDashboard';
 import type { ChildProfile } from '../_components/types';
 import { attendanceData, feesData, homeworkData, communicationData } from '../_components/data';
 
@@ -23,7 +24,7 @@ export default function DashboardHome({ theme, child, onProfileClick, onNavigate
   const unreadMsg = comm.messages.filter(m => !m.read).length;
 
   return (
-    <div className="space-y-4">
+    <DraggableDashboard dashboardId="parent" theme={theme} className="space-y-4">
       {/* Child Profile Card */}
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5`}>
         <div className="flex items-center gap-4">
@@ -50,6 +51,7 @@ export default function DashboardHome({ theme, child, onProfileClick, onNavigate
 
 
 
+      <DashletSection id="mobile-preview" label="Mobile Preview">
       {/* ── Mobile App Preview ── */}
       <MobilePreviewToggle theme={theme} mobileContent={
         <div className="flex flex-wrap gap-6 justify-center">
@@ -82,6 +84,9 @@ export default function DashboardHome({ theme, child, onProfileClick, onNavigate
           </MobileFrame>
         </div>
       } />
+      </DashletSection>
+
+      <DashletSection id="fee-alert" label="Fee Alert">
       {/* Gap 20: Action Required — Fee Overdue Banner */}
       <div className="flex items-center gap-3 p-4 rounded-2xl bg-red-50 border-2 border-red-200">
         <AlertTriangle size={18} className="text-red-600 shrink-0" />
@@ -91,7 +96,9 @@ export default function DashboardHome({ theme, child, onProfileClick, onNavigate
         </div>
         <button className="px-3 py-1.5 rounded-xl bg-red-600 text-white text-xs font-bold hover:bg-red-700 transition-all shrink-0">Pay Now</button>
       </div>
+      </DashletSection>
 
+      <DashletSection id="stats" label="Quick Stats">
       {/* Stat Cards */}
       <div className="grid grid-cols-4 gap-3">
         <StatCard icon={ClipboardCheck} label="Today's Attendance" value="Present" color="bg-emerald-500" sub={`${att.percentage}% overall`} theme={theme} onClick={() => onNavigate?.('attendance')} />
@@ -99,7 +106,9 @@ export default function DashboardHome({ theme, child, onProfileClick, onNavigate
         <StatCard icon={IndianRupee} label="Fee Dues" value={fees.currentDue > 0 ? `Rs.${fees.currentDue.toLocaleString('en-IN')}` : 'No Dues'} color={fees.currentDue > 0 ? 'bg-red-500' : 'bg-emerald-500'} sub={fees.currentDue > 0 ? `Due: ${fees.nextDueDate}` : 'All paid up'} theme={theme} onClick={() => onNavigate?.('fees')} />
         <StatCard icon={MessageSquare} label="Unread Messages" value={unreadMsg} color="bg-blue-500" sub={unreadMsg > 0 ? 'New messages' : 'All read'} theme={theme} onClick={() => onNavigate?.('communication')} />
       </div>
+      </DashletSection>
 
+      <DashletSection id="attendance" label="Attendance">
       {/* Attendance Overview — clickable to Attendance page */}
       <div
         onClick={() => onNavigate?.('attendance')}
@@ -143,7 +152,9 @@ export default function DashboardHome({ theme, child, onProfileClick, onNavigate
           </div>
         </div>
       </div>
+      </DashletSection>
 
+      <DashletSection id="events-messages" label="Events & Messages">
       {/* Three Column: Events | Messages | AI Assistant */}
       <div className="grid grid-cols-3 gap-4">
         {/* Upcoming Exams / Events */}
@@ -203,7 +214,9 @@ export default function DashboardHome({ theme, child, onProfileClick, onNavigate
         {/* AI School Assistant — prominent placement */}
         <AISchoolAssistantCompact theme={theme} child={child} />
       </div>
+      </DashletSection>
 
+      <DashletSection id="homework-links" label="Homework & Links">
       {/* Quick Links + Homework */}
       <div className="grid grid-cols-2 gap-4">
         {/* Pending Homework */}
@@ -257,7 +270,9 @@ export default function DashboardHome({ theme, child, onProfileClick, onNavigate
           </div>
         </div>
       </div>
+      </DashletSection>
 
+      <DashletSection id="fee-summary" label="Fee Summary">
       {/* Fee Summary Bar */}
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
         <div className="flex items-center justify-between">
@@ -298,7 +313,9 @@ export default function DashboardHome({ theme, child, onProfileClick, onNavigate
           </div>
         </div>
       </div>
+      </DashletSection>
 
+      <DashletSection id="profile-alert" label="Profile Alert">
       {/* ── Alert on Profile Updates (Gap #79) ── */}
       <div className={`${theme.cardBg} rounded-2xl border-2 border-blue-200 p-4`}>
         <div className="flex items-center gap-3">
@@ -312,7 +329,9 @@ export default function DashboardHome({ theme, child, onProfileClick, onNavigate
           <button className="px-3 py-1.5 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition-all shrink-0">Review Changes</button>
         </div>
       </div>
+      </DashletSection>
 
+      <DashletSection id="attendance-alert" label="Attendance Alert">
       {/* ── At-Risk Student Alert (Gap #79) ── */}
       {child.id === 'child1' && (
         <div className="flex items-center gap-3 p-4 rounded-2xl bg-amber-50 border-2 border-amber-200">
@@ -324,7 +343,9 @@ export default function DashboardHome({ theme, child, onProfileClick, onNavigate
           <button className="px-3 py-1.5 rounded-xl bg-amber-600 text-white text-xs font-bold hover:bg-amber-700 transition-all shrink-0">View Attendance Details</button>
         </div>
       )}
+      </DashletSection>
 
+      <DashletSection id="permission-slips" label="Permission Slips">
       {/* ── Permission Slip Status (Gap #150) ── */}
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
         <div className="flex items-center justify-between mb-3">
@@ -366,7 +387,9 @@ export default function DashboardHome({ theme, child, onProfileClick, onNavigate
           </table>
         </div>
       </div>
+      </DashletSection>
 
+      <DashletSection id="update-photo" label="Update Photo">
       {/* ── Update Student Photo Request (Gap #77) ── */}
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
         <div className="flex items-center gap-4">
@@ -391,13 +414,18 @@ export default function DashboardHome({ theme, child, onProfileClick, onNavigate
           </button>
         </div>
       </div>
+      </DashletSection>
 
+      <DashletSection id="community" label="Community">
       {/* ── Parent Community Directory ── */}
       <ParentDirectory theme={theme} child={child} />
+      </DashletSection>
 
+      <DashletSection id="tasks" label="Task Tracker">
       {/* Task Tracker */}
       <TaskTrackerPanel theme={theme} role="parent" />
-    </div>
+      </DashletSection>
+    </DraggableDashboard>
   );
 }
 
