@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { AlertTriangle, Smartphone, Wifi, WifiOff, RefreshCw, Palette, Layout, Globe } from 'lucide-react';
+import { AlertTriangle, Smartphone, Wifi, WifiOff, RefreshCw, Palette, Layout, Globe, Save } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
 
@@ -402,6 +402,17 @@ export default function MobileAppConfigModule({ theme }: { theme: Theme }) {
             )}
           </div>
         </SectionCard>
+      </div>
+
+      {/* ─── Save Bar ─── */}
+      <div className={`${theme.cardBg} rounded-2xl border-2 ${theme.border} p-4 flex items-center justify-between`}>
+        <div>
+          <p className={`text-sm font-bold ${theme.highlight}`}>Save Configuration</p>
+          <p className={`text-[10px] ${theme.iconColor}`}>Save all Mobile App settings</p>
+        </div>
+        <button className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold flex items-center gap-2 hover:opacity-90 transition-opacity`}>
+          <Save size={14} /> Save Changes
+        </button>
       </div>
     </div>
   );

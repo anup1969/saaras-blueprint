@@ -1,10 +1,54 @@
 'use client';
 
-import React, { useState } from 'react';
-import { X, Plus, CheckCircle, Edit, Send, Users, Clock, BarChart3, ShieldCheck } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { X, Plus, CheckCircle, Edit, Send, Users, Clock, BarChart3, ShieldCheck, Search, Download, Upload, Save, Check } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import { MasterPermissionGrid } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
+
+const PAGE_SIZE = 5;
+
+// ─── Reusable sub-components ───
+function TableToolbar({ search, onSearch, count, total, theme }: { search: string; onSearch: (v: string) => void; count: number; total: number; theme: Theme }) {
+  return (
+    <div className="flex items-center gap-2 mb-3">
+      <div className={`flex items-center gap-1.5 flex-1 px-3 py-1.5 rounded-xl border ${theme.border} ${theme.inputBg}`}>
+        <Search size={12} className={theme.iconColor} />
+        <input value={search} onChange={e => onSearch(e.target.value)} placeholder="Search..."
+          className={`flex-1 bg-transparent text-xs ${theme.highlight} outline-none`} />
+        {search && <button onClick={() => onSearch('')} className="text-gray-400 hover:text-gray-600"><X size={10} /></button>}
+      </div>
+      <span className={`text-[10px] font-bold px-2.5 py-1.5 rounded-xl ${theme.secondaryBg} ${theme.iconColor} border ${theme.border} whitespace-nowrap`}>
+        {count} / {total}
+      </span>
+      <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-all">
+        <Download size={12} /> Export
+      </button>
+      <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-all">
+        <Upload size={12} /> Import
+      </button>
+    </div>
+  );
+}
+
+function Pagination({ page, totalPages, onPage, theme }: { page: number; totalPages: number; onPage: (p: number) => void; theme: Theme }) {
+  if (totalPages <= 1) return null;
+  return (
+    <div className="flex items-center justify-between mt-3">
+      <p className={`text-[10px] ${theme.iconColor}`}>Page {page} of {totalPages}</p>
+      <div className="flex items-center gap-1">
+        <button disabled={page <= 1} onClick={() => onPage(page - 1)}
+          className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border ${theme.border} ${page <= 1 ? 'opacity-40 cursor-not-allowed' : `${theme.buttonHover} ${theme.highlight}`}`}>Prev</button>
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+          <button key={p} onClick={() => onPage(p)}
+            className={`w-6 h-6 rounded-lg text-[10px] font-bold ${p === page ? `${theme.primary} text-white` : `${theme.buttonHover} ${theme.highlight}`}`}>{p}</button>
+        ))}
+        <button disabled={page >= totalPages} onClick={() => onPage(page + 1)}
+          className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border ${theme.border} ${page >= totalPages ? 'opacity-40 cursor-not-allowed' : `${theme.buttonHover} ${theme.highlight}`}`}>Next</button>
+      </div>
+    </div>
+  );
+}
 
 export default function CommunicationConfigModule({ theme }: { theme: Theme }) {
   const [dmPermissions, setDmPermissions] = useState<Record<string, boolean>>({
@@ -28,15 +72,30 @@ export default function CommunicationConfigModule({ theme }: { theme: Theme }) {
     'Parent can create groups': false,
     'Student can create groups': false,
   });
+
+  // ─── Auto-Created Groups (full master table) ───
   const [autoGroups, setAutoGroups] = useState([
-    'Class-wise Parent Groups (auto per section)',
-    'Subject Teacher Groups',
-    'Staff Announcements',
-    'Transport Route Groups',
-    'PTA Group',
-    'Management Group',
+    { name: 'Class-wise Parent Groups (auto per section)', type: 'Class', enabled: true },
+    { name: 'Subject Teacher Groups', type: 'Subject', enabled: true },
+    { name: 'Staff Announcements', type: 'Staff', enabled: true },
+    { name: 'Transport Route Groups', type: 'Transport', enabled: true },
+    { name: 'PTA Group', type: 'Committee', enabled: true },
+    { name: 'Management Group', type: 'Admin', enabled: true },
   ]);
+  const [autoGroupSearch, setAutoGroupSearch] = useState('');
+  const [autoGroupPage, setAutoGroupPage] = useState(1);
   const [newAutoGroup, setNewAutoGroup] = useState('');
+  const [newAutoGroupType, setNewAutoGroupType] = useState('Class');
+  const [editingAutoGroupIdx, setEditingAutoGroupIdx] = useState<number | null>(null);
+  const [editingAutoGroupName, setEditingAutoGroupName] = useState('');
+  const [editingAutoGroupType, setEditingAutoGroupType] = useState('');
+
+  const autoGroupTypes = ['Class', 'Subject', 'Staff', 'Transport', 'Committee', 'Admin', 'Custom'];
+
+  const filteredAutoGroups = useMemo(() => autoGroups.filter(g => g.name.toLowerCase().includes(autoGroupSearch.toLowerCase()) || g.type.toLowerCase().includes(autoGroupSearch.toLowerCase())), [autoGroups, autoGroupSearch]);
+  const autoGroupTotalPages = Math.max(1, Math.ceil(filteredAutoGroups.length / PAGE_SIZE));
+  const pagedAutoGroups = filteredAutoGroups.slice((autoGroupPage - 1) * PAGE_SIZE, autoGroupPage * PAGE_SIZE);
+
   const [chatStorage, setChatStorage] = useState<Record<string, string>>({
     'Message retention': '1 year',
     'File storage per user': '500 MB',
@@ -50,6 +109,16 @@ export default function CommunicationConfigModule({ theme }: { theme: Theme }) {
     'Allow voice messages': true,
     'Allow location sharing': false,
   });
+
+  // Gallery allowed formats — controlled state (was defaultChecked)
+  const [galleryFormats, setGalleryFormats] = useState<Record<string, boolean>>({
+    JPG: true,
+    PNG: true,
+    MP4: true,
+    YouTube: true,
+  });
+
+  // ─── Message Templates (keep expand-to-edit, add pagination) ───
   const [msgTemplates, setMsgTemplates] = useState([
     { name: 'Fee Reminder SMS', channel: 'SMS', category: 'Fee Reminder', status: 'Active', text: 'Dear {{parent_name}}, fee of \u20B9{{amount}} for {{student_name}} (Class {{class}}) is due on {{due_date}}. Pay online: {{link}}' },
     { name: 'Absent Alert SMS', channel: 'SMS', category: 'Attendance Alert', status: 'Active', text: 'Dear {{parent_name}}, {{student_name}} is marked absent today ({{date}}). Contact school for details.' },
@@ -61,8 +130,18 @@ export default function CommunicationConfigModule({ theme }: { theme: Theme }) {
     { name: 'Circular', channel: 'Email', category: 'Circular', status: 'Draft', text: 'New circular: {{title}}. {{message}} - {{school_name}}' },
   ]);
   const [editingTemplate, setEditingTemplate] = useState<number | null>(null);
+  const [templateSearch, setTemplateSearch] = useState('');
+  const [templatePage, setTemplatePage] = useState(1);
   const templateChannels = ['SMS', 'Email', 'WhatsApp', 'Push'];
   const templateCategories = ['Fee Reminder', 'Attendance Alert', 'Circular', 'Welcome', 'Birthday', 'Emergency'];
+
+  const filteredTemplates = useMemo(() => msgTemplates.filter(t =>
+    t.name.toLowerCase().includes(templateSearch.toLowerCase()) ||
+    t.channel.toLowerCase().includes(templateSearch.toLowerCase()) ||
+    t.category.toLowerCase().includes(templateSearch.toLowerCase())
+  ), [msgTemplates, templateSearch]);
+  const templateTotalPages = Math.max(1, Math.ceil(filteredTemplates.length / PAGE_SIZE));
+  const pagedTemplates = filteredTemplates.slice((templatePage - 1) * PAGE_SIZE, templatePage * PAGE_SIZE);
 
   // Gap 17: Auto-Archive Announcements
   const [autoArchive, setAutoArchive] = useState(true);
@@ -115,6 +194,13 @@ export default function CommunicationConfigModule({ theme }: { theme: Theme }) {
     'Section-wise': true,
     'Custom List': false,
   });
+
+  // Save feedback
+  const [saved, setSaved] = useState(false);
+  function handleSave() {
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
+  }
 
   return (
     <div className="space-y-4">
@@ -188,20 +274,103 @@ export default function CommunicationConfigModule({ theme }: { theme: Theme }) {
         </SectionCard>
       </div>
 
-      <SectionCard title="Default Auto-created Groups" subtitle="Groups auto-created by the system — add or remove" theme={theme}>
-        <div className="flex flex-wrap gap-1.5 mb-3">
-          {autoGroups.map(g => (
-            <span key={g} className={`flex items-center gap-1 px-2.5 py-1 rounded-lg ${theme.secondaryBg} text-xs font-medium ${theme.highlight}`}>
-              <CheckCircle size={10} className="text-emerald-500" /> {g}
-              <button onClick={() => setAutoGroups(p => p.filter(x => x !== g))} className="text-red-400 hover:text-red-600 ml-1"><X size={10} /></button>
-            </span>
-          ))}
+      {/* ─── Auto-Created Groups (full master table with Type column) ─── */}
+      <SectionCard title="Default Auto-created Groups" subtitle="Groups auto-created by the system — manage, enable/disable, or add new ones" theme={theme}>
+        <TableToolbar search={autoGroupSearch} onSearch={v => { setAutoGroupSearch(v); setAutoGroupPage(1); }} count={filteredAutoGroups.length} total={autoGroups.length} theme={theme} />
+
+        <div className={`rounded-xl border ${theme.border} overflow-hidden mb-3`}>
+          <table className="w-full text-xs">
+            <thead className={theme.secondaryBg}>
+              <tr>
+                {['Group Name', 'Type', 'Enabled', 'Actions'].map(h => (
+                  <th key={h} className={`text-left px-3 py-2.5 font-bold ${theme.iconColor} text-[10px] uppercase`}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {pagedAutoGroups.map((g) => {
+                const realIdx = autoGroups.findIndex(x => x.name === g.name);
+                return (
+                  <tr key={realIdx} className={`border-t ${theme.border}`}>
+                    <td className="px-3 py-2.5">
+                      {editingAutoGroupIdx === realIdx ? (
+                        <input value={editingAutoGroupName} onChange={e => setEditingAutoGroupName(e.target.value)} autoFocus
+                          className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                      ) : (
+                        <div className="flex items-center gap-1.5">
+                          <CheckCircle size={10} className={g.enabled ? 'text-emerald-500' : 'text-slate-300'} />
+                          <span className={`text-xs font-medium ${theme.highlight}`}>{g.name}</span>
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-3 py-2.5">
+                      {editingAutoGroupIdx === realIdx ? (
+                        <select value={editingAutoGroupType} onChange={e => setEditingAutoGroupType(e.target.value)}
+                          className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}>
+                          {autoGroupTypes.map(t => <option key={t} value={t}>{t}</option>)}
+                        </select>
+                      ) : (
+                        <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold ${theme.accentBg} ${theme.iconColor}`}>{g.type}</span>
+                      )}
+                    </td>
+                    <td className="px-3 py-2.5">
+                      <SSAToggle on={g.enabled} onChange={() => setAutoGroups(p => p.map((x, j) => j === realIdx ? { ...x, enabled: !x.enabled } : x))} theme={theme} />
+                    </td>
+                    <td className="px-3 py-2.5">
+                      <div className="flex items-center gap-2">
+                        {editingAutoGroupIdx === realIdx ? (
+                          <>
+                            <button onClick={() => {
+                              if (editingAutoGroupName.trim()) {
+                                setAutoGroups(p => p.map((x, j) => j === realIdx ? { ...x, name: editingAutoGroupName.trim(), type: editingAutoGroupType } : x));
+                              }
+                              setEditingAutoGroupIdx(null);
+                            }} className="text-[10px] font-bold text-emerald-600 hover:text-emerald-800 px-2 py-1 rounded-lg hover:bg-emerald-50 transition-all">Save</button>
+                            <button onClick={() => setEditingAutoGroupIdx(null)}
+                              className={`text-[10px] font-bold ${theme.iconColor} hover:opacity-70 px-2 py-1 rounded-lg transition-all`}>Cancel</button>
+                          </>
+                        ) : (
+                          <>
+                            <button onClick={() => { setEditingAutoGroupIdx(realIdx); setEditingAutoGroupName(g.name); setEditingAutoGroupType(g.type); }}
+                              className={`text-[10px] font-bold ${theme.iconColor} hover:opacity-70 px-2 py-1 rounded-lg ${theme.secondaryBg} transition-all`}><Edit size={11} /></button>
+                            <button onClick={() => setAutoGroups(p => p.filter((_, j) => j !== realIdx))}
+                              className="text-[10px] font-bold text-red-400 hover:text-red-600 px-1 py-1 rounded-lg transition-all"><X size={11} /></button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+              {pagedAutoGroups.length === 0 && (
+                <tr><td colSpan={4} className={`px-3 py-4 text-center text-xs ${theme.iconColor}`}>No groups found</td></tr>
+              )}
+            </tbody>
+          </table>
         </div>
-        <div className="flex gap-2">
-          <input value={newAutoGroup} onChange={e => setNewAutoGroup(e.target.value)} placeholder="Add auto-group..."
+        <Pagination page={autoGroupPage} totalPages={autoGroupTotalPages} onPage={setAutoGroupPage} theme={theme} />
+
+        {/* Add new group row */}
+        <div className="flex gap-2 mt-3">
+          <input value={newAutoGroup} onChange={e => setNewAutoGroup(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter' && newAutoGroup.trim()) {
+                setAutoGroups(p => [...p, { name: newAutoGroup.trim(), type: newAutoGroupType, enabled: true }]);
+                setNewAutoGroup('');
+              }
+            }}
+            placeholder="Add new auto-group name..."
             className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
-          <button onClick={() => { if (newAutoGroup.trim()) { setAutoGroups(p => [...p, newAutoGroup.trim()]); setNewAutoGroup(''); } }}
-            className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}><Plus size={14} /></button>
+          <select value={newAutoGroupType} onChange={e => setNewAutoGroupType(e.target.value)}
+            className={`px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}>
+            {autoGroupTypes.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+          <button onClick={() => {
+            if (newAutoGroup.trim()) {
+              setAutoGroups(p => [...p, { name: newAutoGroup.trim(), type: newAutoGroupType, enabled: true }]);
+              setNewAutoGroup('');
+            }
+          }} className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}><Plus size={14} /></button>
         </div>
       </SectionCard>
 
@@ -241,49 +410,59 @@ export default function CommunicationConfigModule({ theme }: { theme: Theme }) {
         </SectionCard>
       </div>
 
+      {/* ─── Message Templates (keep expand-to-edit, with search, count, export/import, pagination) ─── */}
       <SectionCard title="Message Templates" subtitle="SMS, Email, WhatsApp & Push notification templates with variable placeholders" theme={theme}>
+        <TableToolbar search={templateSearch} onSearch={v => { setTemplateSearch(v); setTemplatePage(1); }} count={filteredTemplates.length} total={msgTemplates.length} theme={theme} />
+
         <div className="space-y-1.5">
-          {msgTemplates.map((t, i) => (
-            <div key={i} className={`p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <div className="flex items-center gap-2">
-                <span className={`text-xs font-bold ${theme.highlight} flex-1`}>{t.name}</span>
-                <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${
-                  t.channel === 'SMS' ? 'bg-blue-100 text-blue-700' : t.channel === 'Email' ? 'bg-purple-100 text-purple-700' :
-                  t.channel === 'WhatsApp' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-                }`}>{t.channel}</span>
-                <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${theme.accentBg} ${theme.iconColor} font-bold`}>{t.category}</span>
-                <select value={t.status} onChange={e => { const n = [...msgTemplates]; n[i] = { ...n[i], status: e.target.value }; setMsgTemplates(n); }}
-                  className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold border-0 outline-none ${t.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
-                  <option value="Active">Active</option><option value="Draft">Draft</option>
-                </select>
-                <button onClick={() => setEditingTemplate(editingTemplate === i ? null : i)}
-                  className={`text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-2 py-1 rounded-lg`}><Edit size={12} /></button>
-                <button onClick={() => setMsgTemplates(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={12} /></button>
-              </div>
-              {editingTemplate === i && (
-                <div className="mt-2 space-y-2">
-                  <div className="grid grid-cols-3 gap-2">
-                    <input value={t.name} onChange={e => { const n = [...msgTemplates]; n[i] = { ...n[i], name: e.target.value }; setMsgTemplates(n); }}
-                      placeholder="Template Name" className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
-                    <select value={t.channel} onChange={e => { const n = [...msgTemplates]; n[i] = { ...n[i], channel: e.target.value }; setMsgTemplates(n); }}
-                      className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`}>
-                      {templateChannels.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                    <select value={t.category} onChange={e => { const n = [...msgTemplates]; n[i] = { ...n[i], category: e.target.value }; setMsgTemplates(n); }}
-                      className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`}>
-                      {templateCategories.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                  </div>
-                  <textarea value={t.text} onChange={e => { const n = [...msgTemplates]; n[i] = { ...n[i], text: e.target.value }; setMsgTemplates(n); }}
-                    rows={3} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none resize-none`} />
-                  <p className={`text-[9px] ${theme.iconColor}`}>Variables: {'{{parent_name}} {{student_name}} {{class}} {{amount}} {{date}} {{due_date}} {{school_name}} {{link}} {{message}} {{contact}} {{receipt_no}} {{time}} {{title}}'}</p>
+          {pagedTemplates.map((t) => {
+            const i = msgTemplates.findIndex(x => x.name === t.name && x.channel === t.channel && x.text === t.text);
+            return (
+              <div key={i} className={`p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs font-bold ${theme.highlight} flex-1`}>{t.name}</span>
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${
+                    t.channel === 'SMS' ? 'bg-blue-100 text-blue-700' : t.channel === 'Email' ? 'bg-purple-100 text-purple-700' :
+                    t.channel === 'WhatsApp' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                  }`}>{t.channel}</span>
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${theme.accentBg} ${theme.iconColor} font-bold`}>{t.category}</span>
+                  <select value={t.status} onChange={e => { const n = [...msgTemplates]; n[i] = { ...n[i], status: e.target.value }; setMsgTemplates(n); }}
+                    className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold border-0 outline-none ${t.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                    <option value="Active">Active</option><option value="Draft">Draft</option>
+                  </select>
+                  <button onClick={() => setEditingTemplate(editingTemplate === i ? null : i)}
+                    className={`text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-2 py-1 rounded-lg`}><Edit size={12} /></button>
+                  <button onClick={() => setMsgTemplates(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={12} /></button>
                 </div>
-              )}
-            </div>
-          ))}
+                {editingTemplate === i && (
+                  <div className="mt-2 space-y-2">
+                    <div className="grid grid-cols-3 gap-2">
+                      <input value={t.name} onChange={e => { const n = [...msgTemplates]; n[i] = { ...n[i], name: e.target.value }; setMsgTemplates(n); }}
+                        placeholder="Template Name" className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                      <select value={t.channel} onChange={e => { const n = [...msgTemplates]; n[i] = { ...n[i], channel: e.target.value }; setMsgTemplates(n); }}
+                        className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`}>
+                        {templateChannels.map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                      <select value={t.category} onChange={e => { const n = [...msgTemplates]; n[i] = { ...n[i], category: e.target.value }; setMsgTemplates(n); }}
+                        className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`}>
+                        {templateCategories.map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                    </div>
+                    <textarea value={t.text} onChange={e => { const n = [...msgTemplates]; n[i] = { ...n[i], text: e.target.value }; setMsgTemplates(n); }}
+                      rows={3} className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none resize-none`} />
+                    <p className={`text-[9px] ${theme.iconColor}`}>Variables: {'{{parent_name}} {{student_name}} {{class}} {{amount}} {{date}} {{due_date}} {{school_name}} {{link}} {{message}} {{contact}} {{receipt_no}} {{time}} {{title}}'}</p>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {pagedTemplates.length === 0 && (
+            <p className={`text-center text-xs ${theme.iconColor} py-4`}>No templates found</p>
+          )}
         </div>
+        <Pagination page={templatePage} totalPages={templateTotalPages} onPage={setTemplatePage} theme={theme} />
         <button onClick={() => setMsgTemplates(p => [...p, { name: 'New Template', channel: 'SMS', category: 'Circular', status: 'Draft', text: '' }])}
-          className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl mt-2`}>
+          className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl mt-3`}>
           <Plus size={12} /> Add Template
         </button>
       </SectionCard>
@@ -341,9 +520,14 @@ export default function CommunicationConfigModule({ theme }: { theme: Theme }) {
           <div>
             <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Allowed Formats</p>
             <div className="flex gap-3">
-              {['JPG', 'PNG', 'MP4', 'YouTube'].map(fmt => (
-                <label key={fmt} className="flex items-center gap-1">
-                  <input type="checkbox" className="accent-slate-600" defaultChecked />
+              {(Object.keys(galleryFormats) as string[]).map(fmt => (
+                <label key={fmt} className="flex items-center gap-1 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="accent-slate-600"
+                    checked={galleryFormats[fmt]}
+                    onChange={() => setGalleryFormats(p => ({ ...p, [fmt]: !p[fmt] }))}
+                  />
                   <span className={`text-xs ${theme.iconColor}`}>{fmt}</span>
                 </label>
               ))}
@@ -444,7 +628,7 @@ export default function CommunicationConfigModule({ theme }: { theme: Theme }) {
           <div>
             <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Channel Priority Order</p>
             <div className="space-y-1.5">
-              {['1. Push Notification', '2. SMS', '3. Email'].map((ch, i) => (
+              {['1. Push Notification', '2. SMS', '3. Email'].map((ch) => (
                 <div key={ch} className={`flex items-center gap-2 p-2 rounded-xl ${theme.secondaryBg}`}>
                   <span className={`text-xs font-bold ${theme.primaryText}`}>{ch}</span>
                 </div>
@@ -574,6 +758,16 @@ export default function CommunicationConfigModule({ theme }: { theme: Theme }) {
           </div>
         </div>
       </SectionCard>
+
+      {/* ─── Global Save Button ─── */}
+      <div className="flex justify-end pt-2 pb-4">
+        <button
+          onClick={handleSave}
+          className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all ${saved ? 'bg-emerald-500 hover:bg-emerald-600' : `${theme.primary} hover:opacity-90`}`}
+        >
+          {saved ? <><Check size={15} /> Saved</> : <><Save size={15} /> Save Communication Config</>}
+        </button>
+      </div>
     </div>
   );
 }

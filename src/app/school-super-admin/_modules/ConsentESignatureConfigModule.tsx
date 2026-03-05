@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { Save, Search, X } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
 
 interface ConsentType {
+  id: number;
   name: string;
   description: string;
   enabled: boolean;
@@ -15,13 +17,19 @@ interface ConsentType {
 export default function ConsentESignatureConfigModule({ theme }: { theme: Theme }) {
   // ─── Consent Types ────────────────────────────────
   const [consentTypes, setConsentTypes] = useState<ConsentType[]>([
-    { name: 'Photo/Video Consent', description: 'Events, social media, yearbook photography', enabled: true, mandatory: true, renewal: 'Annual' },
-    { name: 'Trip/Excursion Consent', description: 'Field trips, educational excursions, outings', enabled: true, mandatory: true, renewal: 'Per-event' },
-    { name: 'Medical Treatment Consent', description: 'Emergency medical treatment authorization', enabled: true, mandatory: true, renewal: 'Annual' },
-    { name: 'Data Sharing Consent', description: 'Third-party vendor data sharing (EdTech, transport)', enabled: true, mandatory: false, renewal: 'Annual' },
-    { name: 'Research Participation', description: 'Student participation in educational research', enabled: false, mandatory: false, renewal: 'Per-event' },
-    { name: 'Sports/Adventure Activity', description: 'Contact sports, adventure camps, swimming', enabled: true, mandatory: true, renewal: 'Annual' },
+    { id: 1, name: 'Photo/Video Consent', description: 'Events, social media, yearbook photography', enabled: true, mandatory: true, renewal: 'Annual' },
+    { id: 2, name: 'Trip/Excursion Consent', description: 'Field trips, educational excursions, outings', enabled: true, mandatory: true, renewal: 'Per-event' },
+    { id: 3, name: 'Medical Treatment Consent', description: 'Emergency medical treatment authorization', enabled: true, mandatory: true, renewal: 'Annual' },
+    { id: 4, name: 'Data Sharing Consent', description: 'Third-party vendor data sharing (EdTech, transport)', enabled: true, mandatory: false, renewal: 'Annual' },
+    { id: 5, name: 'Research Participation', description: 'Student participation in educational research', enabled: false, mandatory: false, renewal: 'Per-event' },
+    { id: 6, name: 'Sports/Adventure Activity', description: 'Contact sports, adventure camps, swimming', enabled: true, mandatory: true, renewal: 'Annual' },
   ]);
+  const [consentSearch, setConsentSearch] = useState('');
+
+  const filteredConsentTypes = consentTypes.filter(ct =>
+    ct.name.toLowerCase().includes(consentSearch.toLowerCase()) ||
+    ct.description.toLowerCase().includes(consentSearch.toLowerCase())
+  );
 
   // ─── E-Signature Settings ─────────────────────────
   const [eSignEnabled, setESignEnabled] = useState(true);
@@ -46,12 +54,23 @@ export default function ConsentESignatureConfigModule({ theme }: { theme: Theme 
   const [missingAlerts, setMissingAlerts] = useState(true);
   const [alertNotifyTo, setAlertNotifyTo] = useState('Admin');
 
-  const mockStats = [
-    { label: 'Total Consents', value: '2,847', color: 'bg-blue-100 text-blue-700' },
-    { label: 'Pending', value: '156', color: 'bg-yellow-100 text-yellow-700' },
-    { label: 'Expired', value: '23', color: 'bg-red-100 text-red-600' },
-    { label: 'Withdrawn', value: '8', color: 'bg-gray-100 text-gray-600' },
-  ];
+  // ─── Dynamic Stats (computed from consent types data) ───
+  const dynamicStats = useMemo(() => {
+    const totalTemplates = consentTypes.length;
+    const activeTemplates = consentTypes.filter(ct => ct.enabled).length;
+    // Mock pending/completed based on active templates (simulated proportions)
+    const pendingSignatures = activeTemplates * 26; // mock: ~26 pending per active type
+    const completed = activeTemplates * 474; // mock: ~474 completed per active type
+    return [
+      { label: 'Total Templates', value: totalTemplates.toLocaleString(), color: 'bg-blue-100 text-blue-700' },
+      { label: 'Active Templates', value: activeTemplates.toLocaleString(), color: 'bg-green-100 text-green-700' },
+      { label: 'Pending Signatures', value: pendingSignatures.toLocaleString(), color: 'bg-yellow-100 text-yellow-700' },
+      { label: 'Completed', value: completed.toLocaleString(), color: 'bg-emerald-100 text-emerald-700' },
+    ];
+  }, [consentTypes]);
+
+  // ─── Save state ───
+  const [saved, setSaved] = useState(false);
 
   return (
     <div className="space-y-4">
@@ -60,23 +79,35 @@ export default function ConsentESignatureConfigModule({ theme }: { theme: Theme 
       {/* Row 1: Consent Types + E-Signature Settings */}
       <div className="grid grid-cols-2 gap-4">
         <SectionCard title="Consent Types" subtitle="Configure which consent types are active, mandatory, and renewal frequency" theme={theme}>
+          {/* Search bar when 5+ consent types */}
+          {consentTypes.length >= 5 && (
+            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border ${theme.border} ${theme.inputBg} mb-3`}>
+              <Search size={13} className={theme.iconColor} />
+              <input value={consentSearch} onChange={e => setConsentSearch(e.target.value)} placeholder="Search consent types..."
+                className={`flex-1 bg-transparent text-xs ${theme.highlight} outline-none placeholder-gray-400`} />
+              {consentSearch && <button onClick={() => setConsentSearch('')}><X size={12} className="text-gray-400 hover:text-red-400" /></button>}
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${theme.secondaryBg} ${theme.iconColor}`}>{filteredConsentTypes.length} types</span>
+            </div>
+          )}
           <div className="space-y-2">
-            {consentTypes.map((ct, i) => (
-              <div key={i} className={`p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            {filteredConsentTypes.length === 0 ? (
+              <p className={`text-center py-4 text-xs ${theme.iconColor}`}>No consent types found</p>
+            ) : filteredConsentTypes.map((ct) => (
+              <div key={ct.id} className={`p-2.5 rounded-xl ${theme.secondaryBg}`}>
                 <div className="flex items-center justify-between mb-1">
                   <p className={`text-xs font-bold ${theme.highlight}`}>{ct.name}</p>
-                  <SSAToggle on={ct.enabled} onChange={() => { const n = [...consentTypes]; n[i] = { ...n[i], enabled: !n[i].enabled }; setConsentTypes(n); }} theme={theme} />
+                  <SSAToggle on={ct.enabled} onChange={() => { const n = [...consentTypes]; const idx = n.findIndex(c => c.id === ct.id); if (idx >= 0) { n[idx] = { ...n[idx], enabled: !n[idx].enabled }; setConsentTypes(n); } }} theme={theme} />
                 </div>
                 <p className={`text-[10px] ${theme.iconColor} mb-2`}>{ct.description}</p>
                 {ct.enabled && (
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-1">
                       <span className={`text-[9px] ${theme.iconColor}`}>Mandatory</span>
-                      <SSAToggle on={ct.mandatory} onChange={() => { const n = [...consentTypes]; n[i] = { ...n[i], mandatory: !n[i].mandatory }; setConsentTypes(n); }} theme={theme} />
+                      <SSAToggle on={ct.mandatory} onChange={() => { const n = [...consentTypes]; const idx = n.findIndex(c => c.id === ct.id); if (idx >= 0) { n[idx] = { ...n[idx], mandatory: !n[idx].mandatory }; setConsentTypes(n); } }} theme={theme} />
                     </div>
                     <div className="flex-1">
                       <SelectField options={['Annual', 'Per-event', 'One-time']} value={ct.renewal}
-                        onChange={v => { const n = [...consentTypes]; n[i] = { ...n[i], renewal: v }; setConsentTypes(n); }} theme={theme} />
+                        onChange={v => { const n = [...consentTypes]; const idx = n.findIndex(c => c.id === ct.id); if (idx >= 0) { n[idx] = { ...n[idx], renewal: v }; setConsentTypes(n); } }} theme={theme} />
                     </div>
                   </div>
                 )}
@@ -212,11 +243,11 @@ export default function ConsentESignatureConfigModule({ theme }: { theme: Theme 
               </div>
             )}
 
-            {/* Stats Cards */}
+            {/* Dynamic Stats Cards — computed from consent types */}
             <div>
               <p className={`text-[10px] font-bold ${theme.iconColor} mb-2 uppercase tracking-wide`}>Consent Statistics</p>
               <div className="grid grid-cols-2 gap-2">
-                {mockStats.map(s => (
+                {dynamicStats.map(s => (
                   <div key={s.label} className={`p-2.5 rounded-xl ${theme.secondaryBg} text-center`}>
                     <p className={`text-lg font-bold ${theme.highlight}`}>{s.value}</p>
                     <p className={`text-[9px] font-bold ${theme.iconColor}`}>{s.label}</p>
@@ -226,6 +257,15 @@ export default function ConsentESignatureConfigModule({ theme }: { theme: Theme 
             </div>
           </div>
         </SectionCard>
+      </div>
+
+      {/* ─── Save Configuration ─── */}
+      <div className="flex justify-end">
+        <button onClick={() => { setSaved(true); setTimeout(() => setSaved(false), 2000); }}
+          className={`flex items-center gap-1.5 px-6 py-2.5 rounded-xl text-sm font-bold text-white ${theme.primary} hover:opacity-90 transition-all`}>
+          <Save size={14} /> Save Configuration
+        </button>
+        {saved && <span className="ml-3 text-green-500 text-xs font-medium self-center animate-pulse">Saved!</span>}
       </div>
     </div>
   );

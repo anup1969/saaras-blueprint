@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Save } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, SelectField, InputField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
 
@@ -150,6 +151,16 @@ export default function ParentPortalConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
+      {/* ─── Save Bar ─── */}
+      <div className={`${theme.cardBg} rounded-2xl border-2 ${theme.border} p-4 flex items-center justify-between`}>
+        <div>
+          <p className={`text-sm font-bold ${theme.highlight}`}>Save Configuration</p>
+          <p className={`text-[10px] ${theme.iconColor}`}>Save all Parent Portal settings</p>
+        </div>
+        <button className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold flex items-center gap-2 hover:opacity-90 transition-opacity`}>
+          <Save size={14} /> Save Changes
+        </button>
+      </div>
     </div>
   );
 }

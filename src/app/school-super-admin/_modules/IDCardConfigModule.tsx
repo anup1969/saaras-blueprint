@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { CreditCard, CheckCircle } from 'lucide-react';
+import React, { useState, useRef, useCallback } from 'react';
+import { CreditCard, CheckCircle, Upload, X, FileImage, Save } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
 
@@ -25,14 +25,20 @@ export default function IDCardConfigModule({ theme }: { theme: Theme }) {
     'Barcode': true, 'QR Code': false,
   });
 
-  // Design Templates
+  // Design Templates — now includes Custom Template option
   const [selectedTemplate, setSelectedTemplate] = useState('Classic Blue');
   const templates = [
     { name: 'Classic Blue', color: 'bg-blue-600' },
     { name: 'Modern Green', color: 'bg-emerald-600' },
     { name: 'Minimal White', color: 'bg-gray-200' },
-    { name: 'Custom', color: 'bg-gradient-to-br from-purple-500 to-pink-500' },
+    { name: 'Royal Purple', color: 'bg-gradient-to-br from-purple-500 to-pink-500' },
+    { name: 'Custom Template', color: '' },
   ];
+
+  // Custom template upload state
+  const [customTemplateFile, setCustomTemplateFile] = useState<{ name: string; size: string } | null>(null);
+  const [customDragOver, setCustomDragOver] = useState(false);
+  const customInputRef = useRef<HTMLInputElement>(null);
 
   // Security Features
   const [hologram, setHologram] = useState(true);
@@ -50,6 +56,42 @@ export default function IDCardConfigModule({ theme }: { theme: Theme }) {
   const [autoChargeReprint, setAutoChargeReprint] = useState(true);
   const [reprintFee, setReprintFee] = useState('100');
   const [approvalRequired, setApprovalRequired] = useState(true);
+
+  // Save state
+  const [saved, setSaved] = useState(false);
+
+  // Format file size
+  const formatSize = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  // Handle custom template file
+  const handleCustomFile = useCallback((file: File) => {
+    const validTypes = ['image/png', 'image/jpeg', 'image/svg+xml'];
+    if (!validTypes.includes(file.type)) return;
+    setCustomTemplateFile({ name: file.name, size: formatSize(file.size) });
+  }, []);
+
+  // Drag handlers for custom template
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCustomDragOver(true);
+  }, []);
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCustomDragOver(false);
+  }, []);
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCustomDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) handleCustomFile(file);
+  }, [handleCustomFile]);
 
   return (
     <div className="space-y-4">
@@ -100,18 +142,25 @@ export default function IDCardConfigModule({ theme }: { theme: Theme }) {
       </div>
 
       {/* Design Templates */}
-      <SectionCard title="Design Templates" subtitle="Choose a preset card design or create a custom layout" theme={theme}>
-        <div className="grid grid-cols-4 gap-3">
+      <SectionCard title="Design Templates" subtitle="Choose a preset card design, or upload your own custom template" theme={theme}>
+        <div className="grid grid-cols-5 gap-3">
           {templates.map(t => (
             <button key={t.name} onClick={() => setSelectedTemplate(t.name)}
               className={`relative rounded-xl overflow-hidden border-2 transition-all ${
                 selectedTemplate === t.name ? 'border-blue-500 shadow-lg scale-[1.02]' : `${theme.border}`
               }`}>
-              <div className={`${t.color} h-20 flex flex-col items-center justify-center`}>
-                <CreditCard size={20} className={t.name === 'Minimal White' ? 'text-gray-600' : 'text-white'} />
-                <div className={`w-10 h-1.5 rounded-full mt-1.5 ${t.name === 'Minimal White' ? 'bg-gray-400' : 'bg-white/50'}`} />
-                <div className={`w-8 h-1 rounded-full mt-1 ${t.name === 'Minimal White' ? 'bg-gray-300' : 'bg-white/30'}`} />
-              </div>
+              {t.name === 'Custom Template' ? (
+                <div className={`h-20 flex flex-col items-center justify-center border-2 border-dashed ${selectedTemplate === t.name ? 'border-blue-300 bg-blue-50' : `${theme.border} ${theme.secondaryBg}`}`}>
+                  <Upload size={18} className={selectedTemplate === t.name ? 'text-blue-500' : theme.iconColor} />
+                  <div className={`w-8 h-1 rounded-full mt-1.5 ${selectedTemplate === t.name ? 'bg-blue-300' : 'bg-gray-300'}`} />
+                </div>
+              ) : (
+                <div className={`${t.color} h-20 flex flex-col items-center justify-center`}>
+                  <CreditCard size={20} className={t.name === 'Minimal White' ? 'text-gray-600' : 'text-white'} />
+                  <div className={`w-10 h-1.5 rounded-full mt-1.5 ${t.name === 'Minimal White' ? 'bg-gray-400' : 'bg-white/50'}`} />
+                  <div className={`w-8 h-1 rounded-full mt-1 ${t.name === 'Minimal White' ? 'bg-gray-300' : 'bg-white/30'}`} />
+                </div>
+              )}
               <div className={`px-2 py-1.5 ${theme.cardBg} text-center`}>
                 <p className={`text-[10px] font-bold ${theme.highlight}`}>{t.name}</p>
               </div>
@@ -123,6 +172,61 @@ export default function IDCardConfigModule({ theme }: { theme: Theme }) {
             </button>
           ))}
         </div>
+
+        {/* Custom Template Upload Zone — shown when Custom Template is selected */}
+        {selectedTemplate === 'Custom Template' && (
+          <div className="mt-4">
+            <p className={`text-[10px] ${theme.iconColor} mb-2`}>
+              Upload your school&apos;s custom ID card template (recommended size: 320x200px)
+            </p>
+            {!customTemplateFile ? (
+              <div
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={() => customInputRef.current?.click()}
+                className={`w-full border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
+                  customDragOver ? 'border-blue-400 bg-blue-50' : `${theme.border} ${theme.buttonHover}`
+                }`}
+              >
+                <Upload size={28} className={`mx-auto mb-2 ${customDragOver ? 'text-blue-500' : theme.iconColor}`} />
+                <p className={`text-xs font-bold ${customDragOver ? 'text-blue-600' : theme.highlight}`}>
+                  Drop your template here or click to browse
+                </p>
+                <p className={`text-[10px] ${theme.iconColor} mt-1`}>Accepts PNG, JPG, SVG</p>
+                <input
+                  ref={customInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/svg+xml"
+                  className="hidden"
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) handleCustomFile(f); }}
+                />
+              </div>
+            ) : (
+              <div className={`w-full border ${theme.border} rounded-xl p-3 ${theme.secondaryBg}`}>
+                <div className="flex items-center gap-3">
+                  <div className={`w-16 h-10 rounded-lg border ${theme.border} bg-white flex items-center justify-center`}>
+                    <FileImage size={20} className={theme.iconColor} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-xs font-bold ${theme.highlight} truncate`}>{customTemplateFile.name}</p>
+                    <p className={`text-[10px] ${theme.iconColor}`}>{customTemplateFile.size}</p>
+                    <span className="text-[9px] text-emerald-600 font-bold flex items-center gap-1 mt-0.5">
+                      <CheckCircle size={10} /> Template uploaded
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setCustomTemplateFile(null)}
+                    className="p-1.5 rounded-lg hover:bg-red-50 text-red-400 hover:text-red-600 transition-colors"
+                    title="Remove template"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </SectionCard>
 
       <div className="grid grid-cols-2 gap-4">
@@ -204,6 +308,16 @@ export default function IDCardConfigModule({ theme }: { theme: Theme }) {
           </div>
         </div>
       </SectionCard>
+
+      {/* Save Configuration Button */}
+      <div className="flex items-center justify-end gap-3">
+        {saved && <span className="text-emerald-500 text-xs font-bold flex items-center gap-1"><CheckCircle size={14} /> Configuration saved!</span>}
+        <button
+          onClick={() => { setSaved(true); setTimeout(() => setSaved(false), 2500); }}
+          className={`flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold text-white ${theme.primary} hover:opacity-90 transition-all`}>
+          <Save size={14} /> Save Configuration
+        </button>
+      </div>
     </div>
   );
 }

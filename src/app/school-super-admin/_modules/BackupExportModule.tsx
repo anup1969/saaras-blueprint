@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Download, Upload, AlertTriangle, Cloud, HardDrive, Shield, Trash2, Bell, ScanLine } from 'lucide-react';
+import { Download, Upload, AlertTriangle, Cloud, HardDrive, Shield, Trash2, Bell, ScanLine, Save, Search } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
 
@@ -18,6 +18,7 @@ export default function BackupExportModule({ theme }: { theme: Theme }) {
   const [backupSuccess, setBackupSuccess] = useState(false);
   const [exportProgress, setExportProgress] = useState<number | null>(null);
   const [exportSuccess, setExportSuccess] = useState(false);
+  const [backupSearch, setBackupSearch] = useState('');
   const [restoreFile, setRestoreFile] = useState('');
   const [restoreConfirm, setRestoreConfirm] = useState(false);
   const [restoreProgress, setRestoreProgress] = useState<number | null>(null);
@@ -221,6 +222,13 @@ export default function BackupExportModule({ theme }: { theme: Theme }) {
       </SectionCard>
 
       <SectionCard title="Backup History" subtitle="Recent backup records" theme={theme}>
+        <div className="mb-3">
+          <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg}`}>
+            <Search size={14} className={theme.iconColor} />
+            <input value={backupSearch} onChange={e => setBackupSearch(e.target.value)} placeholder="Search backups by date, type, or status..."
+              className={`flex-1 bg-transparent text-xs ${theme.highlight} outline-none placeholder:${theme.iconColor}`} />
+          </div>
+        </div>
         <div className={`rounded-xl border ${theme.border} overflow-hidden`}>
           <table className="w-full text-xs">
             <thead className={theme.secondaryBg}>
@@ -231,7 +239,11 @@ export default function BackupExportModule({ theme }: { theme: Theme }) {
               </tr>
             </thead>
             <tbody>
-              {backupHistory.map((b, i) => (
+              {backupHistory.filter(b => {
+                if (!backupSearch.trim()) return true;
+                const q = backupSearch.toLowerCase();
+                return b.date.toLowerCase().includes(q) || b.type.toLowerCase().includes(q) || b.status.toLowerCase().includes(q) || b.size.toLowerCase().includes(q);
+              }).map((b, i) => (
                 <tr key={i} className={`border-t ${theme.border}`}>
                   <td className={`px-4 py-2.5 ${theme.iconColor} text-[10px]`}>{b.date}</td>
                   <td className={`px-4 py-2.5`}>
@@ -387,6 +399,17 @@ export default function BackupExportModule({ theme }: { theme: Theme }) {
             </div>
           </div>
         </SectionCard>
+      </div>
+
+      {/* ─── Save Bar ─── */}
+      <div className={`${theme.cardBg} rounded-2xl border-2 ${theme.border} p-4 flex items-center justify-between`}>
+        <div>
+          <p className={`text-sm font-bold ${theme.highlight}`}>Save Configuration</p>
+          <p className={`text-[10px] ${theme.iconColor}`}>Save all Backup & Storage settings</p>
+        </div>
+        <button className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold flex items-center gap-2 hover:opacity-90 transition-opacity`}>
+          <Save size={14} /> Save Changes
+        </button>
       </div>
     </div>
   );

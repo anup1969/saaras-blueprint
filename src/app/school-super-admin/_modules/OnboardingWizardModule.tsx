@@ -1,11 +1,14 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { Upload, CheckCircle, AlertTriangle, Circle } from 'lucide-react';
+import { Upload, CheckCircle, AlertTriangle, Circle, Pencil } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
 
 type StepStatus = 'pending' | 'incomplete' | 'complete';
+
+// Validation errors per step — maps field label to error message
+type ValidationErrors = Record<string, string>;
 
 export default function OnboardingWizardModule({ theme }: { theme: Theme }) {
   const [currentStep, setCurrentStep] = useState(1);
@@ -13,6 +16,7 @@ export default function OnboardingWizardModule({ theme }: { theme: Theme }) {
     1: 'incomplete', 2: 'pending', 3: 'pending', 4: 'pending', 5: 'pending', 6: 'pending',
   });
   const [jumpWarning, setJumpWarning] = useState<string | null>(null);
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const [schoolName, setSchoolName] = useState(''); const [address, setAddress] = useState(''); const [contact, setContact] = useState('');
   const [schoolBoard, setSchoolBoard] = useState('CBSE'); const [schoolType, setSchoolType] = useState('Co-educational');
   const [trustName, setTrustName] = useState(''); const [orgType, setOrgType] = useState('Single School'); const [numSchools, setNumSchools] = useState('1');
@@ -34,8 +38,51 @@ export default function OnboardingWizardModule({ theme }: { theme: Theme }) {
   };
   const steps = Object.entries(stepLabels).map(([num, label]) => ({ num: Number(num), label }));
 
-  // Mark current step as complete and advance
+  // Validate a given step — returns errors object (empty = valid)
+  const validateStep = useCallback((step: number): ValidationErrors => {
+    const errors: ValidationErrors = {};
+    switch (step) {
+      case 1:
+        if (!schoolName.trim()) errors['School Name'] = 'School name is required';
+        if (!address.trim()) errors['Address'] = 'Address is required';
+        if (!contact.trim()) errors['Contact Number'] = 'Contact number is required';
+        break;
+      case 2:
+        if (!trustName.trim()) errors['Trust / Organisation Name'] = 'Trust/organisation name is required';
+        if (orgType !== 'Single School' && (!numSchools.trim() || Number(numSchools) < 2))
+          errors['Number of Schools'] = 'Enter a valid number of schools (2 or more)';
+        break;
+      case 3:
+        // All fields have defaults via SelectField, so step 3 is always valid
+        break;
+      case 4:
+        // At least one module must be enabled
+        if (!Object.values(enabledModules).some(Boolean))
+          errors['Modules'] = 'At least one module must be enabled';
+        break;
+      case 5:
+        if (!adminName.trim()) errors['Full Name'] = 'Admin name is required';
+        if (!adminEmail.trim()) errors['Email'] = 'Admin email is required';
+        else if (!/\S+@\S+\.\S+/.test(adminEmail)) errors['Email'] = 'Enter a valid email address';
+        if (!adminPhone.trim()) errors['Phone'] = 'Admin phone is required';
+        if (!adminPassword.trim()) errors['Password'] = 'Password is required';
+        else if (adminPassword.length < 8) errors['Password'] = 'Password must be at least 8 characters';
+        break;
+      case 6:
+        // Review step — no validation needed
+        break;
+    }
+    return errors;
+  }, [schoolName, address, contact, trustName, orgType, numSchools, enabledModules, adminName, adminEmail, adminPhone, adminPassword]);
+
+  // Mark current step as complete and advance (with validation)
   const markCompleteAndAdvance = useCallback(() => {
+    const errors = validateStep(currentStep);
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      return; // Block advancement
+    }
+    setValidationErrors({});
     setStepStatus(prev => {
       const next = { ...prev, [currentStep]: 'complete' as StepStatus };
       const nextStep = currentStep + 1;
@@ -46,11 +93,12 @@ export default function OnboardingWizardModule({ theme }: { theme: Theme }) {
     });
     setJumpWarning(null);
     setCurrentStep(p => Math.min(6, p + 1));
-  }, [currentStep]);
+  }, [currentStep, validateStep]);
 
   // Handle step tab click — mark visited steps as incomplete, warn if jumping ahead
   const handleStepClick = useCallback((targetStep: number) => {
     setJumpWarning(null);
+    setValidationErrors({});
     // If jumping 2+ steps ahead and current step is not complete, show warning
     if (targetStep > currentStep + 1 && stepStatus[currentStep] !== 'complete') {
       setJumpWarning(`Please complete Step ${currentStep} (${stepLabels[currentStep]}) before proceeding`);
@@ -73,6 +121,13 @@ export default function OnboardingWizardModule({ theme }: { theme: Theme }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStep, stepStatus]);
 
+  // Jump to a specific step from Review (edit link)
+  const jumpToStep = useCallback((step: number) => {
+    setValidationErrors({});
+    setJumpWarning(null);
+    setCurrentStep(step);
+  }, []);
+
   // Render step status icon
   const renderStepIcon = (stepNum: number) => {
     const status = stepStatus[stepNum];
@@ -80,6 +135,32 @@ export default function OnboardingWizardModule({ theme }: { theme: Theme }) {
     if (status === 'incomplete') return <AlertTriangle size={14} className="text-amber-500" />;
     return <Circle size={14} className={theme.iconColor} />;
   };
+
+  // Inline error component
+  const FieldError = ({ field }: { field: string }) => {
+    const error = validationErrors[field];
+    if (!error) return null;
+    return <p className="text-[10px] text-red-500 font-semibold mt-1">{error}</p>;
+  };
+
+  // Review section with edit link
+  const ReviewSection = ({ stepNum, title, items }: { stepNum: number; title: string; items: { label: string; value: string }[] }) => (
+    <div className="mb-3">
+      <div className="flex items-center justify-between mb-1.5">
+        <p className={`text-xs font-bold ${theme.highlight}`}>{title}</p>
+        <button onClick={() => jumpToStep(stepNum)}
+          className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold ${theme.primary} text-white hover:opacity-90 transition-all`}>
+          <Pencil size={10} /> Edit
+        </button>
+      </div>
+      {items.map(item => (
+        <div key={item.label} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg} mb-1`}>
+          <span className={`text-[10px] font-bold ${theme.iconColor}`}>{item.label}</span>
+          <span className={`text-xs font-bold ${item.value === '(not set)' ? 'text-red-400' : theme.highlight}`}>{item.value}</span>
+        </div>
+      ))}
+    </div>
+  );
 
   return (
     <div className="space-y-4">
@@ -91,6 +172,20 @@ export default function OnboardingWizardModule({ theme }: { theme: Theme }) {
           <AlertTriangle size={14} className="text-amber-500 shrink-0" />
           {jumpWarning}
           <button onClick={() => setJumpWarning(null)} className="ml-auto text-amber-400 hover:text-amber-600 font-bold text-sm">&times;</button>
+        </div>
+      )}
+
+      {/* Validation Errors Banner */}
+      {Object.keys(validationErrors).length > 0 && (
+        <div className="flex items-start gap-2 px-4 py-2.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold">
+          <AlertTriangle size={14} className="text-red-500 shrink-0 mt-0.5" />
+          <div>
+            <p className="font-bold mb-0.5">Please fix the following before proceeding:</p>
+            <ul className="list-disc list-inside text-[10px]">
+              {Object.values(validationErrors).map((err, i) => <li key={i}>{err}</li>)}
+            </ul>
+          </div>
+          <button onClick={() => setValidationErrors({})} className="ml-auto text-red-400 hover:text-red-600 font-bold text-sm">&times;</button>
         </div>
       )}
 
@@ -118,12 +213,14 @@ export default function OnboardingWizardModule({ theme }: { theme: Theme }) {
         <SectionCard title="School Basic Info" subtitle="Enter core school details" theme={theme}>
           <div className="space-y-3">
             <div>
-              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>School Name</p>
-              <InputField value={schoolName} onChange={setSchoolName} theme={theme} placeholder="e.g. Delhi Public School, Ahmedabad" />
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>School Name <span className="text-red-400">*</span></p>
+              <InputField value={schoolName} onChange={(v) => { setSchoolName(v); setValidationErrors(prev => { const n = { ...prev }; delete n['School Name']; return n; }); }} theme={theme} placeholder="e.g. Delhi Public School, Ahmedabad" />
+              <FieldError field="School Name" />
             </div>
             <div>
-              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Address</p>
-              <InputField value={address} onChange={setAddress} theme={theme} placeholder="Full school address" />
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Address <span className="text-red-400">*</span></p>
+              <InputField value={address} onChange={(v) => { setAddress(v); setValidationErrors(prev => { const n = { ...prev }; delete n['Address']; return n; }); }} theme={theme} placeholder="Full school address" />
+              <FieldError field="Address" />
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div>
@@ -135,8 +232,9 @@ export default function OnboardingWizardModule({ theme }: { theme: Theme }) {
                 <SelectField options={['Co-educational', 'Boys Only', 'Girls Only']} value={schoolType} onChange={setSchoolType} theme={theme} />
               </div>
               <div>
-                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Contact Number</p>
-                <InputField value={contact} onChange={setContact} theme={theme} placeholder="+91 98765 43210" />
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Contact Number <span className="text-red-400">*</span></p>
+                <InputField value={contact} onChange={(v) => { setContact(v); setValidationErrors(prev => { const n = { ...prev }; delete n['Contact Number']; return n; }); }} theme={theme} placeholder="+91 98765 43210" />
+                <FieldError field="Contact Number" />
               </div>
             </div>
             <div className={`p-3 rounded-xl ${theme.secondaryBg} flex items-center gap-3`}>
@@ -160,8 +258,9 @@ export default function OnboardingWizardModule({ theme }: { theme: Theme }) {
         <SectionCard title="Organisation Setup" subtitle="Trust/organisation details for multi-school support" theme={theme}>
           <div className="space-y-3">
             <div>
-              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Trust / Organisation Name</p>
-              <InputField value={trustName} onChange={setTrustName} theme={theme} placeholder="e.g. Sunrise Education Trust" />
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Trust / Organisation Name <span className="text-red-400">*</span></p>
+              <InputField value={trustName} onChange={(v) => { setTrustName(v); setValidationErrors(prev => { const n = { ...prev }; delete n['Trust / Organisation Name']; return n; }); }} theme={theme} placeholder="e.g. Sunrise Education Trust" />
+              <FieldError field="Trust / Organisation Name" />
             </div>
             <div>
               <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Organisation Type</p>
@@ -176,8 +275,9 @@ export default function OnboardingWizardModule({ theme }: { theme: Theme }) {
             </div>
             {orgType !== 'Single School' && (
               <div>
-                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Number of Schools</p>
-                <InputField value={numSchools} onChange={setNumSchools} theme={theme} type="number" placeholder="e.g. 3" />
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Number of Schools <span className="text-red-400">*</span></p>
+                <InputField value={numSchools} onChange={(v) => { setNumSchools(v); setValidationErrors(prev => { const n = { ...prev }; delete n['Number of Schools']; return n; }); }} theme={theme} type="number" placeholder="e.g. 3" />
+                <FieldError field="Number of Schools" />
               </div>
             )}
           </div>
@@ -222,6 +322,7 @@ export default function OnboardingWizardModule({ theme }: { theme: Theme }) {
           <p className={`text-[10px] ${theme.iconColor} mt-2`}>
             {Object.values(enabledModules).filter(Boolean).length} modules enabled out of {Object.keys(enabledModules).length}
           </p>
+          <FieldError field="Modules" />
         </SectionCard>
       )}
 
@@ -230,20 +331,24 @@ export default function OnboardingWizardModule({ theme }: { theme: Theme }) {
         <SectionCard title="Admin Account Creation" subtitle="Create the primary school administrator account" theme={theme}>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Full Name</p>
-              <InputField value={adminName} onChange={setAdminName} theme={theme} placeholder="Admin full name" />
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Full Name <span className="text-red-400">*</span></p>
+              <InputField value={adminName} onChange={(v) => { setAdminName(v); setValidationErrors(prev => { const n = { ...prev }; delete n['Full Name']; return n; }); }} theme={theme} placeholder="Admin full name" />
+              <FieldError field="Full Name" />
             </div>
             <div>
-              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Email</p>
-              <InputField value={adminEmail} onChange={setAdminEmail} theme={theme} type="email" placeholder="admin@school.com" />
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Email <span className="text-red-400">*</span></p>
+              <InputField value={adminEmail} onChange={(v) => { setAdminEmail(v); setValidationErrors(prev => { const n = { ...prev }; delete n['Email']; return n; }); }} theme={theme} type="email" placeholder="admin@school.com" />
+              <FieldError field="Email" />
             </div>
             <div>
-              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Phone</p>
-              <InputField value={adminPhone} onChange={setAdminPhone} theme={theme} placeholder="+91 98765 43210" />
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Phone <span className="text-red-400">*</span></p>
+              <InputField value={adminPhone} onChange={(v) => { setAdminPhone(v); setValidationErrors(prev => { const n = { ...prev }; delete n['Phone']; return n; }); }} theme={theme} placeholder="+91 98765 43210" />
+              <FieldError field="Phone" />
             </div>
             <div>
-              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Password</p>
-              <InputField value={adminPassword} onChange={setAdminPassword} theme={theme} type="password" placeholder="Min 8 characters" />
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Password <span className="text-red-400">*</span></p>
+              <InputField value={adminPassword} onChange={(v) => { setAdminPassword(v); setValidationErrors(prev => { const n = { ...prev }; delete n['Password']; return n; }); }} theme={theme} type="password" placeholder="Min 8 characters" />
+              <FieldError field="Password" />
             </div>
           </div>
         </SectionCard>
@@ -251,33 +356,42 @@ export default function OnboardingWizardModule({ theme }: { theme: Theme }) {
 
       {/* Step 6: Review & Launch */}
       {currentStep === 6 && (
-        <SectionCard title="Review & Launch" subtitle="Verify all settings before going live" theme={theme}>
-          <div className="space-y-2">
-            {[
+        <SectionCard title="Review & Launch" subtitle="Verify all settings before going live — click Edit to change any section" theme={theme}>
+          <div className="space-y-1">
+            <ReviewSection stepNum={1} title="School Basic Info" items={[
               { label: 'School', value: schoolName || '(not set)' },
+              { label: 'Address', value: address || '(not set)' },
               { label: 'Board', value: schoolBoard },
-              { label: 'Organisation', value: `${orgType}${orgType !== 'Single School' ? ` (${numSchools} schools)` : ''}` },
+              { label: 'Type', value: schoolType },
+              { label: 'Contact', value: contact || '(not set)' },
+              { label: 'Logo', value: logoFile || '(not uploaded)' },
+            ]} />
+            <ReviewSection stepNum={2} title="Organisation Setup" items={[
               { label: 'Trust', value: trustName || '(not set)' },
+              { label: 'Organisation Type', value: `${orgType}${orgType !== 'Single School' ? ` (${numSchools} schools)` : ''}` },
+            ]} />
+            <ReviewSection stepNum={3} title="Academic Configuration" items={[
               { label: 'Academic Year', value: academicYear },
               { label: 'Grading', value: gradingScale },
               { label: 'Terms', value: terms },
               { label: 'Medium', value: mediumOfInstruction },
-              { label: 'Modules Enabled', value: `${Object.values(enabledModules).filter(Boolean).length} / ${Object.keys(enabledModules).length}` },
-              { label: 'Admin', value: adminName || '(not set)' },
+            ]} />
+            <ReviewSection stepNum={4} title="Module Selection" items={[
+              { label: 'Enabled Modules', value: `${Object.values(enabledModules).filter(Boolean).length} / ${Object.keys(enabledModules).length}` },
+              { label: 'Active', value: Object.entries(enabledModules).filter(([, v]) => v).map(([k]) => k).join(', ') },
+            ]} />
+            <ReviewSection stepNum={5} title="Admin Account" items={[
+              { label: 'Admin Name', value: adminName || '(not set)' },
               { label: 'Admin Email', value: adminEmail || '(not set)' },
-            ].map(item => (
-              <div key={item.label} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <span className={`text-[10px] font-bold ${theme.iconColor}`}>{item.label}</span>
-                <span className={`text-xs font-bold ${theme.highlight}`}>{item.value}</span>
-              </div>
-            ))}
+              { label: 'Admin Phone', value: adminPhone || '(not set)' },
+            ]} />
           </div>
         </SectionCard>
       )}
 
       {/* Navigation Buttons */}
       <div className="flex items-center justify-between">
-        <button onClick={() => { setJumpWarning(null); setCurrentStep(p => Math.max(1, p - 1)); }} disabled={currentStep === 1}
+        <button onClick={() => { setJumpWarning(null); setValidationErrors({}); setCurrentStep(p => Math.max(1, p - 1)); }} disabled={currentStep === 1}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${currentStep === 1 ? 'opacity-30 cursor-not-allowed' : `${theme.buttonHover} ${theme.iconColor}`} border ${theme.border}`}>
           Previous
         </button>

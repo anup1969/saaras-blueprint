@@ -1,9 +1,53 @@
 'use client';
 
-import React, { useState } from 'react';
-import { X, Plus, Shield, Building, CheckCircle, AlertTriangle, ClipboardCheck, Search, Bell } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { X, Plus, Shield, Building, CheckCircle, AlertTriangle, ClipboardCheck, Search, Bell, Download, Upload, Edit, Save, Check } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, SelectField, InputField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
+
+const PAGE_SIZE = 5;
+
+// ─── Reusable sub-components ───
+function TableToolbar({ search, onSearch, count, total, theme }: { search: string; onSearch: (v: string) => void; count: number; total: number; theme: Theme }) {
+  return (
+    <div className="flex items-center gap-2 mb-3">
+      <div className={`flex items-center gap-1.5 flex-1 px-3 py-1.5 rounded-xl border ${theme.border} ${theme.inputBg}`}>
+        <Search size={12} className={theme.iconColor} />
+        <input value={search} onChange={e => onSearch(e.target.value)} placeholder="Search..."
+          className={`flex-1 bg-transparent text-xs ${theme.highlight} outline-none`} />
+        {search && <button onClick={() => onSearch('')} className="text-gray-400 hover:text-gray-600"><X size={10} /></button>}
+      </div>
+      <span className={`text-[10px] font-bold px-2.5 py-1.5 rounded-xl ${theme.secondaryBg} ${theme.iconColor} border ${theme.border} whitespace-nowrap`}>
+        {count} / {total}
+      </span>
+      <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-all">
+        <Download size={12} /> Export
+      </button>
+      <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-all">
+        <Upload size={12} /> Import
+      </button>
+    </div>
+  );
+}
+
+function Pagination({ page, totalPages, onPage, theme }: { page: number; totalPages: number; onPage: (p: number) => void; theme: Theme }) {
+  if (totalPages <= 1) return null;
+  return (
+    <div className="flex items-center justify-between mt-3">
+      <p className={`text-[10px] ${theme.iconColor}`}>Page {page} of {totalPages}</p>
+      <div className="flex items-center gap-1">
+        <button disabled={page <= 1} onClick={() => onPage(page - 1)}
+          className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border ${theme.border} ${page <= 1 ? 'opacity-40 cursor-not-allowed' : `${theme.buttonHover} ${theme.highlight}`}`}>Prev</button>
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+          <button key={p} onClick={() => onPage(p)}
+            className={`w-6 h-6 rounded-lg text-[10px] font-bold ${p === page ? `${theme.primary} text-white` : `${theme.buttonHover} ${theme.highlight}`}`}>{p}</button>
+        ))}
+        <button disabled={page >= totalPages} onClick={() => onPage(page + 1)}
+          className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border ${theme.border} ${page >= totalPages ? 'opacity-40 cursor-not-allowed' : `${theme.buttonHover} ${theme.highlight}`}`}>Next</button>
+      </div>
+    </div>
+  );
+}
 
 export default function ComplianceConfigModule({ theme }: { theme: Theme }) {
   const [framework, setFramework] = useState('SQAAF');
@@ -11,13 +55,23 @@ export default function ComplianceConfigModule({ theme }: { theme: Theme }) {
   const [compToggles, setCompToggles] = useState<Record<string, boolean>>({
     'Auto-collect Data from Modules': true, 'Document Checklist': true,
   });
+
+  // ─── Compliance Domains (upgraded: search, enable/disable, export/import, pagination, count) ───
   const [domains, setDomains] = useState([
-    { name: 'Curricular Aspects', score: '3.5/4' },
-    { name: 'Teaching-Learning', score: '3.2/4' },
-    { name: 'Infrastructure', score: '3.0/4' },
-    { name: 'Student Support', score: '2.8/4' },
-    { name: 'Governance & Leadership', score: '3.4/4' },
+    { name: 'Curricular Aspects', score: '3.5/4', enabled: true },
+    { name: 'Teaching-Learning', score: '3.2/4', enabled: true },
+    { name: 'Infrastructure', score: '3.0/4', enabled: true },
+    { name: 'Student Support', score: '2.8/4', enabled: true },
+    { name: 'Governance & Leadership', score: '3.4/4', enabled: true },
   ]);
+  const [domainSearch, setDomainSearch] = useState('');
+  const [domainPage, setDomainPage] = useState(1);
+
+  const filteredDomains = useMemo(() => domains.filter(d => d.name.toLowerCase().includes(domainSearch.toLowerCase())), [domains, domainSearch]);
+  const domainTotalPages = Math.max(1, Math.ceil(filteredDomains.length / PAGE_SIZE));
+  const pagedDomains = filteredDomains.slice((domainPage - 1) * PAGE_SIZE, domainPage * PAGE_SIZE);
+
+  // ─── Student Document Types (upgraded: inline edit, search, export/import, pagination, count) ───
   const [studentDocs, setStudentDocs] = useState([
     { name: 'Birth Certificate', required: true, mandatory: true },
     { name: 'Aadhaar Card', required: true, mandatory: true },
@@ -28,6 +82,17 @@ export default function ComplianceConfigModule({ theme }: { theme: Theme }) {
     { name: 'Medical Certificate', required: true, mandatory: false },
     { name: 'Address Proof', required: true, mandatory: true },
   ]);
+  const [newStudentDoc, setNewStudentDoc] = useState('');
+  const [studentDocSearch, setStudentDocSearch] = useState('');
+  const [studentDocPage, setStudentDocPage] = useState(1);
+  const [editingStudentDocIdx, setEditingStudentDocIdx] = useState<number | null>(null);
+  const [editingStudentDocName, setEditingStudentDocName] = useState('');
+
+  const filteredStudentDocs = useMemo(() => studentDocs.filter(d => d.name.toLowerCase().includes(studentDocSearch.toLowerCase())), [studentDocs, studentDocSearch]);
+  const studentDocTotalPages = Math.max(1, Math.ceil(filteredStudentDocs.length / PAGE_SIZE));
+  const pagedStudentDocs = filteredStudentDocs.slice((studentDocPage - 1) * PAGE_SIZE, studentDocPage * PAGE_SIZE);
+
+  // ─── Staff Document Types (upgraded: inline edit, search, export/import, pagination, count) ───
   const [staffDocs, setStaffDocs] = useState([
     { name: 'Aadhaar Card', required: true, mandatory: true },
     { name: 'PAN Card', required: true, mandatory: true },
@@ -38,8 +103,15 @@ export default function ComplianceConfigModule({ theme }: { theme: Theme }) {
     { name: 'Medical Fitness', required: true, mandatory: false },
     { name: 'NDA / Agreement', required: false, mandatory: false },
   ]);
-  const [newStudentDoc, setNewStudentDoc] = useState('');
   const [newStaffDoc, setNewStaffDoc] = useState('');
+  const [staffDocSearch, setStaffDocSearch] = useState('');
+  const [staffDocPage, setStaffDocPage] = useState(1);
+  const [editingStaffDocIdx, setEditingStaffDocIdx] = useState<number | null>(null);
+  const [editingStaffDocName, setEditingStaffDocName] = useState('');
+
+  const filteredStaffDocs = useMemo(() => staffDocs.filter(d => d.name.toLowerCase().includes(staffDocSearch.toLowerCase())), [staffDocs, staffDocSearch]);
+  const staffDocTotalPages = Math.max(1, Math.ceil(filteredStaffDocs.length / PAGE_SIZE));
+  const pagedStaffDocs = filteredStaffDocs.slice((staffDocPage - 1) * PAGE_SIZE, staffDocPage * PAGE_SIZE);
 
   // ─── Board-Specific Compliance state ───────────────
   const [selectedBoard, setSelectedBoard] = useState('CBSE');
@@ -109,14 +181,38 @@ export default function ComplianceConfigModule({ theme }: { theme: Theme }) {
     'Financial audit done': false,
   });
   const [autoDetectGaps, setAutoDetectGaps] = useState(true);
-  const [complianceGaps] = useState([
-    { area: 'Science Lab', requirement: 'CBSE requires separate Physics lab', status: 'Gap', priority: 'High', action: 'Allocate room B-12' },
-    { area: 'Library', requirement: 'Minimum 5000 books required', status: 'Gap', priority: 'Medium', action: 'Procure 800 more titles' },
-    { area: 'Sports', requirement: 'Playground area below 10,000 sqft', status: 'Gap', priority: 'High', action: 'Expand ground area' },
+
+  // ─── B6: Compliance Gap Analysis (interactive CRUD) ───
+  const [complianceGaps, setComplianceGaps] = useState([
+    { area: 'Science Lab', requirement: 'CBSE requires separate Physics lab', status: 'Non-Compliant', priority: 'High', action: 'Allocate room B-12' },
+    { area: 'Library', requirement: 'Minimum 5000 books required', status: 'Non-Compliant', priority: 'Medium', action: 'Procure 800 more titles' },
+    { area: 'Sports', requirement: 'Playground area below 10,000 sqft', status: 'Non-Compliant', priority: 'High', action: 'Expand ground area' },
     { area: 'Fire Safety', requirement: 'Monthly drill not conducted', status: 'Partial', priority: 'Medium', action: 'Schedule monthly drills' },
-    { area: 'Staff', requirement: '3 teachers lack B.Ed qualification', status: 'Gap', priority: 'High', action: 'Enroll in B.Ed program' },
+    { area: 'Staff', requirement: '3 teachers lack B.Ed qualification', status: 'Non-Compliant', priority: 'High', action: 'Enroll in B.Ed program' },
   ]);
+  const [gapSearch, setGapSearch] = useState('');
+  const [gapPage, setGapPage] = useState(1);
+  const [editingGapIdx, setEditingGapIdx] = useState<number | null>(null);
+  const [editingGap, setEditingGap] = useState({ area: '', requirement: '', status: '', priority: '', action: '' });
+  const [showAddGap, setShowAddGap] = useState(false);
+  const [newGap, setNewGap] = useState({ area: '', requirement: '', status: 'Compliant', priority: 'Medium', action: '' });
+
+  const gapStatusOptions = ['Compliant', 'Partial', 'Non-Compliant'];
+  const gapPriorityOptions = ['High', 'Medium', 'Low'];
+
+  const filteredGaps = useMemo(() => complianceGaps.filter(g =>
+    g.area.toLowerCase().includes(gapSearch.toLowerCase()) ||
+    g.requirement.toLowerCase().includes(gapSearch.toLowerCase()) ||
+    g.action.toLowerCase().includes(gapSearch.toLowerCase())
+  ), [complianceGaps, gapSearch]);
+  const gapTotalPages = Math.max(1, Math.ceil(filteredGaps.length / PAGE_SIZE));
+  const pagedGaps = filteredGaps.slice((gapPage - 1) * PAGE_SIZE, gapPage * PAGE_SIZE);
+
   const [regulatoryAlerts, setRegulatoryAlerts] = useState(true);
+
+  // ─── Save feedback ───
+  const [saved, setSaved] = useState(false);
+  function handleSave() { setSaved(true); setTimeout(() => setSaved(false), 2500); }
 
   return (
     <div className="space-y-4">
@@ -148,72 +244,141 @@ export default function ComplianceConfigModule({ theme }: { theme: Theme }) {
             ))}
           </div>
         </SectionCard>
-        <SectionCard title="Compliance Domains" subtitle="Edit domain names and scores — add or remove" theme={theme}>
+
+        {/* ─── Compliance Domains (upgraded) ─── */}
+        <SectionCard title="Compliance Domains" subtitle="Edit domain names and scores — add, enable/disable, or remove" theme={theme}>
+          <TableToolbar search={domainSearch} onSearch={v => { setDomainSearch(v); setDomainPage(1); }} count={filteredDomains.length} total={domains.length} theme={theme} />
           <div className="space-y-2">
-            {domains.map((d, i) => (
-              <div key={i} className={`flex items-center gap-2 p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <input value={d.name} onChange={e => { const n = [...domains]; n[i] = { ...n[i], name: e.target.value }; setDomains(n); }}
-                  className={`flex-1 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-medium ${theme.highlight} outline-none`} />
-                <input value={d.score} onChange={e => { const n = [...domains]; n[i] = { ...n[i], score: e.target.value }; setDomains(n); }}
-                  className={`w-20 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center font-bold ${theme.iconColor} outline-none`} />
-                <button onClick={() => setDomains(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={10} /></button>
-              </div>
-            ))}
-            <button onClick={() => setDomains(p => [...p, { name: '', score: '' }])}
-              className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
-              <Plus size={12} /> Add Domain
-            </button>
+            {pagedDomains.map((d) => {
+              const realIdx = domains.findIndex(x => x.name === d.name);
+              return (
+                <div key={realIdx} className={`flex items-center gap-2 p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                  <input value={d.name} onChange={e => { const n = [...domains]; n[realIdx] = { ...n[realIdx], name: e.target.value }; setDomains(n); }}
+                    className={`flex-1 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-medium ${theme.highlight} outline-none`} />
+                  <input value={d.score} onChange={e => { const n = [...domains]; n[realIdx] = { ...n[realIdx], score: e.target.value }; setDomains(n); }}
+                    className={`w-20 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center font-bold ${theme.iconColor} outline-none`} />
+                  <SSAToggle on={d.enabled} onChange={() => { const n = [...domains]; n[realIdx] = { ...n[realIdx], enabled: !n[realIdx].enabled }; setDomains(n); }} theme={theme} />
+                  <button onClick={() => setDomains(p => p.filter((_, j) => j !== realIdx))} className="text-red-400 hover:text-red-600"><X size={10} /></button>
+                </div>
+              );
+            })}
+            {pagedDomains.length === 0 && (
+              <p className={`text-center text-xs ${theme.iconColor} py-4`}>No domains found</p>
+            )}
           </div>
+          <Pagination page={domainPage} totalPages={domainTotalPages} onPage={setDomainPage} theme={theme} />
+          <button onClick={() => setDomains(p => [...p, { name: '', score: '', enabled: true }])}
+            className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl mt-3`}>
+            <Plus size={12} /> Add Domain
+          </button>
         </SectionCard>
       </div>
 
+      {/* ─── Required Documents (upgraded with search, inline edit, export/import, pagination, count) ─── */}
       <SectionCard title="Required Documents" subtitle="Document requirements for student admission and staff joining" theme={theme}>
         <div className="grid grid-cols-2 gap-4">
+          {/* ─── Student Documents ─── */}
           <div>
             <p className={`text-[10px] font-bold ${theme.iconColor} mb-2 uppercase tracking-wide`}>Student Documents</p>
+            <TableToolbar search={studentDocSearch} onSearch={v => { setStudentDocSearch(v); setStudentDocPage(1); }} count={filteredStudentDocs.length} total={studentDocs.length} theme={theme} />
             <div className="space-y-1.5">
-              {studentDocs.map((d, i) => (
-                <div key={i} className={`flex items-center gap-2 p-2 rounded-xl ${theme.secondaryBg}`}>
-                  <span className={`text-xs font-medium ${theme.highlight} flex-1`}>{d.name}</span>
-                  <div className="flex items-center gap-1">
-                    <span className={`text-[9px] ${theme.iconColor}`}>Req</span>
-                    <SSAToggle on={d.required} onChange={() => { const n = [...studentDocs]; n[i] = { ...n[i], required: !n[i].required }; setStudentDocs(n); }} theme={theme} />
+              {pagedStudentDocs.map((d) => {
+                const realIdx = studentDocs.findIndex(x => x.name === d.name);
+                return (
+                  <div key={realIdx} className={`flex items-center gap-2 p-2 rounded-xl ${theme.secondaryBg}`}>
+                    {editingStudentDocIdx === realIdx ? (
+                      <input value={editingStudentDocName} onChange={e => setEditingStudentDocName(e.target.value)} autoFocus
+                        className={`flex-1 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                    ) : (
+                      <span className={`text-xs font-medium ${theme.highlight} flex-1`}>{d.name}</span>
+                    )}
+                    <div className="flex items-center gap-1">
+                      <span className={`text-[9px] ${theme.iconColor}`}>Req</span>
+                      <SSAToggle on={d.required} onChange={() => { const n = [...studentDocs]; n[realIdx] = { ...n[realIdx], required: !n[realIdx].required }; setStudentDocs(n); }} theme={theme} />
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className={`text-[9px] ${theme.iconColor}`}>Mand</span>
+                      <SSAToggle on={d.mandatory} onChange={() => { const n = [...studentDocs]; n[realIdx] = { ...n[realIdx], mandatory: !n[realIdx].mandatory }; setStudentDocs(n); }} theme={theme} />
+                    </div>
+                    {editingStudentDocIdx === realIdx ? (
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => {
+                          if (editingStudentDocName.trim()) { setStudentDocs(p => p.map((x, j) => j === realIdx ? { ...x, name: editingStudentDocName.trim() } : x)); }
+                          setEditingStudentDocIdx(null);
+                        }} className="text-[10px] font-bold text-emerald-600 hover:text-emerald-800 px-1.5 py-0.5 rounded-lg hover:bg-emerald-50">Save</button>
+                        <button onClick={() => setEditingStudentDocIdx(null)}
+                          className={`text-[10px] font-bold ${theme.iconColor} hover:opacity-70 px-1.5 py-0.5 rounded-lg`}>Cancel</button>
+                      </div>
+                    ) : (
+                      <button onClick={() => { setEditingStudentDocIdx(realIdx); setEditingStudentDocName(d.name); }}
+                        className={`text-[10px] font-bold ${theme.iconColor} hover:opacity-70 px-1 py-1 rounded-lg ${theme.secondaryBg}`}><Edit size={10} /></button>
+                    )}
+                    <button onClick={() => setStudentDocs(p => p.filter((_, j) => j !== realIdx))} className="text-red-400 hover:text-red-600"><X size={10} /></button>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <span className={`text-[9px] ${theme.iconColor}`}>Mand</span>
-                    <SSAToggle on={d.mandatory} onChange={() => { const n = [...studentDocs]; n[i] = { ...n[i], mandatory: !n[i].mandatory }; setStudentDocs(n); }} theme={theme} />
-                  </div>
-                  <button onClick={() => setStudentDocs(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={10} /></button>
-                </div>
-              ))}
+                );
+              })}
+              {pagedStudentDocs.length === 0 && (
+                <p className={`text-center text-xs ${theme.iconColor} py-3`}>No student documents found</p>
+              )}
             </div>
+            <Pagination page={studentDocPage} totalPages={studentDocTotalPages} onPage={setStudentDocPage} theme={theme} />
             <div className="flex gap-2 mt-2">
               <input value={newStudentDoc} onChange={e => setNewStudentDoc(e.target.value)} placeholder="Add document..."
+                onKeyDown={e => { if (e.key === 'Enter' && newStudentDoc.trim()) { setStudentDocs(p => [...p, { name: newStudentDoc.trim(), required: true, mandatory: false }]); setNewStudentDoc(''); } }}
                 className={`flex-1 px-3 py-1.5 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
               <button onClick={() => { if (newStudentDoc.trim()) { setStudentDocs(p => [...p, { name: newStudentDoc.trim(), required: true, mandatory: false }]); setNewStudentDoc(''); } }}
                 className={`px-3 py-1.5 rounded-xl ${theme.primary} text-white text-xs font-bold`}><Plus size={12} /></button>
             </div>
           </div>
+
+          {/* ─── Staff Documents ─── */}
           <div>
             <p className={`text-[10px] font-bold ${theme.iconColor} mb-2 uppercase tracking-wide`}>Staff Documents</p>
+            <TableToolbar search={staffDocSearch} onSearch={v => { setStaffDocSearch(v); setStaffDocPage(1); }} count={filteredStaffDocs.length} total={staffDocs.length} theme={theme} />
             <div className="space-y-1.5">
-              {staffDocs.map((d, i) => (
-                <div key={i} className={`flex items-center gap-2 p-2 rounded-xl ${theme.secondaryBg}`}>
-                  <span className={`text-xs font-medium ${theme.highlight} flex-1`}>{d.name}</span>
-                  <div className="flex items-center gap-1">
-                    <span className={`text-[9px] ${theme.iconColor}`}>Req</span>
-                    <SSAToggle on={d.required} onChange={() => { const n = [...staffDocs]; n[i] = { ...n[i], required: !n[i].required }; setStaffDocs(n); }} theme={theme} />
+              {pagedStaffDocs.map((d) => {
+                const realIdx = staffDocs.findIndex(x => x.name === d.name);
+                return (
+                  <div key={realIdx} className={`flex items-center gap-2 p-2 rounded-xl ${theme.secondaryBg}`}>
+                    {editingStaffDocIdx === realIdx ? (
+                      <input value={editingStaffDocName} onChange={e => setEditingStaffDocName(e.target.value)} autoFocus
+                        className={`flex-1 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                    ) : (
+                      <span className={`text-xs font-medium ${theme.highlight} flex-1`}>{d.name}</span>
+                    )}
+                    <div className="flex items-center gap-1">
+                      <span className={`text-[9px] ${theme.iconColor}`}>Req</span>
+                      <SSAToggle on={d.required} onChange={() => { const n = [...staffDocs]; n[realIdx] = { ...n[realIdx], required: !n[realIdx].required }; setStaffDocs(n); }} theme={theme} />
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className={`text-[9px] ${theme.iconColor}`}>Mand</span>
+                      <SSAToggle on={d.mandatory} onChange={() => { const n = [...staffDocs]; n[realIdx] = { ...n[realIdx], mandatory: !n[realIdx].mandatory }; setStaffDocs(n); }} theme={theme} />
+                    </div>
+                    {editingStaffDocIdx === realIdx ? (
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => {
+                          if (editingStaffDocName.trim()) { setStaffDocs(p => p.map((x, j) => j === realIdx ? { ...x, name: editingStaffDocName.trim() } : x)); }
+                          setEditingStaffDocIdx(null);
+                        }} className="text-[10px] font-bold text-emerald-600 hover:text-emerald-800 px-1.5 py-0.5 rounded-lg hover:bg-emerald-50">Save</button>
+                        <button onClick={() => setEditingStaffDocIdx(null)}
+                          className={`text-[10px] font-bold ${theme.iconColor} hover:opacity-70 px-1.5 py-0.5 rounded-lg`}>Cancel</button>
+                      </div>
+                    ) : (
+                      <button onClick={() => { setEditingStaffDocIdx(realIdx); setEditingStaffDocName(d.name); }}
+                        className={`text-[10px] font-bold ${theme.iconColor} hover:opacity-70 px-1 py-1 rounded-lg ${theme.secondaryBg}`}><Edit size={10} /></button>
+                    )}
+                    <button onClick={() => setStaffDocs(p => p.filter((_, j) => j !== realIdx))} className="text-red-400 hover:text-red-600"><X size={10} /></button>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <span className={`text-[9px] ${theme.iconColor}`}>Mand</span>
-                    <SSAToggle on={d.mandatory} onChange={() => { const n = [...staffDocs]; n[i] = { ...n[i], mandatory: !n[i].mandatory }; setStaffDocs(n); }} theme={theme} />
-                  </div>
-                  <button onClick={() => setStaffDocs(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={10} /></button>
-                </div>
-              ))}
+                );
+              })}
+              {pagedStaffDocs.length === 0 && (
+                <p className={`text-center text-xs ${theme.iconColor} py-3`}>No staff documents found</p>
+              )}
             </div>
+            <Pagination page={staffDocPage} totalPages={staffDocTotalPages} onPage={setStaffDocPage} theme={theme} />
             <div className="flex gap-2 mt-2">
               <input value={newStaffDoc} onChange={e => setNewStaffDoc(e.target.value)} placeholder="Add document..."
+                onKeyDown={e => { if (e.key === 'Enter' && newStaffDoc.trim()) { setStaffDocs(p => [...p, { name: newStaffDoc.trim(), required: true, mandatory: false }]); setNewStaffDoc(''); } }}
                 className={`flex-1 px-3 py-1.5 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
               <button onClick={() => { if (newStaffDoc.trim()) { setStaffDocs(p => [...p, { name: newStaffDoc.trim(), required: true, mandatory: false }]); setNewStaffDoc(''); } }}
                 className={`px-3 py-1.5 rounded-xl ${theme.primary} text-white text-xs font-bold`}><Plus size={12} /></button>
@@ -222,7 +387,7 @@ export default function ComplianceConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
-      {/* ─── NEW SECTION: Board-Specific Compliance ──────── */}
+      {/* ─── Board-Specific Compliance ──────── */}
       <div className="grid grid-cols-2 gap-4">
         <SectionCard title="Board Compliance Rules" subtitle="Board-specific regulatory requirements and status" theme={theme}>
           <div className="space-y-3">
@@ -344,7 +509,7 @@ export default function ComplianceConfigModule({ theme }: { theme: Theme }) {
         </SectionCard>
       </div>
 
-      {/* ─── NEW SECTION: Infrastructure & Ratio Monitoring ── */}
+      {/* ─── Infrastructure & Ratio Monitoring ── */}
       <SectionCard title="Infrastructure & Ratio Monitoring" subtitle="Track student-teacher, classroom, washroom, and computer ratios against targets" theme={theme}>
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
@@ -413,7 +578,7 @@ export default function ComplianceConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
-      {/* ─── NEW SECTION: Inspection & Readiness ───────── */}
+      {/* ─── Inspection & Readiness ───────── */}
       <div className="grid grid-cols-2 gap-4">
         <SectionCard title="Inspection Readiness Dashboard" subtitle="Track inspection schedule and preparedness" theme={theme}>
           <div className="space-y-3">
@@ -458,6 +623,7 @@ export default function ComplianceConfigModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
 
+        {/* ─── B6: Compliance Gap Analysis (interactive CRUD) ─── */}
         <SectionCard title="Compliance Gap Analysis" subtitle="Auto-detect and track compliance gaps with priorities" theme={theme}>
           <div className="space-y-3">
             <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
@@ -471,6 +637,9 @@ export default function ComplianceConfigModule({ theme }: { theme: Theme }) {
               <SSAToggle on={autoDetectGaps} onChange={() => setAutoDetectGaps(!autoDetectGaps)} theme={theme} />
             </div>
 
+            {/* Gap table toolbar */}
+            <TableToolbar search={gapSearch} onSearch={v => { setGapSearch(v); setGapPage(1); }} count={filteredGaps.length} total={complianceGaps.length} theme={theme} />
+
             {/* Gap table */}
             <div className="overflow-x-auto">
               <table className="w-full text-[10px]">
@@ -480,30 +649,144 @@ export default function ComplianceConfigModule({ theme }: { theme: Theme }) {
                     <th className={`text-left p-1.5 font-bold ${theme.iconColor}`}>Requirement</th>
                     <th className={`text-center p-1.5 font-bold ${theme.iconColor}`}>Status</th>
                     <th className={`text-center p-1.5 font-bold ${theme.iconColor}`}>Priority</th>
-                    <th className={`text-left p-1.5 font-bold ${theme.iconColor} rounded-tr-lg`}>Action</th>
+                    <th className={`text-left p-1.5 font-bold ${theme.iconColor}`}>Action</th>
+                    <th className={`text-center p-1.5 font-bold ${theme.iconColor} rounded-tr-lg`}></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {complianceGaps.map((gap, i) => (
-                    <tr key={i} className={`border-t ${theme.border}`}>
-                      <td className={`p-1.5 font-medium ${theme.highlight}`}>{gap.area}</td>
-                      <td className={`p-1.5 ${theme.iconColor}`}>{gap.requirement}</td>
-                      <td className="p-1.5 text-center">
-                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${gap.status === 'Gap' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                          {gap.status}
-                        </span>
-                      </td>
-                      <td className="p-1.5 text-center">
-                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${gap.priority === 'High' ? 'bg-red-50 text-red-600' : 'bg-orange-50 text-orange-600'}`}>
-                          {gap.priority}
-                        </span>
-                      </td>
-                      <td className={`p-1.5 ${theme.iconColor}`}>{gap.action}</td>
-                    </tr>
-                  ))}
+                  {pagedGaps.map((gap) => {
+                    const realIdx = complianceGaps.findIndex(x => x.area === gap.area && x.requirement === gap.requirement);
+                    const isEditing = editingGapIdx === realIdx;
+                    return (
+                      <tr key={realIdx} className={`border-t ${theme.border}`}>
+                        <td className={`p-1.5 font-medium ${theme.highlight}`}>
+                          {isEditing ? (
+                            <input value={editingGap.area} onChange={e => setEditingGap(p => ({ ...p, area: e.target.value }))}
+                              className={`w-full px-1.5 py-0.5 rounded border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight} outline-none`} />
+                          ) : gap.area}
+                        </td>
+                        <td className={`p-1.5 ${theme.iconColor}`}>
+                          {isEditing ? (
+                            <input value={editingGap.requirement} onChange={e => setEditingGap(p => ({ ...p, requirement: e.target.value }))}
+                              className={`w-full px-1.5 py-0.5 rounded border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight} outline-none`} />
+                          ) : gap.requirement}
+                        </td>
+                        <td className="p-1.5 text-center">
+                          {isEditing ? (
+                            <select value={editingGap.status} onChange={e => setEditingGap(p => ({ ...p, status: e.target.value }))}
+                              className={`text-[9px] font-bold px-1 py-0.5 rounded-full border-none outline-none cursor-pointer ${editingGap.status === 'Compliant' ? 'bg-green-100 text-green-700' : editingGap.status === 'Partial' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
+                              {gapStatusOptions.map(s => <option key={s} value={s}>{s}</option>)}
+                            </select>
+                          ) : (
+                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${gap.status === 'Compliant' ? 'bg-green-100 text-green-700' : gap.status === 'Partial' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
+                              {gap.status}
+                            </span>
+                          )}
+                        </td>
+                        <td className="p-1.5 text-center">
+                          {isEditing ? (
+                            <select value={editingGap.priority} onChange={e => setEditingGap(p => ({ ...p, priority: e.target.value }))}
+                              className={`text-[9px] font-bold px-1 py-0.5 rounded-full border-none outline-none cursor-pointer ${editingGap.priority === 'High' ? 'bg-red-50 text-red-600' : editingGap.priority === 'Medium' ? 'bg-orange-50 text-orange-600' : 'bg-blue-50 text-blue-600'}`}>
+                              {gapPriorityOptions.map(p => <option key={p} value={p}>{p}</option>)}
+                            </select>
+                          ) : (
+                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${gap.priority === 'High' ? 'bg-red-50 text-red-600' : gap.priority === 'Medium' ? 'bg-orange-50 text-orange-600' : 'bg-blue-50 text-blue-600'}`}>
+                              {gap.priority}
+                            </span>
+                          )}
+                        </td>
+                        <td className={`p-1.5 ${theme.iconColor}`}>
+                          {isEditing ? (
+                            <input value={editingGap.action} onChange={e => setEditingGap(p => ({ ...p, action: e.target.value }))}
+                              className={`w-full px-1.5 py-0.5 rounded border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight} outline-none`} />
+                          ) : gap.action}
+                        </td>
+                        <td className="p-1.5 text-center">
+                          <div className="flex items-center gap-1 justify-center">
+                            {isEditing ? (
+                              <>
+                                <button onClick={() => {
+                                  setComplianceGaps(p => p.map((x, j) => j === realIdx ? { ...editingGap } : x));
+                                  setEditingGapIdx(null);
+                                }} className="text-[9px] font-bold text-emerald-600 hover:text-emerald-800 px-1.5 py-0.5 rounded hover:bg-emerald-50">Save</button>
+                                <button onClick={() => setEditingGapIdx(null)}
+                                  className={`text-[9px] font-bold ${theme.iconColor} hover:opacity-70 px-1.5 py-0.5 rounded`}>Cancel</button>
+                              </>
+                            ) : (
+                              <>
+                                <button onClick={() => { setEditingGapIdx(realIdx); setEditingGap({ ...gap }); }}
+                                  className={`${theme.iconColor} hover:opacity-70 p-0.5 rounded`}><Edit size={10} /></button>
+                                <button onClick={() => setComplianceGaps(p => p.filter((_, j) => j !== realIdx))}
+                                  className="text-red-400 hover:text-red-600 p-0.5 rounded"><X size={10} /></button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {pagedGaps.length === 0 && (
+                    <tr><td colSpan={6} className={`p-3 text-center text-xs ${theme.iconColor}`}>No compliance gaps found</td></tr>
+                  )}
                 </tbody>
               </table>
             </div>
+            <Pagination page={gapPage} totalPages={gapTotalPages} onPage={setGapPage} theme={theme} />
+
+            {/* Add new gap */}
+            {showAddGap ? (
+              <div className={`p-3 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>Add Compliance Gap</p>
+                  <button onClick={() => setShowAddGap(false)} className="text-gray-400 hover:text-gray-600"><X size={14} /></button>
+                </div>
+                <div className="grid grid-cols-2 gap-2 mb-2">
+                  <div>
+                    <p className={`text-[9px] font-bold ${theme.iconColor} mb-0.5`}>Area</p>
+                    <input value={newGap.area} onChange={e => setNewGap(p => ({ ...p, area: e.target.value }))} placeholder="e.g. Library"
+                      className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                  </div>
+                  <div>
+                    <p className={`text-[9px] font-bold ${theme.iconColor} mb-0.5`}>Requirement</p>
+                    <input value={newGap.requirement} onChange={e => setNewGap(p => ({ ...p, requirement: e.target.value }))} placeholder="Description..."
+                      className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                  </div>
+                  <div>
+                    <p className={`text-[9px] font-bold ${theme.iconColor} mb-0.5`}>Status</p>
+                    <select value={newGap.status} onChange={e => setNewGap(p => ({ ...p, status: e.target.value }))}
+                      className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}>
+                      {gapStatusOptions.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <p className={`text-[9px] font-bold ${theme.iconColor} mb-0.5`}>Priority</p>
+                    <select value={newGap.priority} onChange={e => setNewGap(p => ({ ...p, priority: e.target.value }))}
+                      className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}>
+                      {gapPriorityOptions.map(p => <option key={p} value={p}>{p}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <div className="mb-2">
+                  <p className={`text-[9px] font-bold ${theme.iconColor} mb-0.5`}>Action Plan</p>
+                  <input value={newGap.action} onChange={e => setNewGap(p => ({ ...p, action: e.target.value }))} placeholder="Remediation steps..."
+                    className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                </div>
+                <button onClick={() => {
+                  if (newGap.area.trim() && newGap.requirement.trim()) {
+                    setComplianceGaps(p => [...p, { ...newGap, area: newGap.area.trim(), requirement: newGap.requirement.trim(), action: newGap.action.trim() }]);
+                    setNewGap({ area: '', requirement: '', status: 'Compliant', priority: 'Medium', action: '' });
+                    setShowAddGap(false);
+                  }
+                }} className={`flex items-center gap-1.5 px-4 py-1.5 rounded-xl ${theme.primary} text-white text-xs font-bold`}>
+                  <Plus size={12} /> Add Gap
+                </button>
+              </div>
+            ) : (
+              <button onClick={() => setShowAddGap(true)}
+                className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl border ${theme.border}`}>
+                <Plus size={12} /> Add Gap Entry
+              </button>
+            )}
 
             <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
               <div className="flex items-center gap-1.5 flex-1 mr-3">
@@ -517,6 +800,14 @@ export default function ComplianceConfigModule({ theme }: { theme: Theme }) {
             </div>
           </div>
         </SectionCard>
+      </div>
+
+      {/* ─── Global Save Button ─── */}
+      <div className="flex justify-end pt-2 pb-4">
+        <button onClick={handleSave}
+          className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all ${saved ? 'bg-emerald-500 hover:bg-emerald-600' : `${theme.primary} hover:opacity-90`}`}>
+          {saved ? <><Check size={15} /> Saved</> : <><Save size={15} /> Save Configuration</>}
+        </button>
       </div>
     </div>
   );

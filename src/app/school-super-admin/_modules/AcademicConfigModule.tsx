@@ -1,10 +1,72 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, X, Upload, Download, Copy, CheckSquare, Square, Filter, BookOpen, FileSpreadsheet, ArrowRight } from 'lucide-react';
+import { Plus, X, Upload, Download, Copy, CheckSquare, Square, Filter, BookOpen, FileSpreadsheet, ArrowRight, Search, Pencil, Trash2, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import { MasterPermissionGrid, BulkImportWizard } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
+
+const PAGE_SIZE = 5;
+
+/* ─── Local Sub-Components: TableToolbar + Pagination ─── */
+function TableToolbar({ label, count, search, onSearch, onExport, onImport, theme }: {
+  label: string; count: number; search: string; onSearch: (v: string) => void;
+  onExport: () => void; onImport: () => void; theme: Theme;
+}) {
+  return (
+    <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
+      <div className="flex items-center gap-2">
+        <span className={`text-xs font-bold ${theme.highlight}`}>{label}</span>
+        <span className={`text-[9px] px-2 py-0.5 rounded-full ${theme.primary} text-white font-bold`}>{count}</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <div className="relative">
+          <Search size={12} className={`absolute left-2 top-1/2 -translate-y-1/2 ${theme.iconColor}`} />
+          <input value={search} onChange={e => onSearch(e.target.value)} placeholder="Search..."
+            className={`pl-7 pr-7 py-1.5 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none w-44`} />
+          {search && (
+            <button onClick={() => onSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+              <X size={10} />
+            </button>
+          )}
+        </div>
+        <button onClick={onExport} className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-600 text-white text-[10px] font-bold hover:bg-emerald-700 transition-colors">
+          <Download size={10} /> Export
+        </button>
+        <button onClick={onImport} className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-blue-600 text-white text-[10px] font-bold hover:bg-blue-700 transition-colors">
+          <Upload size={10} /> Import
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function PaginationBar({ page, totalPages, onPage, theme }: {
+  page: number; totalPages: number; onPage: (p: number) => void; theme: Theme;
+}) {
+  if (totalPages <= 1) return null;
+  return (
+    <div className="flex items-center justify-between mt-2">
+      <span className={`text-[10px] ${theme.iconColor}`}>Page {page} of {totalPages}</span>
+      <div className="flex items-center gap-1">
+        <button onClick={() => onPage(Math.max(1, page - 1))} disabled={page <= 1}
+          className={`p-1 rounded-lg border ${theme.border} ${page <= 1 ? 'opacity-30 cursor-not-allowed' : theme.buttonHover}`}>
+          <ChevronLeft size={12} className={theme.iconColor} />
+        </button>
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+          <button key={p} onClick={() => onPage(p)}
+            className={`w-6 h-6 rounded-lg text-[10px] font-bold transition-all ${p === page ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.highlight}`}`}>
+            {p}
+          </button>
+        ))}
+        <button onClick={() => onPage(Math.min(totalPages, page + 1))} disabled={page >= totalPages}
+          className={`p-1 rounded-lg border ${theme.border} ${page >= totalPages ? 'opacity-30 cursor-not-allowed' : theme.buttonHover}`}>
+          <ChevronRight size={12} className={theme.iconColor} />
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function AcademicConfigModule({ theme }: { theme: Theme }) {
   const [preschoolEnabled, setPreschoolEnabled] = useState(true);
@@ -105,17 +167,17 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
   const [newLanguage, setNewLanguage] = useState('');
 
   // ─── Streams / Subject Groups (Class 11-12) ───
-  const [streams] = useState([
-    { name: 'Science', subjects: 'Phy, Chem, Math, Bio/CS', maxSeats: '120' },
-    { name: 'Commerce', subjects: 'Accts, BSt, Eco, Math/IP', maxSeats: '80' },
-    { name: 'Arts', subjects: 'Hist, Geo, Pol Sci, Eco/Psych', maxSeats: '40' },
+  const [streams, setStreams] = useState([
+    { name: 'Science', subjects: 'Phy, Chem, Math, Bio/CS', maxSeats: '120', enabled: true },
+    { name: 'Commerce', subjects: 'Accts, BSt, Eco, Math/IP', maxSeats: '80', enabled: true },
+    { name: 'Arts', subjects: 'Hist, Geo, Pol Sci, Eco/Psych', maxSeats: '40', enabled: true },
   ]);
   const [allowStreamChoice, setAllowStreamChoice] = useState(true);
 
   // ─── Class Capacity & Waitlist ───
   const [enableWaitlist, setEnableWaitlist] = useState(true);
   const [waitlistAutoPromote, setWaitlistAutoPromote] = useState('Automatic');
-  const [classCapacity] = useState([
+  const [classCapacity, setClassCapacity] = useState([
     { grade: 'Grade 1', sections: 3, maxPerSection: 40, total: 120, current: 115, waitlisted: 4 },
     { grade: 'Grade 2', sections: 3, maxPerSection: 40, total: 120, current: 118, waitlisted: 2 },
     { grade: 'Grade 3', sections: 2, maxPerSection: 40, total: 80, current: 78, waitlisted: 0 },
@@ -186,7 +248,7 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
   });
 
   // ─── Gap #17: Subject-Teacher Mapping ───
-  const [subjectTeacherMap] = useState([
+  const [subjectTeacherMap, setSubjectTeacherMap] = useState([
     { grade: 'Grade 9', section: 'A', subject: 'Mathematics', teacher: 'Mr. Patel', periods: '6' },
     { grade: 'Grade 9', section: 'A', subject: 'Science', teacher: 'Mrs. Sharma', periods: '6' },
     { grade: 'Grade 9', section: 'B', subject: 'Mathematics', teacher: 'Mr. Patel', periods: '6' },
@@ -224,6 +286,51 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
     allSubjectsPass: true,
     autoPromote: false,
   });
+
+  // ─── Master Table CRUD State ───
+  // Subjects master
+  const [subjectSearch, setSubjectSearch] = useState('');
+  const [subjectPage, setSubjectPage] = useState(1);
+  const [subjectEnabled, setSubjectEnabled] = useState<Record<string, boolean>>({});
+  // Sections master
+  const [sectionSearch, setSectionSearch] = useState('');
+  const [sectionPage, setSectionPage] = useState(1);
+  const [sectionEnabled, setSectionEnabled] = useState<Record<string, boolean>>({});
+  // Houses master
+  const [houseSearch, setHouseSearch] = useState('');
+  const [housePage, setHousePage] = useState(1);
+  const [houseEnabled, setHouseEnabled] = useState<Record<number, boolean>>(() => {
+    const m: Record<number, boolean> = {}; for (let i = 0; i < 10; i++) m[i] = true; return m;
+  });
+  // Holidays master
+  const [holidaySearch, setHolidaySearch] = useState('');
+  const [holidayPage, setHolidayPage] = useState(1);
+  const [holidayEnabled, setHolidayEnabled] = useState<Record<number, boolean>>(() => {
+    const m: Record<number, boolean> = {}; for (let i = 0; i < 20; i++) m[i] = true; return m;
+  });
+  // Terms master
+  const [termSearch, setTermSearch] = useState('');
+  const [termPage, setTermPage] = useState(1);
+  const [termEnabled, setTermEnabled] = useState<Record<number, boolean>>(() => {
+    const m: Record<number, boolean> = {}; for (let i = 0; i < 10; i++) m[i] = true; return m;
+  });
+  // Streams master
+  const [streamSearch, setStreamSearch] = useState('');
+  const [streamPage, setStreamPage] = useState(1);
+  // Demographics master
+  const [demoSearch, setDemoSearch] = useState({ religion: '', category: '', language: '' });
+  const [demoPage, setDemoPage] = useState({ religion: 1, category: 1, language: 1 });
+  const [demoEdit, setDemoEdit] = useState<{ type: string; key: string; value: string } | null>(null);
+  // Class Capacity table
+  const [capSearch, setCapSearch] = useState('');
+  const [capPage, setCapPage] = useState(1);
+  const [capEditIdx, setCapEditIdx] = useState<number | null>(null);
+  const [capEditRow, setCapEditRow] = useState({ grade: '', sections: 0, maxPerSection: 0, total: 0, current: 0, waitlisted: 0 });
+  // Subject-Teacher Mapping table
+  const [stmSearch, setStmSearch] = useState('');
+  const [stmPage, setStmPage] = useState(1);
+  const [stmEditIdx, setStmEditIdx] = useState<number | null>(null);
+  const [stmEditRow, setStmEditRow] = useState({ grade: '', section: '', subject: '', teacher: '', periods: '' });
 
   // ─── Gap #67: Term-wise Scoping ───
   const [activeTerm, setActiveTerm] = useState('Full Year');
@@ -315,102 +422,141 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
             </button>
           ))}
         </div>
-        {/* Subjects for selected grade */}
-        <div className={`p-3 rounded-xl ${theme.secondaryBg} mb-3`}>
-          <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Subjects — {activeGrade}</p>
-          <div className="flex flex-wrap gap-2 mb-2">
-            {(subjects[activeGrade] || []).map(s => (
-              <span key={s} className={`flex items-center gap-1 px-2.5 py-1 rounded-lg ${theme.cardBg} border ${theme.border} text-xs font-medium ${theme.highlight}`}>
-                {s}
-                <button onClick={() => setSubjects(p => ({ ...p, [activeGrade]: (p[activeGrade] || []).filter(x => x !== s) }))} className="text-red-400 hover:text-red-600"><X size={10} /></button>
-              </span>
-            ))}
-          </div>
-          <div className="flex gap-2 mb-2">
-            <input value={newSubject} onChange={e => setNewSubject(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter' && newSubject.trim()) { setSubjects(p => ({ ...p, [activeGrade]: [...(p[activeGrade] || []), newSubject.trim()] })); setNewSubject(''); } }}
-              placeholder="Type new subject or click from pool below..."
-              className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
-            <button onClick={() => { if (newSubject.trim()) { setSubjects(p => ({ ...p, [activeGrade]: [...(p[activeGrade] || []), newSubject.trim()] })); setNewSubject(''); } }}
-              className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}><Plus size={14} /></button>
-          </div>
-          {/* Gap #18: Elective Subject Type */}
-          <div className={`p-2.5 rounded-lg ${theme.cardBg} border ${theme.border} mb-2`}>
-            <p className={`text-[9px] font-bold ${theme.iconColor} mb-1.5 uppercase tracking-wide`}>Subject Type (Compulsory / Elective)</p>
-            <div className="space-y-1">
-              {(subjects[activeGrade] || []).map(s => {
-                const st = subjectTypes[s] || { type: 'Compulsory' as const, maxSeats: '', studentSelection: false };
+        {/* Subjects for selected grade — with toolbar */}
+        {(() => {
+          const gradeSubjects = subjects[activeGrade] || [];
+          const filtered = gradeSubjects.filter(s => s.toLowerCase().includes(subjectSearch.toLowerCase()));
+          const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+          const safePage = Math.min(subjectPage, totalPages);
+          const paged = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+          return (
+            <div className={`p-3 rounded-xl ${theme.secondaryBg} mb-3`}>
+              <TableToolbar label={`Subjects — ${activeGrade}`} count={gradeSubjects.length} search={subjectSearch}
+                onSearch={v => { setSubjectSearch(v); setSubjectPage(1); }} onExport={() => {}} onImport={() => {}} theme={theme} />
+              <div className="overflow-x-auto mb-2">
+                <table className="w-full text-xs">
+                  <thead><tr className={theme.accentBg || theme.secondaryBg}>
+                    {['#', 'Subject', 'Type', 'Enabled', 'Actions'].map(h => (
+                      <th key={h} className={`text-left px-3 py-1.5 font-bold ${theme.iconColor}`}>{h}</th>
+                    ))}
+                  </tr></thead>
+                  <tbody>
+                    {paged.map((s, pi) => {
+                      const idx = (safePage - 1) * PAGE_SIZE + pi;
+                      const isEnabled = subjectEnabled[`${activeGrade}::${s}`] !== false;
+                      const st = subjectTypes[s] || { type: 'Compulsory' as const, maxSeats: '', studentSelection: false };
+                      return (
+                        <tr key={s} className={`border-t ${theme.border} ${!isEnabled ? 'opacity-50' : ''}`}>
+                          <td className={`px-3 py-1.5 ${theme.iconColor}`}>{idx + 1}</td>
+                          <td className={`px-3 py-1.5 font-bold ${theme.highlight}`}>{s}</td>
+                          <td className="px-3 py-1.5">
+                            <select value={st.type} onChange={e => setSubjectTypes(p => ({ ...p, [s]: { ...st, type: e.target.value as 'Compulsory' | 'Elective' } }))}
+                              className={`px-1.5 py-0.5 rounded-lg border ${theme.border} ${theme.inputBg} text-[9px] font-bold ${theme.highlight}`}>
+                              <option value="Compulsory">Compulsory</option>
+                              <option value="Elective">Elective</option>
+                            </select>
+                          </td>
+                          <td className="px-3 py-1.5">
+                            <SSAToggle on={isEnabled} onChange={() => setSubjectEnabled(p => ({ ...p, [`${activeGrade}::${s}`]: !isEnabled }))} theme={theme} />
+                          </td>
+                          <td className="px-3 py-1.5">
+                            <button onClick={() => setSubjects(p => ({ ...p, [activeGrade]: (p[activeGrade] || []).filter(x => x !== s) }))}
+                              className="text-red-400 hover:text-red-600"><Trash2 size={12} /></button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <PaginationBar page={safePage} totalPages={totalPages} onPage={setSubjectPage} theme={theme} />
+              <div className="flex gap-2 mt-2 mb-2">
+                <input value={newSubject} onChange={e => setNewSubject(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter' && newSubject.trim()) { setSubjects(p => ({ ...p, [activeGrade]: [...(p[activeGrade] || []), newSubject.trim()] })); setNewSubject(''); } }}
+                  placeholder="Type new subject or click from pool below..."
+                  className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                <button onClick={() => { if (newSubject.trim()) { setSubjects(p => ({ ...p, [activeGrade]: [...(p[activeGrade] || []), newSubject.trim()] })); setNewSubject(''); } }}
+                  className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}><Plus size={14} /></button>
+              </div>
+              {/* Subject pool — quick-add from other grades */}
+              {(() => {
+                const currentSubs = subjects[activeGrade] || [];
+                const available = allSubjectsPool.filter(s => !currentSubs.includes(s));
+                if (available.length === 0) return null;
                 return (
-                  <div key={s} className={`flex items-center gap-2 p-1.5 rounded-lg ${theme.secondaryBg}`}>
-                    <span className={`text-[10px] font-bold ${theme.highlight} w-24 truncate`}>{s}</span>
-                    <select value={st.type} onChange={e => setSubjectTypes(p => ({ ...p, [s]: { ...st, type: e.target.value as 'Compulsory' | 'Elective' } }))}
-                      className={`px-1.5 py-0.5 rounded-lg border ${theme.border} ${theme.inputBg} text-[9px] font-bold ${theme.highlight}`}>
-                      <option value="Compulsory">Compulsory</option>
-                      <option value="Elective">Elective</option>
-                    </select>
-                    {st.type === 'Elective' && (
-                      <>
-                        <div className="flex items-center gap-1">
-                          <span className={`text-[8px] ${theme.iconColor}`}>Max:</span>
-                          <input type="number" value={st.maxSeats} onChange={e => setSubjectTypes(p => ({ ...p, [s]: { ...st, maxSeats: e.target.value } }))}
-                            className={`w-10 px-1 py-0.5 rounded border ${theme.border} ${theme.inputBg} text-[9px] text-center ${theme.highlight} outline-none`} placeholder="--" />
-                        </div>
-                        <label className="flex items-center gap-1 cursor-pointer">
-                          <input type="checkbox" checked={st.studentSelection} onChange={() => setSubjectTypes(p => ({ ...p, [s]: { ...st, studentSelection: !st.studentSelection } }))}
-                            className="w-3 h-3 rounded" />
-                          <span className={`text-[8px] ${theme.iconColor}`}>Student Select</span>
-                        </label>
-                      </>
-                    )}
+                  <div>
+                    <p className={`text-[9px] font-bold ${theme.iconColor} mb-1.5 uppercase tracking-wide`}>Quick-add from subject pool (used in other grades)</p>
+                    <div className="flex flex-wrap gap-1">
+                      {available.map(s => (
+                        <button key={s} onClick={() => setSubjects(p => ({ ...p, [activeGrade]: [...(p[activeGrade] || []), s] }))}
+                          className={`px-2 py-0.5 rounded-lg border border-dashed ${theme.border} text-[10px] ${theme.iconColor} hover:${theme.primary} hover:text-white transition-all`}>
+                          + {s}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 );
-              })}
+              })()}
             </div>
-          </div>
-          {/* Subject pool — quick-add from other grades */}
-          {(() => {
-            const currentSubs = subjects[activeGrade] || [];
-            const available = allSubjectsPool.filter(s => !currentSubs.includes(s));
-            if (available.length === 0) return null;
-            return (
-              <div>
-                <p className={`text-[9px] font-bold ${theme.iconColor} mb-1.5 uppercase tracking-wide`}>Quick-add from subject pool (used in other grades)</p>
-                <div className="flex flex-wrap gap-1">
-                  {available.map(s => (
-                    <button key={s} onClick={() => setSubjects(p => ({ ...p, [activeGrade]: [...(p[activeGrade] || []), s] }))}
-                      className={`px-2 py-0.5 rounded-lg border border-dashed ${theme.border} text-[10px] ${theme.iconColor} hover:${theme.primary} hover:text-white transition-all`}>
-                      + {s}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            );
-          })()}
-        </div>
+          );
+        })()}
       </SectionCard>
 
       <SectionCard title="Section Configuration" subtitle="Define section names once (school-wide), then assign per grade" theme={theme}>
-        {/* Global section names */}
+        {/* Global section names with toolbar */}
+        <TableToolbar label="School-wide Section Names" count={globalSectionNames.length} search={sectionSearch}
+          onSearch={v => { setSectionSearch(v); setSectionPage(1); }} onExport={() => {}} onImport={() => {}} theme={theme} />
         <div className={`p-3 rounded-xl ${theme.accentBg} border ${theme.border} mb-4`}>
-          <p className={`text-[10px] font-bold ${theme.iconColor} mb-2 uppercase tracking-wide`}>School-wide Section Names (defined once, used across all grades)</p>
-          <div className="flex flex-wrap gap-1.5 mb-2">
-            {globalSectionNames.map((name, i) => (
-              <span key={i} className={`flex items-center gap-1 px-2.5 py-1 rounded-lg ${theme.cardBg} border ${theme.border} text-xs font-bold ${theme.highlight}`}>
-                <input value={name} onChange={e => { const n = [...globalSectionNames]; n[i] = e.target.value; setGlobalSectionNames(n); }}
-                  className={`w-16 bg-transparent text-xs font-bold ${theme.highlight} outline-none text-center`} placeholder="Name" />
-                <button onClick={() => {
-                  const removed = globalSectionNames[i];
-                  setGlobalSectionNames(p => p.filter((_, j) => j !== i));
-                  setSections(p => {
-                    const updated = { ...p };
-                    for (const grade of Object.keys(updated)) { updated[grade] = updated[grade].filter(s => s !== removed); }
-                    return updated;
-                  });
-                }} className="text-red-400 hover:text-red-600"><X size={10} /></button>
-              </span>
-            ))}
-          </div>
-          <div className="flex gap-2">
+          {(() => {
+            const filtered = globalSectionNames.filter(n => n.toLowerCase().includes(sectionSearch.toLowerCase()));
+            const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+            const safePage = Math.min(sectionPage, totalPages);
+            const paged = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+            return (
+              <>
+                <div className="overflow-x-auto mb-2">
+                  <table className="w-full text-xs">
+                    <thead><tr className={theme.secondaryBg}>
+                      {['#', 'Section Name', 'Enabled', 'Actions'].map(h => (
+                        <th key={h} className={`text-left px-3 py-1.5 font-bold ${theme.iconColor}`}>{h}</th>
+                      ))}
+                    </tr></thead>
+                    <tbody>
+                      {paged.map((name) => {
+                        const realIdx = globalSectionNames.indexOf(name);
+                        const isEnabled = sectionEnabled[name] !== false;
+                        return (
+                          <tr key={realIdx} className={`border-t ${theme.border} ${!isEnabled ? 'opacity-50' : ''}`}>
+                            <td className={`px-3 py-1.5 ${theme.iconColor}`}>{realIdx + 1}</td>
+                            <td className="px-3 py-1.5">
+                              <input value={name} onChange={e => { const n = [...globalSectionNames]; n[realIdx] = e.target.value; setGlobalSectionNames(n); }}
+                                className={`w-24 px-2 py-0.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none text-center`} />
+                            </td>
+                            <td className="px-3 py-1.5">
+                              <SSAToggle on={isEnabled} onChange={() => setSectionEnabled(p => ({ ...p, [name]: !isEnabled }))} theme={theme} />
+                            </td>
+                            <td className="px-3 py-1.5">
+                              <button onClick={() => {
+                                const removed = globalSectionNames[realIdx];
+                                setGlobalSectionNames(p => p.filter((_, j) => j !== realIdx));
+                                setSections(p => {
+                                  const updated = { ...p };
+                                  for (const grade of Object.keys(updated)) { updated[grade] = updated[grade].filter(s => s !== removed); }
+                                  return updated;
+                                });
+                              }} className="text-red-400 hover:text-red-600"><Trash2 size={12} /></button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                <PaginationBar page={safePage} totalPages={totalPages} onPage={setSectionPage} theme={theme} />
+              </>
+            );
+          })()}
+          <div className="flex gap-2 mt-2">
             <input value={newSectionName} onChange={e => setNewSectionName(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && newSectionName.trim()) { setGlobalSectionNames(p => [...p, newSectionName.trim()]); setNewSectionName(''); } }}
               placeholder="Add section name (e.g. F, Rose, Lily)..."
@@ -476,58 +622,61 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
       </SectionCard>
 
       <SectionCard title="House System" subtitle="School houses for inter-house activities — add, edit, or delete houses freely" theme={theme}>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
-          {houses.map((h, i) => (
-            <div key={i} className={`p-3 rounded-xl ${theme.secondaryBg} relative`}>
-              {/* Delete button */}
-              <button
-                onClick={() => setHouses(p => p.filter((_, idx) => idx !== i))}
-                className="absolute top-2 right-2 w-5 h-5 flex items-center justify-center rounded-full bg-red-100 hover:bg-red-200 text-red-500 hover:text-red-700 transition-colors">
-                <X size={10} />
-              </button>
-              {/* Color swatch + name */}
-              <div className="flex items-center gap-2 mb-2 pr-5">
-                <div className={`w-7 h-7 rounded-lg ${h.color} shrink-0`} />
-                <input
-                  value={h.name}
-                  onChange={e => { const n = [...houses]; n[i] = { ...n[i], name: e.target.value }; setHouses(n); }}
-                  className={`flex-1 min-w-0 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`}
-                  placeholder="House name" />
+        <TableToolbar label="Houses" count={houses.length} search={houseSearch}
+          onSearch={v => { setHouseSearch(v); setHousePage(1); }} onExport={() => {}} onImport={() => {}} theme={theme} />
+        {(() => {
+          const filtered = houses.filter((h, _i) => h.name.toLowerCase().includes(houseSearch.toLowerCase()) || h.mascot.toLowerCase().includes(houseSearch.toLowerCase()));
+          const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+          const safePage = Math.min(housePage, totalPages);
+          const paged = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+          return (
+            <>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-2">
+                {paged.map((h) => {
+                  const i = houses.indexOf(h);
+                  const isEnabled = houseEnabled[i] !== false;
+                  return (
+                    <div key={i} className={`p-3 rounded-xl ${theme.secondaryBg} relative ${!isEnabled ? 'opacity-50' : ''}`}>
+                      <button onClick={() => setHouses(p => p.filter((_, idx) => idx !== i))}
+                        className="absolute top-2 right-2 w-5 h-5 flex items-center justify-center rounded-full bg-red-100 hover:bg-red-200 text-red-500 hover:text-red-700 transition-colors">
+                        <Trash2 size={10} />
+                      </button>
+                      <div className="flex items-center gap-2 mb-2 pr-5">
+                        <div className={`w-7 h-7 rounded-lg ${h.color} shrink-0`} />
+                        <input value={h.name} onChange={e => { const n = [...houses]; n[i] = { ...n[i], name: e.target.value }; setHouses(n); }}
+                          className={`flex-1 min-w-0 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} placeholder="House name" />
+                      </div>
+                      <div className="mb-2">
+                        <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Color</p>
+                        <select value={h.color} onChange={e => { const n = [...houses]; n[i] = { ...n[i], color: e.target.value }; setHouses(n); }}
+                          className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}>
+                          {houseColorOptions.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                        </select>
+                      </div>
+                      <div className="mb-2">
+                        <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Mascot</p>
+                        <input value={h.mascot} onChange={e => { const n = [...houses]; n[i] = { ...n[i], mascot: e.target.value }; setHouses(n); }}
+                          className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} placeholder="e.g. Phoenix" />
+                      </div>
+                      <div className="mb-2">
+                        <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Captain</p>
+                        <input value={h.captain} onChange={e => { const n = [...houses]; n[i] = { ...n[i], captain: e.target.value }; setHouses(n); }}
+                          className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} placeholder="Captain name" />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className={`text-[9px] ${theme.iconColor}`}>Enabled</span>
+                        <SSAToggle on={isEnabled} onChange={() => setHouseEnabled(p => ({ ...p, [i]: !isEnabled }))} theme={theme} />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-              {/* Color picker */}
-              <div className="mb-2">
-                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Color</p>
-                <select
-                  value={h.color}
-                  onChange={e => { const n = [...houses]; n[i] = { ...n[i], color: e.target.value }; setHouses(n); }}
-                  className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}>
-                  {houseColorOptions.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-                </select>
-              </div>
-              {/* Mascot */}
-              <div className="mb-2">
-                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Mascot</p>
-                <input
-                  value={h.mascot}
-                  onChange={e => { const n = [...houses]; n[i] = { ...n[i], mascot: e.target.value }; setHouses(n); }}
-                  className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}
-                  placeholder="e.g. Phoenix" />
-              </div>
-              {/* Captain */}
-              <div>
-                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Captain</p>
-                <input
-                  value={h.captain}
-                  onChange={e => { const n = [...houses]; n[i] = { ...n[i], captain: e.target.value }; setHouses(n); }}
-                  className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}
-                  placeholder="Captain name" />
-              </div>
-            </div>
-          ))}
-        </div>
-        <button
-          onClick={() => setHouses(p => [...p, { name: 'New House', color: 'bg-indigo-500', captain: '', mascot: '' }])}
-          className={`flex items-center gap-1.5 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl border ${theme.border}`}>
+              <PaginationBar page={safePage} totalPages={totalPages} onPage={setHousePage} theme={theme} />
+            </>
+          );
+        })()}
+        <button onClick={() => setHouses(p => [...p, { name: 'New House', color: 'bg-indigo-500', captain: '', mascot: '' }])}
+          className={`flex items-center gap-1.5 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl border ${theme.border} mt-2`}>
           <Plus size={12} /> Add House
         </button>
       </SectionCard>
@@ -563,36 +712,54 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
       </SectionCard>
 
       <SectionCard title="Holiday Calendar" subtitle="School holidays, vacations & observances — supports single-day holidays and multi-day vacation ranges" theme={theme}>
-        <div className="space-y-1.5">
-          {holidays.map((h, i) => {
-            const isRange = h.startDate !== h.endDate;
-            return (
-            <div key={i} className={`flex items-center gap-2 p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <div className="flex items-center gap-1">
-                <input type="date" value={h.startDate} onChange={e => { const n = [...holidays]; n[i] = { ...n[i], startDate: e.target.value }; setHolidays(n); }}
-                  className={`w-[120px] px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[11px] font-bold ${theme.highlight} outline-none`} />
-                <span className={`text-[10px] ${theme.iconColor}`}>to</span>
-                <input type="date" value={h.endDate} onChange={e => { const n = [...holidays]; n[i] = { ...n[i], endDate: e.target.value }; setHolidays(n); }}
-                  className={`w-[120px] px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[11px] font-bold ${theme.highlight} outline-none`} />
+        <TableToolbar label="Holidays" count={holidays.length} search={holidaySearch}
+          onSearch={v => { setHolidaySearch(v); setHolidayPage(1); }} onExport={() => {}} onImport={() => {}} theme={theme} />
+        {(() => {
+          const filtered = holidays.map((h, i) => ({ ...h, _i: i })).filter(h => h.name.toLowerCase().includes(holidaySearch.toLowerCase()) || h.type.toLowerCase().includes(holidaySearch.toLowerCase()));
+          const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+          const safePage = Math.min(holidayPage, totalPages);
+          const paged = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+          return (
+            <>
+              <div className="space-y-1.5">
+                {paged.map((h) => {
+                  const i = h._i;
+                  const isRange = h.startDate !== h.endDate;
+                  const isEnabled = holidayEnabled[i] !== false;
+                  return (
+                    <div key={i} className={`flex items-center gap-2 p-2.5 rounded-xl ${theme.secondaryBg} ${!isEnabled ? 'opacity-50' : ''}`}>
+                      <div className="flex items-center gap-1">
+                        <input type="date" value={h.startDate} onChange={e => { const n = [...holidays]; n[i] = { ...n[i], startDate: e.target.value }; setHolidays(n); }}
+                          className={`w-[120px] px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[11px] font-bold ${theme.highlight} outline-none`} />
+                        <span className={`text-[10px] ${theme.iconColor}`}>to</span>
+                        <input type="date" value={h.endDate} onChange={e => { const n = [...holidays]; n[i] = { ...n[i], endDate: e.target.value }; setHolidays(n); }}
+                          className={`w-[120px] px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[11px] font-bold ${theme.highlight} outline-none`} />
+                      </div>
+                      {isRange && <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${theme.primary} text-white`}>
+                        {Math.ceil((new Date(h.endDate).getTime() - new Date(h.startDate).getTime()) / 86400000) + 1}d
+                      </span>}
+                      <input value={h.name} onChange={e => { const n = [...holidays]; n[i] = { ...n[i], name: e.target.value }; setHolidays(n); }}
+                        className={`flex-1 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} placeholder="Holiday / Vacation name" />
+                      <select value={h.type} onChange={e => { const n = [...holidays]; n[i] = { ...n[i], type: e.target.value }; setHolidays(n); }}
+                        className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] font-bold ${theme.highlight}`}>
+                        <option value="National">National</option>
+                        <option value="Festival">Festival</option>
+                        <option value="School-specific">School-specific</option>
+                        <option value="Weather/Emergency">Weather/Emergency</option>
+                        <option value="Vacation">Vacation</option>
+                        <option value="Other">Other</option>
+                      </select>
+                      <SSAToggle on={isEnabled} onChange={() => setHolidayEnabled(p => ({ ...p, [i]: !isEnabled }))} theme={theme} />
+                      <button onClick={() => setHolidays(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><Trash2 size={12} /></button>
+                    </div>
+                  );
+                })}
               </div>
-              {isRange && <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${theme.primary} text-white`}>
-                {Math.ceil((new Date(h.endDate).getTime() - new Date(h.startDate).getTime()) / 86400000) + 1}d
-              </span>}
-              <input value={h.name} onChange={e => { const n = [...holidays]; n[i] = { ...n[i], name: e.target.value }; setHolidays(n); }}
-                className={`flex-1 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} placeholder="Holiday / Vacation name" />
-              <select value={h.type} onChange={e => { const n = [...holidays]; n[i] = { ...n[i], type: e.target.value }; setHolidays(n); }}
-                className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] font-bold ${theme.highlight}`}>
-                <option value="National">National</option>
-                <option value="Festival">Festival</option>
-                <option value="School-specific">School-specific</option>
-                <option value="Weather/Emergency">Weather/Emergency</option>
-                <option value="Vacation">Vacation</option>
-                <option value="Other">Other</option>
-              </select>
-              <button onClick={() => setHolidays(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={12} /></button>
-            </div>
-            );
-          })}
+              <PaginationBar page={safePage} totalPages={totalPages} onPage={setHolidayPage} theme={theme} />
+            </>
+          );
+        })()}
+        <div className="mt-2">
           <button onClick={() => setHolidays(p => [...p, { startDate: '', endDate: '', name: '', type: 'School' }])}
             className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
             <Plus size={12} /> Add Holiday / Vacation
@@ -621,24 +788,42 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
 
       <div className="grid grid-cols-2 gap-4">
         <SectionCard title="Terms / Semesters" subtitle="Define academic terms within the year" theme={theme}>
-          <div className="space-y-2">
-            {terms.map((t, i) => (
-              <div key={i} className={`flex items-center gap-2 p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <input value={t.name} onChange={e => { const n = [...terms]; n[i] = { ...n[i], name: e.target.value }; setTerms(n); }}
-                  className={`w-20 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} />
-                <input type="date" value={t.start} onChange={e => { const n = [...terms]; n[i] = { ...n[i], start: e.target.value }; setTerms(n); }}
-                  className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
-                <span className={`text-[10px] ${theme.iconColor}`}>to</span>
-                <input type="date" value={t.end} onChange={e => { const n = [...terms]; n[i] = { ...n[i], end: e.target.value }; setTerms(n); }}
-                  className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
-                <button onClick={() => setTerms(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={12} /></button>
-              </div>
-            ))}
-            <button onClick={() => setTerms(p => [...p, { name: `Term ${p.length + 1}`, start: '', end: '' }])}
-              className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
-              <Plus size={12} /> Add Term
-            </button>
-          </div>
+          <TableToolbar label="Terms" count={terms.length} search={termSearch}
+            onSearch={v => { setTermSearch(v); setTermPage(1); }} onExport={() => {}} onImport={() => {}} theme={theme} />
+          {(() => {
+            const filtered = terms.map((t, i) => ({ ...t, _i: i })).filter(t => t.name.toLowerCase().includes(termSearch.toLowerCase()));
+            const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+            const safePage = Math.min(termPage, totalPages);
+            const paged = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+            return (
+              <>
+                <div className="space-y-2">
+                  {paged.map((t) => {
+                    const i = t._i;
+                    const isEnabled = termEnabled[i] !== false;
+                    return (
+                      <div key={i} className={`flex items-center gap-2 p-2.5 rounded-xl ${theme.secondaryBg} ${!isEnabled ? 'opacity-50' : ''}`}>
+                        <input value={t.name} onChange={e => { const n = [...terms]; n[i] = { ...n[i], name: e.target.value }; setTerms(n); }}
+                          className={`w-20 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} />
+                        <input type="date" value={t.start} onChange={e => { const n = [...terms]; n[i] = { ...n[i], start: e.target.value }; setTerms(n); }}
+                          className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                        <span className={`text-[10px] ${theme.iconColor}`}>to</span>
+                        <input type="date" value={t.end} onChange={e => { const n = [...terms]; n[i] = { ...n[i], end: e.target.value }; setTerms(n); }}
+                          className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                        <SSAToggle on={isEnabled} onChange={() => setTermEnabled(p => ({ ...p, [i]: !isEnabled }))} theme={theme} />
+                        <button onClick={() => setTerms(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><Trash2 size={12} /></button>
+                      </div>
+                    );
+                  })}
+                </div>
+                <PaginationBar page={safePage} totalPages={totalPages} onPage={setTermPage} theme={theme} />
+              </>
+            );
+          })()}
+          <button onClick={() => setTerms(p => [...p, { name: `Term ${p.length + 1}`, start: '', end: '' }])}
+            className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl mt-2`}>
+            <Plus size={12} /> Add Term
+          </button>
         </SectionCard>
 
         <SectionCard title="Academic Year History" subtitle="Past academic years and rollover status" theme={theme}>
@@ -661,16 +846,49 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
 
       <SectionCard title="Demographics Configuration" subtitle="Religion, caste category, and mother tongue options for student profiles" theme={theme}>
         <div className="grid grid-cols-3 gap-4">
+          {/* ─── Religions Column ─── */}
           <div>
-            <p className={`text-[10px] font-bold ${theme.iconColor} mb-2 uppercase tracking-wide`}>Religions</p>
-            <div className="space-y-1">
-              {Object.entries(religions).map(([r, active]) => (
-                <div key={r} className={`flex items-center justify-between p-2 rounded-lg ${theme.secondaryBg}`}>
-                  <span className={`text-xs ${theme.highlight}`}>{r}</span>
-                  <SSAToggle on={active} onChange={() => setReligions(p => ({ ...p, [r]: !p[r] }))} theme={theme} />
-                </div>
-              ))}
-            </div>
+            {(() => {
+              const entries = Object.entries(religions);
+              const filtered = entries.filter(([r]) => r.toLowerCase().includes(demoSearch.religion.toLowerCase()));
+              const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+              const safePage = Math.min(demoPage.religion, totalPages);
+              const paged = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+              return (
+                <>
+                  <TableToolbar label="Religions" count={entries.length} search={demoSearch.religion}
+                    onSearch={v => setDemoSearch(p => ({ ...p, religion: v }))} onExport={() => {}} onImport={() => {}} theme={theme} />
+                  <div className="space-y-1">
+                    {paged.map(([r, active]) => (
+                      <div key={r} className={`flex items-center justify-between p-2 rounded-lg ${theme.secondaryBg} ${!active ? 'opacity-50' : ''}`}>
+                        {demoEdit?.type === 'religion' && demoEdit.key === r ? (
+                          <div className="flex items-center gap-1 flex-1">
+                            <input value={demoEdit.value} onChange={e => setDemoEdit(p => p ? { ...p, value: e.target.value } : p)}
+                              className={`flex-1 px-1.5 py-0.5 rounded border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} autoFocus />
+                            <button onClick={() => {
+                              if (demoEdit.value.trim() && demoEdit.value !== r) {
+                                setReligions(p => { const n: Record<string, boolean> = {}; for (const [k, v] of Object.entries(p)) { n[k === r ? demoEdit.value.trim() : k] = v; } return n; });
+                              }
+                              setDemoEdit(null);
+                            }} className="text-emerald-500 hover:text-emerald-700"><Check size={12} /></button>
+                          </div>
+                        ) : (
+                          <>
+                            <span className={`text-xs ${theme.highlight}`}>{r}</span>
+                            <div className="flex items-center gap-1.5">
+                              <button onClick={() => setDemoEdit({ type: 'religion', key: r, value: r })} className={`${theme.iconColor} hover:text-blue-500`}><Pencil size={10} /></button>
+                              <SSAToggle on={active} onChange={() => setReligions(p => ({ ...p, [r]: !p[r] }))} theme={theme} />
+                              <button onClick={() => setReligions(p => { const n = { ...p }; delete n[r]; return n; })} className="text-red-400 hover:text-red-600"><Trash2 size={10} /></button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <PaginationBar page={safePage} totalPages={totalPages} onPage={p => setDemoPage(prev => ({ ...prev, religion: p }))} theme={theme} />
+                </>
+              );
+            })()}
             <div className="flex gap-1 mt-2">
               <input value={newReligion} onChange={e => setNewReligion(e.target.value)} placeholder="Add..."
                 className={`flex-1 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
@@ -678,16 +896,49 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
                 className={`px-2 py-1 rounded-lg ${theme.primary} text-white text-xs font-bold`}><Plus size={10} /></button>
             </div>
           </div>
+          {/* ─── Categories Column ─── */}
           <div>
-            <p className={`text-[10px] font-bold ${theme.iconColor} mb-2 uppercase tracking-wide`}>Categories</p>
-            <div className="space-y-1">
-              {Object.entries(categories).map(([c, active]) => (
-                <div key={c} className={`flex items-center justify-between p-2 rounded-lg ${theme.secondaryBg}`}>
-                  <span className={`text-xs ${theme.highlight}`}>{c}</span>
-                  <SSAToggle on={active} onChange={() => setCategories(p => ({ ...p, [c]: !p[c] }))} theme={theme} />
-                </div>
-              ))}
-            </div>
+            {(() => {
+              const entries = Object.entries(categories);
+              const filtered = entries.filter(([c]) => c.toLowerCase().includes(demoSearch.category.toLowerCase()));
+              const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+              const safePage = Math.min(demoPage.category, totalPages);
+              const paged = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+              return (
+                <>
+                  <TableToolbar label="Categories" count={entries.length} search={demoSearch.category}
+                    onSearch={v => setDemoSearch(p => ({ ...p, category: v }))} onExport={() => {}} onImport={() => {}} theme={theme} />
+                  <div className="space-y-1">
+                    {paged.map(([c, active]) => (
+                      <div key={c} className={`flex items-center justify-between p-2 rounded-lg ${theme.secondaryBg} ${!active ? 'opacity-50' : ''}`}>
+                        {demoEdit?.type === 'category' && demoEdit.key === c ? (
+                          <div className="flex items-center gap-1 flex-1">
+                            <input value={demoEdit.value} onChange={e => setDemoEdit(p => p ? { ...p, value: e.target.value } : p)}
+                              className={`flex-1 px-1.5 py-0.5 rounded border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} autoFocus />
+                            <button onClick={() => {
+                              if (demoEdit.value.trim() && demoEdit.value !== c) {
+                                setCategories(p => { const n: Record<string, boolean> = {}; for (const [k, v] of Object.entries(p)) { n[k === c ? demoEdit.value.trim() : k] = v; } return n; });
+                              }
+                              setDemoEdit(null);
+                            }} className="text-emerald-500 hover:text-emerald-700"><Check size={12} /></button>
+                          </div>
+                        ) : (
+                          <>
+                            <span className={`text-xs ${theme.highlight}`}>{c}</span>
+                            <div className="flex items-center gap-1.5">
+                              <button onClick={() => setDemoEdit({ type: 'category', key: c, value: c })} className={`${theme.iconColor} hover:text-blue-500`}><Pencil size={10} /></button>
+                              <SSAToggle on={active} onChange={() => setCategories(p => ({ ...p, [c]: !p[c] }))} theme={theme} />
+                              <button onClick={() => setCategories(p => { const n = { ...p }; delete n[c]; return n; })} className="text-red-400 hover:text-red-600"><Trash2 size={10} /></button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <PaginationBar page={safePage} totalPages={totalPages} onPage={p => setDemoPage(prev => ({ ...prev, category: p }))} theme={theme} />
+                </>
+              );
+            })()}
             <div className="flex gap-1 mt-2">
               <input value={newCategory} onChange={e => setNewCategory(e.target.value)} placeholder="Add..."
                 className={`flex-1 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
@@ -695,16 +946,49 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
                 className={`px-2 py-1 rounded-lg ${theme.primary} text-white text-xs font-bold`}><Plus size={10} /></button>
             </div>
           </div>
+          {/* ─── Languages Column ─── */}
           <div>
-            <p className={`text-[10px] font-bold ${theme.iconColor} mb-2 uppercase tracking-wide`}>Mother Tongue / Languages</p>
-            <div className="space-y-1">
-              {Object.entries(languages).map(([l, active]) => (
-                <div key={l} className={`flex items-center justify-between p-2 rounded-lg ${theme.secondaryBg}`}>
-                  <span className={`text-xs ${theme.highlight}`}>{l}</span>
-                  <SSAToggle on={active} onChange={() => setLanguages(p => ({ ...p, [l]: !p[l] }))} theme={theme} />
-                </div>
-              ))}
-            </div>
+            {(() => {
+              const entries = Object.entries(languages);
+              const filtered = entries.filter(([l]) => l.toLowerCase().includes(demoSearch.language.toLowerCase()));
+              const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+              const safePage = Math.min(demoPage.language, totalPages);
+              const paged = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+              return (
+                <>
+                  <TableToolbar label="Languages" count={entries.length} search={demoSearch.language}
+                    onSearch={v => setDemoSearch(p => ({ ...p, language: v }))} onExport={() => {}} onImport={() => {}} theme={theme} />
+                  <div className="space-y-1">
+                    {paged.map(([l, active]) => (
+                      <div key={l} className={`flex items-center justify-between p-2 rounded-lg ${theme.secondaryBg} ${!active ? 'opacity-50' : ''}`}>
+                        {demoEdit?.type === 'language' && demoEdit.key === l ? (
+                          <div className="flex items-center gap-1 flex-1">
+                            <input value={demoEdit.value} onChange={e => setDemoEdit(p => p ? { ...p, value: e.target.value } : p)}
+                              className={`flex-1 px-1.5 py-0.5 rounded border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} autoFocus />
+                            <button onClick={() => {
+                              if (demoEdit.value.trim() && demoEdit.value !== l) {
+                                setLanguages(p => { const n: Record<string, boolean> = {}; for (const [k, v] of Object.entries(p)) { n[k === l ? demoEdit.value.trim() : k] = v; } return n; });
+                              }
+                              setDemoEdit(null);
+                            }} className="text-emerald-500 hover:text-emerald-700"><Check size={12} /></button>
+                          </div>
+                        ) : (
+                          <>
+                            <span className={`text-xs ${theme.highlight}`}>{l}</span>
+                            <div className="flex items-center gap-1.5">
+                              <button onClick={() => setDemoEdit({ type: 'language', key: l, value: l })} className={`${theme.iconColor} hover:text-blue-500`}><Pencil size={10} /></button>
+                              <SSAToggle on={active} onChange={() => setLanguages(p => ({ ...p, [l]: !p[l] }))} theme={theme} />
+                              <button onClick={() => setLanguages(p => { const n = { ...p }; delete n[l]; return n; })} className="text-red-400 hover:text-red-600"><Trash2 size={10} /></button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <PaginationBar page={safePage} totalPages={totalPages} onPage={p => setDemoPage(prev => ({ ...prev, language: p }))} theme={theme} />
+                </>
+              );
+            })()}
             <div className="flex gap-1 mt-2">
               <input value={newLanguage} onChange={e => setNewLanguage(e.target.value)} placeholder="Add..."
                 className={`flex-1 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
@@ -717,41 +1001,63 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
 
       {/* ─── Gap #22: Streams Configuration (Class 11-12) — Enhanced ─── */}
       <SectionCard title="Streams Configuration (Class 11-12)" subtitle="Define streams with core & optional subjects and seat limits for higher secondary" theme={theme}>
-        <div className="overflow-x-auto mb-3">
-          <table className="w-full text-xs">
-            <thead><tr className={theme.secondaryBg}>
-              {['Stream Name', 'Core Subjects', 'Optional Subjects', 'Max Seats', ''].map(h => (
-                <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
-              ))}
-            </tr></thead>
-            <tbody>
-              {streamConfig.map((s, i) => (
-                <tr key={i} className={`border-t ${theme.border}`}>
-                  <td className={`px-3 py-2`}>
-                    <input value={s.name} onChange={e => { const n = [...streamConfig]; n[i] = { ...n[i], name: e.target.value }; setStreamConfig(n); }}
-                      className={`w-24 px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} />
-                  </td>
-                  <td className={`px-3 py-2`}>
-                    <input value={s.core} onChange={e => { const n = [...streamConfig]; n[i] = { ...n[i], core: e.target.value }; setStreamConfig(n); }}
-                      className={`w-full px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight} outline-none`} />
-                  </td>
-                  <td className={`px-3 py-2`}>
-                    <input value={s.optional} onChange={e => { const n = [...streamConfig]; n[i] = { ...n[i], optional: e.target.value }; setStreamConfig(n); }}
-                      className={`w-full px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.iconColor} outline-none`} />
-                  </td>
-                  <td className={`px-3 py-2`}>
-                    <input type="number" value={s.maxSeats} onChange={e => { const n = [...streamConfig]; n[i] = { ...n[i], maxSeats: e.target.value }; setStreamConfig(n); }}
-                      className={`w-16 px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none`} />
-                  </td>
-                  <td className="px-3 py-2">
-                    <button onClick={() => setStreamConfig(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={12} /></button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div className="flex items-center justify-between">
+        <TableToolbar label="Streams" count={streamConfig.length} search={streamSearch}
+          onSearch={v => { setStreamSearch(v); setStreamPage(1); }} onExport={() => {}} onImport={() => {}} theme={theme} />
+        {(() => {
+          const filtered = streamConfig.map((s, i) => ({ ...s, _i: i })).filter(s => s.name.toLowerCase().includes(streamSearch.toLowerCase()) || s.core.toLowerCase().includes(streamSearch.toLowerCase()));
+          const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+          const safePage = Math.min(streamPage, totalPages);
+          const paged = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+          return (
+            <>
+              <div className="overflow-x-auto mb-2">
+                <table className="w-full text-xs">
+                  <thead><tr className={theme.secondaryBg}>
+                    {['Stream Name', 'Core Subjects', 'Optional Subjects', 'Max Seats', 'Enabled', ''].map(h => (
+                      <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
+                    ))}
+                  </tr></thead>
+                  <tbody>
+                    {paged.map((s) => {
+                      const i = s._i;
+                      const isEnabled = streams[i]?.enabled !== false;
+                      return (
+                        <tr key={i} className={`border-t ${theme.border} ${!isEnabled ? 'opacity-50' : ''}`}>
+                          <td className="px-3 py-2">
+                            <input value={s.name} onChange={e => { const n = [...streamConfig]; n[i] = { ...n[i], name: e.target.value }; setStreamConfig(n); }}
+                              className={`w-24 px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} />
+                          </td>
+                          <td className="px-3 py-2">
+                            <input value={s.core} onChange={e => { const n = [...streamConfig]; n[i] = { ...n[i], core: e.target.value }; setStreamConfig(n); }}
+                              className={`w-full px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight} outline-none`} />
+                          </td>
+                          <td className="px-3 py-2">
+                            <input value={s.optional} onChange={e => { const n = [...streamConfig]; n[i] = { ...n[i], optional: e.target.value }; setStreamConfig(n); }}
+                              className={`w-full px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.iconColor} outline-none`} />
+                          </td>
+                          <td className="px-3 py-2">
+                            <input type="number" value={s.maxSeats} onChange={e => { const n = [...streamConfig]; n[i] = { ...n[i], maxSeats: e.target.value }; setStreamConfig(n); }}
+                              className={`w-16 px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none`} />
+                          </td>
+                          <td className="px-3 py-2">
+                            <SSAToggle on={isEnabled} onChange={() => {
+                              const n = [...streams]; if (n[i]) n[i] = { ...n[i], enabled: !isEnabled }; setStreams(n);
+                            }} theme={theme} />
+                          </td>
+                          <td className="px-3 py-2">
+                            <button onClick={() => setStreamConfig(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><Trash2 size={12} /></button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <PaginationBar page={safePage} totalPages={totalPages} onPage={setStreamPage} theme={theme} />
+            </>
+          );
+        })()}
+        <div className="flex items-center justify-between mt-2">
           <button onClick={() => setStreamConfig(p => [...p, { name: '', core: '', optional: '', maxSeats: '40' }])}
             className={`flex items-center gap-1.5 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl border ${theme.border}`}>
             <Plus size={12} /> Add Stream
@@ -802,39 +1108,98 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
         <p className={`text-[10px] ${theme.iconColor} mt-2 italic`}>Note: When a grade reaches max strength and admission is closed, new applicants are automatically added to the waitlist.</p>
       </SectionCard>
 
-      {/* ─── Gap #17: Subject-Teacher Allocation ─── */}
+      {/* ─── Gap #17: Subject-Teacher Allocation (B9 — interactive) ─── */}
       <SectionCard title="Subject-Teacher Allocation" subtitle="Map subjects to teachers per grade and section with period counts" theme={theme}>
-        <div className="overflow-x-auto mb-3">
-          <table className="w-full text-xs">
-            <thead><tr className={theme.secondaryBg}>
-              {['Grade', 'Section', 'Subject', 'Assigned Teacher', 'Periods/Week'].map(h => (
-                <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
-              ))}
-            </tr></thead>
-            <tbody>
-              {subjectTeacherMap.map((row, i) => (
-                <tr key={i} className={`border-t ${theme.border}`}>
-                  <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{row.grade}</td>
-                  <td className={`px-3 py-2 ${theme.iconColor}`}>{row.section}</td>
-                  <td className={`px-3 py-2 ${theme.highlight}`}>{row.subject}</td>
-                  <td className="px-3 py-2">
-                    <select defaultValue={row.teacher}
-                      className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight} outline-none`}>
-                      {mockTeachers.map(t => <option key={t} value={t}>{t}</option>)}
-                    </select>
-                  </td>
-                  <td className={`px-3 py-2 ${theme.iconColor}`}>{row.periods}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <button className={`flex items-center gap-1.5 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl border ${theme.border}`}>
+        <TableToolbar label="Mappings" count={subjectTeacherMap.length} search={stmSearch}
+          onSearch={v => { setStmSearch(v); setStmPage(1); }} onExport={() => {}} onImport={() => {}} theme={theme} />
+        {(() => {
+          const filtered = subjectTeacherMap.map((r, i) => ({ ...r, _i: i })).filter(r =>
+            r.grade.toLowerCase().includes(stmSearch.toLowerCase()) ||
+            r.subject.toLowerCase().includes(stmSearch.toLowerCase()) ||
+            r.teacher.toLowerCase().includes(stmSearch.toLowerCase())
+          );
+          const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+          const safePage = Math.min(stmPage, totalPages);
+          const paged = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+          return (
+            <>
+              <div className="overflow-x-auto mb-2">
+                <table className="w-full text-xs">
+                  <thead><tr className={theme.secondaryBg}>
+                    {['Grade', 'Section', 'Subject', 'Assigned Teacher', 'Periods/Week', 'Actions'].map(h => (
+                      <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
+                    ))}
+                  </tr></thead>
+                  <tbody>
+                    {paged.map((row) => {
+                      const i = row._i;
+                      const isEditing = stmEditIdx === i;
+                      return (
+                        <tr key={i} className={`border-t ${theme.border}`}>
+                          {isEditing ? (
+                            <>
+                              <td className="px-3 py-2">
+                                <select value={stmEditRow.grade} onChange={e => setStmEditRow(p => ({ ...p, grade: e.target.value }))}
+                                  className={`px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight} outline-none`}>
+                                  {allGrades.map(g => <option key={g} value={g}>{g}</option>)}
+                                </select>
+                              </td>
+                              <td className="px-3 py-2">
+                                <input value={stmEditRow.section} onChange={e => setStmEditRow(p => ({ ...p, section: e.target.value }))}
+                                  className={`w-12 px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight} outline-none`} />
+                              </td>
+                              <td className="px-3 py-2">
+                                <input value={stmEditRow.subject} onChange={e => setStmEditRow(p => ({ ...p, subject: e.target.value }))}
+                                  className={`w-24 px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight} outline-none`} />
+                              </td>
+                              <td className="px-3 py-2">
+                                <select value={stmEditRow.teacher} onChange={e => setStmEditRow(p => ({ ...p, teacher: e.target.value }))}
+                                  className={`px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight} outline-none`}>
+                                  {mockTeachers.map(t => <option key={t} value={t}>{t}</option>)}
+                                </select>
+                              </td>
+                              <td className="px-3 py-2">
+                                <input type="number" value={stmEditRow.periods} onChange={e => setStmEditRow(p => ({ ...p, periods: e.target.value }))}
+                                  className={`w-12 px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] text-center ${theme.highlight} outline-none`} />
+                              </td>
+                              <td className="px-3 py-2">
+                                <button onClick={() => { const n = [...subjectTeacherMap]; n[i] = { ...stmEditRow }; setSubjectTeacherMap(n); setStmEditIdx(null); }}
+                                  className="text-emerald-500 hover:text-emerald-700 mr-1"><Check size={12} /></button>
+                                <button onClick={() => setStmEditIdx(null)} className="text-gray-400 hover:text-gray-600"><X size={12} /></button>
+                              </td>
+                            </>
+                          ) : (
+                            <>
+                              <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{row.grade}</td>
+                              <td className={`px-3 py-2 ${theme.iconColor}`}>{row.section}</td>
+                              <td className={`px-3 py-2 ${theme.highlight}`}>{row.subject}</td>
+                              <td className={`px-3 py-2 ${theme.highlight}`}>{row.teacher}</td>
+                              <td className={`px-3 py-2 ${theme.iconColor}`}>{row.periods}</td>
+                              <td className="px-3 py-2 flex items-center gap-1">
+                                <button onClick={() => { setStmEditIdx(i); setStmEditRow({ ...row }); }}
+                                  className={`${theme.iconColor} hover:text-blue-500`}><Pencil size={12} /></button>
+                                <button onClick={() => setSubjectTeacherMap(p => p.filter((_, j) => j !== i))}
+                                  className="text-red-400 hover:text-red-600"><Trash2 size={12} /></button>
+                              </td>
+                            </>
+                          )}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <PaginationBar page={safePage} totalPages={totalPages} onPage={setStmPage} theme={theme} />
+            </>
+          );
+        })()}
+        <button onClick={() => setSubjectTeacherMap(p => [...p, { grade: 'Grade 1', section: 'A', subject: '', teacher: mockTeachers[0], periods: '5' }])}
+          className={`flex items-center gap-1.5 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl border ${theme.border} mt-2`}>
           <Plus size={12} /> Add Allocation
         </button>
       </SectionCard>
 
-      {/* ─── B) Class Capacity & Waitlist ─── */}
+      {/* ─── B) Class Capacity & Waitlist (B9 — editable) ─── */}
       <SectionCard title="Class Capacity & Waitlist" subtitle="Maximum strength per section and waitlist management" theme={theme}>
         <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg} mb-3`}>
           <div>
@@ -849,33 +1214,96 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
             <SelectField options={['Automatic', 'Manual Approval', 'Disabled']} value={waitlistAutoPromote} onChange={setWaitlistAutoPromote} theme={theme} />
           </div>
         )}
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead><tr className={theme.secondaryBg}>
-              {['Grade', 'Sections', 'Max / Section', 'Total Capacity', 'Current', 'Waitlisted'].map(h => (
-                <th key={h} className={`text-left px-2 py-2 font-bold ${theme.iconColor}`}>{h}</th>
-              ))}
-            </tr></thead>
-            <tbody>
-              {classCapacity.map((c, i) => (
-                <tr key={i} className={`border-t ${theme.border}`}>
-                  <td className={`px-2 py-1.5 font-bold ${theme.highlight}`}>{c.grade}</td>
-                  <td className={`px-2 py-1.5 ${theme.iconColor}`}>{c.sections}</td>
-                  <td className={`px-2 py-1.5 ${theme.iconColor}`}>{c.maxPerSection}</td>
-                  <td className={`px-2 py-1.5 ${theme.highlight}`}>{c.total}</td>
-                  <td className={`px-2 py-1.5 ${c.current >= c.total ? 'text-red-600 font-bold' : theme.iconColor}`}>{c.current}</td>
-                  <td className="px-2 py-1.5">
-                    {c.waitlisted > 0 ? (
-                      <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold">{c.waitlisted}</span>
-                    ) : (
-                      <span className={`text-[10px] ${theme.iconColor}`}>--</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <TableToolbar label="Class Capacity" count={classCapacity.length} search={capSearch}
+          onSearch={v => { setCapSearch(v); setCapPage(1); }} onExport={() => {}} onImport={() => {}} theme={theme} />
+        {(() => {
+          const filtered = classCapacity.map((c, i) => ({ ...c, _i: i })).filter(c => c.grade.toLowerCase().includes(capSearch.toLowerCase()));
+          const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+          const safePage = Math.min(capPage, totalPages);
+          const paged = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+          return (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead><tr className={theme.secondaryBg}>
+                    {['Grade', 'Sections', 'Max / Section', 'Total Capacity', 'Current', 'Waitlisted', 'Actions'].map(h => (
+                      <th key={h} className={`text-left px-2 py-2 font-bold ${theme.iconColor}`}>{h}</th>
+                    ))}
+                  </tr></thead>
+                  <tbody>
+                    {paged.map((c) => {
+                      const i = c._i;
+                      const isEditing = capEditIdx === i;
+                      return (
+                        <tr key={i} className={`border-t ${theme.border}`}>
+                          {isEditing ? (
+                            <>
+                              <td className="px-2 py-1.5">
+                                <input value={capEditRow.grade} onChange={e => setCapEditRow(p => ({ ...p, grade: e.target.value }))}
+                                  className={`w-20 px-1 py-0.5 rounded border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} />
+                              </td>
+                              <td className="px-2 py-1.5">
+                                <input type="number" value={capEditRow.sections} onChange={e => setCapEditRow(p => ({ ...p, sections: parseInt(e.target.value) || 0 }))}
+                                  className={`w-12 px-1 py-0.5 rounded border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none`} />
+                              </td>
+                              <td className="px-2 py-1.5">
+                                <input type="number" value={capEditRow.maxPerSection} onChange={e => setCapEditRow(p => ({ ...p, maxPerSection: parseInt(e.target.value) || 0 }))}
+                                  className={`w-12 px-1 py-0.5 rounded border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none`} />
+                              </td>
+                              <td className={`px-2 py-1.5 ${theme.highlight}`}>{capEditRow.sections * capEditRow.maxPerSection}</td>
+                              <td className="px-2 py-1.5">
+                                <input type="number" value={capEditRow.current} onChange={e => setCapEditRow(p => ({ ...p, current: parseInt(e.target.value) || 0 }))}
+                                  className={`w-12 px-1 py-0.5 rounded border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none`} />
+                              </td>
+                              <td className="px-2 py-1.5">
+                                <input type="number" value={capEditRow.waitlisted} onChange={e => setCapEditRow(p => ({ ...p, waitlisted: parseInt(e.target.value) || 0 }))}
+                                  className={`w-12 px-1 py-0.5 rounded border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none`} />
+                              </td>
+                              <td className="px-2 py-1.5">
+                                <button onClick={() => {
+                                  const n = [...classCapacity];
+                                  n[i] = { ...capEditRow, total: capEditRow.sections * capEditRow.maxPerSection };
+                                  setClassCapacity(n); setCapEditIdx(null);
+                                }} className="text-emerald-500 hover:text-emerald-700 mr-1"><Check size={12} /></button>
+                                <button onClick={() => setCapEditIdx(null)} className="text-gray-400 hover:text-gray-600"><X size={12} /></button>
+                              </td>
+                            </>
+                          ) : (
+                            <>
+                              <td className={`px-2 py-1.5 font-bold ${theme.highlight}`}>{c.grade}</td>
+                              <td className={`px-2 py-1.5 ${theme.iconColor}`}>{c.sections}</td>
+                              <td className={`px-2 py-1.5 ${theme.iconColor}`}>{c.maxPerSection}</td>
+                              <td className={`px-2 py-1.5 ${theme.highlight}`}>{c.total}</td>
+                              <td className={`px-2 py-1.5 ${c.current >= c.total ? 'text-red-600 font-bold' : theme.iconColor}`}>{c.current}</td>
+                              <td className="px-2 py-1.5">
+                                {c.waitlisted > 0 ? (
+                                  <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold">{c.waitlisted}</span>
+                                ) : (
+                                  <span className={`text-[10px] ${theme.iconColor}`}>--</span>
+                                )}
+                              </td>
+                              <td className="px-2 py-1.5 flex items-center gap-1">
+                                <button onClick={() => { setCapEditIdx(i); setCapEditRow({ ...c }); }}
+                                  className={`${theme.iconColor} hover:text-blue-500`}><Pencil size={12} /></button>
+                                <button onClick={() => setClassCapacity(p => p.filter((_, j) => j !== i))}
+                                  className="text-red-400 hover:text-red-600"><Trash2 size={12} /></button>
+                              </td>
+                            </>
+                          )}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <PaginationBar page={safePage} totalPages={totalPages} onPage={setCapPage} theme={theme} />
+            </>
+          );
+        })()}
+        <button onClick={() => setClassCapacity(p => [...p, { grade: 'New Grade', sections: 1, maxPerSection: 40, total: 40, current: 0, waitlisted: 0 }])}
+          className={`flex items-center gap-1.5 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl border ${theme.border} mt-2`}>
+          <Plus size={12} /> Add Class Row
+        </button>
       </SectionCard>
 
       {/* ─── C) Year Rollover Wizard ─── */}

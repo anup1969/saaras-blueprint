@@ -1,8 +1,10 @@
 'use client';
 import React, { useState } from 'react';
-import { Lock, Download, ShieldAlert, Monitor, RotateCcw, LogOut } from 'lucide-react';
+import { Lock, Download, ShieldAlert, Monitor, RotateCcw, LogOut, ChevronLeft, ChevronRight, AlertTriangle, CheckCircle, X } from 'lucide-react';
 import { InputField, SelectField, SSAToggle, SectionCard } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
+
+const PAGE_SIZE = 8;
 
 export default function AuditLogModule({ theme }: { theme: Theme }) {
   const [dateFrom, setDateFrom] = useState('');
@@ -11,6 +13,8 @@ export default function AuditLogModule({ theme }: { theme: Theme }) {
   const [moduleFilter, setModuleFilter] = useState('All Modules');
   const [searchQuery, setSearchQuery] = useState('');
   const [ipFilter, setIpFilter] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+
   const [logs] = useState([
     { date: '05 Mar 2026 10:30', action: 'Updated', module: 'Fees', details: 'Fee Template changed to Component-Based', user: 'Piush Thakker', ip: '103.45.67.89' },
     { date: '05 Mar 2026 09:15', action: 'Created', module: 'Fees', details: 'Added Term Master: Term 1, Term 2, Term 3', user: 'Piush Thakker', ip: '103.45.67.89' },
@@ -40,6 +44,15 @@ export default function AuditLogModule({ theme }: { theme: Theme }) {
     if (ipFilter && !log.ip.includes(ipFilter)) return false;
     return true;
   });
+
+  // Reset to page 1 when filters change
+  const totalFiltered = filteredLogs.length;
+  const totalPages = Math.max(1, Math.ceil(totalFiltered / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
+  const pageStart = (safePage - 1) * PAGE_SIZE;
+  const pageEnd = Math.min(pageStart + PAGE_SIZE, totalFiltered);
+  const pageLogs = filteredLogs.slice(pageStart, pageEnd);
+
   const totalRecords = 247;
 
   // Security Monitoring state
@@ -65,14 +78,35 @@ export default function AuditLogModule({ theme }: { theme: Theme }) {
     { username: 'System Cron', device: 'API Client', ip: '10.0.0.1', loginTime: '01 Mar 2026 00:00', status: 'Expired' },
   ];
 
-  // Bulk Operation Audit state
-  const bulkOperations = [
-    { operation: 'Student bulk import', records: 245, user: 'Piush Thakker', timestamp: '01 Mar 2026 10:30', status: 'Success', hoursAgo: 2 },
-    { operation: 'Fee structure update', records: 12, user: 'Rajesh Kumar', timestamp: '01 Mar 2026 08:15', status: 'Success', hoursAgo: 4 },
-    { operation: 'Attendance bulk upload', records: 1200, user: 'Priya Sharma', timestamp: '28 Feb 2026 15:00', status: 'Partial', hoursAgo: 22 },
-    { operation: 'Staff data import', records: 45, user: 'Piush Thakker', timestamp: '27 Feb 2026 11:00', status: 'Success', hoursAgo: 50 },
-    { operation: 'Grade sheet import', records: 320, user: 'Rajesh Kumar', timestamp: '26 Feb 2026 14:30', status: 'Failed', hoursAgo: 68 },
-  ];
+  // Bulk Operation Audit state — mutable for rollback
+  const [bulkOperations, setBulkOperations] = useState([
+    { id: 1, operation: 'Student bulk import', records: 245, user: 'Piush Thakker', timestamp: '01 Mar 2026 10:30', status: 'Success', hoursAgo: 2 },
+    { id: 2, operation: 'Fee structure update', records: 12, user: 'Rajesh Kumar', timestamp: '01 Mar 2026 08:15', status: 'Success', hoursAgo: 4 },
+    { id: 3, operation: 'Attendance bulk upload', records: 1200, user: 'Priya Sharma', timestamp: '28 Feb 2026 15:00', status: 'Partial', hoursAgo: 22 },
+    { id: 4, operation: 'Staff data import', records: 45, user: 'Piush Thakker', timestamp: '27 Feb 2026 11:00', status: 'Success', hoursAgo: 50 },
+    { id: 5, operation: 'Grade sheet import', records: 320, user: 'Rajesh Kumar', timestamp: '26 Feb 2026 14:30', status: 'Failed', hoursAgo: 68 },
+  ]);
+
+  // Rollback confirmation dialog
+  const [rollbackConfirmId, setRollbackConfirmId] = useState<number | null>(null);
+  const [rollbackSuccessId, setRollbackSuccessId] = useState<number | null>(null);
+
+  function confirmRollback(id: number) {
+    setRollbackConfirmId(id);
+  }
+
+  function executeRollback(id: number) {
+    setRollbackConfirmId(null);
+    setRollbackSuccessId(id);
+    setTimeout(() => {
+      setBulkOperations(prev => prev.filter(op => op.id !== id));
+      setRollbackSuccessId(null);
+    }, 1800);
+  }
+
+  function cancelRollback() {
+    setRollbackConfirmId(null);
+  }
 
   return (
     <div className="space-y-4">
@@ -90,25 +124,25 @@ export default function AuditLogModule({ theme }: { theme: Theme }) {
           <div>
             <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Date Range</p>
             <div className="flex gap-1">
-              <InputField type="date" value={dateFrom} onChange={setDateFrom} theme={theme} placeholder="From" />
-              <InputField type="date" value={dateTo} onChange={setDateTo} theme={theme} placeholder="To" />
+              <InputField type="date" value={dateFrom} onChange={v => { setDateFrom(v); setCurrentPage(1); }} theme={theme} placeholder="From" />
+              <InputField type="date" value={dateTo} onChange={v => { setDateTo(v); setCurrentPage(1); }} theme={theme} placeholder="To" />
             </div>
           </div>
           <div>
             <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>User</p>
-            <SelectField options={allUsers} value={userFilter} onChange={setUserFilter} theme={theme} />
+            <SelectField options={allUsers} value={userFilter} onChange={v => { setUserFilter(v); setCurrentPage(1); }} theme={theme} />
           </div>
           <div>
             <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Module</p>
-            <SelectField options={allModules} value={moduleFilter} onChange={setModuleFilter} theme={theme} />
+            <SelectField options={allModules} value={moduleFilter} onChange={v => { setModuleFilter(v); setCurrentPage(1); }} theme={theme} />
           </div>
           <div>
             <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Search Text</p>
-            <InputField value={searchQuery} onChange={setSearchQuery} theme={theme} placeholder="Search details..." />
+            <InputField value={searchQuery} onChange={v => { setSearchQuery(v); setCurrentPage(1); }} theme={theme} placeholder="Search details..." />
           </div>
           <div>
             <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>IP Address</p>
-            <InputField value={ipFilter} onChange={setIpFilter} theme={theme} placeholder="Filter by IP..." />
+            <InputField value={ipFilter} onChange={v => { setIpFilter(v); setCurrentPage(1); }} theme={theme} placeholder="Filter by IP..." />
           </div>
         </div>
       </div>
@@ -116,7 +150,7 @@ export default function AuditLogModule({ theme }: { theme: Theme }) {
       {/* Record count + Export */}
       <div className="flex items-center justify-between">
         <p className={`text-xs ${theme.iconColor}`}>
-          Showing <span className={`font-bold ${theme.highlight}`}>{filteredLogs.length}</span> of <span className={`font-bold ${theme.highlight}`}>{totalRecords}</span> records
+          Showing <span className={`font-bold ${theme.highlight}`}>{totalFiltered > 0 ? pageStart + 1 : 0}–{pageEnd}</span> of <span className={`font-bold ${theme.highlight}`}>{totalRecords}</span> records
         </p>
         <div className="flex items-center gap-2">
           <button className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold ${theme.secondaryBg} ${theme.highlight} border ${theme.border} hover:opacity-80 transition-all`}>
@@ -141,7 +175,7 @@ export default function AuditLogModule({ theme }: { theme: Theme }) {
             </tr>
           </thead>
           <tbody>
-            {filteredLogs.map((log, i) => (
+            {pageLogs.map((log, i) => (
               <tr key={i} className={`border-t ${theme.border}`}>
                 <td className={`px-4 py-3 ${theme.iconColor} text-[10px] whitespace-nowrap`}>{log.date}</td>
                 <td className="px-4 py-3">
@@ -157,11 +191,48 @@ export default function AuditLogModule({ theme }: { theme: Theme }) {
                 <td className={`px-4 py-3 ${theme.iconColor} text-[10px] font-mono`}>{log.ip}</td>
               </tr>
             ))}
+            {pageLogs.length === 0 && (
+              <tr>
+                <td colSpan={6} className={`px-4 py-8 text-center text-xs ${theme.iconColor}`}>No records match the current filters.</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
 
-      {/* ─── NEW: Security Monitoring ──────────────────────── */}
+      {/* Pagination */}
+      <div className="flex items-center justify-between">
+        <p className={`text-[10px] ${theme.iconColor}`}>
+          Page <span className={`font-bold ${theme.highlight}`}>{safePage}</span> of <span className={`font-bold ${theme.highlight}`}>{totalPages}</span>
+        </p>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={safePage === 1}
+            className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${safePage === 1 ? `${theme.secondaryBg} ${theme.iconColor} opacity-40 cursor-not-allowed` : `${theme.secondaryBg} ${theme.highlight} border-transparent hover:opacity-80`}`}
+          >
+            <ChevronLeft size={13} /> Prev
+          </button>
+          {Array.from({ length: totalPages }, (_, idx) => idx + 1).map(pg => (
+            <button
+              key={pg}
+              onClick={() => setCurrentPage(pg)}
+              className={`w-7 h-7 rounded-lg text-[10px] font-bold transition-all ${pg === safePage ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.iconColor} hover:opacity-80`}`}
+            >
+              {pg}
+            </button>
+          ))}
+          <button
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            disabled={safePage === totalPages}
+            className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${safePage === totalPages ? `${theme.secondaryBg} ${theme.iconColor} opacity-40 cursor-not-allowed` : `${theme.secondaryBg} ${theme.highlight} border-transparent hover:opacity-80`}`}
+          >
+            Next <ChevronRight size={13} />
+          </button>
+        </div>
+      </div>
+
+      {/* ─── Security Monitoring ──────────────────────── */}
       <SectionCard title="Security Monitoring" subtitle="Track failed logins, active sessions, and access control policies" theme={theme}>
         <div className="grid grid-cols-2 gap-4">
           {/* Left: Failed Login Tracking */}
@@ -267,8 +338,36 @@ export default function AuditLogModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
-      {/* ─── NEW: Bulk Operation Audit ─────────────────────── */}
+      {/* ─── Bulk Operation Audit ─────────────────────── */}
       <SectionCard title="Bulk Operation Audit" subtitle="Track bulk imports, updates, and rollback availability" theme={theme}>
+
+        {/* Rollback Confirmation Dialog */}
+        {rollbackConfirmId !== null && (
+          <div className="mb-3 p-4 rounded-2xl border-2 border-amber-300 bg-amber-50 flex items-start gap-3">
+            <AlertTriangle size={18} className="text-amber-500 mt-0.5 shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-bold text-amber-800">Confirm Rollback</p>
+              <p className="text-xs text-amber-700 mt-0.5">
+                This will permanently remove the record of &ldquo;{bulkOperations.find(o => o.id === rollbackConfirmId)?.operation}&rdquo; ({bulkOperations.find(o => o.id === rollbackConfirmId)?.records.toLocaleString()} records). This action cannot be undone.
+              </p>
+              <div className="flex gap-2 mt-3">
+                <button
+                  onClick={() => executeRollback(rollbackConfirmId)}
+                  className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold text-white bg-red-500 hover:bg-red-600 transition-all"
+                >
+                  <RotateCcw size={11} /> Yes, Rollback
+                </button>
+                <button
+                  onClick={cancelRollback}
+                  className={`flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold ${theme.secondaryBg} ${theme.highlight} border ${theme.border} hover:opacity-80 transition-all`}
+                >
+                  <X size={11} /> Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className={`rounded-xl border ${theme.border} overflow-hidden`}>
           <table className="w-full text-xs">
             <thead className={theme.secondaryBg}>
@@ -279,8 +378,8 @@ export default function AuditLogModule({ theme }: { theme: Theme }) {
               </tr>
             </thead>
             <tbody>
-              {bulkOperations.map((op, i) => (
-                <tr key={i} className={`border-t ${theme.border}`}>
+              {bulkOperations.map((op) => (
+                <tr key={op.id} className={`border-t ${theme.border} transition-all ${rollbackSuccessId === op.id ? 'bg-emerald-50' : ''}`}>
                   <td className={`px-4 py-2.5 font-bold ${theme.highlight}`}>{op.operation}</td>
                   <td className={`px-4 py-2.5 ${theme.highlight}`}>{op.records.toLocaleString()}</td>
                   <td className={`px-4 py-2.5 ${theme.iconColor} text-[10px]`}>{op.user}</td>
@@ -293,8 +392,15 @@ export default function AuditLogModule({ theme }: { theme: Theme }) {
                     }`}>{op.status}</span>
                   </td>
                   <td className="px-4 py-2.5">
-                    {op.hoursAgo <= 24 ? (
-                      <button className="flex items-center gap-1 text-[10px] font-bold text-red-500 hover:underline">
+                    {rollbackSuccessId === op.id ? (
+                      <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600">
+                        <CheckCircle size={10} /> Rolled back
+                      </span>
+                    ) : op.hoursAgo <= 24 ? (
+                      <button
+                        onClick={() => confirmRollback(op.id)}
+                        className="flex items-center gap-1 text-[10px] font-bold text-red-500 hover:text-red-700 hover:underline transition-all"
+                      >
                         <RotateCcw size={10} /> Rollback
                       </button>
                     ) : (
@@ -303,6 +409,11 @@ export default function AuditLogModule({ theme }: { theme: Theme }) {
                   </td>
                 </tr>
               ))}
+              {bulkOperations.length === 0 && (
+                <tr>
+                  <td colSpan={6} className={`px-4 py-8 text-center text-xs ${theme.iconColor}`}>No bulk operations recorded.</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

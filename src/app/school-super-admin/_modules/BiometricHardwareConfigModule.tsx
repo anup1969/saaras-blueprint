@@ -1,16 +1,72 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Plus, Wifi, WifiOff } from 'lucide-react';
+import { Plus, Wifi, WifiOff, X, Search, Download, Upload, ChevronLeft, ChevronRight, Save, Pencil, Check, Trash2, Wrench } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
 
+// ─── Types ─────────────────────────────────────────
 interface Device {
+  id: number;
   name: string;
   type: string;
   location: string;
-  status: 'Online' | 'Offline';
+  status: 'Online' | 'Offline' | 'Maintenance';
   lastSync: string;
+  enabled: boolean;
+}
+
+const PAGE_SIZE = 5;
+
+// ─── Sub-component: Table Toolbar ─────────────────
+function TableToolbar({
+  search, onSearch, count, label, onAdd, onExport, onImport, theme,
+}: {
+  search: string; onSearch: (v: string) => void; count: number; label: string;
+  onAdd: () => void; onExport: () => void; onImport: () => void; theme: Theme;
+}) {
+  return (
+    <div className="flex items-center gap-2 mb-3 flex-wrap">
+      <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border ${theme.border} ${theme.inputBg} flex-1 min-w-[160px]`}>
+        <Search size={13} className={theme.iconColor} />
+        <input value={search} onChange={e => onSearch(e.target.value)} placeholder={`Search ${label}...`}
+          className={`flex-1 bg-transparent text-xs ${theme.highlight} outline-none placeholder-gray-400`} />
+        {search && <button onClick={() => onSearch('')}><X size={12} className="text-gray-400 hover:text-red-400" /></button>}
+      </div>
+      <span className={`text-[10px] font-bold px-2 py-1 rounded-lg ${theme.secondaryBg} ${theme.iconColor} shrink-0`}>{count} records</span>
+      <button onClick={onAdd}
+        className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-white ${theme.primary} hover:opacity-90 shrink-0`}>
+        <Plus size={12} /> Add
+      </button>
+      <button onClick={onExport}
+        className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold border ${theme.border} ${theme.iconColor} ${theme.buttonHover} shrink-0`}>
+        <Download size={12} /> Export
+      </button>
+      <button onClick={onImport}
+        className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold border ${theme.border} ${theme.iconColor} ${theme.buttonHover} shrink-0`}>
+        <Upload size={12} /> Import
+      </button>
+    </div>
+  );
+}
+
+// ─── Sub-component: Pagination ─────────────────────
+function Pagination({ page, total, pageSize, onChange, theme }: { page: number; total: number; pageSize: number; onChange: (p: number) => void; theme: Theme }) {
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  if (totalPages <= 1) return null;
+  return (
+    <div className="flex items-center justify-end gap-2 mt-2">
+      <button disabled={page === 1} onClick={() => onChange(page - 1)}
+        className={`p-1 rounded-lg border ${theme.border} disabled:opacity-30 ${theme.buttonHover}`}>
+        <ChevronLeft size={13} className={theme.iconColor} />
+      </button>
+      <span className={`text-[10px] ${theme.iconColor}`}>Page {page} / {totalPages}</span>
+      <button disabled={page === totalPages} onClick={() => onChange(page + 1)}
+        className={`p-1 rounded-lg border ${theme.border} disabled:opacity-30 ${theme.buttonHover}`}>
+        <ChevronRight size={13} className={theme.iconColor} />
+      </button>
+    </div>
+  );
 }
 
 export default function BiometricHardwareConfigModule({ theme }: { theme: Theme }) {
@@ -55,17 +111,68 @@ export default function BiometricHardwareConfigModule({ theme }: { theme: Theme 
   const [paperSize, setPaperSize] = useState('CR80');
   const [doubleSided, setDoubleSided] = useState(true);
 
-  // ─── Device Management ────────────────────────────
+  // ─── Device Management CRUD ─────────────────────────
   const [devices, setDevices] = useState<Device[]>([
-    { name: 'Main Gate Fingerprint', type: 'Fingerprint', location: 'Main Gate', status: 'Online', lastSync: '2 min ago' },
-    { name: 'Staff Room RFID', type: 'RFID', location: 'Staff Room', status: 'Online', lastSync: '5 min ago' },
-    { name: 'Library QR Scanner', type: 'QR/Barcode', location: 'Library', status: 'Online', lastSync: '1 min ago' },
-    { name: 'Back Gate Face Rec', type: 'Face Rec', location: 'Back Gate', status: 'Offline', lastSync: '2 hrs ago' },
-    { name: 'Bus #1 GPS Tracker', type: 'GPS', location: 'Bus Route A', status: 'Online', lastSync: '10 sec ago' },
+    { id: 1, name: 'Main Gate Fingerprint', type: 'Fingerprint', location: 'Main Gate', status: 'Online', lastSync: '2 min ago', enabled: true },
+    { id: 2, name: 'Staff Room RFID', type: 'RFID', location: 'Staff Room', status: 'Online', lastSync: '5 min ago', enabled: true },
+    { id: 3, name: 'Library QR Scanner', type: 'QR/Barcode', location: 'Library', status: 'Online', lastSync: '1 min ago', enabled: true },
+    { id: 4, name: 'Back Gate Face Rec', type: 'Face Rec', location: 'Back Gate', status: 'Offline', lastSync: '2 hrs ago', enabled: true },
+    { id: 5, name: 'Bus #1 GPS Tracker', type: 'GPS', location: 'Bus Route A', status: 'Online', lastSync: '10 sec ago', enabled: true },
+    { id: 6, name: 'Parking Lot Camera', type: 'CCTV', location: 'Parking', status: 'Maintenance', lastSync: '1 day ago', enabled: false },
   ]);
+  const [deviceSearch, setDeviceSearch] = useState('');
+  const [devicePage, setDevicePage] = useState(1);
+  const [editingDeviceId, setEditingDeviceId] = useState<number | null>(null);
+  const [editDeviceDraft, setEditDeviceDraft] = useState<Device | null>(null);
+
+  const filteredDevices = devices.filter(d =>
+    d.name.toLowerCase().includes(deviceSearch.toLowerCase()) ||
+    d.type.toLowerCase().includes(deviceSearch.toLowerCase()) ||
+    d.location.toLowerCase().includes(deviceSearch.toLowerCase()) ||
+    d.status.toLowerCase().includes(deviceSearch.toLowerCase())
+  );
+  const pagedDevices = filteredDevices.slice((devicePage - 1) * PAGE_SIZE, devicePage * PAGE_SIZE);
+
+  function addDevice() {
+    const newDevice: Device = { id: Date.now(), name: '', type: 'Other', location: '', status: 'Offline', lastSync: 'Never', enabled: true };
+    setDevices(p => [newDevice, ...p]);
+    setEditingDeviceId(newDevice.id);
+    setEditDeviceDraft(newDevice);
+    setDevicePage(1);
+  }
+  function deleteDevice(id: number) {
+    setDevices(p => p.filter(d => d.id !== id));
+    if (editingDeviceId === id) { setEditingDeviceId(null); setEditDeviceDraft(null); }
+  }
+  function startEditDevice(device: Device) {
+    setEditingDeviceId(device.id);
+    setEditDeviceDraft({ ...device });
+  }
+  function saveEditDevice() {
+    if (editDeviceDraft) {
+      setDevices(p => p.map(d => d.id === editDeviceDraft.id ? editDeviceDraft : d));
+    }
+    setEditingDeviceId(null);
+    setEditDeviceDraft(null);
+  }
+  function toggleDeviceEnabled(id: number) {
+    setDevices(p => p.map(d => d.id === id ? { ...d, enabled: !d.enabled } : d));
+  }
+
   const [firmwareAutoUpdate, setFirmwareAutoUpdate] = useState(true);
   const [offlineSync, setOfflineSync] = useState(true);
   const [deviceAccessRole, setDeviceAccessRole] = useState('Admin Only');
+
+  const statusIcon = (s: Device['status']) => {
+    if (s === 'Online') return <Wifi size={8} />;
+    if (s === 'Maintenance') return <Wrench size={8} />;
+    return <WifiOff size={8} />;
+  };
+  const statusColor = (s: Device['status']) => {
+    if (s === 'Online') return 'bg-green-100 text-green-700';
+    if (s === 'Maintenance') return 'bg-amber-100 text-amber-700';
+    return 'bg-red-100 text-red-600';
+  };
 
   return (
     <div className="space-y-4">
@@ -236,44 +343,124 @@ export default function BiometricHardwareConfigModule({ theme }: { theme: Theme 
         </SectionCard>
       </div>
 
-      {/* Row 3: Device Management (full width) */}
-      <SectionCard title="Device Management" subtitle="Master inventory of all connected devices, firmware updates, and access control" theme={theme}>
+      {/* Row 3: Device Management (full width) — Full CRUD table */}
+      <SectionCard title="Device Management" subtitle="Master inventory of all connected devices — add, edit, delete, enable/disable" theme={theme}>
         <div className="space-y-3">
+          <TableToolbar
+            search={deviceSearch} onSearch={v => { setDeviceSearch(v); setDevicePage(1); }}
+            count={filteredDevices.length} label="devices"
+            onAdd={addDevice}
+            onExport={() => alert('Export device list as CSV')}
+            onImport={() => alert('Import devices from CSV')}
+            theme={theme}
+          />
+
           {/* Device Table */}
           <div className={`rounded-xl border ${theme.border} overflow-hidden`}>
-            <table className="w-full text-xs">
-              <thead>
-                <tr className={theme.secondaryBg}>
-                  <th className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>Device Name</th>
-                  <th className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>Type</th>
-                  <th className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>Location</th>
-                  <th className={`text-center px-3 py-2 font-bold ${theme.iconColor}`}>Status</th>
-                  <th className={`text-right px-3 py-2 font-bold ${theme.iconColor}`}>Last Sync</th>
-                </tr>
-              </thead>
-              <tbody>
-                {devices.map((d, i) => (
-                  <tr key={i} className={`border-t ${theme.border}`}>
-                    <td className={`px-3 py-2 font-medium ${theme.highlight}`}>{d.name}</td>
-                    <td className="px-3 py-2">
-                      <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${theme.accentBg} ${theme.iconColor}`}>{d.type}</span>
-                    </td>
-                    <td className={`px-3 py-2 ${theme.iconColor}`}>{d.location}</td>
-                    <td className="px-3 py-2 text-center">
-                      <span className={`inline-flex items-center gap-1 text-[9px] px-1.5 py-0.5 rounded-full font-bold ${d.status === 'Online' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
-                        {d.status === 'Online' ? <Wifi size={8} /> : <WifiOff size={8} />} {d.status}
-                      </span>
-                    </td>
-                    <td className={`px-3 py-2 text-right ${theme.iconColor}`}>{d.lastSync}</td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className={theme.secondaryBg}>
+                    {['Device Name', 'Type', 'Location', 'Status', 'Last Sync', 'Enabled', 'Actions'].map(h => (
+                      <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor} text-[10px] uppercase whitespace-nowrap`}>{h}</th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {pagedDevices.length === 0 ? (
+                    <tr><td colSpan={7} className={`text-center py-6 text-xs ${theme.iconColor}`}>No devices found</td></tr>
+                  ) : pagedDevices.map(d => {
+                    const isEditing = editingDeviceId === d.id;
+                    const draft = isEditing ? editDeviceDraft! : d;
+                    return (
+                      <tr key={d.id} className={`border-t ${theme.border} ${!d.enabled ? 'opacity-50' : ''}`}>
+                        {/* Device Name */}
+                        <td className="px-2 py-1.5">
+                          {isEditing ? (
+                            <input value={draft.name} onChange={e => setEditDeviceDraft({ ...draft, name: e.target.value })}
+                              className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`}
+                              placeholder="Device name" />
+                          ) : (
+                            <span className={`font-medium ${theme.highlight}`}>{d.name}</span>
+                          )}
+                        </td>
+                        {/* Type */}
+                        <td className="px-2 py-1.5">
+                          {isEditing ? (
+                            <select value={draft.type} onChange={e => setEditDeviceDraft({ ...draft, type: e.target.value })}
+                              className={`w-28 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}>
+                              {['Fingerprint', 'RFID', 'Face Rec', 'QR/Barcode', 'GPS', 'CCTV', 'Smart Board', 'Printer', 'Other'].map(t => (
+                                <option key={t} value={t}>{t}</option>
+                              ))}
+                            </select>
+                          ) : (
+                            <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${theme.accentBg} ${theme.iconColor}`}>{d.type}</span>
+                          )}
+                        </td>
+                        {/* Location */}
+                        <td className="px-2 py-1.5">
+                          {isEditing ? (
+                            <input value={draft.location} onChange={e => setEditDeviceDraft({ ...draft, location: e.target.value })}
+                              className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}
+                              placeholder="Location" />
+                          ) : (
+                            <span className={theme.iconColor}>{d.location}</span>
+                          )}
+                        </td>
+                        {/* Status (interactive dropdown) */}
+                        <td className="px-2 py-1.5 text-center">
+                          {isEditing ? (
+                            <select value={draft.status} onChange={e => setEditDeviceDraft({ ...draft, status: e.target.value as Device['status'] })}
+                              className={`w-28 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}>
+                              <option value="Online">Online</option>
+                              <option value="Offline">Offline</option>
+                              <option value="Maintenance">Maintenance</option>
+                            </select>
+                          ) : (
+                            <span className={`inline-flex items-center gap-1 text-[9px] px-1.5 py-0.5 rounded-full font-bold ${statusColor(d.status)}`}>
+                              {statusIcon(d.status)} {d.status}
+                            </span>
+                          )}
+                        </td>
+                        {/* Last Sync */}
+                        <td className="px-2 py-1.5">
+                          {isEditing ? (
+                            <input value={draft.lastSync} onChange={e => setEditDeviceDraft({ ...draft, lastSync: e.target.value })}
+                              className={`w-24 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.iconColor} outline-none`}
+                              placeholder="e.g. 5 min ago" />
+                          ) : (
+                            <span className={`text-[10px] ${theme.iconColor}`}>{d.lastSync}</span>
+                          )}
+                        </td>
+                        {/* Enabled toggle */}
+                        <td className="px-3 py-1.5">
+                          <SSAToggle on={d.enabled} onChange={() => toggleDeviceEnabled(d.id)} theme={theme} />
+                        </td>
+                        {/* Actions */}
+                        <td className="px-2 py-1.5">
+                          <div className="flex items-center gap-1.5">
+                            {isEditing ? (
+                              <button onClick={saveEditDevice} className="text-emerald-500 hover:text-emerald-700" title="Save">
+                                <Check size={13} />
+                              </button>
+                            ) : (
+                              <button onClick={() => startEditDevice(d)} className={`${theme.iconColor} hover:text-blue-500`} title="Edit">
+                                <Pencil size={12} />
+                              </button>
+                            )}
+                            <button onClick={() => deleteDevice(d.id)} className="text-red-400 hover:text-red-600" title="Delete">
+                              <Trash2 size={12} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
-          <button onClick={() => setDevices(p => [...p, { name: 'New Device', type: 'Other', location: '', status: 'Offline', lastSync: 'Never' }])}
-            className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
-            <Plus size={12} /> Add Device
-          </button>
+          <Pagination page={devicePage} total={filteredDevices.length} pageSize={PAGE_SIZE} onChange={setDevicePage} theme={theme} />
 
           {/* Controls */}
           <div className="grid grid-cols-3 gap-3">
@@ -298,6 +485,15 @@ export default function BiometricHardwareConfigModule({ theme }: { theme: Theme 
           </div>
         </div>
       </SectionCard>
+
+      {/* ─── Save Configuration ────────────────────────── */}
+      <div className="flex justify-end pt-2">
+        <button
+          onClick={() => alert('Biometric & hardware configuration saved!')}
+          className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold text-white ${theme.primary} hover:opacity-90 transition-all shadow-sm`}>
+          <Save size={15} /> Save Configuration
+        </button>
+      </div>
     </div>
   );
 }

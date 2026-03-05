@@ -1,10 +1,60 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Plus, AlertTriangle, Eye, UserCircle, Info, Download } from 'lucide-react';
+import { X, Plus, AlertTriangle, Eye, UserCircle, Info, Download, Search, Upload, ChevronLeft, ChevronRight, Save } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, SelectField, InputField } from '../_helpers/components';
 import { MasterPermissionGrid, BulkImportWizard } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
+
+const PAGE_SIZE = 5;
+
+// ─── Sub-component: TableToolbar ──────────────────
+function TableToolbar({ search, onSearch, count, label, onAdd, onExport, onImport, theme }:
+  { search: string; onSearch: (v: string) => void; count: number; label: string;
+    onAdd: () => void; onExport: () => void; onImport: () => void; theme: Theme }) {
+  return (
+    <div className="flex items-center gap-2 mb-3 flex-wrap">
+      <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border ${theme.border} ${theme.inputBg} flex-1 min-w-[160px]`}>
+        <Search size={13} className={theme.iconColor} />
+        <input value={search} onChange={e => onSearch(e.target.value)} placeholder={`Search ${label}...`}
+          className={`flex-1 bg-transparent text-xs ${theme.highlight} outline-none placeholder-gray-400`} />
+        {search && <button onClick={() => onSearch('')}><X size={12} className="text-gray-400 hover:text-red-400" /></button>}
+      </div>
+      <span className={`text-[10px] font-bold px-2 py-1 rounded-lg ${theme.secondaryBg} ${theme.iconColor} shrink-0`}>{count} records</span>
+      <button onClick={onAdd}
+        className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-white ${theme.primary} hover:opacity-90 shrink-0`}>
+        <Plus size={12} /> Add
+      </button>
+      <button onClick={onExport}
+        className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shrink-0">
+        <Download size={12} /> Export
+      </button>
+      <button onClick={onImport}
+        className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shrink-0">
+        <Upload size={12} /> Import
+      </button>
+    </div>
+  );
+}
+
+// ─── Sub-component: Pagination ────────────────────
+function Pagination({ page, total, pageSize, onChange, theme }: { page: number; total: number; pageSize: number; onChange: (p: number) => void; theme: Theme }) {
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  if (totalPages <= 1) return null;
+  return (
+    <div className="flex items-center justify-end gap-2 mt-2">
+      <button disabled={page === 1} onClick={() => onChange(page - 1)}
+        className={`p-1 rounded-lg border ${theme.border} disabled:opacity-30 ${theme.buttonHover}`}>
+        <ChevronLeft size={13} className={theme.iconColor} />
+      </button>
+      <span className={`text-[10px] ${theme.iconColor}`}>Page {page} / {totalPages}</span>
+      <button disabled={page === totalPages} onClick={() => onChange(page + 1)}
+        className={`p-1 rounded-lg border ${theme.border} disabled:opacity-30 ${theme.buttonHover}`}>
+        <ChevronRight size={13} className={theme.iconColor} />
+      </button>
+    </div>
+  );
+}
 
 function InfoIcon({ tip }: { tip: string }) {
   return <span title={tip} className="inline-flex ml-1.5 shrink-0 cursor-help"><Info size={13} className="text-blue-400 hover:text-blue-600" /></span>;
@@ -19,34 +69,34 @@ function Phase2Badge() {
 export default function ExamConfigModule({ theme }: { theme: Theme }) {
   const [gradingSystem, setGradingSystem] = useState('cbse');
   const [gradeBoundaries, setGradeBoundaries] = useState([
-    { grade: 'A1', min: '91', max: '100', gp: '10' },
-    { grade: 'A2', min: '81', max: '90', gp: '9' },
-    { grade: 'B1', min: '71', max: '80', gp: '8' },
-    { grade: 'B2', min: '61', max: '70', gp: '7' },
-    { grade: 'C1', min: '51', max: '60', gp: '6' },
-    { grade: 'C2', min: '41', max: '50', gp: '5' },
-    { grade: 'D', min: '33', max: '40', gp: '4' },
-    { grade: 'E (Fail)', min: '0', max: '32', gp: '0' },
+    { grade: 'A1', min: '91', max: '100', gp: '10', enabled: true },
+    { grade: 'A2', min: '81', max: '90', gp: '9', enabled: true },
+    { grade: 'B1', min: '71', max: '80', gp: '8', enabled: true },
+    { grade: 'B2', min: '61', max: '70', gp: '7', enabled: true },
+    { grade: 'C1', min: '51', max: '60', gp: '6', enabled: true },
+    { grade: 'C2', min: '41', max: '50', gp: '5', enabled: true },
+    { grade: 'D', min: '33', max: '40', gp: '4', enabled: true },
+    { grade: 'E (Fail)', min: '0', max: '32', gp: '0', enabled: true },
   ]);
   const [reportTemplate, setReportTemplate] = useState('cbse-standard');
   const [examSchedule, setExamSchedule] = useState([
-    { exam: 'Unit Test 1', startDate: '15 Jun', endDate: '20 Jun', classes: 'All', status: 'Completed' },
-    { exam: 'Unit Test 2', startDate: '25 Aug', endDate: '30 Aug', classes: 'All', status: 'Completed' },
-    { exam: 'Half Yearly', startDate: '01 Oct', endDate: '15 Oct', classes: 'All', status: 'Upcoming' },
-    { exam: 'Unit Test 3', startDate: '10 Dec', endDate: '15 Dec', classes: 'All', status: 'Scheduled' },
-    { exam: 'Annual Exam', startDate: '01 Mar', endDate: '15 Mar', classes: 'All', status: 'Scheduled' },
+    { exam: 'Unit Test 1', startDate: '15 Jun', endDate: '20 Jun', classes: 'All', status: 'Completed', enabled: true },
+    { exam: 'Unit Test 2', startDate: '25 Aug', endDate: '30 Aug', classes: 'All', status: 'Completed', enabled: true },
+    { exam: 'Half Yearly', startDate: '01 Oct', endDate: '15 Oct', classes: 'All', status: 'Upcoming', enabled: true },
+    { exam: 'Unit Test 3', startDate: '10 Dec', endDate: '15 Dec', classes: 'All', status: 'Scheduled', enabled: true },
+    { exam: 'Annual Exam', startDate: '01 Mar', endDate: '15 Mar', classes: 'All', status: 'Scheduled', enabled: true },
   ]);
   const [rankDisplay, setRankDisplay] = useState<Record<string, boolean>>({
     'Show class rank': true, 'Show section rank': true, 'Show percentile': false,
     'Show subject-wise rank': false, 'Show grade distribution graph': true,
   });
   const [examTypes, setExamTypes] = useState([
-    { name: 'Unit Test 1', weight: '10', schedule: 'Term 1', duration: '1 hr', active: true },
-    { name: 'Unit Test 2', weight: '10', schedule: 'Term 1', duration: '1 hr', active: true },
-    { name: 'Half Yearly', weight: '30', schedule: 'Term 1', duration: '3 hrs', active: true },
-    { name: 'Unit Test 3', weight: '10', schedule: 'Term 2', duration: '1 hr', active: true },
-    { name: 'Unit Test 4', weight: '10', schedule: 'Term 2', duration: '1 hr', active: true },
-    { name: 'Annual / Final', weight: '30', schedule: 'Both', duration: '3 hrs', active: true },
+    { name: 'Unit Test 1', weight: '10', schedule: 'Term 1', duration: '1 hr', active: true, enabled: true },
+    { name: 'Unit Test 2', weight: '10', schedule: 'Term 1', duration: '1 hr', active: true, enabled: true },
+    { name: 'Half Yearly', weight: '30', schedule: 'Term 1', duration: '3 hrs', active: true, enabled: true },
+    { name: 'Unit Test 3', weight: '10', schedule: 'Term 2', duration: '1 hr', active: true, enabled: true },
+    { name: 'Unit Test 4', weight: '10', schedule: 'Term 2', duration: '1 hr', active: true, enabled: true },
+    { name: 'Annual / Final', weight: '30', schedule: 'Both', duration: '3 hrs', active: true, enabled: true },
   ]);
   const [reportFields, setReportFields] = useState<Record<string, boolean>>({
     'Student Photo': true, 'Attendance %': true, 'Teacher Remarks': true, 'Principal Signature': true,
@@ -56,7 +106,7 @@ export default function ExamConfigModule({ theme }: { theme: Theme }) {
   const [reportGradingMode, setReportGradingMode] = useState('Both');
   const [showReportPreview, setShowReportPreview] = useState(false);
 
-  // --- NEW STATE: Exam Operations Config ---
+  // --- Exam Operations Config ---
   const [scheduleBatchEnabled, setScheduleBatchEnabled] = useState(false);
   const [batchGrades, setBatchGrades] = useState<Record<string, boolean>>({
     'Nursery': false, 'Jr. KG': false, 'Sr. KG': false, 'Grade 1': true, 'Grade 2': true, 'Grade 3': true,
@@ -71,9 +121,9 @@ export default function ExamConfigModule({ theme }: { theme: Theme }) {
   const [admitCardSignature, setAdmitCardSignature] = useState(true);
   // Hall/Room Allocation
   const [halls, setHalls] = useState([
-    { name: 'Hall A', capacity: '60', floor: 'Ground', equipment: 'Projector' },
-    { name: 'Hall B', capacity: '40', floor: '1st Floor', equipment: 'AC' },
-    { name: 'Room 101', capacity: '30', floor: '1st Floor', equipment: 'None' },
+    { name: 'Hall A', capacity: '60', floor: 'Ground', equipment: 'Projector', enabled: true },
+    { name: 'Hall B', capacity: '40', floor: '1st Floor', equipment: 'AC', enabled: true },
+    { name: 'Room 101', capacity: '30', floor: '1st Floor', equipment: 'None', enabled: true },
   ]);
   // Invigilator Assignment
   const [autoAssignInvigilator, setAutoAssignInvigilator] = useState(true);
@@ -106,6 +156,46 @@ export default function ExamConfigModule({ theme }: { theme: Theme }) {
   const [csvImportQB, setCsvImportQB] = useState(true);
   const [autoGeneratePaper, setAutoGeneratePaper] = useState(false);
 
+  // ── Exam Types: search & pagination ──
+  const [examTypeSearch, setExamTypeSearch] = useState('');
+  const [examTypePage, setExamTypePage] = useState(1);
+  const filteredExamTypes = examTypes.filter(et =>
+    et.name.toLowerCase().includes(examTypeSearch.toLowerCase()) ||
+    et.schedule.toLowerCase().includes(examTypeSearch.toLowerCase())
+  );
+  const pagedExamTypes = filteredExamTypes.slice((examTypePage - 1) * PAGE_SIZE, examTypePage * PAGE_SIZE);
+
+  // ── Grade Boundaries: search & pagination ──
+  const [gradeSearch, setGradeSearch] = useState('');
+  const [gradePage, setGradePage] = useState(1);
+  const filteredGradeBoundaries = gradeBoundaries.filter(g =>
+    g.grade.toLowerCase().includes(gradeSearch.toLowerCase())
+  );
+  const pagedGradeBoundaries = filteredGradeBoundaries.slice((gradePage - 1) * PAGE_SIZE, gradePage * PAGE_SIZE);
+
+  // ── Exam Schedule: search & pagination ──
+  const [scheduleSearch, setScheduleSearch] = useState('');
+  const [schedulePage, setSchedulePage] = useState(1);
+  const filteredSchedule = examSchedule.filter(ex =>
+    ex.exam.toLowerCase().includes(scheduleSearch.toLowerCase()) ||
+    ex.classes.toLowerCase().includes(scheduleSearch.toLowerCase()) ||
+    ex.status.toLowerCase().includes(scheduleSearch.toLowerCase())
+  );
+  const pagedSchedule = filteredSchedule.slice((schedulePage - 1) * PAGE_SIZE, schedulePage * PAGE_SIZE);
+
+  // ── Exam Halls: search & pagination ──
+  const [hallSearch, setHallSearch] = useState('');
+  const [hallPage, setHallPage] = useState(1);
+  const filteredHalls = halls.filter(h =>
+    h.name.toLowerCase().includes(hallSearch.toLowerCase()) ||
+    h.floor.toLowerCase().includes(hallSearch.toLowerCase()) ||
+    h.equipment.toLowerCase().includes(hallSearch.toLowerCase())
+  );
+  const pagedHalls = filteredHalls.slice((hallPage - 1) * PAGE_SIZE, hallPage * PAGE_SIZE);
+
+  // ── Saved feedback ──
+  const [saved, setSaved] = useState(false);
+
   return (
     <div className="space-y-4">
       <ModuleHeader title="Exams & Grading Configuration" subtitle="Grading system, grade boundaries, report cards, and exam schedules" theme={theme} />
@@ -126,8 +216,12 @@ export default function ExamConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
+      {/* ══════════════ GRADE BOUNDARIES — MASTER TABLE ══════════════ */}
       <SectionCard title="Grade Boundaries" subtitle="Edit grade name, marks, and grade points — overlapping ranges are highlighted in red" theme={theme}>
-        {/* B5: Overlap detection */}
+        <TableToolbar search={gradeSearch} onSearch={v => { setGradeSearch(v); setGradePage(1); }} count={filteredGradeBoundaries.length}
+          label="grades" onAdd={() => { setGradeBoundaries(p => [...p, { grade: '', min: '', max: '', gp: '', enabled: true }]); setGradePage(Math.ceil((filteredGradeBoundaries.length + 1) / PAGE_SIZE)); }}
+          onExport={() => {}} onImport={() => {}} theme={theme} />
+        {/* B5: Overlap detection — runs on ALL grade boundaries, not just paged */}
         {(() => {
           const overlaps: number[] = [];
           gradeBoundaries.forEach((g, i) => {
@@ -151,32 +245,37 @@ export default function ExamConfigModule({ theme }: { theme: Theme }) {
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead><tr className={theme.secondaryBg}>
-                    {['Grade', 'Min Marks', 'Max Marks', 'Grade Points', ''].map(h => (
+                    {['Grade', 'Min Marks', 'Max Marks', 'Grade Points', 'Enabled', ''].map(h => (
                       <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
                     ))}
                   </tr></thead>
                   <tbody>
-                    {gradeBoundaries.map((g, i) => {
-                      const hasOverlap = overlaps.includes(i);
+                    {pagedGradeBoundaries.map((g, pi) => {
+                      const realIdx = gradeBoundaries.indexOf(g);
+                      const hasOverlap = overlaps.includes(realIdx);
                       return (
-                      <tr key={i} className={`border-t ${hasOverlap ? 'bg-red-50 border-red-200' : theme.border}`}>
+                      <tr key={realIdx} className={`border-t ${hasOverlap ? 'bg-red-50 border-red-200' : theme.border} ${!g.enabled ? 'opacity-50' : ''}`}>
                         <td className="px-2 py-1.5">
-                          <input value={g.grade} onChange={e => { const n = [...gradeBoundaries]; n[i] = { ...n[i], grade: e.target.value }; setGradeBoundaries(n); }}
+                          <input value={g.grade} onChange={e => { const n = [...gradeBoundaries]; n[realIdx] = { ...n[realIdx], grade: e.target.value }; setGradeBoundaries(n); }}
                             className={`w-20 px-2 py-1 rounded-lg border ${hasOverlap ? 'border-red-400' : theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} />
                         </td>
                         <td className="px-2 py-1.5">
-                          <input value={g.min} onChange={e => { const n = [...gradeBoundaries]; n[i] = { ...n[i], min: e.target.value }; setGradeBoundaries(n); }}
+                          <input value={g.min} onChange={e => { const n = [...gradeBoundaries]; n[realIdx] = { ...n[realIdx], min: e.target.value }; setGradeBoundaries(n); }}
                             className={`w-16 px-2 py-1 rounded-lg border ${hasOverlap ? 'border-red-400' : theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none`} />
                         </td>
                         <td className="px-2 py-1.5">
-                          <input value={g.max} onChange={e => { const n = [...gradeBoundaries]; n[i] = { ...n[i], max: e.target.value }; setGradeBoundaries(n); }}
+                          <input value={g.max} onChange={e => { const n = [...gradeBoundaries]; n[realIdx] = { ...n[realIdx], max: e.target.value }; setGradeBoundaries(n); }}
                             className={`w-16 px-2 py-1 rounded-lg border ${hasOverlap ? 'border-red-400' : theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none`} />
                         </td>
                         <td className="px-2 py-1.5">
-                          <input value={g.gp} onChange={e => { const n = [...gradeBoundaries]; n[i] = { ...n[i], gp: e.target.value }; setGradeBoundaries(n); }}
+                          <input value={g.gp} onChange={e => { const n = [...gradeBoundaries]; n[realIdx] = { ...n[realIdx], gp: e.target.value }; setGradeBoundaries(n); }}
                             className={`w-16 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none`} />
                         </td>
-                        <td className="px-2 py-1.5"><button onClick={() => setGradeBoundaries(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={12} /></button></td>
+                        {/* Enable/Disable */}
+                        <td className="px-2 py-1.5">
+                          <SSAToggle on={g.enabled} onChange={() => { const n = [...gradeBoundaries]; n[realIdx] = { ...n[realIdx], enabled: !n[realIdx].enabled }; setGradeBoundaries(n); }} theme={theme} />
+                        </td>
+                        <td className="px-2 py-1.5"><button onClick={() => setGradeBoundaries(p => p.filter((_, j) => j !== realIdx))} className="text-red-400 hover:text-red-600"><X size={12} /></button></td>
                       </tr>
                       );
                     })}
@@ -186,10 +285,7 @@ export default function ExamConfigModule({ theme }: { theme: Theme }) {
             </>
           );
         })()}
-        <button onClick={() => setGradeBoundaries(p => [...p, { grade: '', min: '', max: '', gp: '' }])}
-          className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl mt-2`}>
-          <Plus size={12} /> Add Grade
-        </button>
+        <Pagination page={gradePage} total={filteredGradeBoundaries.length} pageSize={PAGE_SIZE} onChange={setGradePage} theme={theme} />
       </SectionCard>
 
       <div className="grid grid-cols-2 gap-4">
@@ -227,7 +323,11 @@ export default function ExamConfigModule({ theme }: { theme: Theme }) {
         </SectionCard>
       </div>
 
+      {/* ══════════════ EXAM SCHEDULE — MASTER TABLE ══════════════ */}
       <SectionCard title="Exam Schedule" subtitle="Click to edit exam details. Overlapping date ranges are flagged with a warning." theme={theme}>
+        <TableToolbar search={scheduleSearch} onSearch={v => { setScheduleSearch(v); setSchedulePage(1); }} count={filteredSchedule.length}
+          label="exams" onAdd={() => { setExamSchedule(p => [...p, { exam: '', startDate: '', endDate: '', classes: 'All', status: 'Scheduled', enabled: true }]); setSchedulePage(Math.ceil((filteredSchedule.length + 1) / PAGE_SIZE)); }}
+          onExport={() => {}} onImport={() => {}} theme={theme} />
         {/* B5: Schedule overlap detection */}
         {(() => {
           const scheduleOverlaps: number[] = [];
@@ -235,7 +335,6 @@ export default function ExamConfigModule({ theme }: { theme: Theme }) {
             examSchedule.forEach((ex2, j) => {
               if (i >= j) return;
               if (ex.startDate && ex.endDate && ex2.startDate && ex2.endDate && ex.classes === ex2.classes) {
-                // Simple string comparison for demo (month-day format)
                 if (ex.startDate <= ex2.endDate && ex2.startDate <= ex.endDate) {
                   if (!scheduleOverlaps.includes(i)) scheduleOverlaps.push(i);
                   if (!scheduleOverlaps.includes(j)) scheduleOverlaps.push(j);
@@ -253,97 +352,108 @@ export default function ExamConfigModule({ theme }: { theme: Theme }) {
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead><tr className={theme.secondaryBg}>
-              {['Exam', 'Start', 'End', 'Classes', 'Status', ''].map(h => (
+              {['Exam', 'Start', 'End', 'Classes', 'Status', 'Enabled', ''].map(h => (
                 <th key={h} className={`text-left px-2 py-2 font-bold ${theme.iconColor}`}>{h}</th>
               ))}
             </tr></thead>
             <tbody>
-              {examSchedule.map((ex, i) => (
-                <tr key={i} className={`border-t ${theme.border}`}>
+              {pagedSchedule.map((ex, pi) => {
+                const realIdx = examSchedule.indexOf(ex);
+                return (
+                <tr key={realIdx} className={`border-t ${theme.border} ${!ex.enabled ? 'opacity-50' : ''}`}>
                   <td className="px-1 py-1.5">
-                    <input value={ex.exam} onChange={e => { const n = [...examSchedule]; n[i] = { ...n[i], exam: e.target.value }; setExamSchedule(n); }}
+                    <input value={ex.exam} onChange={e => { const n = [...examSchedule]; n[realIdx] = { ...n[realIdx], exam: e.target.value }; setExamSchedule(n); }}
                       className={`w-full px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} />
                   </td>
                   <td className="px-1 py-1.5">
-                    <input value={ex.startDate} onChange={e => { const n = [...examSchedule]; n[i] = { ...n[i], startDate: e.target.value }; setExamSchedule(n); }}
+                    <input value={ex.startDate} onChange={e => { const n = [...examSchedule]; n[realIdx] = { ...n[realIdx], startDate: e.target.value }; setExamSchedule(n); }}
                       className={`w-20 px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
                   </td>
                   <td className="px-1 py-1.5">
-                    <input value={ex.endDate} onChange={e => { const n = [...examSchedule]; n[i] = { ...n[i], endDate: e.target.value }; setExamSchedule(n); }}
+                    <input value={ex.endDate} onChange={e => { const n = [...examSchedule]; n[realIdx] = { ...n[realIdx], endDate: e.target.value }; setExamSchedule(n); }}
                       className={`w-20 px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
                   </td>
                   <td className="px-1 py-1.5">
-                    <input value={ex.classes} onChange={e => { const n = [...examSchedule]; n[i] = { ...n[i], classes: e.target.value }; setExamSchedule(n); }}
+                    <input value={ex.classes} onChange={e => { const n = [...examSchedule]; n[realIdx] = { ...n[realIdx], classes: e.target.value }; setExamSchedule(n); }}
                       className={`w-16 px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
                   </td>
                   <td className="px-1 py-1.5">
-                    <select value={ex.status} onChange={e => { const n = [...examSchedule]; n[i] = { ...n[i], status: e.target.value }; setExamSchedule(n); }}
+                    <select value={ex.status} onChange={e => { const n = [...examSchedule]; n[realIdx] = { ...n[realIdx], status: e.target.value }; setExamSchedule(n); }}
                       className={`px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] font-bold ${theme.highlight}`}>
                       <option value="Scheduled">Scheduled</option>
                       <option value="Upcoming">Upcoming</option>
                       <option value="Completed">Completed</option>
                     </select>
                   </td>
-                  <td className="px-1 py-1.5"><button onClick={() => setExamSchedule(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={12} /></button></td>
+                  {/* Enable/Disable */}
+                  <td className="px-2 py-1.5">
+                    <SSAToggle on={ex.enabled} onChange={() => { const n = [...examSchedule]; n[realIdx] = { ...n[realIdx], enabled: !n[realIdx].enabled }; setExamSchedule(n); }} theme={theme} />
+                  </td>
+                  <td className="px-1 py-1.5"><button onClick={() => setExamSchedule(p => p.filter((_, j) => j !== realIdx))} className="text-red-400 hover:text-red-600"><X size={12} /></button></td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
-        <button onClick={() => setExamSchedule(p => [...p, { exam: '', startDate: '', endDate: '', classes: 'All', status: 'Scheduled' }])}
-          className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl mt-2`}>
-          <Plus size={12} /> Add Exam
-        </button>
+        <Pagination page={schedulePage} total={filteredSchedule.length} pageSize={PAGE_SIZE} onChange={setSchedulePage} theme={theme} />
       </SectionCard>
 
+      {/* ══════════════ EXAM TYPES — MASTER TABLE ══════════════ */}
       <SectionCard title="Exam Types" subtitle="Define exam types with weightage and scheduling — total weight should sum to 100%" theme={theme}>
+        <TableToolbar search={examTypeSearch} onSearch={v => { setExamTypeSearch(v); setExamTypePage(1); }} count={filteredExamTypes.length}
+          label="exam types" onAdd={() => { setExamTypes(p => [...p, { name: '', weight: '0', schedule: 'Term 1', duration: '1 hr', active: true, enabled: true }]); setExamTypePage(Math.ceil((filteredExamTypes.length + 1) / PAGE_SIZE)); }}
+          onExport={() => {}} onImport={() => {}} theme={theme} />
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead><tr className={theme.secondaryBg}>
-              {['Type Name', 'Weight (%)', 'Schedule', 'Duration', 'Status', ''].map(h => (
+              {['Type Name', 'Weight (%)', 'Schedule', 'Duration', 'Active', 'Enabled', ''].map(h => (
                 <th key={h} className={`text-left px-2 py-2 font-bold ${theme.iconColor}`}>{h}</th>
               ))}
             </tr></thead>
             <tbody>
-              {examTypes.map((et, i) => (
-                <tr key={i} className={`border-t ${theme.border}`}>
+              {pagedExamTypes.map((et, pi) => {
+                const realIdx = examTypes.indexOf(et);
+                return (
+                <tr key={realIdx} className={`border-t ${theme.border} ${!et.enabled ? 'opacity-50' : ''}`}>
                   <td className="px-2 py-1.5">
-                    <input value={et.name} onChange={e => { const n = [...examTypes]; n[i] = { ...n[i], name: e.target.value }; setExamTypes(n); }}
+                    <input value={et.name} onChange={e => { const n = [...examTypes]; n[realIdx] = { ...n[realIdx], name: e.target.value }; setExamTypes(n); }}
                       className={`w-full px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} />
                   </td>
                   <td className="px-2 py-1.5">
-                    <input value={et.weight} onChange={e => { const n = [...examTypes]; n[i] = { ...n[i], weight: e.target.value }; setExamTypes(n); }}
+                    <input value={et.weight} onChange={e => { const n = [...examTypes]; n[realIdx] = { ...n[realIdx], weight: e.target.value }; setExamTypes(n); }}
                       className={`w-14 px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none`} />
                   </td>
                   <td className="px-2 py-1.5">
-                    <select value={et.schedule} onChange={e => { const n = [...examTypes]; n[i] = { ...n[i], schedule: e.target.value }; setExamTypes(n); }}
+                    <select value={et.schedule} onChange={e => { const n = [...examTypes]; n[realIdx] = { ...n[realIdx], schedule: e.target.value }; setExamTypes(n); }}
                       className={`px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] font-bold ${theme.highlight}`}>
                       <option value="Term 1">Term 1</option><option value="Term 2">Term 2</option><option value="Both">Both</option>
                     </select>
                   </td>
                   <td className="px-2 py-1.5">
-                    <input value={et.duration} onChange={e => { const n = [...examTypes]; n[i] = { ...n[i], duration: e.target.value }; setExamTypes(n); }}
+                    <input value={et.duration} onChange={e => { const n = [...examTypes]; n[realIdx] = { ...n[realIdx], duration: e.target.value }; setExamTypes(n); }}
                       className={`w-16 px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none`} />
                   </td>
                   <td className="px-2 py-1.5">
-                    <SSAToggle on={et.active} onChange={() => { const n = [...examTypes]; n[i] = { ...n[i], active: !n[i].active }; setExamTypes(n); }} theme={theme} />
+                    <SSAToggle on={et.active} onChange={() => { const n = [...examTypes]; n[realIdx] = { ...n[realIdx], active: !n[realIdx].active }; setExamTypes(n); }} theme={theme} />
                   </td>
-                  <td className="px-2 py-1.5"><button onClick={() => setExamTypes(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={12} /></button></td>
+                  {/* Enable/Disable */}
+                  <td className="px-2 py-1.5">
+                    <SSAToggle on={et.enabled} onChange={() => { const n = [...examTypes]; n[realIdx] = { ...n[realIdx], enabled: !n[realIdx].enabled }; setExamTypes(n); }} theme={theme} />
+                  </td>
+                  <td className="px-2 py-1.5"><button onClick={() => setExamTypes(p => p.filter((_, j) => j !== realIdx))} className="text-red-400 hover:text-red-600"><X size={12} /></button></td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
-        {/* B5: Weightage check */}
+        {/* B5: Weightage check — live weight sum counter (preserved) */}
         {(() => {
-          const total = examTypes.filter(e => e.active).reduce((s, e) => s + (parseInt(e.weight) || 0), 0);
+          const total = examTypes.filter(e => e.active && e.enabled).reduce((s, e) => s + (parseInt(e.weight) || 0), 0);
           const isValid = total === 100;
           return (
-            <div className="flex items-center justify-between mt-2">
-              <button onClick={() => setExamTypes(p => [...p, { name: '', weight: '0', schedule: 'Term 1', duration: '1 hr', active: true }])}
-                className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
-                <Plus size={12} /> Add Exam Type
-              </button>
+            <div className="flex items-center justify-end mt-2 gap-2">
               <div className="flex items-center gap-2">
                 <span className={`text-[10px] font-bold ${isValid ? 'text-emerald-600' : 'text-red-600'}`}>
                   Total Weight: {total}%
@@ -359,6 +469,7 @@ export default function ExamConfigModule({ theme }: { theme: Theme }) {
             </div>
           );
         })()}
+        <Pagination page={examTypePage} total={filteredExamTypes.length} pageSize={PAGE_SIZE} onChange={setExamTypePage} theme={theme} />
       </SectionCard>
 
       <SectionCard title="Report Card Template Fields" subtitle="Toggle which fields appear on the printed report card" theme={theme}>
@@ -464,49 +575,57 @@ export default function ExamConfigModule({ theme }: { theme: Theme }) {
         </button>
       </SectionCard>
 
+      {/* ══════════════ EXAM HALLS — MASTER TABLE ══════════════ */}
       <SectionCard title="Hall / Room Allocation" subtitle="Define exam halls for seating plan" theme={theme}>
         <div className="flex items-center mb-3">
           <p className={`text-[10px] font-bold ${theme.iconColor}`}>Manage exam halls and rooms</p>
           <InfoIcon tip="Define exam halls for seating plan" />
         </div>
+        <TableToolbar search={hallSearch} onSearch={v => { setHallSearch(v); setHallPage(1); }} count={filteredHalls.length}
+          label="halls" onAdd={() => { setHalls(p => [...p, { name: '', capacity: '', floor: '', equipment: 'None', enabled: true }]); setHallPage(Math.ceil((filteredHalls.length + 1) / PAGE_SIZE)); }}
+          onExport={() => {}} onImport={() => {}} theme={theme} />
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead><tr className={theme.secondaryBg}>
-              {['Room Name', 'Capacity', 'Floor', 'Equipment', ''].map(h => (
+              {['Room Name', 'Capacity', 'Floor', 'Equipment', 'Enabled', ''].map(h => (
                 <th key={h} className={`text-left px-2 py-2 font-bold ${theme.iconColor}`}>{h}</th>
               ))}
             </tr></thead>
             <tbody>
-              {halls.map((hall, i) => (
-                <tr key={i} className={`border-t ${theme.border}`}>
+              {pagedHalls.map((hall, pi) => {
+                const realIdx = halls.indexOf(hall);
+                return (
+                <tr key={realIdx} className={`border-t ${theme.border} ${!hall.enabled ? 'opacity-50' : ''}`}>
                   <td className="px-2 py-1.5">
-                    <input value={hall.name} onChange={e => { const n = [...halls]; n[i] = { ...n[i], name: e.target.value }; setHalls(n); }}
+                    <input value={hall.name} onChange={e => { const n = [...halls]; n[realIdx] = { ...n[realIdx], name: e.target.value }; setHalls(n); }}
                       className={`w-full px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} />
                   </td>
                   <td className="px-2 py-1.5">
-                    <input value={hall.capacity} onChange={e => { const n = [...halls]; n[i] = { ...n[i], capacity: e.target.value }; setHalls(n); }}
+                    <input value={hall.capacity} onChange={e => { const n = [...halls]; n[realIdx] = { ...n[realIdx], capacity: e.target.value }; setHalls(n); }}
                       className={`w-16 px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none`} />
                   </td>
                   <td className="px-2 py-1.5">
-                    <input value={hall.floor} onChange={e => { const n = [...halls]; n[i] = { ...n[i], floor: e.target.value }; setHalls(n); }}
+                    <input value={hall.floor} onChange={e => { const n = [...halls]; n[realIdx] = { ...n[realIdx], floor: e.target.value }; setHalls(n); }}
                       className={`w-24 px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
                   </td>
                   <td className="px-2 py-1.5">
-                    <select value={hall.equipment} onChange={e => { const n = [...halls]; n[i] = { ...n[i], equipment: e.target.value }; setHalls(n); }}
+                    <select value={hall.equipment} onChange={e => { const n = [...halls]; n[realIdx] = { ...n[realIdx], equipment: e.target.value }; setHalls(n); }}
                       className={`px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] font-bold ${theme.highlight}`}>
                       <option value="None">None</option><option value="Projector">Projector</option><option value="AC">AC</option><option value="Projector + AC">Projector + AC</option>
                     </select>
                   </td>
-                  <td className="px-2 py-1.5"><button onClick={() => setHalls(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={12} /></button></td>
+                  {/* Enable/Disable */}
+                  <td className="px-2 py-1.5">
+                    <SSAToggle on={hall.enabled} onChange={() => { const n = [...halls]; n[realIdx] = { ...n[realIdx], enabled: !n[realIdx].enabled }; setHalls(n); }} theme={theme} />
+                  </td>
+                  <td className="px-2 py-1.5"><button onClick={() => setHalls(p => p.filter((_, j) => j !== realIdx))} className="text-red-400 hover:text-red-600"><X size={12} /></button></td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
-        <button onClick={() => setHalls(p => [...p, { name: '', capacity: '', floor: '', equipment: 'None' }])}
-          className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl mt-2`}>
-          <Plus size={12} /> Add Room
-        </button>
+        <Pagination page={hallPage} total={filteredHalls.length} pageSize={PAGE_SIZE} onChange={setHallPage} theme={theme} />
       </SectionCard>
 
       <SectionCard title="Invigilator Assignment Rules" subtitle="Automate invigilator duty assignment for exams" theme={theme}>
@@ -729,6 +848,14 @@ export default function ExamConfigModule({ theme }: { theme: Theme }) {
       <SectionCard title="Bulk Import" subtitle="Import data from Excel templates" theme={theme}>
         <BulkImportWizard entityName="Exam Schedule" templateFields={['Exam Name', 'Class', 'Subject', 'Date', 'Time', 'Duration', 'Max Marks']} sampleData={[['Unit Test 1', 'Grade 9', 'Mathematics', '2026-06-15', '09:00 AM', '2 hrs', '100']]} theme={theme} />
       </SectionCard>
+
+      {/* ── Save Configuration ── */}
+      <div className="flex justify-end pt-2">
+        <button onClick={() => { setSaved(true); setTimeout(() => setSaved(false), 2000); }}
+          className={`flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold text-white ${saved ? 'bg-emerald-500' : theme.primary} hover:opacity-90 transition-colors`}>
+          <Save size={14} /> {saved ? 'Saved!' : 'Save Configuration'}
+        </button>
+      </div>
     </div>
   );
 }

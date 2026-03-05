@@ -1,25 +1,209 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Plus, Upload, AlertCircle, Trash2 } from 'lucide-react';
+import { X, Plus, Upload, AlertCircle, Trash2, Search, Download, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Save } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import { MasterPermissionGrid } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
 
+// ─── Types ─────────────────────────────────────────
+type TimingSetEntry = { id: number; period: string; start: string; end: string; enabled: boolean };
+type TimingSetData = { id: number; name: string; entries: TimingSetEntry[]; enabled: boolean };
+type BellEntry = { id: number; period: string; start: string; end: string; enabled: boolean };
+type RoomEntry = {
+  id: number; name: string; type: string; capacity: string; floor: string;
+  equipment: string; status: string; enabled: boolean;
+};
+type TimetableCell = { sub: string; teacher: string; conflict?: boolean };
+
+const PAGE_SIZE = 5;
+
+// ─── Sub-component: Table Toolbar ─────────────────
+function TableToolbar({
+  search, onSearch, count, label, onAdd, onExport, onImport, theme,
+}: {
+  search: string; onSearch: (v: string) => void; count: number; label: string;
+  onAdd: () => void; onExport: () => void; onImport: () => void; theme: Theme;
+}) {
+  return (
+    <div className="flex items-center gap-2 mb-3 flex-wrap">
+      <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border ${theme.border} ${theme.inputBg} flex-1 min-w-[160px]`}>
+        <Search size={13} className={theme.iconColor} />
+        <input value={search} onChange={e => onSearch(e.target.value)} placeholder={`Search ${label}...`}
+          className={`flex-1 bg-transparent text-xs ${theme.highlight} outline-none placeholder-gray-400`} />
+        {search && <button onClick={() => onSearch('')}><X size={12} className="text-gray-400 hover:text-red-400" /></button>}
+      </div>
+      <span className={`text-[10px] font-bold px-2 py-1 rounded-lg ${theme.secondaryBg} ${theme.iconColor} shrink-0`}>{count} records</span>
+      <button onClick={onAdd}
+        className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-white ${theme.primary} hover:opacity-90 shrink-0`}>
+        <Plus size={12} /> Add
+      </button>
+      <button onClick={onExport}
+        className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold border border-emerald-300 text-emerald-600 hover:bg-emerald-50 shrink-0">
+        <Download size={12} /> Export
+      </button>
+      <button onClick={onImport}
+        className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold border border-blue-300 text-blue-600 hover:bg-blue-50 shrink-0">
+        <Upload size={12} /> Import
+      </button>
+    </div>
+  );
+}
+
+// ─── Sub-component: Pagination ─────────────────────
+function Pagination({ page, total, pageSize, onChange, theme }: { page: number; total: number; pageSize: number; onChange: (p: number) => void; theme: Theme }) {
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  if (totalPages <= 1) return null;
+  return (
+    <div className="flex items-center justify-end gap-2 mt-2">
+      <button disabled={page === 1} onClick={() => onChange(page - 1)}
+        className={`p-1 rounded-lg border ${theme.border} disabled:opacity-30 ${theme.buttonHover}`}>
+        <ChevronLeft size={13} className={theme.iconColor} />
+      </button>
+      <span className={`text-[10px] ${theme.iconColor}`}>Page {page} / {totalPages}</span>
+      <button disabled={page === totalPages} onClick={() => onChange(page + 1)}
+        className={`p-1 rounded-lg border ${theme.border} disabled:opacity-30 ${theme.buttonHover}`}>
+        <ChevronRight size={13} className={theme.iconColor} />
+      </button>
+    </div>
+  );
+}
+
+// ─── Main Module ────────────────────────────────────
 export default function TimetableConfigModule({ theme }: { theme: Theme }) {
-  const [bellSchedule, setBellSchedule] = useState([
-    { period: 'Assembly', start: '07:30', end: '07:50' },
-    { period: 'Period 1', start: '07:50', end: '08:30' },
-    { period: 'Period 2', start: '08:30', end: '09:10' },
-    { period: 'Period 3', start: '09:10', end: '09:50' },
-    { period: 'Short Break', start: '09:50', end: '10:05' },
-    { period: 'Period 4', start: '10:05', end: '10:45' },
-    { period: 'Period 5', start: '10:45', end: '11:25' },
-    { period: 'Lunch Break', start: '11:25', end: '12:00' },
-    { period: 'Period 6', start: '12:00', end: '12:40' },
-    { period: 'Period 7', start: '12:40', end: '01:20' },
-    { period: 'Period 8', start: '01:20', end: '02:00' },
+
+  // ── A) Timing Sets (full master table) ─────────────
+  const [timingSets, setTimingSets] = useState<TimingSetData[]>([
+    {
+      id: 1, name: 'Primary (1-5)', enabled: true,
+      entries: [
+        { id: 1, period: 'Assembly', start: '07:30', end: '07:45', enabled: true },
+        { id: 2, period: 'Period 1', start: '07:45', end: '08:20', enabled: true },
+        { id: 3, period: 'Period 2', start: '08:20', end: '08:55', enabled: true },
+        { id: 4, period: 'Period 3', start: '08:55', end: '09:30', enabled: true },
+        { id: 5, period: 'Short Break', start: '09:30', end: '09:45', enabled: true },
+        { id: 6, period: 'Period 4', start: '09:45', end: '10:20', enabled: true },
+        { id: 7, period: 'Period 5', start: '10:20', end: '10:55', enabled: true },
+        { id: 8, period: 'Lunch Break', start: '10:55', end: '11:25', enabled: true },
+        { id: 9, period: 'Period 6', start: '11:25', end: '12:00', enabled: true },
+      ],
+    },
+    {
+      id: 2, name: 'Secondary (6-10)', enabled: true,
+      entries: [
+        { id: 1, period: 'Assembly', start: '07:30', end: '07:50', enabled: true },
+        { id: 2, period: 'Period 1', start: '07:50', end: '08:30', enabled: true },
+        { id: 3, period: 'Period 2', start: '08:30', end: '09:10', enabled: true },
+        { id: 4, period: 'Period 3', start: '09:10', end: '09:50', enabled: true },
+        { id: 5, period: 'Short Break', start: '09:50', end: '10:05', enabled: true },
+        { id: 6, period: 'Period 4', start: '10:05', end: '10:45', enabled: true },
+        { id: 7, period: 'Period 5', start: '10:45', end: '11:25', enabled: true },
+        { id: 8, period: 'Lunch Break', start: '11:25', end: '12:00', enabled: true },
+        { id: 9, period: 'Period 6', start: '12:00', end: '12:40', enabled: true },
+        { id: 10, period: 'Period 7', start: '12:40', end: '01:20', enabled: true },
+        { id: 11, period: 'Period 8', start: '01:20', end: '02:00', enabled: true },
+      ],
+    },
+    {
+      id: 3, name: 'Senior Secondary (11-12)', enabled: true,
+      entries: [
+        { id: 1, period: 'Period 1', start: '07:30', end: '08:15', enabled: true },
+        { id: 2, period: 'Period 2', start: '08:15', end: '09:00', enabled: true },
+        { id: 3, period: 'Period 3', start: '09:00', end: '09:45', enabled: true },
+        { id: 4, period: 'Short Break', start: '09:45', end: '10:00', enabled: true },
+        { id: 5, period: 'Period 4', start: '10:00', end: '10:45', enabled: true },
+        { id: 6, period: 'Period 5', start: '10:45', end: '11:30', enabled: true },
+        { id: 7, period: 'Lunch Break', start: '11:30', end: '12:00', enabled: true },
+        { id: 8, period: 'Period 6', start: '12:00', end: '12:45', enabled: true },
+        { id: 9, period: 'Period 7', start: '12:45', end: '01:30', enabled: true },
+      ],
+    },
   ]);
+  const [activeTimingSetId, setActiveTimingSetId] = useState(1);
+  const [tsSearch, setTsSearch] = useState('');
+  const [tsPage, setTsPage] = useState(1);
+  const [editingSetId, setEditingSetId] = useState<number | null>(null);
+  const [editingSetName, setEditingSetName] = useState('');
+
+  const activeSet = timingSets.find(s => s.id === activeTimingSetId);
+  const filteredTsEntries = (activeSet?.entries || []).filter(e =>
+    e.period.toLowerCase().includes(tsSearch.toLowerCase())
+  );
+  const pagedTsEntries = filteredTsEntries.slice((tsPage - 1) * PAGE_SIZE, tsPage * PAGE_SIZE);
+
+  function addTimingSet() {
+    const newId = Date.now();
+    setTimingSets(p => [...p, { id: newId, name: 'New Set', enabled: true, entries: [] }]);
+    setActiveTimingSetId(newId);
+  }
+  function deleteTimingSet(id: number) {
+    setTimingSets(p => p.filter(s => s.id !== id));
+    if (activeTimingSetId === id) setActiveTimingSetId(timingSets[0]?.id || 0);
+  }
+  function toggleTimingSet(id: number) {
+    setTimingSets(p => p.map(s => s.id === id ? { ...s, enabled: !s.enabled } : s));
+  }
+  function startEditSetName(id: number, name: string) {
+    setEditingSetId(id);
+    setEditingSetName(name);
+  }
+  function saveSetName(id: number) {
+    setTimingSets(p => p.map(s => s.id === id ? { ...s, name: editingSetName } : s));
+    setEditingSetId(null);
+  }
+  function addTsEntry() {
+    if (!activeSet) return;
+    setTimingSets(p => p.map(s => s.id === activeTimingSetId
+      ? { ...s, entries: [...s.entries, { id: Date.now(), period: '', start: '08:00', end: '08:40', enabled: true }] }
+      : s
+    ));
+  }
+  function updateTsEntry(entryId: number, field: keyof TimingSetEntry, value: string | boolean) {
+    setTimingSets(p => p.map(s => s.id === activeTimingSetId
+      ? { ...s, entries: s.entries.map(e => e.id === entryId ? { ...e, [field]: value } : e) }
+      : s
+    ));
+  }
+  function deleteTsEntry(entryId: number) {
+    setTimingSets(p => p.map(s => s.id === activeTimingSetId
+      ? { ...s, entries: s.entries.filter(e => e.id !== entryId) }
+      : s
+    ));
+  }
+
+  // ── B) Bell Schedule (full master table) ──────────
+  const [bellSchedule, setBellSchedule] = useState<BellEntry[]>([
+    { id: 1, period: 'Assembly', start: '07:30', end: '07:50', enabled: true },
+    { id: 2, period: 'Period 1', start: '07:50', end: '08:30', enabled: true },
+    { id: 3, period: 'Period 2', start: '08:30', end: '09:10', enabled: true },
+    { id: 4, period: 'Period 3', start: '09:10', end: '09:50', enabled: true },
+    { id: 5, period: 'Short Break', start: '09:50', end: '10:05', enabled: true },
+    { id: 6, period: 'Period 4', start: '10:05', end: '10:45', enabled: true },
+    { id: 7, period: 'Period 5', start: '10:45', end: '11:25', enabled: true },
+    { id: 8, period: 'Lunch Break', start: '11:25', end: '12:00', enabled: true },
+    { id: 9, period: 'Period 6', start: '12:00', end: '12:40', enabled: true },
+    { id: 10, period: 'Period 7', start: '12:40', end: '01:20', enabled: true },
+    { id: 11, period: 'Period 8', start: '01:20', end: '02:00', enabled: true },
+  ]);
+  const [bellSearch, setBellSearch] = useState('');
+  const [bellPage, setBellPage] = useState(1);
+
+  const filteredBell = bellSchedule.filter(b =>
+    b.period.toLowerCase().includes(bellSearch.toLowerCase())
+  );
+  const pagedBell = filteredBell.slice((bellPage - 1) * PAGE_SIZE, bellPage * PAGE_SIZE);
+
+  function addBellEntry() {
+    setBellSchedule(p => [...p, { id: Date.now(), period: '', start: '08:00', end: '08:40', enabled: true }]);
+  }
+  function updateBellEntry(id: number, field: keyof BellEntry, value: string | boolean) {
+    setBellSchedule(p => p.map(b => b.id === id ? { ...b, [field]: value } : b));
+  }
+  function deleteBellEntry(id: number) {
+    setBellSchedule(p => p.filter(b => b.id !== id));
+  }
+
+  // ── Settings ──────────────────────────────────────
   const [saturdaySchedule, setSaturdaySchedule] = useState('half-day');
   const [zeroPeriod, setZeroPeriod] = useState(false);
   const [zeroPeriodTime, setZeroPeriodTime] = useState({ start: '07:00', end: '07:30' });
@@ -27,82 +211,97 @@ export default function TimetableConfigModule({ theme }: { theme: Theme }) {
   const [substitutionMode, setSubstitutionMode] = useState('Both');
   const [substitutionBasis, setSubstitutionBasis] = useState('Both');
   const [allowPeriodSwaps, setAllowPeriodSwaps] = useState(true);
-  const [rooms, setRooms] = useState([
-    { name: 'Room 101', type: 'Classroom', capacity: '40', floor: 'Ground', equipment: 'Projector, Whiteboard', status: 'Available' },
-    { name: 'Room 102', type: 'Classroom', capacity: '40', floor: 'Ground', equipment: 'Projector, Whiteboard', status: 'Available' },
-    { name: 'Room 103', type: 'Classroom', capacity: '40', floor: 'Ground', equipment: 'Whiteboard', status: 'Available' },
-    { name: 'Room 104', type: 'Classroom', capacity: '40', floor: '1st', equipment: 'Projector, Whiteboard', status: 'Available' },
-    { name: 'Room 105', type: 'Classroom', capacity: '40', floor: '1st', equipment: 'Whiteboard', status: 'Available' },
-    { name: 'Room 106', type: 'Classroom', capacity: '40', floor: '1st', equipment: 'Projector, Whiteboard', status: 'Available' },
-    { name: 'Science Lab', type: 'Lab', capacity: '30', floor: '2nd', equipment: 'Lab Tables, Fume Hood, Microscopes', status: 'Available' },
-    { name: 'Computer Lab', type: 'Lab', capacity: '35', floor: '2nd', equipment: '35 PCs, Projector, AC', status: 'Available' },
-    { name: 'Library', type: 'Library', capacity: '60', floor: 'Ground', equipment: 'Reading Tables, PCs, AC', status: 'Available' },
-    { name: 'Auditorium', type: 'Auditorium', capacity: '500', floor: 'Ground', equipment: 'Stage, Sound System, Projector', status: 'Available' },
-    { name: 'Staff Room', type: 'Staff Room', capacity: '50', floor: '1st', equipment: 'Desks, PCs, Printer', status: 'Available' },
-    { name: 'Principal Office', type: 'Office', capacity: '5', floor: 'Ground', equipment: 'Desk, PC, AC, CCTV', status: 'Available' },
+
+  // ── C) Rooms & Infrastructure (full master table) ──
+  const [rooms, setRooms] = useState<RoomEntry[]>([
+    { id: 1, name: 'Room 101', type: 'Classroom', capacity: '40', floor: 'Ground', equipment: 'Projector, Whiteboard', status: 'Available', enabled: true },
+    { id: 2, name: 'Room 102', type: 'Classroom', capacity: '40', floor: 'Ground', equipment: 'Projector, Whiteboard', status: 'Available', enabled: true },
+    { id: 3, name: 'Room 103', type: 'Classroom', capacity: '40', floor: 'Ground', equipment: 'Whiteboard', status: 'Available', enabled: true },
+    { id: 4, name: 'Room 104', type: 'Classroom', capacity: '40', floor: '1st', equipment: 'Projector, Whiteboard', status: 'Available', enabled: true },
+    { id: 5, name: 'Room 105', type: 'Classroom', capacity: '40', floor: '1st', equipment: 'Whiteboard', status: 'Available', enabled: true },
+    { id: 6, name: 'Room 106', type: 'Classroom', capacity: '40', floor: '1st', equipment: 'Projector, Whiteboard', status: 'Available', enabled: true },
+    { id: 7, name: 'Science Lab', type: 'Lab', capacity: '30', floor: '2nd', equipment: 'Lab Tables, Fume Hood, Microscopes', status: 'Available', enabled: true },
+    { id: 8, name: 'Computer Lab', type: 'Lab', capacity: '35', floor: '2nd', equipment: '35 PCs, Projector, AC', status: 'Available', enabled: true },
+    { id: 9, name: 'Library', type: 'Library', capacity: '60', floor: 'Ground', equipment: 'Reading Tables, PCs, AC', status: 'Available', enabled: true },
+    { id: 10, name: 'Auditorium', type: 'Auditorium', capacity: '500', floor: 'Ground', equipment: 'Stage, Sound System, Projector', status: 'Available', enabled: true },
+    { id: 11, name: 'Staff Room', type: 'Staff Room', capacity: '50', floor: '1st', equipment: 'Desks, PCs, Printer', status: 'Available', enabled: true },
+    { id: 12, name: 'Principal Office', type: 'Office', capacity: '5', floor: 'Ground', equipment: 'Desk, PC, AC, CCTV', status: 'Available', enabled: true },
   ]);
+  const [roomSearch, setRoomSearch] = useState('');
+  const [roomPage, setRoomPage] = useState(1);
   const roomTypes = ['Classroom', 'Lab', 'Library', 'Auditorium', 'Playground', 'Office', 'Staff Room'];
   const roomStatuses = ['Available', 'Under Maintenance', 'Reserved'];
 
-  // ─── Timing Sets ───
-  const [activeTimingSet, setActiveTimingSet] = useState('Primary (1-5)');
-  const timingSets: Record<string, { period: string; start: string; end: string }[]> = {
-    'Primary (1-5)': [
-      { period: 'Assembly', start: '07:30', end: '07:45' },
-      { period: 'Period 1', start: '07:45', end: '08:20' },
-      { period: 'Period 2', start: '08:20', end: '08:55' },
-      { period: 'Period 3', start: '08:55', end: '09:30' },
-      { period: 'Short Break', start: '09:30', end: '09:45' },
-      { period: 'Period 4', start: '09:45', end: '10:20' },
-      { period: 'Period 5', start: '10:20', end: '10:55' },
-      { period: 'Lunch Break', start: '10:55', end: '11:25' },
-      { period: 'Period 6', start: '11:25', end: '12:00' },
-    ],
-    'Secondary (6-10)': [
-      { period: 'Assembly', start: '07:30', end: '07:50' },
-      { period: 'Period 1', start: '07:50', end: '08:30' },
-      { period: 'Period 2', start: '08:30', end: '09:10' },
-      { period: 'Period 3', start: '09:10', end: '09:50' },
-      { period: 'Short Break', start: '09:50', end: '10:05' },
-      { period: 'Period 4', start: '10:05', end: '10:45' },
-      { period: 'Period 5', start: '10:45', end: '11:25' },
-      { period: 'Lunch Break', start: '11:25', end: '12:00' },
-      { period: 'Period 6', start: '12:00', end: '12:40' },
-      { period: 'Period 7', start: '12:40', end: '01:20' },
-      { period: 'Period 8', start: '01:20', end: '02:00' },
-    ],
-    'Senior Secondary (11-12)': [
-      { period: 'Period 1', start: '07:30', end: '08:15' },
-      { period: 'Period 2', start: '08:15', end: '09:00' },
-      { period: 'Period 3', start: '09:00', end: '09:45' },
-      { period: 'Short Break', start: '09:45', end: '10:00' },
-      { period: 'Period 4', start: '10:00', end: '10:45' },
-      { period: 'Period 5', start: '10:45', end: '11:30' },
-      { period: 'Lunch Break', start: '11:30', end: '12:00' },
-      { period: 'Period 6', start: '12:00', end: '12:45' },
-      { period: 'Period 7', start: '12:45', end: '01:30' },
-    ],
-  };
+  const filteredRooms = rooms.filter(r =>
+    r.name.toLowerCase().includes(roomSearch.toLowerCase()) ||
+    r.type.toLowerCase().includes(roomSearch.toLowerCase()) ||
+    r.floor.toLowerCase().includes(roomSearch.toLowerCase())
+  );
+  const pagedRooms = filteredRooms.slice((roomPage - 1) * PAGE_SIZE, roomPage * PAGE_SIZE);
 
-  // ─── Timetable Builder Preview (Class 10-A) ───
+  function addRoom() {
+    setRooms(p => [...p, { id: Date.now(), name: '', type: 'Classroom', capacity: '40', floor: '', equipment: '', status: 'Available', enabled: true }]);
+  }
+  function updateRoom(id: number, field: keyof RoomEntry, value: string | boolean) {
+    setRooms(p => p.map(r => r.id === id ? { ...r, [field]: value } : r));
+  }
+  function deleteRoom(id: number) {
+    setRooms(p => p.filter(r => r.id !== id));
+  }
+
+  // ── D) Timetable Builder (clickable cells) ────────
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const periods = ['P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7', 'P8'];
+  const subjectOptions = ['Eng', 'Math', 'Sci', 'SSt', 'Hindi', 'IT', 'PE', 'Art'];
+  const teacherOptions = [
+    { code: 'SI', name: 'Mrs. Iyer' }, { code: 'PS', name: 'Mr. Sharma' },
+    { code: 'RK', name: 'Mr. Kumar' }, { code: 'AG', name: 'Ms. Gupta' },
+    { code: 'MD', name: 'Mr. Das' }, { code: 'VN', name: 'Ms. Nair' },
+    { code: 'KJ', name: 'Mr. Joshi' }, { code: 'SP', name: 'Ms. Patel' },
+  ];
   const subjectColors: Record<string, string> = {
     'Eng': 'bg-blue-100 text-blue-700', 'Math': 'bg-purple-100 text-purple-700',
     'Sci': 'bg-emerald-100 text-emerald-700', 'SSt': 'bg-amber-100 text-amber-700',
     'Hindi': 'bg-rose-100 text-rose-700', 'IT': 'bg-cyan-100 text-cyan-700',
     'PE': 'bg-orange-100 text-orange-700', 'Art': 'bg-pink-100 text-pink-700',
   };
-  const timetableData: Record<string, { sub: string; teacher: string; conflict?: boolean }[]> = {
+
+  const [timetableData, setTimetableData] = useState<Record<string, TimetableCell[]>>({
     'Mon': [{ sub: 'Eng', teacher: 'SI' }, { sub: 'Math', teacher: 'PS' }, { sub: 'Sci', teacher: 'RK' }, { sub: 'Hindi', teacher: 'AG' }, { sub: 'SSt', teacher: 'MD' }, { sub: 'IT', teacher: 'VN' }, { sub: 'PE', teacher: 'KJ' }, { sub: 'Art', teacher: 'SP' }],
     'Tue': [{ sub: 'Math', teacher: 'PS' }, { sub: 'Eng', teacher: 'SI' }, { sub: 'Hindi', teacher: 'AG' }, { sub: 'Sci', teacher: 'RK' }, { sub: 'IT', teacher: 'VN' }, { sub: 'SSt', teacher: 'MD' }, { sub: 'Eng', teacher: 'SI' }, { sub: 'Math', teacher: 'PS' }],
     'Wed': [{ sub: 'Sci', teacher: 'RK' }, { sub: 'SSt', teacher: 'MD' }, { sub: 'Eng', teacher: 'SI' }, { sub: 'Math', teacher: 'PS' }, { sub: 'Hindi', teacher: 'AG' }, { sub: 'PE', teacher: 'KJ' }, { sub: 'Sci', teacher: 'RK', conflict: true }, { sub: 'IT', teacher: 'VN' }],
     'Thu': [{ sub: 'Hindi', teacher: 'AG' }, { sub: 'Sci', teacher: 'RK' }, { sub: 'Math', teacher: 'PS' }, { sub: 'Eng', teacher: 'SI' }, { sub: 'SSt', teacher: 'MD' }, { sub: 'Art', teacher: 'SP' }, { sub: 'Hindi', teacher: 'AG' }, { sub: 'Sci', teacher: 'RK' }],
     'Fri': [{ sub: 'SSt', teacher: 'MD' }, { sub: 'Hindi', teacher: 'AG' }, { sub: 'Sci', teacher: 'RK' }, { sub: 'IT', teacher: 'VN' }, { sub: 'Math', teacher: 'PS' }, { sub: 'Eng', teacher: 'SI' }, { sub: 'PE', teacher: 'KJ' }, { sub: 'Math', teacher: 'PS' }],
     'Sat': [{ sub: 'Eng', teacher: 'SI' }, { sub: 'Math', teacher: 'PS' }, { sub: 'Hindi', teacher: 'AG' }, { sub: 'Sci', teacher: 'RK' }, { sub: 'SSt', teacher: 'MD' }, { sub: 'PE', teacher: 'KJ' }, { sub: '', teacher: '' }, { sub: '', teacher: '' }],
-  };
+  });
+  const [editingCell, setEditingCell] = useState<{ day: string; period: number } | null>(null);
+  const [cellSub, setCellSub] = useState('');
+  const [cellTeacher, setCellTeacher] = useState('');
 
-  // ─── Today's Substitutions ───
+  function openCellEditor(day: string, pi: number) {
+    const cell = timetableData[day]?.[pi];
+    setCellSub(cell?.sub || '');
+    setCellTeacher(cell?.teacher || '');
+    setEditingCell({ day, period: pi });
+  }
+  function saveCellEdit() {
+    if (!editingCell) return;
+    setTimetableData(prev => {
+      const newData = { ...prev };
+      const dayArr = [...(newData[editingCell.day] || [])];
+      // Extend array if needed
+      while (dayArr.length <= editingCell.period) dayArr.push({ sub: '', teacher: '' });
+      dayArr[editingCell.period] = { sub: cellSub, teacher: cellTeacher };
+      newData[editingCell.day] = dayArr;
+      return newData;
+    });
+    setEditingCell(null);
+  }
+  function cancelCellEdit() {
+    setEditingCell(null);
+  }
+
+  // ── Substitutions (preserved) ─────────────────────
   const [todaySubstitutions] = useState([
     { period: 'P3', absentTeacher: 'Mr. Kumar (Science)', substitute: 'Mrs. Joshi', class: '8-B', status: 'Confirmed' },
     { period: 'P5', absentTeacher: 'Ms. Nair (English)', substitute: 'Mr. Singh', class: '7-A', status: 'Pending' },
@@ -115,61 +314,167 @@ export default function TimetableConfigModule({ theme }: { theme: Theme }) {
     { name: 'Ms. Verma', freePeriods: 'P1, P8' },
   ]);
 
+  // ── Duration helper ───────────────────────────────
+  function calcDuration(start: string, end: string) {
+    const [sh, sm] = start.split(':').map(Number);
+    const [eh, em] = end.split(':').map(Number);
+    return `${(eh * 60 + em) - (sh * 60 + sm)} min`;
+  }
+
   return (
     <div className="space-y-4">
       <ModuleHeader title="Timetable & Bell Schedule" subtitle="Bell timings, breaks, Saturday schedule, and special periods" theme={theme} />
 
-      {/* ─── A) Timing Sets ─── */}
-      <SectionCard title="Timing Sets" subtitle="Different bell schedules for different grade groups — each set defines period durations independently" theme={theme}>
-        <div className="flex gap-1.5 mb-3">
-          {Object.keys(timingSets).map(set => (
-            <div key={set} className="flex items-center gap-1">
-              <button onClick={() => setActiveTimingSet(set)}
-                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${activeTimingSet === set ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.highlight}`}`}>
-                {set}
-              </button>
-              {activeTimingSet === set && (
-                <button className="text-red-400 hover:text-red-600" title="Delete Set"><Trash2 size={10} /></button>
+      {/* ─── A) Timing Sets (full master table) ─── */}
+      <SectionCard title="Timing Sets" subtitle="Different bell schedules for different grade groups -- each set defines period durations independently" theme={theme}>
+        {/* Set tabs with edit/delete/toggle */}
+        <div className="flex gap-1.5 mb-3 flex-wrap">
+          {timingSets.map(set => (
+            <div key={set.id} className="flex items-center gap-1">
+              {editingSetId === set.id ? (
+                <div className="flex items-center gap-1">
+                  <input value={editingSetName} onChange={e => setEditingSetName(e.target.value)}
+                    className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] font-bold ${theme.highlight} outline-none w-32`}
+                    autoFocus onKeyDown={e => { if (e.key === 'Enter') saveSetName(set.id); if (e.key === 'Escape') setEditingSetId(null); }} />
+                  <button onClick={() => saveSetName(set.id)} className="text-emerald-500 hover:text-emerald-700 text-[10px] font-bold">OK</button>
+                </div>
+              ) : (
+                <button onClick={() => setActiveTimingSetId(set.id)}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${activeTimingSetId === set.id ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.highlight}`} ${!set.enabled ? 'opacity-50' : ''}`}>
+                  {set.name}
+                </button>
+              )}
+              {activeTimingSetId === set.id && editingSetId !== set.id && (
+                <div className="flex items-center gap-1">
+                  <button onClick={() => startEditSetName(set.id, set.name)} className="text-blue-400 hover:text-blue-600" title="Edit Set Name">
+                    <Search size={10} />
+                  </button>
+                  <SSAToggle on={set.enabled} onChange={() => toggleTimingSet(set.id)} theme={theme} />
+                  <button onClick={() => deleteTimingSet(set.id)} className="text-red-400 hover:text-red-600" title="Delete Set"><Trash2 size={10} /></button>
+                </div>
               )}
             </div>
           ))}
-          <button className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border border-dashed ${theme.border} ${theme.iconColor} ${theme.buttonHover}`}>
+          <button onClick={addTimingSet}
+            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border border-dashed ${theme.border} ${theme.iconColor} ${theme.buttonHover}`}>
             + Add Set
           </button>
         </div>
-        <div className="space-y-1.5">
-          {(timingSets[activeTimingSet] || []).map((p, i) => (
-            <div key={i} className={`flex items-center gap-3 p-2 rounded-xl ${p.period.includes('Break') || p.period === 'Assembly' ? 'bg-amber-50 border border-amber-200' : theme.secondaryBg}`}>
-              <span className={`text-xs font-bold ${theme.highlight} w-24`}>{p.period}</span>
-              <span className={`text-xs ${theme.iconColor}`}>{p.start}</span>
-              <span className={`text-[10px] ${theme.iconColor}`}>to</span>
-              <span className={`text-xs ${theme.iconColor}`}>{p.end}</span>
-              <span className={`text-[10px] ${theme.iconColor}`}>
-                {(() => { const [sh, sm] = p.start.split(':').map(Number); const [eh, em] = p.end.split(':').map(Number); return `${(eh * 60 + em) - (sh * 60 + sm)} min`; })()}
-              </span>
+
+        {/* Entries table for active set */}
+        {activeSet && (
+          <>
+            <TableToolbar
+              search={tsSearch} onSearch={v => { setTsSearch(v); setTsPage(1); }}
+              count={filteredTsEntries.length} label="periods"
+              onAdd={addTsEntry}
+              onExport={() => alert('Export timing set as CSV')}
+              onImport={() => alert('Import timing set from CSV')}
+              theme={theme}
+            />
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className={theme.secondaryBg}>
+                    {['Period Name', 'Start', 'End', 'Duration', 'Enabled', ''].map(h => (
+                      <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor} whitespace-nowrap`}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {pagedTsEntries.length === 0 ? (
+                    <tr><td colSpan={6} className={`text-center py-6 text-xs ${theme.iconColor}`}>No periods found</td></tr>
+                  ) : pagedTsEntries.map(entry => (
+                    <tr key={entry.id} className={`border-t ${theme.border} ${!entry.enabled ? 'opacity-50' : ''} ${entry.period.includes('Break') || entry.period === 'Assembly' ? 'bg-amber-50' : ''}`}>
+                      <td className="px-2 py-1.5">
+                        <input value={entry.period}
+                          onChange={e => updateTsEntry(entry.id, 'period', e.target.value)}
+                          className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`}
+                          placeholder="Period name" />
+                      </td>
+                      <td className="px-2 py-1.5">
+                        <input type="time" value={entry.start}
+                          onChange={e => updateTsEntry(entry.id, 'start', e.target.value)}
+                          className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                      </td>
+                      <td className="px-2 py-1.5">
+                        <input type="time" value={entry.end}
+                          onChange={e => updateTsEntry(entry.id, 'end', e.target.value)}
+                          className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                      </td>
+                      <td className={`px-3 py-2 text-[10px] ${theme.iconColor}`}>{calcDuration(entry.start, entry.end)}</td>
+                      <td className="px-3 py-2">
+                        <SSAToggle on={entry.enabled} onChange={() => updateTsEntry(entry.id, 'enabled', !entry.enabled)} theme={theme} />
+                      </td>
+                      <td className="px-2 py-1.5">
+                        <button onClick={() => deleteTsEntry(entry.id)} className="text-red-400 hover:text-red-600"><X size={12} /></button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          ))}
-        </div>
+            <Pagination page={tsPage} total={filteredTsEntries.length} pageSize={PAGE_SIZE} onChange={setTsPage} theme={theme} />
+          </>
+        )}
       </SectionCard>
 
+      {/* ─── B) Bell Schedule (full master table) ─── */}
       <SectionCard title="Bell Schedule" subtitle="Period-wise start and end times (editable master schedule)" theme={theme}>
-        <div className="space-y-1.5">
-          {bellSchedule.map((p, i) => (
-            <div key={i} className={`flex items-center gap-3 p-2.5 rounded-xl ${p.period.includes('Break') || p.period === 'Assembly' ? 'bg-amber-50 border border-amber-200' : theme.secondaryBg}`}>
-              <span className={`text-xs font-bold ${theme.highlight} w-24`}>{p.period}</span>
-              <input type="time" value={p.start} onChange={e => { const n = [...bellSchedule]; n[i] = { ...n[i], start: e.target.value }; setBellSchedule(n); }}
-                className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
-              <span className={`text-xs ${theme.iconColor}`}>to</span>
-              <input type="time" value={p.end} onChange={e => { const n = [...bellSchedule]; n[i] = { ...n[i], end: e.target.value }; setBellSchedule(n); }}
-                className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
-              <span className={`text-[10px] ${theme.iconColor}`}>
-                {(() => { const [sh, sm] = p.start.split(':').map(Number); const [eh, em] = p.end.split(':').map(Number); return `${(eh * 60 + em) - (sh * 60 + sm)} min`; })()}
-              </span>
-            </div>
-          ))}
+        <TableToolbar
+          search={bellSearch} onSearch={v => { setBellSearch(v); setBellPage(1); }}
+          count={filteredBell.length} label="periods"
+          onAdd={addBellEntry}
+          onExport={() => alert('Export bell schedule as CSV')}
+          onImport={() => alert('Import bell schedule from CSV')}
+          theme={theme}
+        />
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className={theme.secondaryBg}>
+                {['Period Name', 'Start', 'End', 'Duration', 'Enabled', ''].map(h => (
+                  <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor} whitespace-nowrap`}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {pagedBell.length === 0 ? (
+                <tr><td colSpan={6} className={`text-center py-6 text-xs ${theme.iconColor}`}>No periods found</td></tr>
+              ) : pagedBell.map(b => (
+                <tr key={b.id} className={`border-t ${theme.border} ${!b.enabled ? 'opacity-50' : ''} ${b.period.includes('Break') || b.period === 'Assembly' ? 'bg-amber-50' : ''}`}>
+                  <td className="px-2 py-1.5">
+                    <input value={b.period}
+                      onChange={e => updateBellEntry(b.id, 'period', e.target.value)}
+                      className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`}
+                      placeholder="Period name" />
+                  </td>
+                  <td className="px-2 py-1.5">
+                    <input type="time" value={b.start}
+                      onChange={e => updateBellEntry(b.id, 'start', e.target.value)}
+                      className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                  </td>
+                  <td className="px-2 py-1.5">
+                    <input type="time" value={b.end}
+                      onChange={e => updateBellEntry(b.id, 'end', e.target.value)}
+                      className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                  </td>
+                  <td className={`px-3 py-2 text-[10px] ${theme.iconColor}`}>{calcDuration(b.start, b.end)}</td>
+                  <td className="px-3 py-2">
+                    <SSAToggle on={b.enabled} onChange={() => updateBellEntry(b.id, 'enabled', !b.enabled)} theme={theme} />
+                  </td>
+                  <td className="px-2 py-1.5">
+                    <button onClick={() => deleteBellEntry(b.id)} className="text-red-400 hover:text-red-600"><X size={12} /></button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
+        <Pagination page={bellPage} total={filteredBell.length} pageSize={PAGE_SIZE} onChange={setBellPage} theme={theme} />
       </SectionCard>
 
+      {/* ─── Settings Row ─── */}
       <div className="grid grid-cols-3 gap-4">
         <SectionCard title="Saturday Schedule" theme={theme}>
           <div className="space-y-2">
@@ -211,8 +516,8 @@ export default function TimetableConfigModule({ theme }: { theme: Theme }) {
         </SectionCard>
       </div>
 
-      {/* ─── B) Timetable Builder Preview ─── */}
-      <SectionCard title="Timetable Builder" subtitle="Visual timetable preview for Class 10-A &mdash; color-coded by subject" theme={theme}>
+      {/* ─── D) Timetable Builder (clickable cells with inline picker) ─── */}
+      <SectionCard title="Timetable Builder" subtitle="Visual timetable for Class 10-A -- click any cell to assign subject &amp; teacher" theme={theme}>
         <div className="overflow-x-auto mb-3">
           <table className="w-full text-[10px]">
             <thead><tr className={theme.secondaryBg}>
@@ -225,11 +530,42 @@ export default function TimetableConfigModule({ theme }: { theme: Theme }) {
                   <td className={`px-2 py-1 font-bold ${theme.iconColor} text-center`}>{p}</td>
                   {days.map(d => {
                     const cell = timetableData[d]?.[pi];
-                    if (!cell || !cell.sub) return <td key={d} className="px-1 py-1 text-center"><span className={`text-[9px] ${theme.iconColor}`}>--</span></td>;
+                    const isEditing = editingCell?.day === d && editingCell?.period === pi;
+
+                    if (isEditing) {
+                      return (
+                        <td key={d} className="px-1 py-1 text-center">
+                          <div className={`p-1.5 rounded-lg border-2 border-blue-400 bg-white shadow-lg space-y-1`}>
+                            <select value={cellSub} onChange={e => setCellSub(e.target.value)}
+                              className={`w-full px-1 py-0.5 rounded border ${theme.border} text-[9px] ${theme.highlight} outline-none`}>
+                              <option value="">-- Subject --</option>
+                              {subjectOptions.map(s => <option key={s} value={s}>{s}</option>)}
+                            </select>
+                            <select value={cellTeacher} onChange={e => setCellTeacher(e.target.value)}
+                              className={`w-full px-1 py-0.5 rounded border ${theme.border} text-[9px] ${theme.highlight} outline-none`}>
+                              <option value="">-- Teacher --</option>
+                              {teacherOptions.map(t => <option key={t.code} value={t.code}>{t.name} ({t.code})</option>)}
+                            </select>
+                            <div className="flex gap-1 justify-center">
+                              <button onClick={saveCellEdit} className="px-2 py-0.5 rounded bg-emerald-500 text-white text-[8px] font-bold hover:bg-emerald-600">Save</button>
+                              <button onClick={cancelCellEdit} className="px-2 py-0.5 rounded bg-gray-300 text-gray-700 text-[8px] font-bold hover:bg-gray-400">Cancel</button>
+                            </div>
+                          </div>
+                        </td>
+                      );
+                    }
+
+                    if (!cell || !cell.sub) {
+                      return (
+                        <td key={d} className="px-1 py-1 text-center cursor-pointer" onClick={() => openCellEditor(d, pi)}>
+                          <span className={`text-[9px] ${theme.iconColor} hover:underline`}>--</span>
+                        </td>
+                      );
+                    }
                     const colorClass = subjectColors[cell.sub] || 'bg-gray-100 text-gray-700';
                     return (
-                      <td key={d} className="px-1 py-1 text-center relative">
-                        <div className={`px-1.5 py-1 rounded-lg ${colorClass} font-bold`}>
+                      <td key={d} className="px-1 py-1 text-center relative cursor-pointer" onClick={() => openCellEditor(d, pi)}>
+                        <div className={`px-1.5 py-1 rounded-lg ${colorClass} font-bold hover:ring-2 hover:ring-blue-300 transition-all`}>
                           {cell.sub} <span className="font-normal opacity-70">({cell.teacher})</span>
                         </div>
                         {cell.conflict && (
@@ -251,10 +587,11 @@ export default function TimetableConfigModule({ theme }: { theme: Theme }) {
               <span key={sub} className={`px-2 py-0.5 rounded text-[9px] font-bold ${cls}`}>{sub}</span>
             ))}
           </div>
-          <button className={`px-3 py-1.5 rounded-xl ${theme.primary} text-white text-xs font-bold`}>Edit Timetable</button>
+          <p className={`text-[9px] ${theme.iconColor}`}>Click any cell to assign subject &amp; teacher</p>
         </div>
       </SectionCard>
 
+      {/* ─── Substitution + Period Swaps ─── */}
       <div className="grid grid-cols-2 gap-4">
         <SectionCard title="Teacher Substitution" subtitle="How absent teacher periods are handled" theme={theme}>
           <div className="space-y-3">
@@ -282,7 +619,7 @@ export default function TimetableConfigModule({ theme }: { theme: Theme }) {
         </SectionCard>
       </div>
 
-      {/* ─── D) Today's Substitutions & Available Teachers ─── */}
+      {/* ─── Today's Substitutions & Available Teachers ─── */}
       <SectionCard title="Today's Substitutions" subtitle="Substitution assignments for absent teachers today" theme={theme}>
         <div className="overflow-x-auto mb-3">
           <table className="w-full text-xs">
@@ -319,12 +656,12 @@ export default function TimetableConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
-      {/* ─── C) Import Timetable from Excel ─── */}
+      {/* ─── Import Timetable from Excel ─── */}
       <SectionCard title="Import Timetable from Excel" subtitle="Upload a pre-built timetable via spreadsheet" theme={theme}>
         <div className="grid grid-cols-2 gap-4">
           <div className={`p-4 rounded-xl border-2 border-dashed ${theme.border} text-center`}>
             <Upload size={24} className={`mx-auto mb-2 ${theme.iconColor}`} />
-            <p className={`text-xs font-bold ${theme.highlight} mb-1`}>Drag & drop Excel file here</p>
+            <p className={`text-xs font-bold ${theme.highlight} mb-1`}>Drag &amp; drop Excel file here</p>
             <p className={`text-[10px] ${theme.iconColor}`}>or click to browse</p>
           </div>
           <div className={`p-4 rounded-xl ${theme.secondaryBg}`}>
@@ -339,65 +676,88 @@ export default function TimetableConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
+      {/* ─── C) Rooms & Infrastructure (full master table) ─── */}
       <SectionCard title="Rooms & Infrastructure" subtitle="Manage school rooms, labs, and facilities with capacity and status" theme={theme}>
+        <TableToolbar
+          search={roomSearch} onSearch={v => { setRoomSearch(v); setRoomPage(1); }}
+          count={filteredRooms.length} label="rooms"
+          onAdd={addRoom}
+          onExport={() => alert('Export rooms as CSV')}
+          onImport={() => alert('Import rooms from CSV')}
+          theme={theme}
+        />
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead><tr className={theme.secondaryBg}>
-              {['Room Name', 'Type', 'Capacity', 'Floor', 'Equipment', 'Status', ''].map(h => (
-                <th key={h} className={`text-left px-2 py-2 font-bold ${theme.iconColor}`}>{h}</th>
+              {['Room Name', 'Type', 'Capacity', 'Floor', 'Equipment', 'Status', 'Enabled', ''].map(h => (
+                <th key={h} className={`text-left px-2 py-2 font-bold ${theme.iconColor} whitespace-nowrap`}>{h}</th>
               ))}
             </tr></thead>
             <tbody>
-              {rooms.map((r, i) => (
-                <tr key={i} className={`border-t ${theme.border}`}>
+              {pagedRooms.length === 0 ? (
+                <tr><td colSpan={8} className={`text-center py-6 text-xs ${theme.iconColor}`}>No rooms found</td></tr>
+              ) : pagedRooms.map(r => (
+                <tr key={r.id} className={`border-t ${theme.border} ${!r.enabled ? 'opacity-50' : ''}`}>
                   <td className="px-2 py-1.5">
-                    <input value={r.name} onChange={e => { const n = [...rooms]; n[i] = { ...n[i], name: e.target.value }; setRooms(n); }}
+                    <input value={r.name} onChange={e => updateRoom(r.id, 'name', e.target.value)}
                       className={`w-full px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} />
                   </td>
                   <td className="px-2 py-1.5">
-                    <select value={r.type} onChange={e => { const n = [...rooms]; n[i] = { ...n[i], type: e.target.value }; setRooms(n); }}
+                    <select value={r.type} onChange={e => updateRoom(r.id, 'type', e.target.value)}
                       className={`px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight}`}>
                       {roomTypes.map(t => <option key={t} value={t}>{t}</option>)}
                     </select>
                   </td>
                   <td className="px-2 py-1.5">
-                    <input value={r.capacity} onChange={e => { const n = [...rooms]; n[i] = { ...n[i], capacity: e.target.value }; setRooms(n); }}
+                    <input value={r.capacity} onChange={e => updateRoom(r.id, 'capacity', e.target.value)}
                       className={`w-12 px-1 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none`} />
                   </td>
                   <td className="px-2 py-1.5">
-                    <input value={r.floor} onChange={e => { const n = [...rooms]; n[i] = { ...n[i], floor: e.target.value }; setRooms(n); }}
+                    <input value={r.floor} onChange={e => updateRoom(r.id, 'floor', e.target.value)}
                       className={`w-16 px-1 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
                   </td>
                   <td className="px-2 py-1.5">
-                    <input value={r.equipment} onChange={e => { const n = [...rooms]; n[i] = { ...n[i], equipment: e.target.value }; setRooms(n); }}
+                    <input value={r.equipment} onChange={e => updateRoom(r.id, 'equipment', e.target.value)}
                       className={`w-full px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight} outline-none`} />
                   </td>
                   <td className="px-2 py-1.5">
-                    <select value={r.status} onChange={e => { const n = [...rooms]; n[i] = { ...n[i], status: e.target.value }; setRooms(n); }}
+                    <select value={r.status} onChange={e => updateRoom(r.id, 'status', e.target.value)}
                       className={`px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] font-bold ${
                         r.status === 'Available' ? 'text-emerald-600' : r.status === 'Under Maintenance' ? 'text-amber-600' : 'text-blue-600'
                       }`}>
                       {roomStatuses.map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
                   </td>
-                  <td className="px-2 py-1.5"><button onClick={() => setRooms(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={12} /></button></td>
+                  <td className="px-2 py-1.5">
+                    <SSAToggle on={r.enabled} onChange={() => updateRoom(r.id, 'enabled', !r.enabled)} theme={theme} />
+                  </td>
+                  <td className="px-2 py-1.5">
+                    <button onClick={() => deleteRoom(r.id)} className="text-red-400 hover:text-red-600"><X size={12} /></button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <button onClick={() => setRooms(p => [...p, { name: '', type: 'Classroom', capacity: '40', floor: '', equipment: '', status: 'Available' }])}
-          className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl mt-2`}>
-          <Plus size={12} /> Add Room
-        </button>
+        <Pagination page={roomPage} total={filteredRooms.length} pageSize={PAGE_SIZE} onChange={setRoomPage} theme={theme} />
       </SectionCard>
 
+      {/* ─── Role-Based Permissions ─── */}
       <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
         <div className="space-y-4">
           <MasterPermissionGrid masterName="Periods" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
           <MasterPermissionGrid masterName="Room Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
         </div>
       </SectionCard>
+
+      {/* ─── Save Button ─── */}
+      <div className="flex justify-end pt-2">
+        <button
+          onClick={() => alert('Timetable configuration saved!')}
+          className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold text-white ${theme.primary} hover:opacity-90 transition-all shadow-sm`}>
+          <Save size={15} /> Save Configuration
+        </button>
+      </div>
     </div>
   );
 }

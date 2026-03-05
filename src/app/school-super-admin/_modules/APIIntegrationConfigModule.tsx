@@ -1,8 +1,80 @@
 'use client';
 import React, { useState } from 'react';
-import { Video, Share2, Landmark, CreditCard, BookOpen, Calculator, Globe, Webhook, Key, FileText, Plus, ExternalLink, Copy } from 'lucide-react';
+import { Video, Share2, Landmark, CreditCard, BookOpen, Calculator, Globe, Webhook, Key, FileText, Plus, ExternalLink, Copy, Search, X, Download, Upload, ChevronLeft, ChevronRight, Save, Zap, Trash2 } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
+
+// ─── Types ─────────────────────────────────────────
+type WebhookEntry = {
+  id: number;
+  name: string;
+  url: string;
+  events: string[];
+  method: 'GET' | 'POST';
+  secretKey: string;
+  status: 'Active' | 'Paused';
+  lastTriggered: string;
+  enabled: boolean;
+};
+
+const PAGE_SIZE = 5;
+
+const ALL_WEBHOOK_EVENTS = [
+  'Student Enrolled', 'Fee Paid', 'Attendance Marked', 'Leave Approved',
+  'Exam Scheduled', 'Result Published', 'Notice Sent', 'Transport Alert',
+  'Visitor Checked In', 'Document Uploaded',
+];
+
+// ─── Sub-component: Table Toolbar ─────────────────
+function TableToolbar({
+  search, onSearch, count, label, onAdd, onExport, onImport, theme,
+}: {
+  search: string; onSearch: (v: string) => void; count: number; label: string;
+  onAdd: () => void; onExport: () => void; onImport: () => void; theme: Theme;
+}) {
+  return (
+    <div className="flex items-center gap-2 mb-3 flex-wrap">
+      <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border ${theme.border} ${theme.inputBg} flex-1 min-w-[160px]`}>
+        <Search size={13} className={theme.iconColor} />
+        <input value={search} onChange={e => onSearch(e.target.value)} placeholder={`Search ${label}...`}
+          className={`flex-1 bg-transparent text-xs ${theme.highlight} outline-none placeholder-gray-400`} />
+        {search && <button onClick={() => onSearch('')}><X size={12} className="text-gray-400 hover:text-red-400" /></button>}
+      </div>
+      <span className={`text-[10px] font-bold px-2 py-1 rounded-lg ${theme.secondaryBg} ${theme.iconColor} shrink-0`}>{count} records</span>
+      <button onClick={onAdd}
+        className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-white ${theme.primary} hover:opacity-90 shrink-0`}>
+        <Plus size={12} /> Add
+      </button>
+      <button onClick={onExport}
+        className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold border ${theme.border} ${theme.iconColor} ${theme.buttonHover} shrink-0`}>
+        <Download size={12} /> Export
+      </button>
+      <button onClick={onImport}
+        className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold border ${theme.border} ${theme.iconColor} ${theme.buttonHover} shrink-0`}>
+        <Upload size={12} /> Import
+      </button>
+    </div>
+  );
+}
+
+// ─── Sub-component: Pagination ─────────────────────
+function Pagination({ page, total, pageSize, onChange, theme }: { page: number; total: number; pageSize: number; onChange: (p: number) => void; theme: Theme }) {
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  if (totalPages <= 1) return null;
+  return (
+    <div className="flex items-center justify-end gap-2 mt-2">
+      <button disabled={page === 1} onClick={() => onChange(page - 1)}
+        className={`p-1 rounded-lg border ${theme.border} disabled:opacity-30 ${theme.buttonHover}`}>
+        <ChevronLeft size={13} className={theme.iconColor} />
+      </button>
+      <span className={`text-[10px] ${theme.iconColor}`}>Page {page} / {totalPages}</span>
+      <button disabled={page === totalPages} onClick={() => onChange(page + 1)}
+        className={`p-1 rounded-lg border ${theme.border} disabled:opacity-30 ${theme.buttonHover}`}>
+        <ChevronRight size={13} className={theme.iconColor} />
+      </button>
+    </div>
+  );
+}
 
 export default function APIIntegrationConfigModule({ theme }: { theme: Theme }) {
   const [thirdParty, setThirdParty] = useState(false);
@@ -35,12 +107,71 @@ export default function APIIntegrationConfigModule({ theme }: { theme: Theme }) 
   const [apiDocLink, setApiDocLink] = useState(true);
   const [apiKeyCopied, setApiKeyCopied] = useState(false);
 
-  const webhookEntries = [
-    { event: 'Student Enrolled', url: 'https://api.school.com/hooks/enroll', secret: 'whk_***...a3f', status: 'Active', lastTriggered: '28 Feb 2026, 14:30' },
-    { event: 'Fee Paid', url: 'https://api.school.com/hooks/fee', secret: 'whk_***...b7d', status: 'Active', lastTriggered: '28 Feb 2026, 11:15' },
-    { event: 'Attendance Marked', url: 'https://api.school.com/hooks/attend', secret: 'whk_***...c9e', status: 'Paused', lastTriggered: '25 Feb 2026, 09:00' },
-    { event: 'Leave Approved', url: 'https://api.school.com/hooks/leave', secret: 'whk_***...d2a', status: 'Active', lastTriggered: '27 Feb 2026, 16:45' },
-  ];
+  // ─── Webhook entries (stateful + interactive) ───
+  const [webhookEntries, setWebhookEntries] = useState<WebhookEntry[]>([
+    { id: 1, name: 'Student Enrollment Hook', url: 'https://api.school.com/hooks/enroll', events: ['Student Enrolled'], method: 'POST', secretKey: 'whk_***...a3f', status: 'Active', lastTriggered: '28 Feb 2026, 14:30', enabled: true },
+    { id: 2, name: 'Fee Payment Hook', url: 'https://api.school.com/hooks/fee', events: ['Fee Paid'], method: 'POST', secretKey: 'whk_***...b7d', status: 'Active', lastTriggered: '28 Feb 2026, 11:15', enabled: true },
+    { id: 3, name: 'Attendance Sync', url: 'https://api.school.com/hooks/attend', events: ['Attendance Marked'], method: 'POST', secretKey: 'whk_***...c9e', status: 'Paused', lastTriggered: '25 Feb 2026, 09:00', enabled: true },
+    { id: 4, name: 'Leave Notification', url: 'https://api.school.com/hooks/leave', events: ['Leave Approved'], method: 'POST', secretKey: 'whk_***...d2a', status: 'Active', lastTriggered: '27 Feb 2026, 16:45', enabled: true },
+  ]);
+  const [webhookSearch, setWebhookSearch] = useState('');
+  const [webhookPage, setWebhookPage] = useState(1);
+
+  // Add webhook form state
+  const [showAddWebhook, setShowAddWebhook] = useState(false);
+  const [newWebhookName, setNewWebhookName] = useState('');
+  const [newWebhookUrl, setNewWebhookUrl] = useState('');
+  const [newWebhookEvents, setNewWebhookEvents] = useState<string[]>([]);
+  const [newWebhookMethod, setNewWebhookMethod] = useState<'GET' | 'POST'>('POST');
+  const [newWebhookSecret, setNewWebhookSecret] = useState('');
+
+  // Test result state
+  const [testingId, setTestingId] = useState<number | null>(null);
+  const [testResult, setTestResult] = useState<{ id: number; success: boolean } | null>(null);
+
+  // Inline editing
+  const [editingId, setEditingId] = useState<number | null>(null);
+
+  const filteredWebhooks = webhookEntries.filter(w =>
+    w.name.toLowerCase().includes(webhookSearch.toLowerCase()) ||
+    w.url.toLowerCase().includes(webhookSearch.toLowerCase()) ||
+    w.events.some(e => e.toLowerCase().includes(webhookSearch.toLowerCase()))
+  );
+  const pagedWebhooks = filteredWebhooks.slice((webhookPage - 1) * PAGE_SIZE, webhookPage * PAGE_SIZE);
+
+  function updateWebhook(id: number, field: keyof WebhookEntry, value: string | boolean | string[]) {
+    setWebhookEntries(p => p.map(w => w.id === id ? { ...w, [field]: value } : w));
+  }
+  function deleteWebhook(id: number) {
+    setWebhookEntries(p => p.filter(w => w.id !== id));
+  }
+  function addWebhook() {
+    if (!newWebhookName || !newWebhookUrl) return;
+    setWebhookEntries(p => [...p, {
+      id: Date.now(),
+      name: newWebhookName,
+      url: newWebhookUrl,
+      events: newWebhookEvents.length > 0 ? newWebhookEvents : ['Student Enrolled'],
+      method: newWebhookMethod,
+      secretKey: newWebhookSecret || `whk_${Math.random().toString(36).slice(2, 8)}`,
+      status: 'Active',
+      lastTriggered: 'Never',
+      enabled: true,
+    }]);
+    setNewWebhookName(''); setNewWebhookUrl(''); setNewWebhookEvents([]); setNewWebhookMethod('POST'); setNewWebhookSecret('');
+    setShowAddWebhook(false);
+  }
+  function testWebhook(id: number) {
+    setTestingId(id);
+    setTimeout(() => {
+      setTestingId(null);
+      setTestResult({ id, success: Math.random() > 0.3 });
+      setTimeout(() => setTestResult(null), 3000);
+    }, 1500);
+  }
+  function toggleNewEvent(event: string) {
+    setNewWebhookEvents(p => p.includes(event) ? p.filter(e => e !== event) : [...p, event]);
+  }
 
   return (
     <div className="space-y-4">
@@ -95,12 +226,12 @@ export default function APIIntegrationConfigModule({ theme }: { theme: Theme }) 
         </div>
       </SectionCard>
 
-      {/* ─── NEW: Extended Integrations ─────────────────────── */}
+      {/* ─── Extended Integrations ─────────────────────── */}
       <SectionCard title="Extended Integrations" subtitle="Communication, conferencing, government portals, and LMS connections" theme={theme}>
         <div className="grid grid-cols-2 gap-4">
           {/* Left Column: Communication & Conferencing */}
           <div className="space-y-3">
-            <p className={`text-[10px] font-bold ${theme.iconColor} uppercase tracking-wider flex items-center gap-1.5`}><Video size={12} /> Communication & Conferencing</p>
+            <p className={`text-[10px] font-bold ${theme.iconColor} uppercase tracking-wider flex items-center gap-1.5`}><Video size={12} /> Communication &amp; Conferencing</p>
 
             {/* Video Conferencing */}
             <div className={`p-3 rounded-xl ${theme.secondaryBg} space-y-2`}>
@@ -153,7 +284,7 @@ export default function APIIntegrationConfigModule({ theme }: { theme: Theme }) 
 
           {/* Right Column: Government & Compliance */}
           <div className="space-y-3">
-            <p className={`text-[10px] font-bold ${theme.iconColor} uppercase tracking-wider flex items-center gap-1.5`}><Landmark size={12} /> Government & Compliance</p>
+            <p className={`text-[10px] font-bold ${theme.iconColor} uppercase tracking-wider flex items-center gap-1.5`}><Landmark size={12} /> Government &amp; Compliance</p>
 
             {/* Government Portal */}
             <div className={`p-3 rounded-xl ${theme.secondaryBg} space-y-2`}>
@@ -220,7 +351,7 @@ export default function APIIntegrationConfigModule({ theme }: { theme: Theme }) 
         </div>
       </SectionCard>
 
-      {/* ─── NEW: API Marketplace & Webhooks ────────────────── */}
+      {/* ─── API Marketplace & Webhooks (Interactive) ────────────────── */}
       <SectionCard title="API Marketplace & Webhooks" subtitle="Manage third-party API connections, webhook events, and API keys" theme={theme}>
         <div className="space-y-4">
           {/* API Marketplace Toggle */}
@@ -235,38 +366,176 @@ export default function APIIntegrationConfigModule({ theme }: { theme: Theme }) 
             <SSAToggle on={apiMarketplace} onChange={() => setApiMarketplace(!apiMarketplace)} theme={theme} />
           </div>
 
-          {/* Webhook Configuration Table */}
+          {/* ─── Webhook Configuration Table (Interactive) ─── */}
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <p className={`text-[10px] font-bold ${theme.iconColor} uppercase tracking-wider flex items-center gap-1.5`}><Webhook size={12} /> Webhook Configuration</p>
-              <button className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-bold text-white ${theme.primary} hover:opacity-90 transition-all`}>
-                <Plus size={10} /> Add Webhook
-              </button>
-            </div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} uppercase tracking-wider flex items-center gap-1.5 mb-2`}><Webhook size={12} /> Webhook Configuration</p>
+
+            <TableToolbar
+              search={webhookSearch} onSearch={v => { setWebhookSearch(v); setWebhookPage(1); }}
+              count={filteredWebhooks.length} label="webhooks"
+              onAdd={() => setShowAddWebhook(true)}
+              onExport={() => alert('Export webhooks as CSV')}
+              onImport={() => alert('Import webhooks from CSV')}
+              theme={theme}
+            />
+
+            {/* Add Webhook Form */}
+            {showAddWebhook && (
+              <div className={`p-4 rounded-xl border-2 border-dashed ${theme.border} ${theme.accentBg} mb-3 space-y-3`}>
+                <div className="flex items-center justify-between">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>Add New Webhook</p>
+                  <button onClick={() => setShowAddWebhook(false)} className="text-gray-400 hover:text-red-400"><X size={14} /></button>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className={`text-[10px] ${theme.iconColor} mb-1`}>Webhook Name *</p>
+                    <InputField value={newWebhookName} onChange={setNewWebhookName} theme={theme} placeholder="e.g. Fee Payment Hook" />
+                  </div>
+                  <div>
+                    <p className={`text-[10px] ${theme.iconColor} mb-1`}>URL *</p>
+                    <InputField value={newWebhookUrl} onChange={setNewWebhookUrl} theme={theme} placeholder="https://api.example.com/hooks/..." />
+                  </div>
+                  <div>
+                    <p className={`text-[10px] ${theme.iconColor} mb-1`}>Method</p>
+                    <SelectField options={['GET', 'POST']} value={newWebhookMethod} onChange={v => setNewWebhookMethod(v as 'GET' | 'POST')} theme={theme} />
+                  </div>
+                  <div>
+                    <p className={`text-[10px] ${theme.iconColor} mb-1`}>Secret Key (optional)</p>
+                    <InputField value={newWebhookSecret} onChange={setNewWebhookSecret} theme={theme} placeholder="whk_..." />
+                  </div>
+                </div>
+                <div>
+                  <p className={`text-[10px] ${theme.iconColor} mb-1.5`}>Events (select one or more)</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {ALL_WEBHOOK_EVENTS.map(event => (
+                      <button key={event} onClick={() => toggleNewEvent(event)}
+                        className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all ${
+                          newWebhookEvents.includes(event)
+                            ? `${theme.primary} text-white border-transparent`
+                            : `${theme.border} ${theme.iconColor} ${theme.buttonHover}`
+                        }`}>
+                        {event}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2 pt-1">
+                  <button onClick={() => setShowAddWebhook(false)}
+                    className={`px-4 py-1.5 rounded-xl text-xs font-bold border ${theme.border} ${theme.iconColor} ${theme.buttonHover}`}>
+                    Cancel
+                  </button>
+                  <button onClick={addWebhook}
+                    disabled={!newWebhookName || !newWebhookUrl}
+                    className={`px-4 py-1.5 rounded-xl text-xs font-bold text-white ${theme.primary} hover:opacity-90 disabled:opacity-40 transition-all`}>
+                    Add Webhook
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Webhook Table */}
             <div className={`rounded-xl border ${theme.border} overflow-hidden`}>
               <table className="w-full text-xs">
                 <thead className={theme.secondaryBg}>
                   <tr>
-                    {['Event', 'URL', 'Secret Key', 'Status', 'Last Triggered'].map(h => (
-                      <th key={h} className={`text-left px-4 py-2.5 font-bold ${theme.iconColor} text-[10px] uppercase`}>{h}</th>
+                    {['Name', 'URL', 'Events', 'Method', 'Status', 'Last Triggered', 'Enabled', 'Actions'].map(h => (
+                      <th key={h} className={`text-left px-3 py-2.5 font-bold ${theme.iconColor} text-[10px] uppercase whitespace-nowrap`}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {webhookEntries.map((w, i) => (
-                    <tr key={i} className={`border-t ${theme.border}`}>
-                      <td className={`px-4 py-2.5 font-bold ${theme.highlight}`}>{w.event}</td>
-                      <td className={`px-4 py-2.5 ${theme.iconColor} text-[10px] font-mono`}>{w.url}</td>
-                      <td className={`px-4 py-2.5 ${theme.iconColor} text-[10px] font-mono`}>{w.secret}</td>
-                      <td className="px-4 py-2.5">
-                        <span className={`text-[9px] px-2 py-0.5 rounded-lg font-bold ${w.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{w.status}</span>
+                  {pagedWebhooks.length === 0 ? (
+                    <tr><td colSpan={8} className={`text-center py-6 text-xs ${theme.iconColor}`}>No webhooks found</td></tr>
+                  ) : pagedWebhooks.map(w => (
+                    <tr key={w.id} className={`border-t ${theme.border} ${!w.enabled ? 'opacity-50' : ''}`}>
+                      <td className="px-2 py-1.5">
+                        {editingId === w.id ? (
+                          <input value={w.name}
+                            onChange={e => updateWebhook(w.id, 'name', e.target.value)}
+                            className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} />
+                        ) : (
+                          <span className={`text-xs font-bold ${theme.highlight}`}>{w.name}</span>
+                        )}
                       </td>
-                      <td className={`px-4 py-2.5 ${theme.iconColor} text-[10px]`}>{w.lastTriggered}</td>
+                      <td className="px-2 py-1.5">
+                        {editingId === w.id ? (
+                          <input value={w.url}
+                            onChange={e => updateWebhook(w.id, 'url', e.target.value)}
+                            className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] font-mono ${theme.highlight} outline-none`} />
+                        ) : (
+                          <span className={`text-[10px] font-mono ${theme.iconColor}`}>{w.url}</span>
+                        )}
+                      </td>
+                      <td className="px-2 py-1.5">
+                        <div className="flex flex-wrap gap-0.5">
+                          {w.events.map(e => (
+                            <span key={e} className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${theme.secondaryBg} ${theme.iconColor}`}>{e}</span>
+                          ))}
+                        </div>
+                      </td>
+                      <td className="px-2 py-1.5">
+                        {editingId === w.id ? (
+                          <select value={w.method}
+                            onChange={e => updateWebhook(w.id, 'method', e.target.value)}
+                            className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight} outline-none`}>
+                            <option value="GET">GET</option>
+                            <option value="POST">POST</option>
+                          </select>
+                        ) : (
+                          <span className={`text-[10px] font-mono font-bold ${w.method === 'POST' ? 'text-blue-600' : 'text-green-600'}`}>{w.method}</span>
+                        )}
+                      </td>
+                      <td className="px-2 py-1.5">
+                        {editingId === w.id ? (
+                          <select value={w.status}
+                            onChange={e => updateWebhook(w.id, 'status', e.target.value)}
+                            className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight} outline-none`}>
+                            <option value="Active">Active</option>
+                            <option value="Paused">Paused</option>
+                          </select>
+                        ) : (
+                          <span className={`text-[9px] px-2 py-0.5 rounded-lg font-bold ${w.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{w.status}</span>
+                        )}
+                      </td>
+                      <td className={`px-2 py-1.5 ${theme.iconColor} text-[10px] whitespace-nowrap`}>{w.lastTriggered}</td>
+                      <td className="px-2 py-1.5">
+                        <SSAToggle on={w.enabled} onChange={() => updateWebhook(w.id, 'enabled', !w.enabled)} theme={theme} />
+                      </td>
+                      <td className="px-2 py-1.5">
+                        <div className="flex items-center gap-1">
+                          {editingId === w.id ? (
+                            <button onClick={() => setEditingId(null)} title="Done editing"
+                              className={`p-1 rounded-lg text-emerald-500 hover:bg-emerald-50`}>
+                              <Save size={12} />
+                            </button>
+                          ) : (
+                            <button onClick={() => setEditingId(w.id)} title="Edit"
+                              className={`p-1 rounded-lg ${theme.iconColor} hover:text-blue-500`}>
+                              <FileText size={12} />
+                            </button>
+                          )}
+                          <button onClick={() => testWebhook(w.id)} title="Test webhook"
+                            disabled={testingId === w.id}
+                            className={`p-1 rounded-lg ${testingId === w.id ? 'animate-pulse text-amber-500' : `${theme.iconColor} hover:text-amber-500`}`}>
+                            <Zap size={12} />
+                          </button>
+                          <button onClick={() => deleteWebhook(w.id)} title="Delete"
+                            className={`p-1 rounded-lg text-red-400 hover:text-red-600`}>
+                            <Trash2 size={12} />
+                          </button>
+                          {testResult && testResult.id === w.id && (
+                            <span className={`text-[9px] font-bold ${testResult.success ? 'text-emerald-600' : 'text-red-600'}`}>
+                              {testResult.success ? '200 OK' : '500 Error'}
+                            </span>
+                          )}
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
+            <Pagination page={webhookPage} total={filteredWebhooks.length} pageSize={PAGE_SIZE} onChange={setWebhookPage} theme={theme} />
           </div>
 
           {/* API Key Management */}
@@ -332,6 +601,15 @@ export default function APIIntegrationConfigModule({ theme }: { theme: Theme }) 
           </div>
         </div>
       </SectionCard>
+
+      {/* ─── Save Configuration ─── */}
+      <div className="flex justify-end pt-2">
+        <button
+          onClick={() => alert('API & Integration configuration saved!')}
+          className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold text-white ${theme.primary} hover:opacity-90 transition-all shadow-sm`}>
+          <Save size={15} /> Save Configuration
+        </button>
+      </div>
 
     </div>
   );

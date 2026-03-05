@@ -1,10 +1,62 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Plus, X, Edit, Lock, Trash2, Eye, CheckCircle, AlertTriangle, ChevronDown, ChevronUp, Search, LogIn, ShieldAlert } from 'lucide-react';
+import { Plus, X, Edit, Lock, Trash2, Eye, CheckCircle, AlertTriangle, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Search, LogIn, ShieldAlert, Save, Download, Upload } from 'lucide-react';
 import { TabBar, MasterPermissionGrid } from '@/components/shared';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
+
+const PAGE_SIZE = 5;
+
+// ── TableToolbar ────────────────────────────────────
+function TableToolbar({
+  search, onSearch, count, label, onAdd, onExport, onImport, theme, addLabel,
+}: {
+  search: string; onSearch: (v: string) => void; count: number; label: string;
+  onAdd?: () => void; onExport: () => void; onImport: () => void; theme: Theme; addLabel?: string;
+}) {
+  return (
+    <div className="flex items-center gap-2 mb-3 flex-wrap">
+      <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border ${theme.border} ${theme.inputBg} flex-1 min-w-[160px]`}>
+        <Search size={13} className={theme.iconColor} />
+        <input value={search} onChange={e => onSearch(e.target.value)} placeholder={`Search ${label}...`}
+          className={`flex-1 bg-transparent text-xs ${theme.highlight} outline-none placeholder-gray-400`} />
+        {search && <button onClick={() => onSearch('')}><X size={12} className="text-gray-400 hover:text-red-400" /></button>}
+      </div>
+      <span className={`text-[10px] font-bold px-2 py-1 rounded-lg ${theme.secondaryBg} ${theme.iconColor} shrink-0`}>{count} records</span>
+      {onAdd && (
+        <button onClick={onAdd} className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-white ${theme.primary} hover:opacity-90`}>
+          <Plus size={13} /> {addLabel || 'Add'}
+        </button>
+      )}
+      <button onClick={onExport} className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500 text-white hover:bg-emerald-600">
+        <Download size={13} /> Export
+      </button>
+      <button onClick={onImport} className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-500 text-white hover:bg-blue-600">
+        <Upload size={13} /> Import
+      </button>
+    </div>
+  );
+}
+
+// ── Pagination ──────────────────────────────────────
+function Pagination({ page, total, pageSize, onChange, theme }: { page: number; total: number; pageSize: number; onChange: (p: number) => void; theme: Theme }) {
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  if (totalPages <= 1) return null;
+  return (
+    <div className="flex items-center justify-end gap-2 mt-2">
+      <button disabled={page === 1} onClick={() => onChange(page - 1)}
+        className={`p-1 rounded-lg border ${theme.border} disabled:opacity-30 ${theme.buttonHover}`}>
+        <ChevronLeft size={13} className={theme.iconColor} />
+      </button>
+      <span className={`text-[10px] ${theme.iconColor}`}>Page {page} / {totalPages}</span>
+      <button disabled={page === totalPages} onClick={() => onChange(page + 1)}
+        className={`p-1 rounded-lg border ${theme.border} disabled:opacity-30 ${theme.buttonHover}`}>
+        <ChevronRight size={13} className={theme.iconColor} />
+      </button>
+    </div>
+  );
+}
 
 const MODULE_PERMISSIONS: Record<string, string[]> = {
   'Fees': ['View', 'Create Receipt', 'Edit Structure', 'Delete', 'Export', 'Approve Concession', 'Manage Defaulters', 'View Reports'],
@@ -40,9 +92,7 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
         MODULE_PERMISSIONS[mod].forEach(p => { m[role][mod][p] = role === 'Super Admin'; });
       });
     });
-    // Principal/VP get all
     ['Principal', 'Vice Principal'].forEach(r => { ALL_MODULE_NAMES.forEach(mod => { MODULE_PERMISSIONS[mod].forEach(p => { m[r][mod][p] = true; }); }); });
-    // Teacher/Class Teacher
     ['Teacher', 'Class Teacher'].forEach(r => {
       m[r]['Attendance'] = { ...m[r]['Attendance'], 'View': true, 'Mark Attendance': true, 'Edit Attendance': true, 'View Reports': true };
       m[r]['Exams'] = { ...m[r]['Exams'], 'View': true, 'Enter Marks': true, 'Edit Marks': true };
@@ -76,28 +126,25 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
   const [rpTab, setRpTab] = useState('Permission Matrix');
   const rpTabs = ['Permission Matrix', 'Roles & Hierarchy', 'Access Control', 'Audit & Temp'];
 
-  // A1: Role editing state
   const [editingRole, setEditingRole] = useState<string | null>(null);
   const [editingRoleBackup, setEditingRoleBackup] = useState<Record<string, Record<string, boolean>> | null>(null);
-
-  // A2: Accordion state for permission matrix
   const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({ 'Fees': true });
-
-  // A3: Custom role creation modal
   const [showCreateRoleModal, setShowCreateRoleModal] = useState(false);
   const [newRoleName, setNewRoleName] = useState('');
   const [newRoleDesc, setNewRoleDesc] = useState('');
   const [newRoleParent, setNewRoleParent] = useState('');
   const [newRoleBase, setNewRoleBase] = useState<'blank' | 'parent' | 'existing'>('blank');
   const [newRoleCopyFrom, setNewRoleCopyFrom] = useState('Teacher');
-
-  // A4: Clone role
   const [cloneSource, setCloneSource] = useState('Teacher');
   const [cloneName, setCloneName] = useState('');
   const [recentClones, setRecentClones] = useState<{ name: string; from: string }[]>([]);
   const [cloneBanner, setCloneBanner] = useState('');
 
-  // A5: Multi-role per user
+  // M16: Custom roles — search, pagination, enable/disable
+  const [crSearch, setCrSearch] = useState('');
+  const [crPage, setCrPage] = useState(1);
+  const [disabledCustomRoles, setDisabledCustomRoles] = useState<string[]>([]);
+
   const [mockUsers, setMockUsers] = useState([
     { name: 'Dr. Ramesh Gupta', roles: ['Principal'], dept: 'Administration', date: '01 Apr 2025', by: 'Super Admin' },
     { name: 'Mrs. Priya Sharma', roles: ['Teacher'], dept: 'Science', date: '15 Jun 2025', by: 'Principal' },
@@ -112,7 +159,10 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
   const [roleModalSelections, setRoleModalSelections] = useState<Record<string, boolean>>({});
   const [effectivePermsUser, setEffectivePermsUser] = useState<string | null>(null);
 
-  // A6: Module-wise data scope
+  // M16: User-role assignment — search, pagination
+  const [urSearch, setUrSearch] = useState('');
+  const [urPage, setUrPage] = useState(1);
+
   const [roleScopes, setRoleScopes] = useState<Record<string, Record<string, string>>>(() => {
     const s: Record<string, Record<string, string>> = {};
     systemRoles.forEach(r => {
@@ -132,20 +182,22 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
   });
   const [editingScopeRole, setEditingScopeRole] = useState<string | null>(null);
 
-  // A7: Override form state (replaces alert)
   const [showOverrideForm, setShowOverrideForm] = useState(false);
   const [overrideUser, setOverrideUser] = useState('');
   const [overrideType, setOverrideType] = useState<'+' | '-'>('+');
   const [overrideModule, setOverrideModule] = useState('Fees');
   const [overridePerms, setOverridePerms] = useState<Record<string, boolean>>({});
   const [overrides, setOverrides] = useState([
-    { user: 'Mrs. Priya Sharma', role: 'Teacher', type: '+' as const, mod: 'Fees', perm: 'View Reports', by: 'Principal', date: '10 Jan 2026' },
-    { user: 'Mrs. Priya Sharma', role: 'Teacher', type: '+' as const, mod: 'HR', perm: 'Approve Leave', by: 'Principal', date: '10 Jan 2026' },
-    { user: 'Mr. Vikram Singh', role: 'School Admin', type: '-' as const, mod: 'HR', perm: 'Delete', by: 'Super Admin', date: '05 Dec 2025' },
-    { user: 'Ms. Anita Desai', role: 'Class Teacher', type: '+' as const, mod: 'Transport', perm: 'View Reports', by: 'Principal', date: '15 Feb 2026' },
+    { user: 'Mrs. Priya Sharma', role: 'Teacher', type: '+' as const, mod: 'Fees', perm: 'View Reports', by: 'Principal', date: '10 Jan 2026', enabled: true },
+    { user: 'Mrs. Priya Sharma', role: 'Teacher', type: '+' as const, mod: 'HR', perm: 'Approve Leave', by: 'Principal', date: '10 Jan 2026', enabled: true },
+    { user: 'Mr. Vikram Singh', role: 'School Admin', type: '-' as const, mod: 'HR', perm: 'Delete', by: 'Super Admin', date: '05 Dec 2025', enabled: true },
+    { user: 'Ms. Anita Desai', role: 'Class Teacher', type: '+' as const, mod: 'Transport', perm: 'View Reports', by: 'Principal', date: '15 Feb 2026', enabled: true },
   ]);
 
-  // Widget editing state
+  // M16: Override — search, pagination
+  const [overrideSearch, setOverrideSearch] = useState('');
+  const [ovPage, setOvPage] = useState(1);
+
   const [editingWidgetRole, setEditingWidgetRole] = useState<string | null>(null);
   const [dashboardWidgets, setDashboardWidgets] = useState<Record<string, string[]>>({
     'Principal': ['KPI Cards', 'Attendance', 'Fee Overview', 'Approvals', 'SQAAF', 'News Board'],
@@ -157,13 +209,11 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
   });
   const allWidgetOptions = ['KPI Cards', 'Attendance', 'Fee Overview', 'Approvals', 'SQAAF', 'News Board', 'Timetable', 'Homework', 'Gradebook', 'Leave', 'Notices', 'Child Attendance', 'Fee Due', 'Bus Tracker', 'PTM', 'Results', 'Fee Status', 'Fee Collection', 'Defaulters', 'Receipt Summary', 'Cash Flow', 'Concessions', 'Staff Attendance', 'Leave Requests', 'Payroll', 'Recruitment', 'Performance'];
 
-  // Misc existing state
   const [compareA, setCompareA] = useState('Teacher');
   const [compareB, setCompareB] = useState('Class Teacher');
   const [bulkRole, setBulkRole] = useState('Teacher');
   const [bulkSelected, setBulkSelected] = useState<Record<string, boolean>>({ 'Mrs. Priya Sharma': true, 'Mr. Rajesh Kumar': true, 'Ms. Anita Desai': false, 'Mr. Vikram Singh': true, 'Mrs. Kavita Nair': false, 'Mr. Suresh Patel': true, 'Ms. Deepa Iyer': false, 'Mr. Anil Joshi': true });
   const [bulkBanner, setBulkBanner] = useState('');
-  const [overrideSearch, setOverrideSearch] = useState('');
   const [tempRoleUser, setTempRoleUser] = useState('');
   const [tempRoleRole, setTempRoleRole] = useState('');
   const [tempRoleStart, setTempRoleStart] = useState('');
@@ -175,11 +225,8 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
     { user: 'Ms. Deepa Iyer', base: 'Teacher', temp: 'Exam Coordinator', start: '01 Feb', end: '28 Feb', reason: 'Board exams', status: 'Active' as const },
   ]);
   const [tempRoleBanner, setTempRoleBanner] = useState('');
-
-  // Confirmation modal state (A1/A7)
   const [confirmModal, setConfirmModal] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
 
-  // Gap 18: Field-Level Data Masking toggles
   const [maskingToggles, setMaskingToggles] = useState<Record<string, boolean>>({
     'Aadhaar Number (show as ****1234)': true,
     'Phone Number (show as ****5678)': true,
@@ -189,16 +236,14 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
     'Parent Income Details': false,
   });
 
-  // Gap 27: Support Impersonation
   const [impersonateSearch, setImpersonateSearch] = useState('');
   const impersonateUsers = [
     { name: 'Rajesh Kumar', role: 'Teacher', dept: 'Mathematics', email: 'rajesh.k@school.edu' },
-    { name: 'Priya Sharma', role: 'Parent', dept: '—', email: 'priya.s@gmail.com' },
+    { name: 'Priya Sharma', role: 'Parent', dept: '\u2014', email: 'priya.s@gmail.com' },
     { name: 'Admin01', role: 'School Admin', dept: 'Administration', email: 'admin01@school.edu' },
     { name: 'Suresh Patel', role: 'Account Head', dept: 'Accounts', email: 'suresh.p@school.edu' },
   ];
 
-  // ── Permission toggle ──
   const togglePerm = (role: string, mod: string, perm: string) => {
     setMatrix(prev => ({
       ...prev,
@@ -206,12 +251,10 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
     }));
   };
 
-  // ── A3: Add custom role with full form ──
   const addCustomRole = () => {
     const role = newRoleName.trim();
     if (!role || systemRoles.includes(role) || customRoles.includes(role)) return;
     setCustomRoles(p => [...p, role]);
-    // Build initial perms based on selection
     const init: Record<string, Record<string, boolean>> = {};
     let inheritedPerms: Record<string, Record<string, boolean>> = {};
     if (newRoleBase === 'parent' && newRoleParent && matrix[newRoleParent]) {
@@ -229,21 +272,17 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
     }
     setMatrix(prev => ({ ...prev, [role]: init }));
     setCustomRolesMeta(prev => ({ ...prev, [role]: { description: newRoleDesc, parent: newRoleParent, inheritedPerms } }));
-    // Setup scope for new role
     setRoleScopes(prev => {
       const s = { ...prev };
       s[role] = {};
       ALL_MODULE_NAMES.forEach(m => { s[role][m] = newRoleParent && prev[newRoleParent] ? prev[newRoleParent][m] : 'Own Department'; });
       return s;
     });
-    // Reset form
     setNewRoleName(''); setNewRoleDesc(''); setNewRoleParent(''); setNewRoleBase('blank'); setShowCreateRoleModal(false);
-    // Switch to permission matrix and highlight
     setRpTab('Permission Matrix');
     setEditingRole(role);
   };
 
-  // ── A4: Clone role functionally ──
   const cloneRole = () => {
     const name = cloneName.trim();
     if (!name || systemRoles.includes(name) || customRoles.includes(name) || !matrix[cloneSource]) return;
@@ -266,13 +305,41 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
 
   const allRoles = [...systemRoles, ...customRoles];
 
+  // M16: Filtered custom roles
+  const filteredCR = customRoles.filter(r => !crSearch || r.toLowerCase().includes(crSearch.toLowerCase()) || (customRolesMeta[r]?.description || '').toLowerCase().includes(crSearch.toLowerCase()));
+  const pagedCR = filteredCR.slice((crPage - 1) * PAGE_SIZE, crPage * PAGE_SIZE);
+
+  // M16: Filtered users for assignment table
+  const filteredUsers = mockUsers.filter(u =>
+    !urSearch || u.name.toLowerCase().includes(urSearch.toLowerCase()) ||
+    u.roles.some(r => r.toLowerCase().includes(urSearch.toLowerCase())) ||
+    u.dept.toLowerCase().includes(urSearch.toLowerCase())
+  );
+  const pagedUsers = filteredUsers.slice((urPage - 1) * PAGE_SIZE, urPage * PAGE_SIZE);
+
+  // M16: Filtered overrides
+  const filteredOverrides = overrides.filter(o => !overrideSearch || o.user.toLowerCase().includes(overrideSearch.toLowerCase()) || o.mod.toLowerCase().includes(overrideSearch.toLowerCase()) || o.perm.toLowerCase().includes(overrideSearch.toLowerCase()));
+  const pagedOverrides = filteredOverrides.slice((ovPage - 1) * PAGE_SIZE, ovPage * PAGE_SIZE);
+
+  // E7: Save banner state
+  const [saveBanner, setSaveBanner] = useState('');
+  const showSaveBanner = (msg: string) => { setSaveBanner(msg); setTimeout(() => setSaveBanner(''), 3000); };
+
   return (
     <div className="space-y-4">
       <ModuleHeader title="Roles & Permissions" subtitle="Configure module-specific access permissions for each role" theme={theme} />
 
       <TabBar tabs={rpTabs} active={rpTab} onChange={setRpTab} theme={theme} />
 
-      {/* ── Confirmation Modal (A1/A7) ── */}
+      {/* Save Banner */}
+      {saveBanner && (
+        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 flex items-center gap-2">
+          <CheckCircle size={14} className="text-emerald-500" />
+          <p className="text-xs text-emerald-700 font-medium">{saveBanner}</p>
+        </div>
+      )}
+
+      {/* ── Confirmation Modal ── */}
       {confirmModal && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center" onClick={() => setConfirmModal(null)}>
           <div className={`${theme.cardBg} rounded-2xl p-5 w-96 shadow-2xl border ${theme.border}`} onClick={e => e.stopPropagation()}>
@@ -286,11 +353,11 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
         </div>
       )}
 
-      {/* ── Role Selector Modal (A5 — multi-role assignment) ── */}
+      {/* ── Role Selector Modal (multi-role assignment) ── */}
       {roleModalUser && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center" onClick={() => setRoleModalUser(null)}>
           <div className={`${theme.cardBg} rounded-2xl p-5 w-[420px] shadow-2xl border ${theme.border} max-h-[80vh] overflow-y-auto`} onClick={e => e.stopPropagation()}>
-            <h3 className={`text-sm font-bold ${theme.highlight} mb-1`}>Assign Roles — {roleModalUser}</h3>
+            <h3 className={`text-sm font-bold ${theme.highlight} mb-1`}>Assign Roles -- {roleModalUser}</h3>
             <p className={`text-[10px] ${theme.iconColor} mb-3`}>Select one or more roles for this user</p>
             <div className="space-y-1 mb-4">
               {allRoles.filter(r => !disabledRoles.includes(r)).map(role => (
@@ -315,7 +382,7 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
         </div>
       )}
 
-      {/* ── Effective Permissions Modal (A5) ── */}
+      {/* ── Effective Permissions Modal ── */}
       {effectivePermsUser && (() => {
         const user = mockUsers.find(u => u.name === effectivePermsUser);
         if (!user) return null;
@@ -331,7 +398,7 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
             <div className={`${theme.cardBg} rounded-2xl p-5 w-[600px] shadow-2xl border ${theme.border} max-h-[85vh] overflow-y-auto`} onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <h3 className={`text-sm font-bold ${theme.highlight}`}>Effective Permissions — {effectivePermsUser}</h3>
+                  <h3 className={`text-sm font-bold ${theme.highlight}`}>Effective Permissions -- {effectivePermsUser}</h3>
                   <p className={`text-[10px] ${theme.iconColor}`}>Combined view from roles: {user.roles.join(', ')}</p>
                 </div>
                 <button onClick={() => setEffectivePermsUser(null)} className={`p-1 rounded-lg ${theme.buttonHover}`}><X size={14} className={theme.iconColor} /></button>
@@ -353,7 +420,7 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
         );
       })()}
 
-      {/* ── Create Custom Role Modal (A3) ── */}
+      {/* ── Create Custom Role Modal ── */}
       {showCreateRoleModal && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center" onClick={() => setShowCreateRoleModal(false)}>
           <div className={`${theme.cardBg} rounded-2xl p-5 w-[440px] shadow-2xl border ${theme.border}`} onClick={e => e.stopPropagation()}>
@@ -375,7 +442,7 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
                 <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Base Permissions</p>
                 <div className="space-y-1">
                   {[
-                    { id: 'blank' as const, label: 'Start blank', desc: 'No permissions — add manually' },
+                    { id: 'blank' as const, label: 'Start blank', desc: 'No permissions \u2014 add manually' },
                     { id: 'parent' as const, label: 'Copy from parent', desc: newRoleParent ? `Inherit all permissions from ${newRoleParent}` : 'Select a parent role first' },
                     { id: 'existing' as const, label: 'Copy from existing role', desc: 'Start with another role\'s permissions' },
                   ].map(opt => (
@@ -404,14 +471,13 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
         </div>
       )}
 
-      {/* ────── TAB 1: Permission Matrix (A1 + A2 accordion) ────── */}
+      {/* ────── TAB 1: Permission Matrix ────── */}
       {rpTab === 'Permission Matrix' && <>
-        {/* Editing banner */}
         {editingRole && (
           <div className="bg-blue-50 border border-blue-200 rounded-2xl p-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Edit size={14} className="text-blue-500" />
-              <p className="text-xs text-blue-700"><strong>Editing:</strong> {editingRole} — modify permissions below, then save or cancel.</p>
+              <p className="text-xs text-blue-700"><strong>Editing:</strong> {editingRole} -- modify permissions below, then save or cancel.</p>
             </div>
             <div className="flex gap-2">
               <button onClick={() => {
@@ -425,14 +491,19 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
         )}
 
         <SectionCard title="Permission Matrix" subtitle="Click a module to expand its specific permissions per role. Click 'Edit' on any role to modify." theme={theme}>
-          {/* Module accordion headers */}
+          {/* M16: Export permission matrix button */}
+          <div className="flex justify-end mb-2">
+            <button onClick={() => alert('Export full permission matrix (all roles x permissions) to CSV')}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500 text-white hover:bg-emerald-600">
+              <Download size={13} /> Export Permission Matrix
+            </button>
+          </div>
           <div className="space-y-1">
             {ALL_MODULE_NAMES.map(mod => {
               const isExpanded = !!expandedModules[mod];
               const perms = MODULE_PERMISSIONS[mod];
               return (
                 <div key={mod} className={`rounded-xl border ${theme.border} overflow-hidden`}>
-                  {/* Module header row */}
                   <button onClick={() => setExpandedModules(prev => ({ ...prev, [mod]: !prev[mod] }))}
                     className={`w-full flex items-center justify-between px-3 py-2 ${isExpanded ? theme.primary + ' text-white' : theme.secondaryBg} transition-all`}>
                     <div className="flex items-center gap-2">
@@ -441,14 +512,11 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
                       <span className={`text-[9px] ${isExpanded ? 'text-white/70' : theme.iconColor}`}>({perms.length} permissions)</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      {/* Quick summary: count of roles with any permission */}
                       <span className={`text-[9px] ${isExpanded ? 'text-white/70' : theme.iconColor}`}>
                         {allRoles.filter(r => !disabledRoles.includes(r) && perms.some(p => matrix[r]?.[mod]?.[p])).length} roles active
                       </span>
                     </div>
                   </button>
-
-                  {/* Expanded permission grid */}
                   {isExpanded && (
                     <div className="overflow-x-auto">
                       <table className="w-full text-[10px]">
@@ -522,8 +590,6 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
               );
             })}
           </div>
-
-          {/* Disabled roles list */}
           {disabledRoles.length > 0 && (
             <div className="mt-3">
               <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Disabled Roles (hidden from assignment)</p>
@@ -541,181 +607,96 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
           )}
         </SectionCard>
 
-        {/* Custom Roles section (A3) */}
+        {/* Custom Roles section — M16 upgraded with Search, Enable-Disable, Export/Import, Pagination, Count Badge */}
         <SectionCard title="Custom Roles" subtitle="Create roles with specific permissions, hierarchy, and descriptions" theme={theme}>
-          <div className="space-y-2">
-            {customRoles.length > 0 && (
-              <div className="space-y-1 mb-2">
-                {customRoles.map(r => (
-                  <div key={r} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                    <div>
-                      <span className={`text-xs font-bold ${theme.highlight}`}>{r}</span>
-                      {customRolesMeta[r]?.description && <p className={`text-[10px] ${theme.iconColor}`}>{customRolesMeta[r].description}</p>}
-                      {customRolesMeta[r]?.parent && <p className={`text-[9px] ${theme.iconColor}`}>Inherits from: {customRolesMeta[r].parent}</p>}
-                    </div>
-                    <div className="flex gap-1">
-                      <button onClick={() => { setEditingRole(r); setRpTab('Permission Matrix'); }}
-                        className={`px-2 py-0.5 rounded-lg text-[9px] font-bold ${theme.iconColor} hover:underline`}>Edit Perms</button>
-                      <button onClick={() => setConfirmModal({
-                        title: `Delete "${r}"?`,
-                        message: 'This custom role and all its permissions will be permanently removed.',
-                        onConfirm: () => {
-                          setCustomRoles(p => p.filter(x => x !== r));
-                          setMatrix(p => { const n = { ...p }; delete n[r]; return n; });
-                          const meta = { ...customRolesMeta }; delete meta[r]; setCustomRolesMeta(meta);
-                        }
-                      })} className="text-red-400 hover:text-red-600"><X size={10} /></button>
-                    </div>
+          <TableToolbar
+            search={crSearch} onSearch={v => { setCrSearch(v); setCrPage(1); }}
+            count={filteredCR.length} label="custom roles"
+            onAdd={() => setShowCreateRoleModal(true)}
+            addLabel="Create Role"
+            onExport={() => alert('Export custom roles to CSV')}
+            onImport={() => alert('Import custom roles from CSV')}
+            theme={theme}
+          />
+          <div className="space-y-1">
+            {pagedCR.length > 0 ? pagedCR.map(r => (
+              <div key={r} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg} ${disabledCustomRoles.includes(r) ? 'opacity-50' : ''}`}>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className={`text-xs font-bold ${theme.highlight}`}>{r}</span>
+                    {disabledCustomRoles.includes(r) && <span className="text-[8px] px-1.5 py-0.5 rounded bg-gray-200 text-gray-500 font-bold">DISABLED</span>}
                   </div>
-                ))}
+                  {customRolesMeta[r]?.description && <p className={`text-[10px] ${theme.iconColor}`}>{customRolesMeta[r].description}</p>}
+                  {customRolesMeta[r]?.parent && <p className={`text-[9px] ${theme.iconColor}`}>Inherits from: {customRolesMeta[r].parent}</p>}
+                </div>
+                <div className="flex items-center gap-2">
+                  <SSAToggle on={!disabledCustomRoles.includes(r)} onChange={() => setDisabledCustomRoles(p => p.includes(r) ? p.filter(x => x !== r) : [...p, r])} theme={theme} />
+                  <button onClick={() => { setEditingRole(r); setRpTab('Permission Matrix'); }}
+                    className={`px-2 py-0.5 rounded-lg text-[9px] font-bold ${theme.iconColor} hover:underline`}>Edit Perms</button>
+                  <button onClick={() => setConfirmModal({
+                    title: `Delete "${r}"?`,
+                    message: 'This custom role and all its permissions will be permanently removed.',
+                    onConfirm: () => {
+                      setCustomRoles(p => p.filter(x => x !== r));
+                      setMatrix(p => { const n = { ...p }; delete n[r]; return n; });
+                      const meta = { ...customRolesMeta }; delete meta[r]; setCustomRolesMeta(meta);
+                    }
+                  })} className="text-red-400 hover:text-red-600"><Trash2 size={11} /></button>
+                </div>
+              </div>
+            )) : (
+              <div className={`p-4 text-center text-xs ${theme.iconColor}`}>
+                {customRoles.length === 0 ? 'No custom roles created yet. Click "Create Role" to add one.' : 'No custom roles match your search.'}
               </div>
             )}
-            <button onClick={() => setShowCreateRoleModal(true)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}>
-              <Plus size={14} /> Create Custom Role
-            </button>
           </div>
+          <Pagination page={crPage} total={filteredCR.length} pageSize={PAGE_SIZE} onChange={setCrPage} theme={theme} />
         </SectionCard>
 
-        {/* ── Master-Level CRUD Permissions (all modules) ── */}
+        {/* Master-Level CRUD Permissions */}
         <SectionCard title="Master-Level Permissions" subtitle="CRUD permissions for each module's configurable entities (Fee Heads, Subjects, Routes, etc.)" theme={theme}>
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-2.5 flex items-center gap-2 mb-4">
             <ShieldAlert size={13} className="text-blue-500 shrink-0" />
             <p className="text-[10px] text-blue-700">Control who can <strong>View, Create, Edit, Delete, Import, and Export</strong> each master table across all modules.</p>
           </div>
           <div className="space-y-6">
-            {/* Fee Management */}
-            <div>
-              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Fee Management</p>
-              <div className="space-y-3">
-                <MasterPermissionGrid masterName="Fee Heads" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
-                <MasterPermissionGrid masterName="Concession Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
-              </div>
-            </div>
-            {/* Academic Config */}
-            <div>
-              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Academic Config</p>
-              <div className="space-y-3">
-                <MasterPermissionGrid masterName="Subjects" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
-                <MasterPermissionGrid masterName="Classes & Sections" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
-              </div>
-            </div>
-            {/* HR & Payroll */}
-            <div>
-              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>HR & Payroll</p>
-              <div className="space-y-3">
-                <MasterPermissionGrid masterName="Departments" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
-                <MasterPermissionGrid masterName="Designations" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
-              </div>
-            </div>
-            {/* Transport */}
-            <div>
-              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Transport</p>
-              <div className="space-y-3">
-                <MasterPermissionGrid masterName="Routes" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
-                <MasterPermissionGrid masterName="Vehicles" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
-              </div>
-            </div>
-            {/* Attendance */}
-            <div>
-              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Attendance</p>
-              <MasterPermissionGrid masterName="Attendance Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
-            </div>
-            {/* Exams & Grading */}
-            <div>
-              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Exams & Grading</p>
-              <div className="space-y-3">
-                <MasterPermissionGrid masterName="Exam Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
-                <MasterPermissionGrid masterName="Grade Scales" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
-              </div>
-            </div>
-            {/* Communication */}
-            <div>
-              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Communication</p>
-              <MasterPermissionGrid masterName="Communication Templates" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
-            </div>
-            {/* Timetable & Bell */}
-            <div>
-              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Timetable & Bell</p>
-              <div className="space-y-3">
-                <MasterPermissionGrid masterName="Periods" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
-                <MasterPermissionGrid masterName="Room Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
-              </div>
-            </div>
-            {/* Leave Policy */}
-            <div>
-              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Leave Policy</p>
-              <MasterPermissionGrid masterName="Leave Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
-            </div>
-            {/* Visitor Rules */}
-            <div>
-              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Visitor Rules</p>
-              <MasterPermissionGrid masterName="Visitor Categories" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
-            </div>
-            {/* Certificates */}
-            <div>
-              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Certificates</p>
-              <MasterPermissionGrid masterName="Certificate Templates" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
-            </div>
-            {/* Library */}
-            <div>
-              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Library</p>
-              <MasterPermissionGrid masterName="Book Categories" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
-            </div>
-            {/* Canteen / Meal */}
-            <div>
-              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Canteen / Meal</p>
-              <div className="space-y-3">
-                <MasterPermissionGrid masterName="Menu Items" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
-                <MasterPermissionGrid masterName="Meal Plans" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
-              </div>
-            </div>
-            {/* Hostel */}
-            <div>
-              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Hostel</p>
-              <div className="space-y-3">
-                <MasterPermissionGrid masterName="Hostel Blocks" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
-                <MasterPermissionGrid masterName="Hostel Room Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
-              </div>
-            </div>
-            {/* Inventory & Assets */}
-            <div>
-              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Inventory & Assets</p>
-              <div className="space-y-3">
-                <MasterPermissionGrid masterName="Asset Categories" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
-                <MasterPermissionGrid masterName="Vendor List" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
-              </div>
-            </div>
-            {/* Homework & Assignment */}
-            <div>
-              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Homework & Assignment</p>
-              <MasterPermissionGrid masterName="Assignment Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
-            </div>
-            {/* Enquiry & Admission */}
-            <div>
-              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Enquiry & Admission</p>
-              <div className="space-y-3">
-                <MasterPermissionGrid masterName="Enquiry Sources" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
-                <MasterPermissionGrid masterName="Admission Stages" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
-              </div>
-            </div>
-            {/* LMS / E-Learning */}
-            <div>
-              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>LMS / E-Learning</p>
-              <MasterPermissionGrid masterName="Course Categories" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
-            </div>
-            {/* Remark Bank */}
-            <div>
-              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Remark Bank</p>
-              <MasterPermissionGrid masterName="Remark Categories" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
-            </div>
+            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>Fee Management</p><div className="space-y-3"><MasterPermissionGrid masterName="Fee Heads" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /><MasterPermissionGrid masterName="Concession Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div></div>
+            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>Academic Config</p><div className="space-y-3"><MasterPermissionGrid masterName="Subjects" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /><MasterPermissionGrid masterName="Classes & Sections" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div></div>
+            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>HR & Payroll</p><div className="space-y-3"><MasterPermissionGrid masterName="Departments" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /><MasterPermissionGrid masterName="Designations" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div></div>
+            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>Transport</p><div className="space-y-3"><MasterPermissionGrid masterName="Routes" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /><MasterPermissionGrid masterName="Vehicles" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div></div>
+            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>Attendance</p><MasterPermissionGrid masterName="Attendance Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div>
+            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>Exams & Grading</p><div className="space-y-3"><MasterPermissionGrid masterName="Exam Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /><MasterPermissionGrid masterName="Grade Scales" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div></div>
+            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>Communication</p><MasterPermissionGrid masterName="Communication Templates" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div>
+            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>Timetable & Bell</p><div className="space-y-3"><MasterPermissionGrid masterName="Periods" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /><MasterPermissionGrid masterName="Room Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div></div>
+            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>Leave Policy</p><MasterPermissionGrid masterName="Leave Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div>
+            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>Visitor Rules</p><MasterPermissionGrid masterName="Visitor Categories" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div>
+            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>Certificates</p><MasterPermissionGrid masterName="Certificate Templates" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div>
+            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>Library</p><MasterPermissionGrid masterName="Book Categories" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div>
+            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>Canteen / Meal</p><div className="space-y-3"><MasterPermissionGrid masterName="Menu Items" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /><MasterPermissionGrid masterName="Meal Plans" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div></div>
+            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>Hostel</p><div className="space-y-3"><MasterPermissionGrid masterName="Hostel Blocks" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /><MasterPermissionGrid masterName="Hostel Room Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div></div>
+            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>Inventory & Assets</p><div className="space-y-3"><MasterPermissionGrid masterName="Asset Categories" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /><MasterPermissionGrid masterName="Vendor List" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div></div>
+            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>Homework & Assignment</p><MasterPermissionGrid masterName="Assignment Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div>
+            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>Enquiry & Admission</p><div className="space-y-3"><MasterPermissionGrid masterName="Enquiry Sources" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /><MasterPermissionGrid masterName="Admission Stages" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div></div>
+            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>LMS / E-Learning</p><MasterPermissionGrid masterName="Course Categories" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div>
+            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>Remark Bank</p><MasterPermissionGrid masterName="Remark Categories" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div>
           </div>
         </SectionCard>
+
+        {/* E7: Save Bar for Permission Matrix tab */}
+        <div className={`flex items-center justify-between p-4 rounded-2xl ${theme.secondaryBg} border ${theme.border}`}>
+          <div>
+            <p className={`text-sm font-bold ${theme.highlight}`}>Save Permission Matrix</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>Save all role permissions, custom roles, and master-level access settings</p>
+          </div>
+          <button onClick={() => showSaveBanner('Permission matrix configuration saved successfully!')}
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold ${theme.primary} text-white shadow-lg hover:shadow-xl transition-all`}>
+            <Save size={16} /> Save Configuration
+          </button>
+        </div>
       </>}
 
-      {/* ────── TAB 2: Roles & Hierarchy (A1, A3, A4, A5) ────── */}
+      {/* ────── TAB 2: Roles & Hierarchy ────── */}
       {rpTab === 'Roles & Hierarchy' && <>
-        {/* Role Hierarchy */}
         <SectionCard title="Role Hierarchy" subtitle="Parent-child role relationships. Child roles inherit all parent permissions + their own additions." theme={theme}>
           <div className={`p-3 rounded-xl ${theme.secondaryBg} text-xs space-y-0.5`}>
             {[
@@ -747,8 +728,7 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
           <p className={`text-[10px] ${theme.iconColor} mt-2 italic`}>Parent/Student roles are standalone with limited, scoped access.</p>
         </SectionCard>
 
-        {/* Clone Role (A4 — functional) */}
-        <SectionCard title="Clone Role" subtitle="Duplicate an existing role — permissions are actually copied to the new role" theme={theme}>
+        <SectionCard title="Clone Role" subtitle="Duplicate an existing role -- permissions are actually copied to the new role" theme={theme}>
           <div className="space-y-3">
             {cloneBanner && (
               <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-2.5 flex items-start gap-2">
@@ -782,8 +762,15 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
 
-        {/* Assign Roles to Users (A5 — multi-role) */}
+        {/* User-Role Assignment — M16 upgraded with Search, Export/Import, Pagination, Count Badge */}
         <SectionCard title="Assign Roles to Users" subtitle="Users can have multiple roles. Click Change/+Role to open the role selector." theme={theme}>
+          <TableToolbar
+            search={urSearch} onSearch={v => { setUrSearch(v); setUrPage(1); }}
+            count={filteredUsers.length} label="users"
+            onExport={() => alert('Export user-role assignments to CSV')}
+            onImport={() => alert('Import user-role assignments from CSV')}
+            theme={theme}
+          />
           <div className={`rounded-xl border ${theme.border} overflow-hidden`}>
             <table className="w-full text-[10px]">
               <thead className={theme.secondaryBg}>
@@ -794,7 +781,7 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
                 </tr>
               </thead>
               <tbody>
-                {mockUsers.map((u, i) => (
+                {pagedUsers.map((u, i) => (
                   <tr key={i} className={`border-t ${theme.border}`}>
                     <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{u.name}</td>
                     <td className="px-3 py-2">
@@ -835,9 +822,13 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
                     </td>
                   </tr>
                 ))}
+                {pagedUsers.length === 0 && (
+                  <tr><td colSpan={6} className={`px-4 py-6 text-center text-xs ${theme.iconColor}`}>No users match your search.</td></tr>
+                )}
               </tbody>
             </table>
           </div>
+          <Pagination page={urPage} total={filteredUsers.length} pageSize={PAGE_SIZE} onChange={setUrPage} theme={theme} />
         </SectionCard>
 
         {/* Bulk Role Assignment */}
@@ -887,45 +878,72 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
             }} className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}>Apply Role to Selected</button>
           </div>
         </SectionCard>
+
+        {/* E7: Save Bar for Roles & Hierarchy tab */}
+        <div className={`flex items-center justify-between p-4 rounded-2xl ${theme.secondaryBg} border ${theme.border}`}>
+          <div>
+            <p className={`text-sm font-bold ${theme.highlight}`}>Save Roles & Hierarchy</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>Save role hierarchy, cloned roles, user assignments, and bulk operations</p>
+          </div>
+          <button onClick={() => showSaveBanner('Roles & hierarchy configuration saved successfully!')}
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold ${theme.primary} text-white shadow-lg hover:shadow-xl transition-all`}>
+            <Save size={16} /> Save Configuration
+          </button>
+        </div>
       </>}
 
-      {/* ────── TAB 3: Access Control (A6, A7, overrides, widgets) ────── */}
+      {/* ────── TAB 3: Access Control ────── */}
       {rpTab === 'Access Control' && <>
-        {/* User-Level Permission Override (A7 — real form) */}
+        {/* User Permission Override — M16 upgraded with Enable-Disable, Export/Import, Pagination, Count Badge */}
         <SectionCard title="User Permission Override" subtitle="Grant or restrict specific permissions for individual users beyond their base role" theme={theme}>
           <div className="space-y-3">
-            <InputField value={overrideSearch} onChange={setOverrideSearch} theme={theme} placeholder="Find user to override..." />
+            <TableToolbar
+              search={overrideSearch} onSearch={v => { setOverrideSearch(v); setOvPage(1); }}
+              count={filteredOverrides.length} label="overrides"
+              onAdd={() => { setShowOverrideForm(true); setOverridePerms({}); }}
+              addLabel="Add Override"
+              onExport={() => alert('Export permission overrides to CSV')}
+              onImport={() => alert('Import permission overrides from CSV')}
+              theme={theme}
+            />
             <div className={`rounded-xl border ${theme.border} overflow-hidden`}>
               <table className="w-full text-[10px]">
                 <thead className={theme.secondaryBg}>
                   <tr>
-                    {['User', 'Base Role', 'Type', 'Module', 'Permission', 'Granted By', 'Date', ''].map(h => (
+                    {['User', 'Base Role', 'Type', 'Module', 'Permission', 'Granted By', 'Date', 'Enabled', ''].map(h => (
                       <th key={h} className={`text-left px-2.5 py-2 font-bold ${theme.iconColor} text-[9px] uppercase`}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {overrides.filter(o => !overrideSearch || o.user.toLowerCase().includes(overrideSearch.toLowerCase())).map((o, i) => (
-                    <tr key={i} className={`border-t ${theme.border}`}>
-                      <td className={`px-2.5 py-2 font-bold ${theme.highlight}`}>{o.user}</td>
-                      <td className={`px-2.5 py-2 ${theme.iconColor}`}>{o.role}</td>
-                      <td className="px-2.5 py-2"><span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${o.type === '+' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>{o.type === '+' ? 'Additive' : 'Restrictive'}</span></td>
-                      <td className={`px-2.5 py-2 ${theme.iconColor}`}>{o.mod}</td>
-                      <td className={`px-2.5 py-2 font-bold ${theme.highlight}`}>{o.perm}</td>
-                      <td className={`px-2.5 py-2 ${theme.iconColor}`}>{o.by}</td>
-                      <td className={`px-2.5 py-2 ${theme.iconColor}`}>{o.date}</td>
-                      <td className="px-2.5 py-2"><button onClick={() => setOverrides(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={10} /></button></td>
-                    </tr>
-                  ))}
+                  {pagedOverrides.map((o, i) => {
+                    const realIdx = overrides.indexOf(o);
+                    return (
+                      <tr key={i} className={`border-t ${theme.border} ${!o.enabled ? 'opacity-50' : ''}`}>
+                        <td className={`px-2.5 py-2 font-bold ${theme.highlight}`}>{o.user}</td>
+                        <td className={`px-2.5 py-2 ${theme.iconColor}`}>{o.role}</td>
+                        <td className="px-2.5 py-2"><span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${o.type === '+' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>{o.type === '+' ? 'Additive' : 'Restrictive'}</span></td>
+                        <td className={`px-2.5 py-2 ${theme.iconColor}`}>{o.mod}</td>
+                        <td className={`px-2.5 py-2 font-bold ${theme.highlight}`}>{o.perm}</td>
+                        <td className={`px-2.5 py-2 ${theme.iconColor}`}>{o.by}</td>
+                        <td className={`px-2.5 py-2 ${theme.iconColor}`}>{o.date}</td>
+                        <td className="px-2.5 py-2">
+                          <SSAToggle on={o.enabled} onChange={() => setOverrides(p => p.map((ov, j) => j === realIdx ? { ...ov, enabled: !ov.enabled } : ov))} theme={theme} />
+                        </td>
+                        <td className="px-2.5 py-2"><button onClick={() => setOverrides(p => p.filter((_, j) => j !== realIdx))} className="text-red-400 hover:text-red-600"><Trash2 size={10} /></button></td>
+                      </tr>
+                    );
+                  })}
+                  {pagedOverrides.length === 0 && (
+                    <tr><td colSpan={9} className={`px-4 py-6 text-center text-xs ${theme.iconColor}`}>No overrides found.</td></tr>
+                  )}
                 </tbody>
               </table>
             </div>
+            <Pagination page={ovPage} total={filteredOverrides.length} pageSize={PAGE_SIZE} onChange={setOvPage} theme={theme} />
 
-            {/* Add Override — inline form (A7) */}
-            {!showOverrideForm ? (
-              <button onClick={() => { setShowOverrideForm(true); setOverridePerms({}); }}
-                className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-1.5`}><Plus size={12} /> Add Override</button>
-            ) : (
+            {/* Add Override inline form */}
+            {showOverrideForm && (
               <div className={`p-3 rounded-xl border-2 border-blue-200 ${theme.secondaryBg} space-y-3`}>
                 <p className={`text-xs font-bold ${theme.highlight}`}>New Permission Override</p>
                 <div className="grid grid-cols-3 gap-2">
@@ -963,7 +981,7 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
                     if (!overrideUser || selectedPerms.length === 0) return;
                     const userObj = mockUsers.find(u => u.name === overrideUser);
                     selectedPerms.forEach(perm => {
-                      setOverrides(p => [...p, { user: overrideUser, role: userObj?.roles[0] || '', type: overrideType, mod: overrideModule, perm, by: 'Super Admin', date: '26 Feb 2026' }]);
+                      setOverrides(p => [...p, { user: overrideUser, role: userObj?.roles[0] || '', type: overrideType, mod: overrideModule, perm, by: 'Super Admin', date: '05 Mar 2026', enabled: true }]);
                     });
                     setShowOverrideForm(false); setOverrideUser(''); setOverridePerms({});
                   }} className={`px-3 py-1.5 rounded-xl text-xs font-bold ${theme.primary} text-white`}>Add Override</button>
@@ -973,7 +991,7 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
 
-        {/* Data Scope Configuration (A6 — module-wise per role) */}
+        {/* Data Scope Configuration */}
         <SectionCard title="Data Scope Configuration" subtitle="Define what data each role can access per module. Click 'Edit' to set module-wise scope." theme={theme}>
           <div className={`rounded-xl border ${theme.border} overflow-hidden`}>
             <table className="w-full text-[10px]">
@@ -1021,7 +1039,7 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
                                         return updated;
                                       });
                                     }} className={`px-2 py-0.5 rounded text-[8px] font-bold ${theme.secondaryBg} ${theme.iconColor} hover:opacity-80`}>
-                                      All → {s}
+                                      All \u2192 {s}
                                     </button>
                                   ))}
                                 </div>
@@ -1057,7 +1075,6 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
 
-        {/* Field-Level Permissions (unchanged) */}
         <SectionCard title="Field-Level Access" subtitle="Control visibility and masking of sensitive data fields per role" theme={theme}>
           <div className={`rounded-xl border ${theme.border} overflow-hidden`}>
             <table className="w-full text-[10px]">
@@ -1093,7 +1110,6 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
 
-        {/* Dashboard Layout Per Role (A7 — real widget editor) */}
         <SectionCard title="Default Dashboard Widgets" subtitle="Configure which widgets appear on each role's dashboard. Click Edit to toggle widgets." theme={theme}>
           <div className="space-y-2">
             {Object.entries(dashboardWidgets).map(([role, widgets]) => (
@@ -1131,7 +1147,6 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
 
-        {/* Gap 18: Field-Level Data Masking */}
         <SectionCard title="Field-Level Data Masking" subtitle="Configure which sensitive fields are masked when displayed to users. Masking format is shown next to each field." theme={theme}>
           <div className="space-y-2">
             {Object.entries(maskingToggles).map(([field, enabled]) => (
@@ -1145,11 +1160,7 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
                     </p>
                   </div>
                 </div>
-                <SSAToggle
-                  on={enabled}
-                  onChange={() => setMaskingToggles(prev => ({ ...prev, [field]: !prev[field] }))}
-                  theme={theme}
-                />
+                <SSAToggle on={enabled} onChange={() => setMaskingToggles(prev => ({ ...prev, [field]: !prev[field] }))} theme={theme} />
               </div>
             ))}
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-2.5 flex items-start gap-2 mt-2">
@@ -1159,7 +1170,6 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
 
-        {/* Gap 27: Support Impersonation */}
         <SectionCard title="Support Impersonation" subtitle="Log in as any user to troubleshoot their experience. All sessions are fully audited." theme={theme}>
           <div className="space-y-3">
             <div className="bg-red-50 border border-red-200 rounded-xl p-2.5 flex items-start gap-2">
@@ -1187,7 +1197,7 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
                     </div>
                     <div>
                       <p className={`text-xs font-bold ${theme.highlight}`}>{user.name}</p>
-                      <p className={`text-[10px] ${theme.iconColor}`}>{user.role} {user.dept !== '—' ? `| ${user.dept}` : ''} | {user.email}</p>
+                      <p className={`text-[10px] ${theme.iconColor}`}>{user.role} {user.dept !== '\u2014' ? `| ${user.dept}` : ''} | {user.email}</p>
                     </div>
                   </div>
                   <button className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 text-white text-[10px] font-bold hover:bg-amber-600 transition-all`}>
@@ -1202,11 +1212,22 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
             <p className={`text-[10px] ${theme.iconColor} italic`}>Recent impersonation sessions: Rajesh Kumar (2 days ago, 4 min), Admin01 (5 days ago, 12 min)</p>
           </div>
         </SectionCard>
+
+        {/* E7: Save Bar for Access Control tab */}
+        <div className={`flex items-center justify-between p-4 rounded-2xl ${theme.secondaryBg} border ${theme.border}`}>
+          <div>
+            <p className={`text-sm font-bold ${theme.highlight}`}>Save Access Control</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>Save overrides, data scopes, field-level access, widgets, and masking settings</p>
+          </div>
+          <button onClick={() => showSaveBanner('Access control configuration saved successfully!')}
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold ${theme.primary} text-white shadow-lg hover:shadow-xl transition-all`}>
+            <Save size={16} /> Save Configuration
+          </button>
+        </div>
       </>}
 
-      {/* ────── TAB 4: Audit & Temp (A7 — all functional) ────── */}
+      {/* ────── TAB 4: Audit & Temp ────── */}
       {rpTab === 'Audit & Temp' && <>
-        {/* Permission Audit Log */}
         <SectionCard title="Permission Change Log" subtitle="Track all role and permission changes with full audit trail" theme={theme}>
           <div className="flex gap-2 mb-3">
             <InputField value="" onChange={() => {}} theme={theme} placeholder="Filter by date range..." type="date" />
@@ -1251,7 +1272,6 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
 
-        {/* Temporary Role Elevation (A7 — functional) */}
         <SectionCard title="Temporary Roles" subtitle="Grant time-bound role elevations that auto-revert on expiry" theme={theme}>
           <div className="space-y-3">
             {tempRoleBanner && (
@@ -1310,7 +1330,7 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
                 const userObj = mockUsers.find(u => u.name === tempRoleUser);
                 setTempRoles(p => [...p, {
                   user: tempRoleUser, base: userObj?.roles[0] || '', temp: tempRoleRole,
-                  start: tempRoleStart || '26 Feb', end: tempRoleEnd || '26 Mar',
+                  start: tempRoleStart || '05 Mar', end: tempRoleEnd || '05 Apr',
                   reason: tempRoleReason || 'Temporary assignment', status: 'Active' as const
                 }]);
                 setTempRoleBanner(`Temporary role "${tempRoleRole}" granted to "${tempRoleUser}" successfully.`);
@@ -1321,7 +1341,6 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
 
-        {/* Role Comparison (updated for module-specific perms) */}
         <SectionCard title="Compare Roles" subtitle="Side-by-side permission comparison highlighting differences" theme={theme}>
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
@@ -1367,6 +1386,18 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
             </div>
           </div>
         </SectionCard>
+
+        {/* E7: Save Bar for Audit & Temp tab */}
+        <div className={`flex items-center justify-between p-4 rounded-2xl ${theme.secondaryBg} border ${theme.border}`}>
+          <div>
+            <p className={`text-sm font-bold ${theme.highlight}`}>Save Audit & Temp Settings</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>Save temporary role grants and comparison preferences</p>
+          </div>
+          <button onClick={() => showSaveBanner('Audit & temporary role settings saved successfully!')}
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold ${theme.primary} text-white shadow-lg hover:shadow-xl transition-all`}>
+            <Save size={16} /> Save Configuration
+          </button>
+        </div>
       </>}
 
     </div>

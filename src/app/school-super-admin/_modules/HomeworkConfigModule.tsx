@@ -1,6 +1,6 @@
 'use client';
 import React, { useState } from 'react';
-import { Info } from 'lucide-react';
+import { Info, Save } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import { MasterPermissionGrid, BulkImportWizard } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
@@ -254,6 +254,17 @@ export default function HomeworkConfigModule({ theme }: { theme: Theme }) {
       <SectionCard title="Bulk Import" subtitle="Import data from Excel templates" theme={theme}>
         <BulkImportWizard entityName="Assignments" templateFields={['Class', 'Section', 'Subject', 'Title', 'Due Date', 'Max Marks']} sampleData={[['Grade 8', 'A', 'Science', 'Chapter 5 Worksheet', '2026-04-20', '25']]} theme={theme} />
       </SectionCard>
+
+      {/* ─── Save Bar ─── */}
+      <div className={`${theme.cardBg} rounded-2xl border-2 ${theme.border} p-4 flex items-center justify-between`}>
+        <div>
+          <p className={`text-sm font-bold ${theme.highlight}`}>Save Configuration</p>
+          <p className={`text-[10px] ${theme.iconColor}`}>Save all Homework & Assignment settings</p>
+        </div>
+        <button className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold flex items-center gap-2 hover:opacity-90 transition-opacity`}>
+          <Save size={14} /> Save Changes
+        </button>
+      </div>
     </div>
   );
 }

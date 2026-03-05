@@ -1,11 +1,75 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Plus, CheckCircle, Info, Upload } from 'lucide-react';
+import { X, Plus, CheckCircle, Info, Upload, Search, Download, ChevronLeft, ChevronRight, Pencil, Trash2, Save } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, SelectField, InputField } from '../_helpers/components';
 import { MasterPermissionGrid, BulkImportWizard } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
 
+// ─── Constants ──────────────────────────────────────
+const PAGE_SIZE = 5;
+
+// ─── Types ──────────────────────────────────────────
+type Department = { id: number; name: string; enabled: boolean };
+type Designation = { id: number; name: string; enabled: boolean };
+type SalaryComponent = { id: number; name: string; type: string; percentage: string; enabled: boolean };
+type LetterTemplate = { id: number; name: string; letterType: string; enabled: boolean };
+type AppraisalStage = { id: number; stage: string; order: number; enabled: boolean };
+type ChecklistItem = { id: number; item: string; enabled: boolean };
+type TaxSlab = { id: number; slabName: string; from: string; to: string; rate: string; enabled: boolean };
+
+// ─── Sub-component: Table Toolbar ───────────────────
+function TableToolbar({
+  search, onSearch, count, label, onAdd, onExport, onImport, theme,
+}: {
+  search: string; onSearch: (v: string) => void; count: number; label: string;
+  onAdd: () => void; onExport: () => void; onImport: () => void; theme: Theme;
+}) {
+  return (
+    <div className="flex items-center gap-2 mb-3 flex-wrap">
+      <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border ${theme.border} ${theme.inputBg} flex-1 min-w-[160px]`}>
+        <Search size={13} className={theme.iconColor} />
+        <input value={search} onChange={e => onSearch(e.target.value)} placeholder={`Search ${label}...`}
+          className={`flex-1 bg-transparent text-xs ${theme.highlight} outline-none placeholder-gray-400`} />
+        {search && <button onClick={() => onSearch('')}><X size={12} className="text-gray-400 hover:text-red-400" /></button>}
+      </div>
+      <span className={`text-[10px] font-bold px-2 py-1 rounded-lg ${theme.secondaryBg} ${theme.iconColor} shrink-0`}>{count} records</span>
+      <button onClick={onAdd}
+        className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-white ${theme.primary} hover:opacity-90 shrink-0`}>
+        <Plus size={12} /> Add
+      </button>
+      <button onClick={onExport}
+        className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shrink-0">
+        <Download size={12} /> Export
+      </button>
+      <button onClick={onImport}
+        className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shrink-0">
+        <Upload size={12} /> Import
+      </button>
+    </div>
+  );
+}
+
+// ─── Sub-component: Pagination ──────────────────────
+function Pagination({ page, total, pageSize, onChange, theme }: { page: number; total: number; pageSize: number; onChange: (p: number) => void; theme: Theme }) {
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  if (totalPages <= 1) return null;
+  return (
+    <div className="flex items-center justify-end gap-2 mt-2">
+      <button disabled={page === 1} onClick={() => onChange(page - 1)}
+        className={`p-1 rounded-lg border ${theme.border} disabled:opacity-30 ${theme.buttonHover}`}>
+        <ChevronLeft size={13} className={theme.iconColor} />
+      </button>
+      <span className={`text-[10px] ${theme.iconColor}`}>Page {page} / {totalPages}</span>
+      <button disabled={page === totalPages} onClick={() => onChange(page + 1)}
+        className={`p-1 rounded-lg border ${theme.border} disabled:opacity-30 ${theme.buttonHover}`}>
+        <ChevronRight size={13} className={theme.iconColor} />
+      </button>
+    </div>
+  );
+}
+
+// ─── Helper Components ──────────────────────────────
 function InfoIcon({ tip }: { tip: string }) {
   return <span title={tip} className="inline-flex ml-1.5 shrink-0 cursor-help"><Info size={13} className="text-blue-400 hover:text-blue-600" /></span>;
 }
@@ -13,55 +77,232 @@ function MobileBadge() {
   return <span className="ml-1.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-green-100 text-green-700 whitespace-nowrap">{'\uD83D\uDCF1'} Mobile</span>;
 }
 
+// ─── Main Module ────────────────────────────────────
 export default function HRConfigModule({ theme }: { theme: Theme }) {
-  const [departments, setDepartments] = useState(['Administration', 'Teaching - Primary', 'Teaching - Secondary', 'Teaching - Senior', 'Accounts', 'IT', 'Transport', 'Housekeeping', 'Security', 'Library', 'Lab']);
-  const [designations, setDesignations] = useState(['Principal', 'Vice Principal', 'HOD', 'PGT', 'TGT', 'PRT', 'Lab Assistant', 'Librarian', 'Accountant', 'Driver', 'Peon', 'Security Guard']);
-  const [newDept, setNewDept] = useState('');
-  const [newDesig, setNewDesig] = useState('');
-  const [salaryComponents, setSalaryComponents] = useState([
-    { name: 'Basic Salary', type: 'earning', percentage: '40%' },
-    { name: 'HRA', type: 'earning', percentage: '20%' },
-    { name: 'DA', type: 'earning', percentage: '15%' },
-    { name: 'Transport Allowance', type: 'earning', percentage: '5%' },
-    { name: 'Special Allowance', type: 'earning', percentage: '10%' },
-    { name: 'PF (Employee)', type: 'deduction', percentage: '12%' },
-    { name: 'ESI', type: 'deduction', percentage: '0.75%' },
-    { name: 'Professional Tax', type: 'deduction', percentage: 'Fixed' },
-    { name: 'TDS', type: 'deduction', percentage: 'Slab' },
+
+  // ══════════════════════════════════════════════════
+  // 1. DEPARTMENTS
+  // ══════════════════════════════════════════════════
+  const [departments, setDepartments] = useState<Department[]>([
+    { id: 1, name: 'Administration', enabled: true },
+    { id: 2, name: 'Teaching - Primary', enabled: true },
+    { id: 3, name: 'Teaching - Secondary', enabled: true },
+    { id: 4, name: 'Teaching - Senior', enabled: true },
+    { id: 5, name: 'Accounts', enabled: true },
+    { id: 6, name: 'IT', enabled: true },
+    { id: 7, name: 'Transport', enabled: true },
+    { id: 8, name: 'Housekeeping', enabled: true },
+    { id: 9, name: 'Security', enabled: true },
+    { id: 10, name: 'Library', enabled: true },
+    { id: 11, name: 'Lab', enabled: true },
   ]);
+  const [deptSearch, setDeptSearch] = useState('');
+  const [deptPage, setDeptPage] = useState(1);
+  const [deptEdit, setDeptEdit] = useState<number | null>(null);
+
+  const filteredDepts = departments.filter(d => d.name.toLowerCase().includes(deptSearch.toLowerCase()));
+  const pagedDepts = filteredDepts.slice((deptPage - 1) * PAGE_SIZE, deptPage * PAGE_SIZE);
+
+  function addDepartment() {
+    setDepartments(p => [...p, { id: Date.now(), name: '', enabled: true }]);
+    const newTotal = filteredDepts.length + 1;
+    const newTotalPages = Math.ceil(newTotal / PAGE_SIZE);
+    setDeptPage(newTotalPages);
+    setDeptEdit(Date.now());
+  }
+
+  // ══════════════════════════════════════════════════
+  // 2. DESIGNATIONS
+  // ══════════════════════════════════════════════════
+  const [designations, setDesignations] = useState<Designation[]>([
+    { id: 1, name: 'Principal', enabled: true },
+    { id: 2, name: 'Vice Principal', enabled: true },
+    { id: 3, name: 'HOD', enabled: true },
+    { id: 4, name: 'PGT', enabled: true },
+    { id: 5, name: 'TGT', enabled: true },
+    { id: 6, name: 'PRT', enabled: true },
+    { id: 7, name: 'Lab Assistant', enabled: true },
+    { id: 8, name: 'Librarian', enabled: true },
+    { id: 9, name: 'Accountant', enabled: true },
+    { id: 10, name: 'Driver', enabled: true },
+    { id: 11, name: 'Peon', enabled: true },
+    { id: 12, name: 'Security Guard', enabled: true },
+  ]);
+  const [desigSearch, setDesigSearch] = useState('');
+  const [desigPage, setDesigPage] = useState(1);
+  const [desigEdit, setDesigEdit] = useState<number | null>(null);
+
+  const filteredDesigs = designations.filter(d => d.name.toLowerCase().includes(desigSearch.toLowerCase()));
+  const pagedDesigs = filteredDesigs.slice((desigPage - 1) * PAGE_SIZE, desigPage * PAGE_SIZE);
+
+  function addDesignation() {
+    const newId = Date.now();
+    setDesignations(p => [...p, { id: newId, name: '', enabled: true }]);
+    const newTotal = filteredDesigs.length + 1;
+    const newTotalPages = Math.ceil(newTotal / PAGE_SIZE);
+    setDesigPage(newTotalPages);
+    setDesigEdit(newId);
+  }
+
+  // ══════════════════════════════════════════════════
+  // 3. SALARY COMPONENTS
+  // ══════════════════════════════════════════════════
+  const [salaryComponents, setSalaryComponents] = useState<SalaryComponent[]>([
+    { id: 1, name: 'Basic Salary', type: 'earning', percentage: '40%', enabled: true },
+    { id: 2, name: 'HRA', type: 'earning', percentage: '20%', enabled: true },
+    { id: 3, name: 'DA', type: 'earning', percentage: '15%', enabled: true },
+    { id: 4, name: 'Transport Allowance', type: 'earning', percentage: '5%', enabled: true },
+    { id: 5, name: 'Special Allowance', type: 'earning', percentage: '10%', enabled: true },
+    { id: 6, name: 'PF (Employee)', type: 'deduction', percentage: '12%', enabled: true },
+    { id: 7, name: 'ESI', type: 'deduction', percentage: '0.75%', enabled: true },
+    { id: 8, name: 'Professional Tax', type: 'deduction', percentage: 'Fixed', enabled: true },
+    { id: 9, name: 'TDS', type: 'deduction', percentage: 'Slab', enabled: true },
+  ]);
+  const [salarySearch, setSalarySearch] = useState('');
+  const [salaryPage, setSalaryPage] = useState(1);
+  const [salaryEdit, setSalaryEdit] = useState<number | null>(null);
+
+  const filteredSalary = salaryComponents.filter(c =>
+    c.name.toLowerCase().includes(salarySearch.toLowerCase()) || c.type.toLowerCase().includes(salarySearch.toLowerCase())
+  );
+  const pagedSalary = filteredSalary.slice((salaryPage - 1) * PAGE_SIZE, salaryPage * PAGE_SIZE);
+
+  function addSalaryComponent() {
+    const newId = Date.now();
+    setSalaryComponents(p => [...p, { id: newId, name: '', type: 'earning', percentage: '', enabled: true }]);
+    const newTotal = filteredSalary.length + 1;
+    setSalaryPage(Math.ceil(newTotal / PAGE_SIZE));
+    setSalaryEdit(newId);
+  }
+
+  // ══════════════════════════════════════════════════
+  // 4. LETTER TEMPLATES
+  // ══════════════════════════════════════════════════
+  const [hrLetters, setHrLetters] = useState<LetterTemplate[]>([
+    { id: 1, name: 'Offer Letter', letterType: 'Onboarding', enabled: true },
+    { id: 2, name: 'Appointment Letter', letterType: 'Onboarding', enabled: true },
+    { id: 3, name: 'Confirmation Letter', letterType: 'Employment', enabled: true },
+    { id: 4, name: 'Experience Letter', letterType: 'Exit', enabled: true },
+    { id: 5, name: 'Relieving Letter', letterType: 'Exit', enabled: true },
+    { id: 6, name: 'Salary Slip', letterType: 'Payroll', enabled: true },
+    { id: 7, name: 'Warning Letter', letterType: 'Disciplinary', enabled: true },
+    { id: 8, name: 'Termination Letter', letterType: 'Exit', enabled: true },
+  ]);
+  const [letterSearch, setLetterSearch] = useState('');
+  const [letterPage, setLetterPage] = useState(1);
+  const [letterEdit, setLetterEdit] = useState<number | null>(null);
+
+  const filteredLetters = hrLetters.filter(l =>
+    l.name.toLowerCase().includes(letterSearch.toLowerCase()) || l.letterType.toLowerCase().includes(letterSearch.toLowerCase())
+  );
+  const pagedLetters = filteredLetters.slice((letterPage - 1) * PAGE_SIZE, letterPage * PAGE_SIZE);
+
+  function addLetterTemplate() {
+    const newId = Date.now();
+    setHrLetters(p => [...p, { id: newId, name: '', letterType: 'Onboarding', enabled: true }]);
+    const newTotal = filteredLetters.length + 1;
+    setLetterPage(Math.ceil(newTotal / PAGE_SIZE));
+    setLetterEdit(newId);
+  }
+
+  // ══════════════════════════════════════════════════
+  // 5. APPRAISAL STAGES
+  // ══════════════════════════════════════════════════
+  const [appraisalStages, setAppraisalStages] = useState<AppraisalStage[]>([
+    { id: 1, stage: 'Self Assessment', order: 1, enabled: true },
+    { id: 2, stage: 'HOD Review', order: 2, enabled: true },
+    { id: 3, stage: 'Principal Review', order: 3, enabled: true },
+    { id: 4, stage: 'Management Approval', order: 4, enabled: true },
+    { id: 5, stage: 'Letter Generation', order: 5, enabled: true },
+  ]);
+  const [appraisalSearch, setAppraisalSearch] = useState('');
+  const [appraisalPage, setAppraisalPage] = useState(1);
+  const [appraisalEdit, setAppraisalEdit] = useState<number | null>(null);
+
+  const filteredAppraisals = appraisalStages.filter(s => s.stage.toLowerCase().includes(appraisalSearch.toLowerCase()));
+  const pagedAppraisals = filteredAppraisals.slice((appraisalPage - 1) * PAGE_SIZE, appraisalPage * PAGE_SIZE);
+
+  function addAppraisalStage() {
+    const newId = Date.now();
+    setAppraisalStages(p => [...p, { id: newId, stage: '', order: p.length + 1, enabled: true }]);
+    const newTotal = filteredAppraisals.length + 1;
+    setAppraisalPage(Math.ceil(newTotal / PAGE_SIZE));
+    setAppraisalEdit(newId);
+  }
+
+  // ══════════════════════════════════════════════════
+  // 6. ONBOARDING CHECKLIST
+  // ══════════════════════════════════════════════════
+  const [onboardingChecklist, setOnboardingChecklist] = useState<ChecklistItem[]>([
+    { id: 1, item: 'Document verification (Aadhaar, PAN, Degree certificates)', enabled: true },
+    { id: 2, item: 'Police verification submission', enabled: true },
+    { id: 3, item: 'Bank account details for salary', enabled: true },
+    { id: 4, item: 'PF & ESI registration', enabled: true },
+    { id: 5, item: 'Photo ID card generation', enabled: true },
+    { id: 6, item: 'System login creation', enabled: true },
+    { id: 7, item: 'Assign department & reporting manager', enabled: true },
+    { id: 8, item: 'Probation period agreement', enabled: true },
+  ]);
+  const [checklistSearch, setChecklistSearch] = useState('');
+  const [checklistPage, setChecklistPage] = useState(1);
+  const [checklistEdit, setChecklistEdit] = useState<number | null>(null);
+
+  const filteredChecklist = onboardingChecklist.filter(c => c.item.toLowerCase().includes(checklistSearch.toLowerCase()));
+  const pagedChecklist = filteredChecklist.slice((checklistPage - 1) * PAGE_SIZE, checklistPage * PAGE_SIZE);
+
+  function addChecklistItem() {
+    const newId = Date.now();
+    setOnboardingChecklist(p => [...p, { id: newId, item: '', enabled: true }]);
+    const newTotal = filteredChecklist.length + 1;
+    setChecklistPage(Math.ceil(newTotal / PAGE_SIZE));
+    setChecklistEdit(newId);
+  }
+
+  // ══════════════════════════════════════════════════
+  // 7. INCOME TAX SLABS
+  // ══════════════════════════════════════════════════
+  const [taxSlabs, setTaxSlabs] = useState<TaxSlab[]>([
+    { id: 1, slabName: 'Nil Slab', from: '0', to: '500000', rate: '0', enabled: true },
+    { id: 2, slabName: '20% Slab', from: '500001', to: '1000000', rate: '20', enabled: true },
+    { id: 3, slabName: '30% Slab', from: '1000001', to: '99999999', rate: '30', enabled: true },
+  ]);
+  const [taxSearch, setTaxSearch] = useState('');
+  const [taxPage, setTaxPage] = useState(1);
+  const [taxEdit, setTaxEdit] = useState<number | null>(null);
+
+  const filteredTax = taxSlabs.filter(s =>
+    s.slabName.toLowerCase().includes(taxSearch.toLowerCase()) || s.rate.includes(taxSearch)
+  );
+  const pagedTax = filteredTax.slice((taxPage - 1) * PAGE_SIZE, taxPage * PAGE_SIZE);
+
+  function addTaxSlab() {
+    const newId = Date.now();
+    setTaxSlabs(p => [...p, { id: newId, slabName: '', from: '', to: '', rate: '', enabled: true }]);
+    const newTotal = filteredTax.length + 1;
+    setTaxPage(Math.ceil(newTotal / PAGE_SIZE));
+    setTaxEdit(newId);
+  }
+
+  // ══════════════════════════════════════════════════
+  // PAY CYCLE & ATTENDANCE (unchanged)
+  // ══════════════════════════════════════════════════
   const [payCycle, setPayCycle] = useState('Monthly');
   const [payDay, setPayDay] = useState('Last working day');
   const [staffAttendance, setStaffAttendance] = useState<Record<string, boolean>>({
     'Biometric': true, 'Mobile App': true, 'RFID': false, 'Manual Register': true, 'Geo-fencing': false,
   });
-  const [onboardingChecklist, setOnboardingChecklist] = useState([
-    'Document verification (Aadhaar, PAN, Degree certificates)',
-    'Police verification submission',
-    'Bank account details for salary',
-    'PF & ESI registration',
-    'Photo ID card generation',
-    'System login creation',
-    'Assign department & reporting manager',
-    'Probation period agreement',
-  ]);
-  const [newChecklistItem, setNewChecklistItem] = useState('');
-  const [hrLetters, setHrLetters] = useState(['Offer Letter', 'Appointment Letter', 'Confirmation Letter', 'Experience Letter', 'Relieving Letter', 'Salary Slip', 'Warning Letter', 'Termination Letter']);
-  const [newHrLetter, setNewHrLetter] = useState('');
-  const [appraisalStages, setAppraisalStages] = useState(['Self Assessment', 'HOD Review', 'Principal Review', 'Management Approval', 'Letter Generation']);
 
-  // --- NEW STATE ---
-  // LOP Calculation
+  // ═══════════════════════════════════════════════════
+  // PAYROLL / STATUTORY STATE (unchanged)
+  // ═══════════════════════════════════════════════════
   const [lopMethod, setLopMethod] = useState('LOPD');
-  // Payslip Settings
   const [payslipPDF, setPayslipPDF] = useState(true);
   const [payslipPassword, setPayslipPassword] = useState(false);
   const [payslipDistribution, setPayslipDistribution] = useState<Record<string, boolean>>({ Email: true, WhatsApp: false, 'Self-service portal': true });
   const [payslipRegen, setPayslipRegen] = useState(false);
   const [payslipRegenAudit, setPayslipRegenAudit] = useState(true);
-  // TDS
   const [autoTDS, setAutoTDS] = useState(true);
   const [form16Gen, setForm16Gen] = useState(true);
-  // Statutory
   const [pfEnabled, setPfEnabled] = useState(true);
   const [pfEmployee, setPfEmployee] = useState('12');
   const [pfEmployer, setPfEmployer] = useState('12');
@@ -70,86 +311,230 @@ export default function HRConfigModule({ theme }: { theme: Theme }) {
   const [ptEnabled, setPtEnabled] = useState(true);
   const [ptState, setPtState] = useState('Gujarat');
   const [gratuityEnabled, setGratuityEnabled] = useState(false);
-  // Payroll Extras
   const [overtimeEnabled, setOvertimeEnabled] = useState(false);
   const [overtimeRate, setOvertimeRate] = useState('1.5x');
   const [festivalBonus, setFestivalBonus] = useState(false);
   const [salaryAdvance, setSalaryAdvance] = useState(false);
   const [arrearsAuto, setArrearsAuto] = useState(false);
-  // Export / Integration
   const [bankBatchFile, setBankBatchFile] = useState(true);
   const [bankFormat, setBankFormat] = useState('SBI');
   const [tallyExport, setTallyExport] = useState(false);
   const [quickbooksSync, setQuickbooksSync] = useState(false);
-  // Statutory Reports
   const [pfECR, setPfECR] = useState(true);
   const [esiReturn, setEsiReturn] = useState(true);
   const [form16Report, setForm16Report] = useState(true);
   const [ptChallan, setPtChallan] = useState(true);
 
+  // ═══════════════════════════════════════════════════
+  // SAVE HANDLER
+  // ═══════════════════════════════════════════════════
+  const [saved, setSaved] = useState(false);
+  function handleSave() {
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  }
+
   return (
     <div className="space-y-4">
       <ModuleHeader title="HR & Payroll Configuration" subtitle="Departments, salary structure, pay cycle, attendance, and HR processes" theme={theme} />
 
-      <div className="grid grid-cols-2 gap-4">
-        <SectionCard title="Departments" subtitle="Add or remove departments" theme={theme}>
-          <div className="flex flex-wrap gap-1.5 mb-3">
-            {departments.map(d => (
-              <span key={d} className={`flex items-center gap-1 px-2.5 py-1 rounded-lg ${theme.secondaryBg} text-xs font-medium ${theme.highlight}`}>
-                {d}
-                <button onClick={() => setDepartments(p => p.filter(x => x !== d))} className="text-red-400 hover:text-red-600"><X size={10} /></button>
-              </span>
-            ))}
-          </div>
-          <div className="flex gap-2">
-            <input value={newDept} onChange={e => setNewDept(e.target.value)} placeholder="Add department..."
-              className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
-            <button onClick={() => { if (newDept.trim()) { setDepartments(p => [...p, newDept.trim()]); setNewDept(''); } }}
-              className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}><Plus size={14} /></button>
-          </div>
-        </SectionCard>
-
-        <SectionCard title="Designations" subtitle="Add or remove designations" theme={theme}>
-          <div className="flex flex-wrap gap-1.5 mb-3">
-            {designations.map(d => (
-              <span key={d} className={`flex items-center gap-1 px-2.5 py-1 rounded-lg ${theme.secondaryBg} text-xs font-medium ${theme.highlight}`}>
-                {d}
-                <button onClick={() => setDesignations(p => p.filter(x => x !== d))} className="text-red-400 hover:text-red-600"><X size={10} /></button>
-              </span>
-            ))}
-          </div>
-          <div className="flex gap-2">
-            <input value={newDesig} onChange={e => setNewDesig(e.target.value)} placeholder="Add designation..."
-              className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
-            <button onClick={() => { if (newDesig.trim()) { setDesignations(p => [...p, newDesig.trim()]); setNewDesig(''); } }}
-              className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}><Plus size={14} /></button>
-          </div>
-        </SectionCard>
-      </div>
-
-      <SectionCard title="Salary Structure" subtitle="Earning and deduction components — edit name, type, and percentage" theme={theme}>
-        <div className="space-y-1.5">
-          {salaryComponents.map((c, i) => (
-            <div key={i} className={`flex items-center gap-2 p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <select value={c.type} onChange={e => { const n = [...salaryComponents]; n[i] = { ...n[i], type: e.target.value }; setSalaryComponents(n); }}
-                className={`text-[9px] px-1.5 py-1 rounded font-bold ${c.type === 'earning' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'} border-0 outline-none`}>
-                <option value="earning">EARN</option>
-                <option value="deduction">DED</option>
-              </select>
-              <input value={c.name} onChange={e => { const n = [...salaryComponents]; n[i] = { ...n[i], name: e.target.value }; setSalaryComponents(n); }}
-                className={`flex-1 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-medium ${theme.highlight} outline-none`} />
-              <input value={c.percentage} onChange={e => { const n = [...salaryComponents]; n[i] = { ...n[i], percentage: e.target.value }; setSalaryComponents(n); }}
-                className={`w-16 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center font-bold ${theme.iconColor} outline-none`} />
-              <button onClick={() => setSalaryComponents(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={10} /></button>
-            </div>
-          ))}
-          <button onClick={() => setSalaryComponents(p => [...p, { name: '', type: 'earning', percentage: '' }])}
-            className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
-            <Plus size={12} /> Add Component
-          </button>
+      {/* ═══════════════════════════════════════════════
+          1. DEPARTMENTS — Full Master Table
+          ═══════════════════════════════════════════════ */}
+      <SectionCard title="Departments" subtitle="Add, edit, enable/disable, or remove departments" theme={theme}>
+        <TableToolbar
+          search={deptSearch} onSearch={v => { setDeptSearch(v); setDeptPage(1); }}
+          count={filteredDepts.length} label="departments"
+          onAdd={addDepartment}
+          onExport={() => alert('Export departments as CSV')}
+          onImport={() => alert('Import departments from CSV')}
+          theme={theme}
+        />
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className={theme.secondaryBg}>
+                {['Name', 'Enabled', 'Actions'].map(h => (
+                  <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor} uppercase text-[10px]`}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {pagedDepts.length === 0 ? (
+                <tr><td colSpan={3} className={`text-center py-6 text-xs ${theme.iconColor}`}>No departments found</td></tr>
+              ) : pagedDepts.map(d => (
+                <tr key={d.id} className={`border-t ${theme.border} ${!d.enabled ? 'opacity-50' : ''}`}>
+                  <td className="px-2 py-1.5">
+                    {deptEdit === d.id ? (
+                      <input autoFocus value={d.name}
+                        onChange={e => setDepartments(p => p.map(x => x.id === d.id ? { ...x, name: e.target.value } : x))}
+                        className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`}
+                        placeholder="Department name" />
+                    ) : (
+                      <span className={`font-bold ${theme.highlight}`}>{d.name || '(empty)'}</span>
+                    )}
+                  </td>
+                  <td className="px-3 py-2">
+                    <SSAToggle on={d.enabled} onChange={() => setDepartments(p => p.map(x => x.id === d.id ? { ...x, enabled: !x.enabled } : x))} theme={theme} />
+                  </td>
+                  <td className="px-2 py-1.5">
+                    <div className="flex items-center gap-1.5">
+                      {deptEdit === d.id ? (
+                        <button onClick={() => setDeptEdit(null)} className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${theme.primary} text-white`}>Done</button>
+                      ) : (
+                        <button onClick={() => setDeptEdit(d.id)} className={`p-1 rounded-lg ${theme.buttonHover}`}><Pencil size={11} className={theme.iconColor} /></button>
+                      )}
+                      <button onClick={() => setDepartments(p => p.filter(x => x.id !== d.id))} className="text-red-400 hover:text-red-600"><Trash2 size={12} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
+        <Pagination page={deptPage} total={filteredDepts.length} pageSize={PAGE_SIZE} onChange={setDeptPage} theme={theme} />
       </SectionCard>
 
+      {/* ═══════════════════════════════════════════════
+          2. DESIGNATIONS — Full Master Table
+          ═══════════════════════════════════════════════ */}
+      <SectionCard title="Designations" subtitle="Add, edit, enable/disable, or remove designations" theme={theme}>
+        <TableToolbar
+          search={desigSearch} onSearch={v => { setDesigSearch(v); setDesigPage(1); }}
+          count={filteredDesigs.length} label="designations"
+          onAdd={addDesignation}
+          onExport={() => alert('Export designations as CSV')}
+          onImport={() => alert('Import designations from CSV')}
+          theme={theme}
+        />
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className={theme.secondaryBg}>
+                {['Name', 'Enabled', 'Actions'].map(h => (
+                  <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor} uppercase text-[10px]`}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {pagedDesigs.length === 0 ? (
+                <tr><td colSpan={3} className={`text-center py-6 text-xs ${theme.iconColor}`}>No designations found</td></tr>
+              ) : pagedDesigs.map(d => (
+                <tr key={d.id} className={`border-t ${theme.border} ${!d.enabled ? 'opacity-50' : ''}`}>
+                  <td className="px-2 py-1.5">
+                    {desigEdit === d.id ? (
+                      <input autoFocus value={d.name}
+                        onChange={e => setDesignations(p => p.map(x => x.id === d.id ? { ...x, name: e.target.value } : x))}
+                        className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`}
+                        placeholder="Designation name" />
+                    ) : (
+                      <span className={`font-bold ${theme.highlight}`}>{d.name || '(empty)'}</span>
+                    )}
+                  </td>
+                  <td className="px-3 py-2">
+                    <SSAToggle on={d.enabled} onChange={() => setDesignations(p => p.map(x => x.id === d.id ? { ...x, enabled: !x.enabled } : x))} theme={theme} />
+                  </td>
+                  <td className="px-2 py-1.5">
+                    <div className="flex items-center gap-1.5">
+                      {desigEdit === d.id ? (
+                        <button onClick={() => setDesigEdit(null)} className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${theme.primary} text-white`}>Done</button>
+                      ) : (
+                        <button onClick={() => setDesigEdit(d.id)} className={`p-1 rounded-lg ${theme.buttonHover}`}><Pencil size={11} className={theme.iconColor} /></button>
+                      )}
+                      <button onClick={() => setDesignations(p => p.filter(x => x.id !== d.id))} className="text-red-400 hover:text-red-600"><Trash2 size={12} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <Pagination page={desigPage} total={filteredDesigs.length} pageSize={PAGE_SIZE} onChange={setDesigPage} theme={theme} />
+      </SectionCard>
+
+      {/* ═══════════════════════════════════════════════
+          3. SALARY STRUCTURE — Full Master Table
+          ═══════════════════════════════════════════════ */}
+      <SectionCard title="Salary Structure" subtitle="Earning and deduction components — search, edit, enable/disable, export/import" theme={theme}>
+        <TableToolbar
+          search={salarySearch} onSearch={v => { setSalarySearch(v); setSalaryPage(1); }}
+          count={filteredSalary.length} label="components"
+          onAdd={addSalaryComponent}
+          onExport={() => alert('Export salary components as CSV')}
+          onImport={() => alert('Import salary components from CSV')}
+          theme={theme}
+        />
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className={theme.secondaryBg}>
+                {['Type', 'Component Name', 'Percentage', 'Enabled', 'Actions'].map(h => (
+                  <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor} uppercase text-[10px]`}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {pagedSalary.length === 0 ? (
+                <tr><td colSpan={5} className={`text-center py-6 text-xs ${theme.iconColor}`}>No salary components found</td></tr>
+              ) : pagedSalary.map(c => (
+                <tr key={c.id} className={`border-t ${theme.border} ${!c.enabled ? 'opacity-50' : ''}`}>
+                  <td className="px-2 py-1.5">
+                    {salaryEdit === c.id ? (
+                      <select value={c.type} onChange={e => setSalaryComponents(p => p.map(x => x.id === c.id ? { ...x, type: e.target.value } : x))}
+                        className={`text-[9px] px-1.5 py-1 rounded font-bold ${c.type === 'earning' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'} border-0 outline-none`}>
+                        <option value="earning">EARN</option>
+                        <option value="deduction">DED</option>
+                      </select>
+                    ) : (
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold ${c.type === 'earning' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                        {c.type === 'earning' ? 'EARN' : 'DED'}
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-2 py-1.5">
+                    {salaryEdit === c.id ? (
+                      <input autoFocus value={c.name}
+                        onChange={e => setSalaryComponents(p => p.map(x => x.id === c.id ? { ...x, name: e.target.value } : x))}
+                        className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`}
+                        placeholder="Component name" />
+                    ) : (
+                      <span className={`font-bold ${theme.highlight}`}>{c.name || '(empty)'}</span>
+                    )}
+                  </td>
+                  <td className="px-2 py-1.5">
+                    {salaryEdit === c.id ? (
+                      <input value={c.percentage}
+                        onChange={e => setSalaryComponents(p => p.map(x => x.id === c.id ? { ...x, percentage: e.target.value } : x))}
+                        className={`w-20 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center font-bold ${theme.iconColor} outline-none`}
+                        placeholder="e.g. 40%" />
+                    ) : (
+                      <span className={`font-bold ${theme.iconColor}`}>{c.percentage}</span>
+                    )}
+                  </td>
+                  <td className="px-3 py-2">
+                    <SSAToggle on={c.enabled} onChange={() => setSalaryComponents(p => p.map(x => x.id === c.id ? { ...x, enabled: !x.enabled } : x))} theme={theme} />
+                  </td>
+                  <td className="px-2 py-1.5">
+                    <div className="flex items-center gap-1.5">
+                      {salaryEdit === c.id ? (
+                        <button onClick={() => setSalaryEdit(null)} className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${theme.primary} text-white`}>Done</button>
+                      ) : (
+                        <button onClick={() => setSalaryEdit(c.id)} className={`p-1 rounded-lg ${theme.buttonHover}`}><Pencil size={11} className={theme.iconColor} /></button>
+                      )}
+                      <button onClick={() => setSalaryComponents(p => p.filter(x => x.id !== c.id))} className="text-red-400 hover:text-red-600"><Trash2 size={12} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <Pagination page={salaryPage} total={filteredSalary.length} pageSize={PAGE_SIZE} onChange={setSalaryPage} theme={theme} />
+      </SectionCard>
+
+      {/* ═══════════════════════════════════════════════
+          PAY CYCLE + STAFF ATTENDANCE (unchanged layout)
+          ═══════════════════════════════════════════════ */}
       <div className="grid grid-cols-2 gap-4">
         <SectionCard title="Pay Cycle" subtitle="Payment schedule and processing" theme={theme}>
           <div className="space-y-3">
@@ -187,65 +572,202 @@ export default function HRConfigModule({ theme }: { theme: Theme }) {
         </SectionCard>
       </div>
 
-      <SectionCard title="Staff Onboarding Checklist" subtitle="Required steps for new staff — edit or remove items" theme={theme}>
-        <div className="space-y-1.5">
-          {onboardingChecklist.map((item, i) => (
-            <div key={i} className={`flex items-center gap-2 p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <CheckCircle size={14} className="text-emerald-500 shrink-0" />
-              <input value={item} onChange={e => { const n = [...onboardingChecklist]; n[i] = e.target.value; setOnboardingChecklist(n); }}
-                className={`flex-1 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
-              <button onClick={() => setOnboardingChecklist(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={10} /></button>
-            </div>
-          ))}
-          <div className="flex gap-2">
-            <input value={newChecklistItem} onChange={e => setNewChecklistItem(e.target.value)} placeholder="Add checklist item..."
-              onKeyDown={e => { if (e.key === 'Enter' && newChecklistItem.trim()) { setOnboardingChecklist(p => [...p, newChecklistItem.trim()]); setNewChecklistItem(''); } }}
-              className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
-            <button onClick={() => { if (newChecklistItem.trim()) { setOnboardingChecklist(p => [...p, newChecklistItem.trim()]); setNewChecklistItem(''); } }}
-              className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}><Plus size={14} /></button>
-          </div>
+      {/* ═══════════════════════════════════════════════
+          4. LETTER TEMPLATES — Full Master Table
+          ═══════════════════════════════════════════════ */}
+      <SectionCard title="HR Letter Templates" subtitle="Add, edit, enable/disable, or remove letter templates" theme={theme}>
+        <TableToolbar
+          search={letterSearch} onSearch={v => { setLetterSearch(v); setLetterPage(1); }}
+          count={filteredLetters.length} label="templates"
+          onAdd={addLetterTemplate}
+          onExport={() => alert('Export letter templates as CSV')}
+          onImport={() => alert('Import letter templates from CSV')}
+          theme={theme}
+        />
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className={theme.secondaryBg}>
+                {['Template Name', 'Type', 'Enabled', 'Actions'].map(h => (
+                  <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor} uppercase text-[10px]`}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {pagedLetters.length === 0 ? (
+                <tr><td colSpan={4} className={`text-center py-6 text-xs ${theme.iconColor}`}>No letter templates found</td></tr>
+              ) : pagedLetters.map(l => (
+                <tr key={l.id} className={`border-t ${theme.border} ${!l.enabled ? 'opacity-50' : ''}`}>
+                  <td className="px-2 py-1.5">
+                    {letterEdit === l.id ? (
+                      <input autoFocus value={l.name}
+                        onChange={e => setHrLetters(p => p.map(x => x.id === l.id ? { ...x, name: e.target.value } : x))}
+                        className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`}
+                        placeholder="Template name" />
+                    ) : (
+                      <span className={`font-bold ${theme.highlight}`}>{l.name || '(empty)'}</span>
+                    )}
+                  </td>
+                  <td className="px-2 py-1.5">
+                    {letterEdit === l.id ? (
+                      <select value={l.letterType}
+                        onChange={e => setHrLetters(p => p.map(x => x.id === l.id ? { ...x, letterType: e.target.value } : x))}
+                        className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}>
+                        {['Onboarding', 'Employment', 'Exit', 'Payroll', 'Disciplinary'].map(t => <option key={t} value={t}>{t}</option>)}
+                      </select>
+                    ) : (
+                      <span className={`text-[10px] px-2 py-0.5 rounded-lg ${theme.secondaryBg} font-medium ${theme.iconColor}`}>{l.letterType}</span>
+                    )}
+                  </td>
+                  <td className="px-3 py-2">
+                    <SSAToggle on={l.enabled} onChange={() => setHrLetters(p => p.map(x => x.id === l.id ? { ...x, enabled: !x.enabled } : x))} theme={theme} />
+                  </td>
+                  <td className="px-2 py-1.5">
+                    <div className="flex items-center gap-1.5">
+                      {letterEdit === l.id ? (
+                        <button onClick={() => setLetterEdit(null)} className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${theme.primary} text-white`}>Done</button>
+                      ) : (
+                        <button onClick={() => setLetterEdit(l.id)} className={`p-1 rounded-lg ${theme.buttonHover}`}><Pencil size={11} className={theme.iconColor} /></button>
+                      )}
+                      <button onClick={() => setHrLetters(p => p.filter(x => x.id !== l.id))} className="text-red-400 hover:text-red-600"><Trash2 size={12} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
+        <Pagination page={letterPage} total={filteredLetters.length} pageSize={PAGE_SIZE} onChange={setLetterPage} theme={theme} />
       </SectionCard>
 
-      <div className="grid grid-cols-2 gap-4">
-        <SectionCard title="HR Letter Templates" subtitle="Add or remove letter types" theme={theme}>
-          <div className="flex flex-wrap gap-1.5 mb-3">
-            {hrLetters.map(l => (
-              <span key={l} className={`flex items-center gap-1 px-2.5 py-1 rounded-lg ${theme.secondaryBg} text-xs font-medium ${theme.highlight}`}>
-                {l}
-                <button onClick={() => setHrLetters(p => p.filter(x => x !== l))} className="text-red-400 hover:text-red-600"><X size={10} /></button>
-              </span>
-            ))}
-          </div>
-          <div className="flex gap-2">
-            <input value={newHrLetter} onChange={e => setNewHrLetter(e.target.value)} placeholder="Add letter type..."
-              className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
-            <button onClick={() => { if (newHrLetter.trim()) { setHrLetters(p => [...p, newHrLetter.trim()]); setNewHrLetter(''); } }}
-              className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}><Plus size={14} /></button>
-          </div>
-        </SectionCard>
+      {/* ═══════════════════════════════════════════════
+          5. APPRAISAL STAGES — Full Master Table
+          ═══════════════════════════════════════════════ */}
+      <SectionCard title="Performance Appraisal Stages" subtitle="Multi-level review — add, edit, enable/disable, export/import" theme={theme}>
+        <TableToolbar
+          search={appraisalSearch} onSearch={v => { setAppraisalSearch(v); setAppraisalPage(1); }}
+          count={filteredAppraisals.length} label="stages"
+          onAdd={addAppraisalStage}
+          onExport={() => alert('Export appraisal stages as CSV')}
+          onImport={() => alert('Import appraisal stages from CSV')}
+          theme={theme}
+        />
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className={theme.secondaryBg}>
+                {['#', 'Stage Name', 'Enabled', 'Actions'].map(h => (
+                  <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor} uppercase text-[10px]`}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {pagedAppraisals.length === 0 ? (
+                <tr><td colSpan={4} className={`text-center py-6 text-xs ${theme.iconColor}`}>No appraisal stages found</td></tr>
+              ) : pagedAppraisals.map(s => (
+                <tr key={s.id} className={`border-t ${theme.border} ${!s.enabled ? 'opacity-50' : ''}`}>
+                  <td className="px-3 py-2">
+                    <span className={`text-[10px] w-5 h-5 rounded-full ${theme.primary} text-white flex items-center justify-center font-bold`}>{s.order}</span>
+                  </td>
+                  <td className="px-2 py-1.5">
+                    {appraisalEdit === s.id ? (
+                      <input autoFocus value={s.stage}
+                        onChange={e => setAppraisalStages(p => p.map(x => x.id === s.id ? { ...x, stage: e.target.value } : x))}
+                        className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`}
+                        placeholder="Stage name" />
+                    ) : (
+                      <span className={`font-bold ${theme.highlight}`}>{s.stage || '(empty)'}</span>
+                    )}
+                  </td>
+                  <td className="px-3 py-2">
+                    <SSAToggle on={s.enabled} onChange={() => setAppraisalStages(p => p.map(x => x.id === s.id ? { ...x, enabled: !x.enabled } : x))} theme={theme} />
+                  </td>
+                  <td className="px-2 py-1.5">
+                    <div className="flex items-center gap-1.5">
+                      {appraisalEdit === s.id ? (
+                        <button onClick={() => setAppraisalEdit(null)} className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${theme.primary} text-white`}>Done</button>
+                      ) : (
+                        <button onClick={() => setAppraisalEdit(s.id)} className={`p-1 rounded-lg ${theme.buttonHover}`}><Pencil size={11} className={theme.iconColor} /></button>
+                      )}
+                      <button onClick={() => {
+                        setAppraisalStages(p => {
+                          const filtered = p.filter(x => x.id !== s.id);
+                          return filtered.map((x, i) => ({ ...x, order: i + 1 }));
+                        });
+                      }} className="text-red-400 hover:text-red-600"><Trash2 size={12} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <Pagination page={appraisalPage} total={filteredAppraisals.length} pageSize={PAGE_SIZE} onChange={setAppraisalPage} theme={theme} />
+      </SectionCard>
 
-        <SectionCard title="Performance Appraisal Stages" subtitle="Multi-level review — edit, reorder, or remove" theme={theme}>
-          <div className="space-y-1.5">
-            {appraisalStages.map((s, i) => (
-              <div key={i} className={`flex items-center gap-2 p-2 rounded-xl ${theme.secondaryBg}`}>
-                <span className={`text-[10px] w-5 h-5 rounded-full ${theme.primary} text-white flex items-center justify-center font-bold shrink-0`}>{i + 1}</span>
-                <input value={s} onChange={e => { const n = [...appraisalStages]; n[i] = e.target.value; setAppraisalStages(n); }}
-                  className={`flex-1 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
-                <button onClick={() => setAppraisalStages(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={10} /></button>
-              </div>
-            ))}
-            <button onClick={() => setAppraisalStages(p => [...p, ''])}
-              className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
-              <Plus size={12} /> Add Stage
-            </button>
-          </div>
-        </SectionCard>
-      </div>
+      {/* ═══════════════════════════════════════════════
+          6. ONBOARDING CHECKLIST — Full Master Table
+          ═══════════════════════════════════════════════ */}
+      <SectionCard title="Staff Onboarding Checklist" subtitle="Required steps for new staff — add, edit, enable/disable, export/import" theme={theme}>
+        <TableToolbar
+          search={checklistSearch} onSearch={v => { setChecklistSearch(v); setChecklistPage(1); }}
+          count={filteredChecklist.length} label="checklist items"
+          onAdd={addChecklistItem}
+          onExport={() => alert('Export onboarding checklist as CSV')}
+          onImport={() => alert('Import onboarding checklist from CSV')}
+          theme={theme}
+        />
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className={theme.secondaryBg}>
+                {['Checklist Item', 'Enabled', 'Actions'].map(h => (
+                  <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor} uppercase text-[10px]`}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {pagedChecklist.length === 0 ? (
+                <tr><td colSpan={3} className={`text-center py-6 text-xs ${theme.iconColor}`}>No checklist items found</td></tr>
+              ) : pagedChecklist.map(c => (
+                <tr key={c.id} className={`border-t ${theme.border} ${!c.enabled ? 'opacity-50' : ''}`}>
+                  <td className="px-2 py-1.5">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle size={14} className="text-emerald-500 shrink-0" />
+                      {checklistEdit === c.id ? (
+                        <input autoFocus value={c.item}
+                          onChange={e => setOnboardingChecklist(p => p.map(x => x.id === c.id ? { ...x, item: e.target.value } : x))}
+                          className={`flex-1 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}
+                          placeholder="Checklist item" />
+                      ) : (
+                        <span className={`text-xs ${theme.highlight}`}>{c.item || '(empty)'}</span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-3 py-2">
+                    <SSAToggle on={c.enabled} onChange={() => setOnboardingChecklist(p => p.map(x => x.id === c.id ? { ...x, enabled: !x.enabled } : x))} theme={theme} />
+                  </td>
+                  <td className="px-2 py-1.5">
+                    <div className="flex items-center gap-1.5">
+                      {checklistEdit === c.id ? (
+                        <button onClick={() => setChecklistEdit(null)} className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${theme.primary} text-white`}>Done</button>
+                      ) : (
+                        <button onClick={() => setChecklistEdit(c.id)} className={`p-1 rounded-lg ${theme.buttonHover}`}><Pencil size={11} className={theme.iconColor} /></button>
+                      )}
+                      <button onClick={() => setOnboardingChecklist(p => p.filter(x => x.id !== c.id))} className="text-red-400 hover:text-red-600"><Trash2 size={12} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <Pagination page={checklistPage} total={filteredChecklist.length} pageSize={PAGE_SIZE} onChange={setChecklistPage} theme={theme} />
+      </SectionCard>
 
-      {/* ═══════════════════════════════════════════════════════════════
-          NEW SECTIONS
-          ═══════════════════════════════════════════════════════════════ */}
+      {/* ═══════════════════════════════════════════════
+          NEW SECTIONS (preserved from original)
+          ═══════════════════════════════════════════════ */}
 
       <SectionCard title="Bulk Employee Import" subtitle="Upload employee data in bulk via CSV" theme={theme}>
         <div className="flex items-center mb-3">
@@ -328,6 +850,9 @@ export default function HRConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
+      {/* ═══════════════════════════════════════════════
+          7. TDS / INCOME TAX — with Full CRUD Tax Slabs
+          ═══════════════════════════════════════════════ */}
       <SectionCard title="TDS / Income Tax" subtitle="Tax deduction at source per Indian IT slabs" theme={theme}>
         <div className="flex items-center mb-3">
           <p className={`text-[10px] font-bold ${theme.iconColor}`}>Auto-calculate TDS and generate tax forms</p>
@@ -341,27 +866,87 @@ export default function HRConfigModule({ theme }: { theme: Theme }) {
           {autoTDS && (
             <div>
               <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Income Tax Slabs</p>
+              <TableToolbar
+                search={taxSearch} onSearch={v => { setTaxSearch(v); setTaxPage(1); }}
+                count={filteredTax.length} label="tax slabs"
+                onAdd={addTaxSlab}
+                onExport={() => alert('Export tax slabs as CSV')}
+                onImport={() => alert('Import tax slabs from CSV')}
+                theme={theme}
+              />
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
-                  <thead><tr className={theme.secondaryBg}>
-                    {['Income Range', 'Tax Rate'].map(h => (
-                      <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
-                    ))}
-                  </tr></thead>
+                  <thead>
+                    <tr className={theme.secondaryBg}>
+                      {['Slab Name', 'From (\u20B9)', 'To (\u20B9)', 'Rate (%)', 'Enabled', 'Actions'].map(h => (
+                        <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor} uppercase text-[10px]`}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
                   <tbody>
-                    {[
-                      { range: '0 - 5 Lakhs', rate: 'Nil' },
-                      { range: '5 - 10 Lakhs', rate: '20%' },
-                      { range: '10 Lakhs+', rate: '30%' },
-                    ].map((slab, i) => (
-                      <tr key={i} className={`border-t ${theme.border}`}>
-                        <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{slab.range}</td>
-                        <td className={`px-3 py-2 ${theme.iconColor}`}>{slab.rate}</td>
+                    {pagedTax.length === 0 ? (
+                      <tr><td colSpan={6} className={`text-center py-6 text-xs ${theme.iconColor}`}>No tax slabs found</td></tr>
+                    ) : pagedTax.map(slab => (
+                      <tr key={slab.id} className={`border-t ${theme.border} ${!slab.enabled ? 'opacity-50' : ''}`}>
+                        <td className="px-2 py-1.5">
+                          {taxEdit === slab.id ? (
+                            <input autoFocus value={slab.slabName}
+                              onChange={e => setTaxSlabs(p => p.map(x => x.id === slab.id ? { ...x, slabName: e.target.value } : x))}
+                              className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`}
+                              placeholder="Slab name" />
+                          ) : (
+                            <span className={`font-bold ${theme.highlight}`}>{slab.slabName || '(empty)'}</span>
+                          )}
+                        </td>
+                        <td className="px-2 py-1.5">
+                          {taxEdit === slab.id ? (
+                            <input value={slab.from} type="number"
+                              onChange={e => setTaxSlabs(p => p.map(x => x.id === slab.id ? { ...x, from: e.target.value } : x))}
+                              className={`w-24 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-right ${theme.highlight} outline-none`}
+                              placeholder="0" />
+                          ) : (
+                            <span className={`${theme.iconColor}`}>{Number(slab.from).toLocaleString('en-IN')}</span>
+                          )}
+                        </td>
+                        <td className="px-2 py-1.5">
+                          {taxEdit === slab.id ? (
+                            <input value={slab.to} type="number"
+                              onChange={e => setTaxSlabs(p => p.map(x => x.id === slab.id ? { ...x, to: e.target.value } : x))}
+                              className={`w-24 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-right ${theme.highlight} outline-none`}
+                              placeholder="0" />
+                          ) : (
+                            <span className={`${theme.iconColor}`}>{Number(slab.to) >= 99999999 ? '\u221E' : Number(slab.to).toLocaleString('en-IN')}</span>
+                          )}
+                        </td>
+                        <td className="px-2 py-1.5">
+                          {taxEdit === slab.id ? (
+                            <input value={slab.rate}
+                              onChange={e => setTaxSlabs(p => p.map(x => x.id === slab.id ? { ...x, rate: e.target.value } : x))}
+                              className={`w-16 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center font-bold ${theme.iconColor} outline-none`}
+                              placeholder="0" />
+                          ) : (
+                            <span className={`font-bold ${theme.iconColor}`}>{slab.rate === '0' ? 'Nil' : `${slab.rate}%`}</span>
+                          )}
+                        </td>
+                        <td className="px-3 py-2">
+                          <SSAToggle on={slab.enabled} onChange={() => setTaxSlabs(p => p.map(x => x.id === slab.id ? { ...x, enabled: !x.enabled } : x))} theme={theme} />
+                        </td>
+                        <td className="px-2 py-1.5">
+                          <div className="flex items-center gap-1.5">
+                            {taxEdit === slab.id ? (
+                              <button onClick={() => setTaxEdit(null)} className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${theme.primary} text-white`}>Done</button>
+                            ) : (
+                              <button onClick={() => setTaxEdit(slab.id)} className={`p-1 rounded-lg ${theme.buttonHover}`}><Pencil size={11} className={theme.iconColor} /></button>
+                            )}
+                            <button onClick={() => setTaxSlabs(p => p.filter(x => x.id !== slab.id))} className="text-red-400 hover:text-red-600"><Trash2 size={12} /></button>
+                          </div>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
+              <Pagination page={taxPage} total={filteredTax.length} pageSize={PAGE_SIZE} onChange={setTaxPage} theme={theme} />
             </div>
           )}
           <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
@@ -371,6 +956,9 @@ export default function HRConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
+      {/* ═══════════════════════════════════════════════
+          STATUTORY COMPLIANCE (unchanged)
+          ═══════════════════════════════════════════════ */}
       <SectionCard title="Statutory Compliance" subtitle="Auto-calculate PF, ESI, PT per statutory rules" theme={theme}>
         <div className="flex items-center mb-3">
           <p className={`text-[10px] font-bold ${theme.iconColor}`}>Configure statutory deductions</p>
@@ -434,6 +1022,9 @@ export default function HRConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
+      {/* ═══════════════════════════════════════════════
+          PAYROLL EXTRAS (unchanged)
+          ═══════════════════════════════════════════════ */}
       <SectionCard title="Payroll Extras" subtitle="Additional payroll components beyond base salary" theme={theme}>
         <div className="flex items-center mb-3">
           <p className={`text-[10px] font-bold ${theme.iconColor}`}>Configure overtime, bonuses, advances, and arrears</p>
@@ -467,6 +1058,9 @@ export default function HRConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
+      {/* ═══════════════════════════════════════════════
+          EXPORT / INTEGRATION (unchanged)
+          ═══════════════════════════════════════════════ */}
       <SectionCard title="Export / Integration" subtitle="Generate bank-compatible salary payment files" theme={theme}>
         <div className="flex items-center mb-3">
           <p className={`text-[10px] font-bold ${theme.iconColor}`}>Export payroll data to bank and accounting systems</p>
@@ -496,6 +1090,9 @@ export default function HRConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
+      {/* ═══════════════════════════════════════════════
+          STATUTORY REPORTS (unchanged)
+          ═══════════════════════════════════════════════ */}
       <SectionCard title="Statutory Reports" subtitle="Auto-generate statutory filing reports" theme={theme}>
         <div className="flex items-center mb-3">
           <p className={`text-[10px] font-bold ${theme.iconColor}`}>Generate compliance reports for government filings</p>
@@ -521,6 +1118,9 @@ export default function HRConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
+      {/* ═══════════════════════════════════════════════
+          ROLE-BASED PERMISSIONS (unchanged)
+          ═══════════════════════════════════════════════ */}
       <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
         <div className="space-y-4">
           <MasterPermissionGrid masterName="Departments" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
@@ -528,9 +1128,23 @@ export default function HRConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
+      {/* ═══════════════════════════════════════════════
+          BULK IMPORT (unchanged)
+          ═══════════════════════════════════════════════ */}
       <SectionCard title="Bulk Import" subtitle="Import data from Excel templates" theme={theme}>
         <BulkImportWizard entityName="Staff" templateFields={['Employee ID', 'Name', 'Department', 'Designation', 'Date of Joining', 'Salary', 'Phone', 'Email']} sampleData={[['EMP001', 'Rajesh Sharma', 'Teaching - Secondary', 'PGT', '2024-04-01', '45000', '9876543210', 'rajesh@school.com']]} theme={theme} />
       </SectionCard>
+
+      {/* ═══════════════════════════════════════════════
+          SAVE CONFIGURATION BUTTON
+          ═══════════════════════════════════════════════ */}
+      <div className="flex items-center justify-end gap-3 pt-2">
+        {saved && <span className="text-green-500 text-xs font-medium animate-pulse">Configuration saved!</span>}
+        <button onClick={handleSave}
+          className={`flex items-center gap-1.5 px-6 py-2.5 rounded-xl text-sm font-bold text-white ${theme.primary} hover:opacity-90 transition-all shadow-lg`}>
+          <Save size={16} /> Save Configuration
+        </button>
+      </div>
     </div>
   );
 }

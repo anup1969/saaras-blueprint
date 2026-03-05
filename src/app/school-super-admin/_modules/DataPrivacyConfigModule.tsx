@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { AlertTriangle, Plus, FileText, Send, Clock, BarChart3, Download, Bell } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { AlertTriangle, Plus, FileText, Send, Clock, BarChart3, Download, Bell, Save, Search, X } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
 
@@ -25,18 +25,24 @@ export default function DataPrivacyConfigModule({ theme }: { theme: Theme }) {
 
   // ─── Consent Form Management state ─────────────────
   const [consentForms, setConsentForms] = useState([
-    { name: 'Photo/Video Publication', status: 'Active', version: '2.1', lastUpdated: '2026-01-10', responses: 2845 },
-    { name: 'Field Trip/Excursion', status: 'Active', version: '1.3', lastUpdated: '2026-02-01', responses: 1520 },
-    { name: 'Medical Treatment', status: 'Active', version: '3.0', lastUpdated: '2025-11-15', responses: 3100 },
-    { name: 'Sports/Adventure Activity', status: 'Draft', version: '1.0', lastUpdated: '2026-02-20', responses: 0 },
-    { name: 'Research Participation', status: 'Draft', version: '0.5', lastUpdated: '2026-02-25', responses: 0 },
-    { name: 'Data Sharing with Third-party', status: 'Active', version: '1.2', lastUpdated: '2025-12-05', responses: 2100 },
+    { id: 1, name: 'Photo/Video Publication', status: 'Active', version: '2.1', lastUpdated: '2026-01-10', responses: 2845 },
+    { id: 2, name: 'Field Trip/Excursion', status: 'Active', version: '1.3', lastUpdated: '2026-02-01', responses: 1520 },
+    { id: 3, name: 'Medical Treatment', status: 'Active', version: '3.0', lastUpdated: '2025-11-15', responses: 3100 },
+    { id: 4, name: 'Sports/Adventure Activity', status: 'Draft', version: '1.0', lastUpdated: '2026-02-20', responses: 0 },
+    { id: 5, name: 'Research Participation', status: 'Draft', version: '0.5', lastUpdated: '2026-02-25', responses: 0 },
+    { id: 6, name: 'Data Sharing with Third-party', status: 'Active', version: '1.2', lastUpdated: '2025-12-05', responses: 2100 },
   ]);
+  const [formSearch, setFormSearch] = useState('');
   const [bulkConsent, setBulkConsent] = useState(true);
   const [collectionMethod, setCollectionMethod] = useState('App notification');
   const [guardianVerification, setGuardianVerification] = useState('OTP');
   const [ageAppropriateConsent, setAgeAppropriateConsent] = useState(true);
   const [consentLanguage, setConsentLanguage] = useState('English');
+
+  const filteredConsentForms = consentForms.filter(f =>
+    f.name.toLowerCase().includes(formSearch.toLowerCase()) ||
+    f.status.toLowerCase().includes(formSearch.toLowerCase())
+  );
 
   // ─── Consent Lifecycle & Withdrawal state ──────────
   const [withdrawalTracking, setWithdrawalTracking] = useState(true);
@@ -51,6 +57,33 @@ export default function DataPrivacyConfigModule({ theme }: { theme: Theme }) {
   const [missingConsentAlerts, setMissingConsentAlerts] = useState(true);
   const [missingAlertNotifyTo, setMissingAlertNotifyTo] = useState('Class Teacher');
   const [exportConsentReport, setExportConsentReport] = useState(true);
+
+  // ─── Dynamic Stats (computed from consent forms data) ───
+  const dynamicStats = useMemo(() => {
+    const totalSent = consentForms.reduce((sum, f) => sum + f.responses, 0);
+    const activeForms = consentForms.filter(f => f.status === 'Active');
+    const collected = activeForms.reduce((sum, f) => sum + f.responses, 0);
+    // Mock pending/withdrawn as proportional to active forms
+    const pending = activeForms.length * 33;
+    const withdrawn = activeForms.length * 9;
+    return [
+      { label: 'Total Sent', value: totalSent.toLocaleString(), color: 'bg-blue-100 text-blue-700' },
+      { label: 'Collected', value: collected.toLocaleString(), color: 'bg-green-100 text-green-700' },
+      { label: 'Pending', value: pending.toLocaleString(), color: 'bg-yellow-100 text-yellow-700' },
+      { label: 'Withdrawn', value: withdrawn.toLocaleString(), color: 'bg-red-100 text-red-700' },
+    ];
+  }, [consentForms]);
+
+  // ─── Compliance percentage (computed from consent forms) ───
+  const compliancePercent = useMemo(() => {
+    const totalForms = consentForms.length;
+    if (totalForms === 0) return 0;
+    const activeForms = consentForms.filter(f => f.status === 'Active').length;
+    return Math.round((activeForms / totalForms) * 100);
+  }, [consentForms]);
+
+  // ─── Save state ───
+  const [saved, setSaved] = useState(false);
 
   return (
     <div className="space-y-4">
@@ -143,10 +176,20 @@ export default function DataPrivacyConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
-      {/* ─── NEW SECTION: Consent Form Management ────── */}
+      {/* ─── Consent Form Management ────── */}
       <div className="grid grid-cols-2 gap-4">
         <SectionCard title="Consent Form Types" subtitle="Manage consent forms for various school activities" theme={theme}>
           <div className="space-y-2">
+            {/* Search bar for consent forms (5+ rows) */}
+            {consentForms.length >= 5 && (
+              <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border ${theme.border} ${theme.inputBg} mb-2`}>
+                <Search size={13} className={theme.iconColor} />
+                <input value={formSearch} onChange={e => setFormSearch(e.target.value)} placeholder="Search consent forms..."
+                  className={`flex-1 bg-transparent text-xs ${theme.highlight} outline-none placeholder-gray-400`} />
+                {formSearch && <button onClick={() => setFormSearch('')}><X size={12} className="text-gray-400 hover:text-red-400" /></button>}
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${theme.secondaryBg} ${theme.iconColor}`}>{filteredConsentForms.length} forms</span>
+              </div>
+            )}
             <div className="overflow-x-auto">
               <table className="w-full text-[10px]">
                 <thead>
@@ -159,8 +202,10 @@ export default function DataPrivacyConfigModule({ theme }: { theme: Theme }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {consentForms.map((form, i) => (
-                    <tr key={i} className={`border-t ${theme.border}`}>
+                  {filteredConsentForms.length === 0 ? (
+                    <tr><td colSpan={5} className={`text-center py-4 text-xs ${theme.iconColor}`}>No forms found</td></tr>
+                  ) : filteredConsentForms.map((form) => (
+                    <tr key={form.id} className={`border-t ${theme.border}`}>
                       <td className={`p-1.5 font-medium ${theme.highlight}`}>
                         <div className="flex items-center gap-1">
                           <FileText size={10} className={theme.iconColor} />
@@ -180,7 +225,7 @@ export default function DataPrivacyConfigModule({ theme }: { theme: Theme }) {
                 </tbody>
               </table>
             </div>
-            <button onClick={() => setConsentForms(p => [...p, { name: 'New Form', status: 'Draft', version: '0.1', lastUpdated: new Date().toISOString().split('T')[0], responses: 0 }])}
+            <button onClick={() => setConsentForms(p => [...p, { id: Date.now(), name: 'New Form', status: 'Draft', version: '0.1', lastUpdated: new Date().toISOString().split('T')[0], responses: 0 }])}
               className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl w-full justify-center`}>
               <Plus size={12} /> Add New Form
             </button>
@@ -226,7 +271,7 @@ export default function DataPrivacyConfigModule({ theme }: { theme: Theme }) {
         </SectionCard>
       </div>
 
-      {/* ─── NEW SECTION: Consent Lifecycle & Withdrawal ── */}
+      {/* ─── Consent Lifecycle & Withdrawal ── */}
       <div className="grid grid-cols-2 gap-4">
         <SectionCard title="Consent Tracking" subtitle="Track consent withdrawal and expiry management" theme={theme}>
           <div className="space-y-3">
@@ -288,15 +333,10 @@ export default function DataPrivacyConfigModule({ theme }: { theme: Theme }) {
               <SSAToggle on={consentAnalytics} onChange={() => setConsentAnalytics(!consentAnalytics)} theme={theme} />
             </div>
 
-            {/* Mini stat cards */}
+            {/* Dynamic stat cards — computed from consent forms data */}
             {consentAnalytics && (
               <div className="grid grid-cols-2 gap-2">
-                {[
-                  { label: 'Total Sent', value: '3,240', color: 'bg-blue-100 text-blue-700' },
-                  { label: 'Collected', value: '2,987', color: 'bg-green-100 text-green-700' },
-                  { label: 'Pending', value: '198', color: 'bg-yellow-100 text-yellow-700' },
-                  { label: 'Withdrawn', value: '55', color: 'bg-red-100 text-red-700' },
-                ].map(stat => (
+                {dynamicStats.map(stat => (
                   <div key={stat.label} className={`p-2.5 rounded-xl ${theme.secondaryBg} text-center`}>
                     <p className={`text-[9px] ${theme.iconColor} uppercase tracking-wide`}>{stat.label}</p>
                     <p className={`text-lg font-bold ${theme.highlight}`}>{stat.value}</p>
@@ -322,14 +362,14 @@ export default function DataPrivacyConfigModule({ theme }: { theme: Theme }) {
               </div>
             )}
 
-            {/* Compliance percentage bar */}
+            {/* Compliance percentage bar — computed from consent forms data */}
             <div className={`p-2.5 rounded-xl ${theme.secondaryBg}`}>
               <div className="flex items-center justify-between mb-1.5">
                 <p className={`text-xs font-bold ${theme.highlight}`}>Consent Compliance</p>
-                <span className="text-xs font-bold text-green-600">92%</span>
+                <span className={`text-xs font-bold ${compliancePercent >= 80 ? 'text-green-600' : compliancePercent >= 50 ? 'text-yellow-600' : 'text-red-600'}`}>{compliancePercent}%</span>
               </div>
               <div className="w-full h-2.5 bg-gray-200 rounded-full overflow-hidden">
-                <div className="h-full rounded-full bg-green-500 transition-all" style={{ width: '92%' }} />
+                <div className={`h-full rounded-full transition-all ${compliancePercent >= 80 ? 'bg-green-500' : compliancePercent >= 50 ? 'bg-yellow-500' : 'bg-red-500'}`} style={{ width: `${compliancePercent}%` }} />
               </div>
             </div>
 
@@ -345,6 +385,15 @@ export default function DataPrivacyConfigModule({ theme }: { theme: Theme }) {
             </div>
           </div>
         </SectionCard>
+      </div>
+
+      {/* ─── Save Configuration ─── */}
+      <div className="flex justify-end">
+        <button onClick={() => { setSaved(true); setTimeout(() => setSaved(false), 2000); }}
+          className={`flex items-center gap-1.5 px-6 py-2.5 rounded-xl text-sm font-bold text-white ${theme.primary} hover:opacity-90 transition-all`}>
+          <Save size={14} /> Save Configuration
+        </button>
+        {saved && <span className="ml-3 text-green-500 text-xs font-medium self-center animate-pulse">Saved!</span>}
       </div>
     </div>
   );

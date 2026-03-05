@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Plus } from 'lucide-react';
+import { X, Plus, Search, Download, Upload, Save, Trash2 } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
 
@@ -12,10 +12,18 @@ export default function SchoolIdentityConfigModule({ theme }: { theme: Theme }) 
   const [academicPattern, setAcademicPattern] = useState('April-March');
   const [board, setBoard] = useState('CBSE');
   const [workingDays, setWorkingDays] = useState('Mon-Sat');
+
+  // Custom working days — wired to state so toggling actually works
+  const [customDays, setCustomDays] = useState<Record<string, boolean>>({
+    Mon: true, Tue: true, Wed: true, Thu: true, Fri: true, Sat: false,
+  });
+
   const [shifts, setShifts] = useState([
-    { name: 'Morning Shift', classes: 'Pre-Primary, Class 1-5' },
-    { name: 'Regular Shift', classes: 'Class 6-12' },
+    { name: 'Morning Shift', classes: 'Pre-Primary, Class 1-5', enabled: true },
+    { name: 'Regular Shift', classes: 'Class 6-12', enabled: true },
   ]);
+  const [shiftSearch, setShiftSearch] = useState('');
+
   const [extendedHours, setExtendedHours] = useState(false);
   const [daycareStart, setDaycareStart] = useState('06:30');
   const [daycareEnd, setDaycareEnd] = useState('19:00');
@@ -31,6 +39,11 @@ export default function SchoolIdentityConfigModule({ theme }: { theme: Theme }) 
   const [dateFormat, setDateFormat] = useState('DD/MM/YYYY');
   const [timeZone, setTimeZone] = useState('IST (UTC+5:30)');
   const [numberFormat, setNumberFormat] = useState('1,23,456.00 (Indian)');
+
+  const filteredShifts = shifts.filter(s =>
+    !shiftSearch || s.name.toLowerCase().includes(shiftSearch.toLowerCase()) || s.classes.toLowerCase().includes(shiftSearch.toLowerCase())
+  );
+  const activeShiftCount = shifts.filter(s => s.enabled).length;
 
   return (
     <div className="space-y-4">
@@ -74,9 +87,13 @@ export default function SchoolIdentityConfigModule({ theme }: { theme: Theme }) 
             <SelectField options={['Mon-Fri', 'Mon-Sat', 'Custom']} value={workingDays} onChange={setWorkingDays} theme={theme} />
             {workingDays === 'Custom' && (
               <div className="grid grid-cols-3 gap-2">
-                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                {(Object.keys(customDays) as Array<keyof typeof customDays>).map(day => (
                   <div key={day} className={`flex items-center gap-2 p-2 rounded-lg ${theme.secondaryBg}`}>
-                    <SSAToggle on={day !== 'Sat'} onChange={() => {}} theme={theme} />
+                    <SSAToggle
+                      on={customDays[day]}
+                      onChange={() => setCustomDays(prev => ({ ...prev, [day]: !prev[day] }))}
+                      theme={theme}
+                    />
                     <span className={`text-xs ${theme.highlight}`}>{day}</span>
                   </div>
                 ))}
@@ -86,21 +103,119 @@ export default function SchoolIdentityConfigModule({ theme }: { theme: Theme }) 
         </SectionCard>
       </div>
 
+      {/* Shift Configuration — full master table pattern */}
       <SectionCard title="Shift Configuration" subtitle="Define shifts and assigned classes" theme={theme}>
-        <div className="space-y-2">
-          {shifts.map((shift, i) => (
-            <div key={i} className={`flex items-center gap-3 p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <input value={shift.name} onChange={e => { const n = [...shifts]; n[i] = { ...n[i], name: e.target.value }; setShifts(n); }}
-                className={`flex-1 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} />
-              <input value={shift.classes} onChange={e => { const n = [...shifts]; n[i] = { ...n[i], classes: e.target.value }; setShifts(n); }}
-                className={`flex-[2] px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
-              <button onClick={() => setShifts(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X size={14} /></button>
+        {/* Toolbar: search + count + export + import */}
+        <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg} mb-3`}>
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Search size={14} className={`absolute left-2.5 top-1/2 -translate-y-1/2 ${theme.iconColor}`} />
+              <input
+                value={shiftSearch}
+                onChange={e => setShiftSearch(e.target.value)}
+                placeholder="Search shifts..."
+                className={`pl-8 pr-3 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none w-48`}
+              />
             </div>
-          ))}
-          <button onClick={() => setShifts(p => [...p, { name: '', classes: '' }])}
-            className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
-            <Plus size={12} /> Add Shift
-          </button>
+            <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${theme.accentBg} ${theme.iconColor}`}>
+              {activeShiftCount} active / {shifts.length} total
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-colors">
+              <Download size={12} /> Export
+            </button>
+            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors">
+              <Upload size={12} /> Import
+            </button>
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className={theme.secondaryBg}>
+                {['Shift Name', 'Assigned Classes', 'Active', ''].map(h => (
+                  <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filteredShifts.map((shift, i) => {
+                const realIdx = shifts.indexOf(shift);
+                return (
+                  <tr key={realIdx} className={`border-t ${theme.border} ${!shift.enabled ? 'opacity-50' : ''}`}>
+                    <td className="px-3 py-1.5">
+                      <input
+                        value={shift.name}
+                        onChange={e => {
+                          const n = [...shifts];
+                          n[realIdx] = { ...n[realIdx], name: e.target.value };
+                          setShifts(n);
+                        }}
+                        className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`}
+                      />
+                    </td>
+                    <td className="px-3 py-1.5">
+                      <input
+                        value={shift.classes}
+                        onChange={e => {
+                          const n = [...shifts];
+                          n[realIdx] = { ...n[realIdx], classes: e.target.value };
+                          setShifts(n);
+                        }}
+                        className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}
+                      />
+                    </td>
+                    <td className="px-3 py-1.5">
+                      <SSAToggle
+                        on={shift.enabled}
+                        onChange={() => setShifts(prev => prev.map((s, j) => j === realIdx ? { ...s, enabled: !s.enabled } : s))}
+                        theme={theme}
+                        label={shift.name}
+                      />
+                    </td>
+                    <td className="px-3 py-1.5">
+                      <button
+                        onClick={() => setShifts(prev => prev.filter((_, j) => j !== realIdx))}
+                        className="text-red-400 hover:text-red-600"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Footer: add + bulk actions */}
+        <div className="flex items-center justify-between mt-3 flex-wrap gap-2">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShifts(prev => [...prev, { name: '', classes: '', enabled: true }])}
+              className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}
+            >
+              <Plus size={12} /> Add Shift
+            </button>
+            <button
+              onClick={() => setShifts(prev => prev.map(s => ({ ...s, enabled: true })))}
+              className="px-2.5 py-1.5 rounded-lg text-[9px] font-bold bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+            >
+              Enable All
+            </button>
+            <button
+              onClick={() => setShifts(prev => prev.map(s => ({ ...s, enabled: false })))}
+              className="px-2.5 py-1.5 rounded-lg text-[9px] font-bold bg-gray-100 text-gray-600 hover:bg-gray-200"
+            >
+              Disable All
+            </button>
+          </div>
+          <p className={`text-[10px] ${theme.iconColor}`}>
+            Showing {filteredShifts.length} of {shifts.length} shifts
+          </p>
         </div>
       </SectionCard>
 
@@ -152,8 +267,12 @@ export default function SchoolIdentityConfigModule({ theme }: { theme: Theme }) 
           </div>
           <div>
             <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>System Announcements</p>
-            <textarea value={sysAnnouncement} onChange={e => setSysAnnouncement(e.target.value)} placeholder="Type a system-wide announcement visible to all users..."
-              className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none focus:ring-2 focus:ring-slate-300 min-h-[60px]`} />
+            <textarea
+              value={sysAnnouncement}
+              onChange={e => setSysAnnouncement(e.target.value)}
+              placeholder="Type a system-wide announcement visible to all users..."
+              className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none focus:ring-2 focus:ring-slate-300 min-h-[60px]`}
+            />
           </div>
           <div>
             <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>API Rate Limit (requests/min)</p>
@@ -188,6 +307,16 @@ export default function SchoolIdentityConfigModule({ theme }: { theme: Theme }) 
         </div>
       </SectionCard>
 
+      {/* Save Bar */}
+      <div className={`flex items-center justify-between p-3 rounded-2xl border-2 ${theme.border} ${theme.secondaryBg}`}>
+        <div>
+          <p className={`text-sm font-bold ${theme.highlight}`}>Save School Identity Settings</p>
+          <p className={`text-[10px] ${theme.iconColor}`}>Save school name, working days, shifts, locale, and system configuration</p>
+        </div>
+        <button className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white ${theme.primary} shadow-sm hover:opacity-90 transition-opacity`}>
+          <Save size={16} /> Save Changes
+        </button>
+      </div>
     </div>
   );
 }

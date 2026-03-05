@@ -1,6 +1,6 @@
 'use client';
-import React, { useState } from 'react';
-import { Upload, Globe, ShieldCheck, CheckCircle, AlertTriangle, Clock, Mail } from 'lucide-react';
+import React, { useState, useRef, useCallback } from 'react';
+import { Upload, Globe, ShieldCheck, CheckCircle, AlertTriangle, Clock, Mail, X, FileImage } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
 
@@ -11,7 +11,13 @@ export default function BrandingWhitelabelConfigModule({ theme }: { theme: Theme
   const [customEmailTemplates, setCustomEmailTemplates] = useState(true);
   const [loginPageCustomization, setLoginPageCustomization] = useState(true);
   const [primaryColor, setPrimaryColor] = useState('#4F46E5');
-  const [logoUploaded] = useState(false);
+  const [secondaryColor, setSecondaryColor] = useState('#10B981');
+  const [accentColor, setAccentColor] = useState('#F59E0B');
+
+  // Logo upload state
+  const [logoFile, setLogoFile] = useState<{ name: string; size: string } | null>(null);
+  const [logoDragOver, setLogoDragOver] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   // Custom Domain Setup (Gap Feature)
   const [setupDomainName, setSetupDomainName] = useState('erp.myschool.edu');
@@ -29,6 +35,58 @@ export default function BrandingWhitelabelConfigModule({ theme }: { theme: Theme
       setSslStatus('valid');
     }, 2000);
   };
+
+  // Format file size
+  const formatSize = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  // Handle logo file selection
+  const handleLogoFile = useCallback((file: File) => {
+    if (!file.type.startsWith('image/')) return;
+    setLogoFile({ name: file.name, size: formatSize(file.size) });
+  }, []);
+
+  // Handle drag events for logo
+  const handleLogoDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setLogoDragOver(true);
+  }, []);
+  const handleLogoDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setLogoDragOver(false);
+  }, []);
+  const handleLogoDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setLogoDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) handleLogoFile(file);
+  }, [handleLogoFile]);
+
+  // Color field with native picker + swatch
+  const ColorField = ({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) => (
+    <div>
+      <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>{label}</p>
+      <div className="flex items-center gap-2">
+        <div className="relative w-8 h-8 rounded-lg border border-slate-300 overflow-hidden shrink-0" style={{ backgroundColor: value }}>
+          <input
+            type="color"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            title={`Pick ${label}`}
+          />
+        </div>
+        <InputField value={value} onChange={onChange} theme={theme} placeholder="#4F46E5" />
+        <div className="w-6 h-6 rounded-md border border-slate-200 shrink-0" style={{ backgroundColor: value }} title="Preview" />
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-4">
@@ -80,22 +138,63 @@ export default function BrandingWhitelabelConfigModule({ theme }: { theme: Theme
           </div>
         </SectionCard>
 
-        <SectionCard title="Visual Identity" subtitle="Logo and primary color" theme={theme}>
+        <SectionCard title="Visual Identity" subtitle="Logo and brand colors" theme={theme}>
           <div className="space-y-3">
+            {/* Logo Upload — Drag and Drop Zone */}
             <div>
               <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>School Logo</p>
-              <div className={`w-full border-2 border-dashed ${theme.border} rounded-xl p-4 text-center cursor-pointer ${theme.buttonHover} transition-all`}>
-                <Upload size={20} className={`mx-auto mb-1 ${theme.iconColor}`} />
-                <p className={`text-[10px] ${theme.iconColor}`}>{logoUploaded ? 'Logo uploaded - click to replace' : 'Click to upload logo (PNG/SVG, max 2MB)'}</p>
-              </div>
+              {!logoFile ? (
+                <div
+                  onDragOver={handleLogoDragOver}
+                  onDragLeave={handleLogoDragLeave}
+                  onDrop={handleLogoDrop}
+                  onClick={() => logoInputRef.current?.click()}
+                  className={`w-full border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-all ${
+                    logoDragOver ? `border-blue-400 bg-blue-50` : `${theme.border} ${theme.buttonHover}`
+                  }`}
+                >
+                  <Upload size={24} className={`mx-auto mb-2 ${logoDragOver ? 'text-blue-500' : theme.iconColor}`} />
+                  <p className={`text-xs font-bold ${logoDragOver ? 'text-blue-600' : theme.highlight}`}>
+                    Drop logo here or click to browse
+                  </p>
+                  <p className={`text-[10px] ${theme.iconColor} mt-1`}>PNG, JPG, or SVG — max 2MB</p>
+                  <input
+                    ref={logoInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/svg+xml"
+                    className="hidden"
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) handleLogoFile(f); }}
+                  />
+                </div>
+              ) : (
+                <div className={`w-full border ${theme.border} rounded-xl p-3 ${theme.secondaryBg}`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-12 h-12 rounded-lg border ${theme.border} bg-white flex items-center justify-center`}>
+                      <FileImage size={20} className={theme.iconColor} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-xs font-bold ${theme.highlight} truncate`}>{logoFile.name}</p>
+                      <p className={`text-[10px] ${theme.iconColor}`}>{logoFile.size}</p>
+                      <span className="text-[9px] text-emerald-600 font-bold flex items-center gap-1 mt-0.5">
+                        <CheckCircle size={10} /> Uploaded successfully
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => setLogoFile(null)}
+                      className="p-1.5 rounded-lg hover:bg-red-50 text-red-400 hover:text-red-600 transition-colors"
+                      title="Remove logo"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
-            <div>
-              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Primary Brand Color</p>
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg border border-slate-300" style={{ backgroundColor: primaryColor }} />
-                <InputField value={primaryColor} onChange={setPrimaryColor} theme={theme} placeholder="#4F46E5" />
-              </div>
-            </div>
+
+            {/* Color Pickers */}
+            <ColorField label="Primary Brand Color" value={primaryColor} onChange={setPrimaryColor} />
+            <ColorField label="Secondary Color" value={secondaryColor} onChange={setSecondaryColor} />
+            <ColorField label="Accent Color" value={accentColor} onChange={setAccentColor} />
           </div>
         </SectionCard>
       </div>
