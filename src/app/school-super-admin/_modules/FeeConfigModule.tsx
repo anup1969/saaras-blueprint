@@ -170,6 +170,19 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
   const [receiptHSN, setReceiptHSN] = useState(false);
   const [receiptWatermark, setReceiptWatermark] = useState(true);
   const [receiptSignature, setReceiptSignature] = useState(true);
+  const [receiptShowAddress, setReceiptShowAddress] = useState(true);
+  const [receiptShowPhone, setReceiptShowPhone] = useState(true);
+  const [receiptShowRegistration, setReceiptShowRegistration] = useState(false);
+  const [receiptShowPhoto, setReceiptShowPhoto] = useState(false);
+  const [receiptShowBreakdown, setReceiptShowBreakdown] = useState(true);
+  const [receiptShowPrevBalance, setReceiptShowPrevBalance] = useState(false);
+  const [receiptShowPaymentMode, setReceiptShowPaymentMode] = useState(true);
+  const [receiptShowConcession, setReceiptShowConcession] = useState(true);
+  const [receiptShowInstalment, setReceiptShowInstalment] = useState(false);
+  const [receiptShowQR, setReceiptShowQR] = useState(false);
+  const [receiptSignatoryName, setReceiptSignatoryName] = useState('');
+  const [receiptPaperSize, setReceiptPaperSize] = useState('A4');
+  const [receiptCopies, setReceiptCopies] = useState('Original');
   const [auditConfigChanges, setAuditConfigChanges] = useState(true);
   const [auditRefundDecisions, setAuditRefundDecisions] = useState(true);
   const [reportDateFrom, setReportDateFrom] = useState('2026-01-01');
@@ -217,6 +230,45 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
   const filteredOverrideStudents = overrideSearch.length >= 2
     ? mockStudents.filter(s => s.name.toLowerCase().includes(overrideSearch.toLowerCase()) || s.id.toLowerCase().includes(overrideSearch.toLowerCase()))
     : [];
+
+  // ═══════ Receipt template defaults ═══════
+  const applyReceiptTemplateDefaults = (templateId: string) => {
+    setSelectedReceiptTemplate(templateId);
+    if (templateId === 'standard') {
+      setReceiptLogo(true); setReceiptShowAddress(true); setReceiptShowPhone(true);
+      setReceiptShowRegistration(false); setReceiptShowPhoto(false);
+      setReceiptHSN(false); setReceiptShowBreakdown(true); setReceiptShowPrevBalance(false);
+      setReceiptShowPaymentMode(true); setReceiptShowConcession(true); setReceiptShowInstalment(false);
+      setReceiptWatermark(true); setReceiptSignature(true); setReceiptShowQR(false);
+      setReceiptPaperSize('A4'); setReceiptCopies('Original');
+    } else if (templateId === 'compact') {
+      setReceiptLogo(true); setReceiptShowAddress(false); setReceiptShowPhone(false);
+      setReceiptShowRegistration(false); setReceiptShowPhoto(false);
+      setReceiptHSN(false); setReceiptShowBreakdown(true); setReceiptShowPrevBalance(false);
+      setReceiptShowPaymentMode(true); setReceiptShowConcession(false); setReceiptShowInstalment(false);
+      setReceiptWatermark(false); setReceiptSignature(false); setReceiptShowQR(false);
+      setReceiptPaperSize('A5'); setReceiptCopies('Original');
+    } else if (templateId === 'detailed') {
+      setReceiptLogo(true); setReceiptShowAddress(true); setReceiptShowPhone(true);
+      setReceiptShowRegistration(true); setReceiptShowPhoto(false);
+      setReceiptHSN(true); setReceiptShowBreakdown(true); setReceiptShowPrevBalance(true);
+      setReceiptShowPaymentMode(true); setReceiptShowConcession(true); setReceiptShowInstalment(true);
+      setReceiptWatermark(true); setReceiptSignature(true); setReceiptShowQR(true);
+      setReceiptPaperSize('A4'); setReceiptCopies('Original + Duplicate');
+    }
+  };
+
+  // ═══════ Mock receipt line items ═══════
+  const receiptLineItems = [
+    { head: 'Tuition Fee', amount: 5000, hsn: '9992', cgst: 9, sgst: 9 },
+    { head: 'Activity Fee', amount: 800, hsn: '9992', cgst: 9, sgst: 9 },
+    { head: 'Lab Fee', amount: 500, hsn: '9992', cgst: 9, sgst: 9 },
+    { head: 'Transport Fee', amount: 1200, hsn: '9966', cgst: 9, sgst: 9 },
+    { head: 'Exam Fee', amount: 200, hsn: '9992', cgst: 9, sgst: 9 },
+  ];
+  const receiptSubtotal = receiptLineItems.reduce((s, i) => s + i.amount, 0);
+  const receiptConcessionAmt = Math.round(receiptSubtotal * 0.1);
+  const receiptTotal = receiptSubtotal - receiptConcessionAmt;
 
   return (
     <div className="space-y-4">
@@ -1535,55 +1587,317 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
                 </SectionCard>
               </div>
 
-              {/* Fee Receipt Template — moved from Reports, enhanced with multiple templates */}
-              <SectionCard title="Fee Receipt Template" subtitle="Choose, customize, and preview fee receipt layouts" theme={theme}>
-                <div className="mb-4">
-                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Select Template</p>
-                  <div className="grid grid-cols-3 gap-3">
-                    {[
-                      { id: 'standard', name: 'Standard', desc: 'Classic school receipt with header, items, and footer' },
-                      { id: 'compact', name: 'Compact', desc: 'Single-page minimal receipt for quick printing' },
-                      { id: 'detailed', name: 'Detailed GST', desc: 'Full receipt with HSN/SAC codes and GST breakdown' },
-                    ].map(tpl => (
-                      <button key={tpl.id} onClick={() => setSelectedReceiptTemplate(tpl.id)}
-                        className={`p-3 rounded-xl text-left border-2 transition-all ${selectedReceiptTemplate === tpl.id ? `${theme.primary} text-white border-transparent` : `${theme.secondaryBg} ${theme.border} ${theme.highlight}`}`}>
-                        <div className={`w-full h-16 rounded-lg mb-2 flex items-center justify-center text-lg ${selectedReceiptTemplate === tpl.id ? 'bg-white/20' : theme.accentBg}`}>
-                          <FileText size={24} className={selectedReceiptTemplate === tpl.id ? 'text-white/70' : theme.iconColor} />
-                        </div>
-                        <p className="text-xs font-bold">{tpl.name}</p>
-                        <p className={`text-[10px] mt-0.5 ${selectedReceiptTemplate === tpl.id ? 'text-white/80' : theme.iconColor}`}>{tpl.desc}</p>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <p className={`text-[10px] font-bold ${theme.iconColor}`}>Template Options</p>
-                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
-                    {[
-                      { label: 'School Logo', val: receiptLogo, set: setReceiptLogo },
-                      { label: 'Show HSN/SAC codes (GST)', val: receiptHSN, set: setReceiptHSN },
-                      { label: 'Duplicate watermark', val: receiptWatermark, set: setReceiptWatermark },
-                      { label: 'Signature field', val: receiptSignature, set: setReceiptSignature },
-                    ].map(item => (
-                      <div key={item.label} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                        <span className={`text-xs font-medium ${theme.highlight}`}>{item.label}</span>
-                        <SSAToggle on={item.val} onChange={() => item.set(!item.val)} theme={theme} />
+              {/* Fee Receipt Template — split-pane: config left, live preview right */}
+              <SectionCard title="Fee Receipt Template" subtitle="Configure and preview fee receipt layout in real-time" theme={theme}>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {/* ── LEFT SIDE: Config Options (scrollable) ── */}
+                  <div className="lg:max-h-[700px] lg:overflow-y-auto lg:pr-3 space-y-4 lg:scrollbar-thin">
+
+                    {/* Template Selector */}
+                    <div>
+                      <p className={`text-[10px] font-bold ${theme.iconColor} mb-2 uppercase tracking-wider`}>Select Template</p>
+                      <div className="grid grid-cols-3 gap-2">
+                        {[
+                          { id: 'standard', name: 'Standard', desc: 'Classic receipt layout' },
+                          { id: 'compact', name: 'Compact', desc: 'Minimal, space-efficient' },
+                          { id: 'detailed', name: 'Detailed GST', desc: 'Full GST breakdown' },
+                        ].map(tpl => (
+                          <button key={tpl.id} onClick={() => applyReceiptTemplateDefaults(tpl.id)}
+                            className={`p-2.5 rounded-xl text-left border-2 transition-all ${selectedReceiptTemplate === tpl.id ? `${theme.primary} text-white border-transparent` : `${theme.secondaryBg} ${theme.border} ${theme.highlight}`}`}>
+                            <div className={`w-full h-10 rounded-lg mb-1.5 flex items-center justify-center ${selectedReceiptTemplate === tpl.id ? 'bg-white/20' : theme.accentBg}`}>
+                              <FileText size={18} className={selectedReceiptTemplate === tpl.id ? 'text-white/70' : theme.iconColor} />
+                            </div>
+                            <p className="text-[11px] font-bold">{tpl.name}</p>
+                            <p className={`text-[9px] mt-0.5 ${selectedReceiptTemplate === tpl.id ? 'text-white/80' : theme.iconColor}`}>{tpl.desc}</p>
+                          </button>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Header Text</p>
-                      <InputField value={receiptHeader} onChange={setReceiptHeader} theme={theme} />
                     </div>
-                    <div>
-                      <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Footer Text</p>
-                      <InputField value={receiptFooter} onChange={setReceiptFooter} theme={theme} />
+
+                    {/* Section 1: Layout & Header */}
+                    <div className={`rounded-xl border ${theme.border} p-3 space-y-2`}>
+                      <p className={`text-[10px] font-bold ${theme.primaryText} uppercase tracking-wider`}>Layout & Header</p>
+                      {[
+                        { label: 'School Logo', val: receiptLogo, set: setReceiptLogo },
+                        { label: 'Show School Address', val: receiptShowAddress, set: setReceiptShowAddress },
+                        { label: 'Show School Phone/Email', val: receiptShowPhone, set: setReceiptShowPhone },
+                        { label: 'Show Registration/Affiliation No.', val: receiptShowRegistration, set: setReceiptShowRegistration },
+                        { label: 'Show Student Photo', val: receiptShowPhoto, set: setReceiptShowPhoto },
+                      ].map(item => (
+                        <div key={item.label} className={`flex items-center justify-between p-2 rounded-lg ${theme.secondaryBg}`}>
+                          <span className={`text-[11px] font-medium ${theme.highlight}`}>{item.label}</span>
+                          <SSAToggle on={item.val} onChange={() => item.set(!item.val)} theme={theme} />
+                        </div>
+                      ))}
+                      <div className="pt-1">
+                        <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Header Text</p>
+                        <InputField value={receiptHeader} onChange={setReceiptHeader} theme={theme} placeholder="School name for receipt header" />
+                      </div>
+                    </div>
+
+                    {/* Section 2: Fee Details */}
+                    <div className={`rounded-xl border ${theme.border} p-3 space-y-2`}>
+                      <p className={`text-[10px] font-bold ${theme.primaryText} uppercase tracking-wider`}>Fee Details</p>
+                      {[
+                        { label: 'Show HSN/SAC Codes', val: receiptHSN, set: setReceiptHSN },
+                        { label: 'Show Fee Head Breakdown', val: receiptShowBreakdown, set: setReceiptShowBreakdown },
+                        { label: 'Show Previous Balance', val: receiptShowPrevBalance, set: setReceiptShowPrevBalance },
+                        { label: 'Show Payment Mode Details', val: receiptShowPaymentMode, set: setReceiptShowPaymentMode },
+                        { label: 'Show Concession Applied', val: receiptShowConcession, set: setReceiptShowConcession },
+                        { label: 'Show Instalment Info', val: receiptShowInstalment, set: setReceiptShowInstalment },
+                      ].map(item => (
+                        <div key={item.label} className={`flex items-center justify-between p-2 rounded-lg ${theme.secondaryBg}`}>
+                          <span className={`text-[11px] font-medium ${theme.highlight}`}>{item.label}</span>
+                          <SSAToggle on={item.val} onChange={() => item.set(!item.val)} theme={theme} />
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Section 3: Footer & Legal */}
+                    <div className={`rounded-xl border ${theme.border} p-3 space-y-2`}>
+                      <p className={`text-[10px] font-bold ${theme.primaryText} uppercase tracking-wider`}>Footer & Legal</p>
+                      {[
+                        { label: 'Duplicate Watermark', val: receiptWatermark, set: setReceiptWatermark },
+                        { label: 'Signature Field', val: receiptSignature, set: setReceiptSignature },
+                        { label: 'Show QR Code', val: receiptShowQR, set: setReceiptShowQR },
+                      ].map(item => (
+                        <div key={item.label} className={`flex items-center justify-between p-2 rounded-lg ${theme.secondaryBg}`}>
+                          <span className={`text-[11px] font-medium ${theme.highlight}`}>{item.label}</span>
+                          <SSAToggle on={item.val} onChange={() => item.set(!item.val)} theme={theme} />
+                        </div>
+                      ))}
+                      <div className="pt-1 space-y-2">
+                        <div>
+                          <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Footer Text</p>
+                          <InputField value={receiptFooter} onChange={setReceiptFooter} theme={theme} placeholder="Footer disclaimer text" />
+                        </div>
+                        <div>
+                          <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Authorized Signatory Name</p>
+                          <InputField value={receiptSignatoryName} onChange={setReceiptSignatoryName} theme={theme} placeholder="e.g. Mr. R. Patel, Accounts Head" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Paper Size</p>
+                            <SelectField options={['A4', 'A5', 'Thermal 80mm']} value={receiptPaperSize} onChange={setReceiptPaperSize} theme={theme} />
+                          </div>
+                          <div>
+                            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Copies</p>
+                            <SelectField options={['Original', 'Original + Duplicate', 'Original + Duplicate + Triplicate']} value={receiptCopies} onChange={setReceiptCopies} theme={theme} />
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <button className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold ${theme.primary} text-white`}>
-                    <Eye size={14} /> Preview Receipt
-                  </button>
+
+                  {/* ── RIGHT SIDE: Live Receipt Preview (sticky) ── */}
+                  <div className="lg:sticky lg:top-0 lg:self-start">
+                    <p className={`text-[10px] font-bold ${theme.iconColor} mb-2 uppercase tracking-wider`}>Live Preview</p>
+                    <div className="bg-gray-100 rounded-xl p-4 flex items-start justify-center min-h-[500px]">
+                      <div className={`bg-white border border-gray-200 shadow-lg w-full max-w-[380px] ${receiptPaperSize === 'Thermal 80mm' ? 'max-w-[260px]' : receiptPaperSize === 'A5' ? 'max-w-[320px]' : 'max-w-[380px]'} relative`}
+                        style={{ fontFamily: 'Georgia, serif' }}>
+                        {/* Watermark */}
+                        {receiptWatermark && (
+                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.06] rotate-[-30deg]">
+                            <span className="text-5xl font-bold tracking-[0.2em] text-gray-900 select-none">DUPLICATE</span>
+                          </div>
+                        )}
+
+                        <div className={`relative z-10 ${receiptPaperSize === 'Thermal 80mm' ? 'p-3 text-[8px]' : 'p-5 text-[10px]'}`}>
+                          {/* Header */}
+                          <div className="text-center border-b border-gray-300 pb-3 mb-3">
+                            <div className="flex items-center justify-center gap-2 mb-1">
+                              {receiptLogo && (
+                                <div className={`${receiptPaperSize === 'Thermal 80mm' ? 'w-6 h-6' : 'w-8 h-8'} rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0`}>
+                                  <span className="text-white font-bold text-[9px]">SIS</span>
+                                </div>
+                              )}
+                              <div>
+                                <p className={`font-bold ${receiptPaperSize === 'Thermal 80mm' ? 'text-[10px]' : 'text-sm'} text-gray-900 uppercase tracking-wide`}>{receiptHeader || 'School Name'}</p>
+                              </div>
+                            </div>
+                            {receiptShowAddress && <p className="text-gray-500 leading-tight">123 Education Lane, Satellite, Ahmedabad - 380015</p>}
+                            {receiptShowPhone && <p className="text-gray-500">Ph: 079-12345678 | info@saaras.edu.in</p>}
+                            {receiptShowRegistration && <p className="text-gray-500 font-medium">Affiliation: CBSE 430123 | DISE: 24010101234</p>}
+                          </div>
+
+                          {/* Receipt Title */}
+                          <div className="text-center mb-3">
+                            <p className={`font-bold ${receiptPaperSize === 'Thermal 80mm' ? 'text-[10px]' : 'text-xs'} text-gray-900 uppercase tracking-widest border-b border-t border-gray-200 py-1`}>Fee Receipt</p>
+                          </div>
+
+                          {/* Receipt Meta */}
+                          <div className="flex justify-between mb-3 text-gray-600">
+                            <div>
+                              <p><span className="font-semibold">Receipt No:</span> R-2026-0534</p>
+                              <p><span className="font-semibold">Date:</span> 05 Mar 2026</p>
+                            </div>
+                            <div className="text-right">
+                              <p><span className="font-semibold">Academic Year:</span> 2025-26</p>
+                            </div>
+                          </div>
+
+                          {/* Student Info */}
+                          <div className="border border-gray-200 rounded-lg p-2.5 mb-3 bg-gray-50">
+                            <div className={`flex ${receiptShowPhoto ? 'justify-between' : ''}`}>
+                              <div className="space-y-0.5 text-gray-700">
+                                <p><span className="font-semibold">Student:</span> Aarav Patel</p>
+                                <p><span className="font-semibold">Class:</span> X-A &nbsp;|&nbsp; <span className="font-semibold">Roll:</span> 12</p>
+                                <p><span className="font-semibold">Father:</span> Mr. Rajesh Patel</p>
+                                <p><span className="font-semibold">Student ID:</span> STU-2026-0012</p>
+                              </div>
+                              {receiptShowPhoto && (
+                                <div className="w-12 h-14 bg-gray-200 border border-gray-300 rounded flex items-center justify-center flex-shrink-0 ml-2">
+                                  <span className="text-[7px] text-gray-400 font-medium">PHOTO</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Fee Details Table */}
+                          {receiptShowBreakdown ? (
+                            <div className="mb-3">
+                              <table className="w-full">
+                                <thead>
+                                  <tr className="border-b-2 border-gray-300">
+                                    <th className="text-left py-1 font-semibold text-gray-700">Fee Head</th>
+                                    {selectedReceiptTemplate === 'detailed' && receiptHSN && <th className="text-center py-1 font-semibold text-gray-700">HSN</th>}
+                                    <th className="text-right py-1 font-semibold text-gray-700">Amount</th>
+                                    {selectedReceiptTemplate === 'detailed' && receiptHSN && (
+                                      <>
+                                        <th className="text-right py-1 font-semibold text-gray-700">CGST</th>
+                                        <th className="text-right py-1 font-semibold text-gray-700">SGST</th>
+                                      </>
+                                    )}
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {receiptLineItems.map(item => (
+                                    <tr key={item.head} className="border-b border-gray-100">
+                                      <td className="py-1 text-gray-700">{selectedReceiptTemplate === 'compact' ? item.head.replace(' Fee', '') : item.head}</td>
+                                      {selectedReceiptTemplate === 'detailed' && receiptHSN && <td className="text-center py-1 text-gray-500">{item.hsn}</td>}
+                                      <td className="text-right py-1 text-gray-700">{'\u20B9'}{item.amount.toLocaleString('en-IN')}</td>
+                                      {selectedReceiptTemplate === 'detailed' && receiptHSN && (
+                                        <>
+                                          <td className="text-right py-1 text-gray-500">{'\u20B9'}{Math.round(item.amount * item.cgst / 100)}</td>
+                                          <td className="text-right py-1 text-gray-500">{'\u20B9'}{Math.round(item.amount * item.sgst / 100)}</td>
+                                        </>
+                                      )}
+                                    </tr>
+                                  ))}
+                                </tbody>
+                                <tfoot>
+                                  <tr className="border-t-2 border-gray-300">
+                                    <td className="py-1 font-bold text-gray-900" colSpan={selectedReceiptTemplate === 'detailed' && receiptHSN ? 2 : 1}>Subtotal</td>
+                                    <td className="text-right py-1 font-bold text-gray-900">{'\u20B9'}{receiptSubtotal.toLocaleString('en-IN')}</td>
+                                    {selectedReceiptTemplate === 'detailed' && receiptHSN && (
+                                      <>
+                                        <td className="text-right py-1 font-bold text-gray-700">{'\u20B9'}{receiptLineItems.reduce((s, i) => s + Math.round(i.amount * i.cgst / 100), 0).toLocaleString('en-IN')}</td>
+                                        <td className="text-right py-1 font-bold text-gray-700">{'\u20B9'}{receiptLineItems.reduce((s, i) => s + Math.round(i.amount * i.sgst / 100), 0).toLocaleString('en-IN')}</td>
+                                      </>
+                                    )}
+                                  </tr>
+                                </tfoot>
+                              </table>
+                            </div>
+                          ) : (
+                            <div className="mb-3 border-b border-gray-200 pb-2">
+                              <div className="flex justify-between py-1">
+                                <span className="font-semibold text-gray-700">Total Fee</span>
+                                <span className="font-bold text-gray-900">{'\u20B9'}{receiptSubtotal.toLocaleString('en-IN')}</span>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Previous Balance */}
+                          {receiptShowPrevBalance && (
+                            <div className="flex justify-between py-0.5 text-gray-600">
+                              <span>Previous Balance:</span>
+                              <span>{'\u20B9'}0</span>
+                            </div>
+                          )}
+
+                          {/* Concession */}
+                          {receiptShowConcession && (
+                            <div className="flex justify-between py-0.5 text-green-700">
+                              <span>Concession: Sibling -10%</span>
+                              <span>-{'\u20B9'}{receiptConcessionAmt.toLocaleString('en-IN')}</span>
+                            </div>
+                          )}
+
+                          {/* Instalment */}
+                          {receiptShowInstalment && (
+                            <div className="flex justify-between py-0.5 text-gray-600">
+                              <span>Instalment:</span>
+                              <span>Term 2 of 4</span>
+                            </div>
+                          )}
+
+                          {/* HSN summary for non-detailed templates */}
+                          {receiptHSN && selectedReceiptTemplate !== 'detailed' && (
+                            <div className="text-gray-500 py-0.5">
+                              HSN: 9992 | CGST 9% | SGST 9%
+                            </div>
+                          )}
+
+                          {/* Grand Total */}
+                          <div className={`mt-2 border-t-2 border-b-2 border-gray-800 py-2 flex justify-between items-center ${receiptPaperSize === 'Thermal 80mm' ? '' : 'px-1'}`}>
+                            <span className={`font-bold text-gray-900 uppercase ${receiptPaperSize === 'Thermal 80mm' ? 'text-[10px]' : 'text-xs'}`}>Total Paid</span>
+                            <span className={`font-bold text-gray-900 ${receiptPaperSize === 'Thermal 80mm' ? 'text-sm' : 'text-base'}`}>
+                              {'\u20B9'}{(receiptShowConcession ? receiptTotal : receiptSubtotal).toLocaleString('en-IN')}
+                            </span>
+                          </div>
+
+                          {/* Payment Mode */}
+                          {receiptShowPaymentMode && (
+                            <div className="mt-2 text-gray-600">
+                              <p><span className="font-semibold">Payment Mode:</span> UPI</p>
+                              <p><span className="font-semibold">Txn Ref:</span> UPI123456789</p>
+                            </div>
+                          )}
+
+                          {/* Footer area */}
+                          <div className="mt-4 pt-3 border-t border-gray-200 space-y-3">
+                            {/* QR Code */}
+                            {receiptShowQR && (
+                              <div className="flex justify-center">
+                                <div className="w-16 h-16 bg-gray-100 border border-gray-300 rounded flex items-center justify-center">
+                                  <div className="grid grid-cols-4 gap-[1px] w-10 h-10">
+                                    {Array.from({ length: 16 }).map((_, i) => (
+                                      <div key={i} className={`${Math.random() > 0.4 ? 'bg-gray-900' : 'bg-white'}`} />
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Signature */}
+                            {receiptSignature && (
+                              <div className="text-right">
+                                <div className="inline-block text-center">
+                                  <div className="w-32 border-b border-gray-400 mb-1 h-6" />
+                                  <p className="text-gray-600 font-medium">Authorized Signatory</p>
+                                  {receiptSignatoryName && <p className="text-gray-500">{receiptSignatoryName}</p>}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Footer text */}
+                            {receiptFooter && (
+                              <p className="text-center text-gray-400 italic text-[8px]">{receiptFooter}</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Paper size / copies badge */}
+                    <div className="flex items-center justify-center gap-3 mt-2">
+                      <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${theme.secondaryBg} ${theme.iconColor}`}>{receiptPaperSize}</span>
+                      <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${theme.secondaryBg} ${theme.iconColor}`}>{receiptCopies}</span>
+                      <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${theme.secondaryBg} ${theme.iconColor}`}>
+                        {selectedReceiptTemplate === 'standard' ? 'Standard' : selectedReceiptTemplate === 'compact' ? 'Compact' : 'Detailed GST'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </SectionCard>
             </div>

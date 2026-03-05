@@ -111,6 +111,20 @@ const chequeRegister = [
   { student: 'Rajan Kumar', chequeNo: 'CHQ-667788', bank: 'PNB', amount: '\u20B97,700', date: '03 Feb', status: 'Bounced' },
 ];
 
+const feeAdjustments = [
+  { id: 'ADJ-001', student: 'Ishaan Patel', class: '9-A', type: 'Waiver', head: 'Late Fee', amount: '\u20B9500', reason: 'Medical emergency — hospitalised 2 weeks', authorizedBy: 'Principal', date: '08 Feb', status: 'Approved' },
+  { id: 'ADJ-002', student: 'Tanvi Mehta', class: '6-B', type: 'Write-off', head: 'Transport', amount: '\u20B91,200', reason: 'Family relocated mid-term, TC issued', authorizedBy: 'School Admin', date: '05 Feb', status: 'Approved' },
+  { id: 'ADJ-003', student: 'Karan Desai', class: '10-A', type: 'Head Transfer', head: 'Activity Fee \u2192 Lab Fee', amount: '\u20B92,000', reason: 'Student opted out of sports, joined robotics lab', authorizedBy: 'Accounts Head', date: '03 Feb', status: 'Processed' },
+  { id: 'ADJ-004', student: 'Nisha Gupta', class: '4-C', type: 'Late Fee Waiver', head: 'Late Fee', amount: '\u20B9300', reason: 'System error — payment was on time via UPI', authorizedBy: 'Accounts Head', date: '01 Feb', status: 'Processed' },
+];
+
+const advancePayments = [
+  { id: 'ADV-001', student: 'Aarav Patel', class: '10-A', termsPaid: 'Q3 + Q4', amount: '\u20B915,400', date: '10 Feb', receipt: 'R-2026-ADV-001', mode: 'NEFT' },
+  { id: 'ADV-002', student: 'Meera Nair', class: '7-C', termsPaid: 'Q3 + Q4 + Q1 (Next Year)', amount: '\u20B917,400', date: '08 Feb', receipt: 'R-2026-ADV-002', mode: 'Cheque' },
+  { id: 'ADV-003', student: 'Rohan Gupta', class: '3-B', termsPaid: 'Q3 + Q4', amount: '\u20B910,000', date: '06 Feb', receipt: 'R-2026-ADV-003', mode: 'Online' },
+  { id: 'ADV-004', student: 'Ananya Reddy', class: '6-A', termsPaid: 'Full Year (Q1-Q4)', amount: '\u20B923,200', date: '02 Feb', receipt: 'R-2026-ADV-004', mode: 'NEFT' },
+];
+
 const vendorDirectory = [
   { name: 'Shree Traders', category: 'Stationery', contact: '98765-43210', pan: 'ABCDE1234F', gst: '24ABCDE1234F1Z5', totalPOs: 12, outstanding: '\u20B928,000', rating: 4 },
   { name: 'Metro Furniture', category: 'Furniture', contact: '99887-65432', pan: 'FGHIJ5678K', gst: '24FGHIJ5678K1Z3', totalPOs: 5, outstanding: '\u20B90', rating: 5 },
@@ -163,9 +177,7 @@ const taxDeclarations = [
 // ─── MODULES SIDEBAR ──────────────────────────────────
 const modules = [
   { id: 'dashboard', label: 'Dashboard', icon: Home },
-  { id: 'collections', label: 'Fee Collection', icon: Banknote },
-  { id: 'concessions', label: 'Concessions', icon: Percent },
-  { id: 'refunds', label: 'Refunds', icon: Undo2 },
+  { id: 'fees', label: 'Fees', icon: Banknote },
   { id: 'expenses', label: 'Expenses', icon: CreditCard },
   { id: 'salary', label: 'Salary Processing', icon: Users },
   { id: 'epf', label: 'EPF / PF', icon: ShieldCheck },
@@ -192,8 +204,8 @@ function DashboardView({ theme, setActiveModule }: { theme: Theme; setActiveModu
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard icon={Banknote} label="Collected (Feb)" value={'\u20B912.4L'} color="bg-emerald-500" sub={'+\u20B92.4L today'} theme={theme} onClick={() => setActiveModule('collections')} />
-        <StatCard icon={AlertTriangle} label="Pending Fees" value={'\u20B98.2L'} color="bg-amber-500" sub="124 students" theme={theme} onClick={() => setActiveModule('collections')} />
+        <StatCard icon={Banknote} label="Collected (Feb)" value={'\u20B912.4L'} color="bg-emerald-500" sub={'+\u20B92.4L today'} theme={theme} onClick={() => setActiveModule('fees')} />
+        <StatCard icon={AlertTriangle} label="Pending Fees" value={'\u20B98.2L'} color="bg-amber-500" sub="124 students" theme={theme} onClick={() => setActiveModule('fees')} />
         <StatCard icon={TrendingDown} label="Expenses (Feb)" value={'\u20B99.8L'} color="bg-red-500" theme={theme} onClick={() => setActiveModule('expenses')} />
         <StatCard icon={Wallet} label="Bank Balance" value={'\u20B918.45L'} color="bg-blue-500" theme={theme} onClick={() => setActiveModule('bank')} />
       </div>
@@ -225,13 +237,13 @@ function DashboardView({ theme, setActiveModule }: { theme: Theme; setActiveModu
           <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Pending Actions</h3>
           <div className="space-y-2">
             {[
-              { label: 'Overdue fee reminders to send', count: 28, action: 'collections' },
-              { label: 'Refund requests to review', count: 2, action: 'refunds' },
-              { label: 'Concession requests to review', count: 1, action: 'concessions' },
+              { label: 'Overdue fee reminders to send', count: 28, action: 'fees' },
+              { label: 'Refund requests to review', count: 2, action: 'fees' },
+              { label: 'Concession requests to review', count: 1, action: 'fees' },
               { label: 'Vendor payments pending', count: 2, action: 'expenses' },
               { label: 'Salary processing for Feb', count: 1, action: 'salary' },
-              { label: 'Cheques to deposit', count: 5, action: 'collections' },
-              { label: 'Bounced cheques to follow-up', count: 2, action: 'collections' },
+              { label: 'Cheques to deposit', count: 5, action: 'fees' },
+              { label: 'Bounced cheques to follow-up', count: 2, action: 'fees' },
             ].map(a => (
               <button key={a.label} onClick={() => setActiveModule(a.action)} className={`w-full flex items-center justify-between p-3 rounded-xl ${theme.secondaryBg} ${theme.buttonHover} transition-all`}>
                 <span className={`text-xs ${theme.highlight}`}>{a.label}</span>
@@ -269,7 +281,7 @@ function DashboardView({ theme, setActiveModule }: { theme: Theme; setActiveModu
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
         <div className="flex items-center justify-between mb-3">
           <h3 className={`text-sm font-bold ${theme.highlight}`}>Recent Fee Collections</h3>
-          <button onClick={() => setActiveModule('collections')} className={`text-xs ${theme.primaryText} font-bold`}>View All &rarr;</button>
+          <button onClick={() => setActiveModule('fees')} className={`text-xs ${theme.primaryText} font-bold`}>View All &rarr;</button>
         </div>
         <DataTable
           headers={['Student', 'Class', 'Amount', 'Mode', 'Date', 'Status']}
@@ -585,6 +597,386 @@ function ConcessionsView({ theme }: { theme: Theme }) {
         ])}
         theme={theme}
       />
+    </div>
+  );
+}
+
+// ─── UNIFIED FEES VIEW (Collection + Concessions + Refunds + Adjustments + Advance) ───
+function FeesView({ theme }: { theme: Theme }) {
+  const [feesTab, setFeesTab] = useState('Collection');
+  const [showAcceptFee, setShowAcceptFee] = useState(false);
+  const [acceptStep, setAcceptStep] = useState<'search' | 'details' | 'confirm'>('search');
+  const [showAdjustmentForm, setShowAdjustmentForm] = useState(false);
+  const [showAdvanceForm, setShowAdvanceForm] = useState(false);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className={`text-lg font-bold ${theme.highlight}`}>Fees</h2>
+          <p className={`text-xs ${theme.iconColor}`}>Collection, concessions, refunds, adjustments &amp; advance payments</p>
+        </div>
+      </div>
+
+      {/* Fee Tabs */}
+      <TabBar tabs={['Collection', 'Concessions', 'Refunds', 'Adjustments', 'Advance Payments']} active={feesTab} onChange={setFeesTab} theme={theme} />
+
+      {/* ── Collection Tab ── */}
+      {feesTab === 'Collection' && (
+        <div className="space-y-4">
+          {/* Accept Fee Workflow */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+            <button onClick={() => { setShowAcceptFee(!showAcceptFee); setAcceptStep('search'); }} className="w-full flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className={`w-8 h-8 rounded-lg ${theme.primary} text-white flex items-center justify-center`}><Banknote size={16} /></div>
+                <div>
+                  <h3 className={`text-sm font-bold ${theme.highlight}`}>Accept Fee Payment</h3>
+                  <p className={`text-[10px] ${theme.iconColor}`}>Search student → View fee structure → Record payment → Generate receipt</p>
+                </div>
+              </div>
+              <ChevronDown size={16} className={`${theme.iconColor} transition-transform ${showAcceptFee ? 'rotate-180' : ''}`} />
+            </button>
+
+            {showAcceptFee && (
+              <div className="mt-4 space-y-4">
+                {/* Step Indicator */}
+                <div className="flex items-center gap-4">
+                  {(['search', 'details', 'confirm'] as const).map((step, i) => (
+                    <div key={step} className="flex items-center gap-2">
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                        acceptStep === step ? `${theme.primary} text-white` :
+                        (['search', 'details', 'confirm'].indexOf(acceptStep) > i) ? 'bg-emerald-500 text-white' :
+                        `${theme.secondaryBg} ${theme.iconColor}`
+                      }`}>
+                        {(['search', 'details', 'confirm'].indexOf(acceptStep) > i) ? <Check size={10} /> : i + 1}
+                      </div>
+                      <span className={`text-[10px] font-bold ${acceptStep === step ? theme.highlight : theme.iconColor}`}>
+                        {step === 'search' ? 'Search Student' : step === 'details' ? 'Fee Details' : 'Confirm & Receipt'}
+                      </span>
+                      {i < 2 && <ArrowRight size={10} className={theme.iconColor} />}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Step 1: Search */}
+                {acceptStep === 'search' && (
+                  <div className="space-y-3">
+                    <SearchBar placeholder="Search by student name, admission no, class..." theme={theme} icon={Search} />
+                    <div className={`${theme.secondaryBg} rounded-xl p-3`}>
+                      <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Quick Results</p>
+                      {[
+                        { name: 'Riya Sharma', class: '5-A', admNo: 'ADM-2025-042', pending: '\u20B95,000' },
+                        { name: 'Ananya Reddy', class: '6-A', admNo: 'ADM-2024-118', pending: '\u20B95,800' },
+                      ].map(s => (
+                        <button key={s.admNo} onClick={() => setAcceptStep('details')} className={`w-full flex items-center justify-between p-2 rounded-lg ${theme.buttonHover} transition-all mb-1`}>
+                          <div className="flex items-center gap-2">
+                            <div className={`w-7 h-7 rounded-full ${theme.primary} text-white flex items-center justify-center text-[10px] font-bold`}>{s.name.charAt(0)}</div>
+                            <div className="text-left">
+                              <p className={`text-xs font-bold ${theme.highlight}`}>{s.name}</p>
+                              <p className={`text-[10px] ${theme.iconColor}`}>{s.class} &middot; {s.admNo}</p>
+                            </div>
+                          </div>
+                          <span className="text-xs font-bold text-amber-600">Pending: {s.pending}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 2: Fee Details */}
+                {acceptStep === 'details' && (
+                  <div className="space-y-3">
+                    {/* Student Info Bar */}
+                    <div className={`p-3 rounded-xl ${theme.secondaryBg} flex items-center gap-3`}>
+                      <div className={`w-9 h-9 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold`}>RS</div>
+                      <div className="flex-1">
+                        <p className={`text-xs font-bold ${theme.highlight}`}>Riya Sharma</p>
+                        <p className={`text-[10px] ${theme.iconColor}`}>Class 5-A &middot; ADM-2025-042 &middot; Father: Mr. Rajesh Sharma</p>
+                      </div>
+                      <button onClick={() => setAcceptStep('search')} className={`text-[10px] ${theme.primaryText} font-bold`}>Change</button>
+                    </div>
+
+                    {/* Fee Structure */}
+                    <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-3`}>
+                      <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Fee Structure &mdash; February 2026</p>
+                      <div className="space-y-1.5">
+                        {[
+                          { head: 'Tuition Fee', amount: '\u20B93,000', status: 'Due' },
+                          { head: 'Activity Fee', amount: '\u20B9500', status: 'Due' },
+                          { head: 'Lab Fee', amount: '\u20B9300', status: 'Due' },
+                          { head: 'Transport', amount: '\u20B91,200', status: 'Due' },
+                          { head: 'Exam Fee', amount: '\u20B90', status: 'Paid' },
+                        ].map(h => (
+                          <div key={h.head} className="flex items-center justify-between">
+                            <span className={`text-xs ${theme.highlight}`}>{h.head}</span>
+                            <div className="flex items-center gap-2">
+                              <span className={`text-xs font-bold ${h.status === 'Due' ? theme.highlight : 'text-emerald-600'}`}>{h.amount}</span>
+                              <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${h.status === 'Due' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>{h.status}</span>
+                            </div>
+                          </div>
+                        ))}
+                        <div className={`flex items-center justify-between pt-2 mt-2 border-t ${theme.border}`}>
+                          <span className={`text-xs font-bold ${theme.highlight}`}>Total Due</span>
+                          <span className={`text-sm font-bold ${theme.highlight}`}>{'\u20B9'}5,000</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Concession Applied (auto) */}
+                    <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-2 flex items-center gap-2">
+                      <Check size={14} className="text-emerald-600 shrink-0" />
+                      <span className="text-[10px] text-emerald-700">No concession applies to this student</span>
+                    </div>
+
+                    {/* Payment Entry */}
+                    <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-3`}>
+                      <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Payment Details</p>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                          <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Amount Received</label>
+                          <input type="text" defaultValue="5000" className={`w-full px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight} font-bold`} />
+                        </div>
+                        <div>
+                          <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Payment Mode</label>
+                          <select className={`w-full px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight}`}>
+                            <option>Cash</option>
+                            <option>UPI</option>
+                            <option>Online / Card</option>
+                            <option>Cheque</option>
+                            <option>NEFT / RTGS</option>
+                            <option>DD</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Reference / Txn ID</label>
+                          <input type="text" placeholder="Optional for cash" className={`w-full px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight}`} />
+                        </div>
+                      </div>
+
+                      {/* Partial Payment Note */}
+                      <div className="mt-3 p-2 rounded-lg bg-amber-50 border border-amber-200 flex items-start gap-2">
+                        <AlertTriangle size={14} className="text-amber-600 mt-0.5 shrink-0" />
+                        <div>
+                          <p className="text-[10px] font-bold text-amber-800">Partial Payment Supported</p>
+                          <p className="text-[10px] text-amber-700">If the amount received is less than {'\u20B9'}5,000, the remaining balance will carry forward. Current balance: {'\u20B9'}0</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 justify-end">
+                      <button onClick={() => setAcceptStep('search')} className={`px-4 py-2 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.iconColor}`}>Back</button>
+                      <button onClick={() => setAcceptStep('confirm')} className={`flex items-center gap-2 px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>
+                        <Check size={14} /> Confirm Payment
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 3: Confirm & Receipt */}
+                {acceptStep === 'confirm' && (
+                  <div className="space-y-3">
+                    <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-center">
+                      <div className="w-12 h-12 rounded-full bg-emerald-500 text-white flex items-center justify-center mx-auto mb-2">
+                        <Check size={24} />
+                      </div>
+                      <p className="text-sm font-bold text-emerald-800">Payment Recorded Successfully</p>
+                      <p className="text-xs text-emerald-700 mt-1">Receipt #: <span className="font-mono font-bold">R-2026-009</span></p>
+                      <p className="text-[10px] text-emerald-600 mt-0.5">Riya Sharma &middot; Class 5-A &middot; {'\u20B9'}5,000 &middot; Cash</p>
+                    </div>
+                    <div className="flex gap-2 justify-center">
+                      <button className={`flex items-center gap-2 px-4 py-2 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.highlight}`}>
+                        <Printer size={12} /> Print Receipt
+                      </button>
+                      <button className={`flex items-center gap-2 px-4 py-2 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.highlight}`}>
+                        <Download size={12} /> Download PDF
+                      </button>
+                      <button onClick={() => { setAcceptStep('search'); }} className={`flex items-center gap-2 px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>
+                        <Plus size={12} /> Accept Next Payment
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Existing CollectionsView content below */}
+          <CollectionsView theme={theme} />
+        </div>
+      )}
+
+      {/* ── Concessions Tab ── */}
+      {feesTab === 'Concessions' && <ConcessionsView theme={theme} />}
+
+      {/* ── Refunds Tab ── */}
+      {feesTab === 'Refunds' && <RefundsView theme={theme} />}
+
+      {/* ── Adjustments Tab (NEW) ── */}
+      {feesTab === 'Adjustments' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>Fee Adjustments</h3>
+              <InfoTip text="Waiver, write-off, head transfer and late fee waiver adjustments" />
+            </div>
+            <button onClick={() => setShowAdjustmentForm(!showAdjustmentForm)} className={`flex items-center gap-2 px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>
+              <Plus size={14} /> New Adjustment
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <StatCard icon={Percent} label="Total Adjustments" value={feeAdjustments.length.toString()} color="bg-blue-500" theme={theme} />
+            <StatCard icon={DollarSign} label="Total Adjusted" value={'\u20B94,000'} color="bg-amber-500" sub="This month" theme={theme} />
+            <StatCard icon={Check} label="Approved" value={feeAdjustments.filter(a => a.status === 'Approved').length.toString()} color="bg-emerald-500" theme={theme} />
+            <StatCard icon={Clock} label="Processed" value={feeAdjustments.filter(a => a.status === 'Processed').length.toString()} color="bg-purple-500" theme={theme} />
+          </div>
+
+          {/* New Adjustment Form */}
+          {showAdjustmentForm && (
+            <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+              <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Record Fee Adjustment</h3>
+              <div className="space-y-3">
+                <SearchBar placeholder="Search student by name, admission no..." theme={theme} icon={Search} />
+                <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Current Fee Status (sample)</p>
+                  <div className="flex items-center gap-4">
+                    <span className={`text-xs ${theme.highlight}`}>Total Due: <span className="font-bold">{'\u20B9'}7,700</span></span>
+                    <span className={`text-xs ${theme.iconColor}`}>Paid: <span className="font-bold text-emerald-600">{'\u20B9'}0</span></span>
+                    <span className={`text-xs ${theme.iconColor}`}>Pending: <span className="font-bold text-amber-600">{'\u20B9'}7,700</span></span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div>
+                    <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Adjustment Type</label>
+                    <select className={`w-full px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight}`}>
+                      <option>Waiver</option>
+                      <option>Write-off</option>
+                      <option>Head Transfer</option>
+                      <option>Late Fee Waiver</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Amount</label>
+                    <input type="text" placeholder={'\u20B9 0'} className={`w-full px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight}`} />
+                  </div>
+                  <div>
+                    <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Authorized By</label>
+                    <select className={`w-full px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight}`}>
+                      <option>Accounts Head</option>
+                      <option>Principal</option>
+                      <option>School Admin</option>
+                      <option>Trust</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Reason</label>
+                  <input type="text" placeholder="Enter reason for adjustment..." className={`w-full px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight}`} />
+                </div>
+                <div className="flex gap-2 justify-end pt-1">
+                  <button onClick={() => setShowAdjustmentForm(false)} className={`px-4 py-2 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.iconColor}`}>Cancel</button>
+                  <button onClick={() => setShowAdjustmentForm(false)} className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>Submit Adjustment</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Adjustment History */}
+          <DataTable
+            headers={['ID', 'Student', 'Class', 'Type', 'Fee Head', 'Amount', 'Reason', 'Authorized', 'Date', 'Status']}
+            rows={feeAdjustments.map(a => [
+              <span key="id" className={`text-xs font-mono ${theme.iconColor}`}>{a.id}</span>,
+              <span key="n" className={`text-xs font-bold ${theme.highlight}`}>{a.student}</span>,
+              <span key="c" className={`text-xs ${theme.iconColor}`}>{a.class}</span>,
+              <span key="t" className={`text-xs font-bold ${theme.primaryText}`}>{a.type}</span>,
+              <span key="h" className={`text-xs ${theme.highlight}`}>{a.head}</span>,
+              <span key="a" className={`text-xs font-bold ${theme.highlight}`}>{a.amount}</span>,
+              <span key="r" className={`text-xs ${theme.iconColor} max-w-[160px] truncate`} title={a.reason}>{a.reason}</span>,
+              <span key="ab" className={`text-xs ${theme.iconColor}`}>{a.authorizedBy}</span>,
+              <span key="d" className={`text-xs ${theme.iconColor}`}>{a.date}</span>,
+              <StatusBadge key="s" status={a.status === 'Processed' ? 'Paid' : a.status} theme={theme} />,
+            ])}
+            theme={theme}
+          />
+        </div>
+      )}
+
+      {/* ── Advance Payments Tab (NEW) ── */}
+      {feesTab === 'Advance Payments' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>Advance Fee Payments</h3>
+              <InfoTip text="Students who pay multiple terms or full year in advance" />
+            </div>
+            <button onClick={() => setShowAdvanceForm(!showAdvanceForm)} className={`flex items-center gap-2 px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>
+              <Plus size={14} /> Record Advance Payment
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <StatCard icon={Banknote} label="Advance Receipts" value={advancePayments.length.toString()} color="bg-blue-500" theme={theme} />
+            <StatCard icon={DollarSign} label="Total Advance" value={'\u20B966,000'} color="bg-emerald-500" sub="This month" theme={theme} />
+            <StatCard icon={Users} label="Students" value={advancePayments.length.toString()} color="bg-purple-500" theme={theme} />
+            <StatCard icon={Calendar} label="Avg Terms Prepaid" value="2.5" color="bg-amber-500" theme={theme} />
+          </div>
+
+          {/* Record Advance Form */}
+          {showAdvanceForm && (
+            <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+              <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Record Advance Fee Payment</h3>
+              <div className="space-y-3">
+                <SearchBar placeholder="Search student by name, admission no..." theme={theme} icon={Search} />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div>
+                    <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Terms to Prepay</label>
+                    <select className={`w-full px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight}`}>
+                      <option>Q3 + Q4 (2 terms)</option>
+                      <option>Q3 + Q4 + Q1 Next Year (3 terms)</option>
+                      <option>Full Year Q1-Q4 (4 terms)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Total Amount</label>
+                    <input type="text" placeholder={'\u20B9 0'} className={`w-full px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight} font-bold`} />
+                  </div>
+                  <div>
+                    <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Payment Mode</label>
+                    <select className={`w-full px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight}`}>
+                      <option>Cash</option>
+                      <option>UPI</option>
+                      <option>Online / Card</option>
+                      <option>Cheque</option>
+                      <option>NEFT / RTGS</option>
+                      <option>DD</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="flex gap-2 justify-end pt-1">
+                  <button onClick={() => setShowAdvanceForm(false)} className={`px-4 py-2 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.iconColor}`}>Cancel</button>
+                  <button onClick={() => setShowAdvanceForm(false)} className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>Record &amp; Generate Receipt</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Advance Payments Table */}
+          <DataTable
+            headers={['ID', 'Student', 'Class', 'Terms Paid', 'Amount', 'Date', 'Mode', 'Receipt']}
+            rows={advancePayments.map(a => [
+              <span key="id" className={`text-xs font-mono ${theme.iconColor}`}>{a.id}</span>,
+              <span key="n" className={`text-xs font-bold ${theme.highlight}`}>{a.student}</span>,
+              <span key="c" className={`text-xs ${theme.iconColor}`}>{a.class}</span>,
+              <span key="t" className={`text-xs font-bold ${theme.primaryText}`}>{a.termsPaid}</span>,
+              <span key="a" className={`text-xs font-bold ${theme.highlight}`}>{a.amount}</span>,
+              <span key="d" className={`text-xs ${theme.iconColor}`}>{a.date}</span>,
+              <span key="m" className={`text-xs ${theme.iconColor}`}>{a.mode}</span>,
+              <span key="r" className={`text-xs font-mono ${theme.primaryText} font-bold`}>{a.receipt}</span>,
+            ])}
+            theme={theme}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -1457,9 +1849,7 @@ function AccountsHeadDashboard({ theme, themeIdx, onThemeChange, currentUser }: 
   const renderContent = () => {
     switch (activeModule) {
       case 'dashboard': return <DashboardView theme={theme} setActiveModule={setActiveModule} />;
-      case 'collections': return <CollectionsView theme={theme} />;
-      case 'concessions': return <ConcessionsView theme={theme} />;
-      case 'refunds': return <RefundsView theme={theme} />;
+      case 'fees': return <FeesView theme={theme} />;
       case 'expenses': return <ExpensesView theme={theme} />;
       case 'salary': return <SalaryView theme={theme} />;
       case 'epf': return <EPFView theme={theme} />;

@@ -2,12 +2,13 @@
 
 import { useState } from 'react';
 import { type Theme } from '@/lib/themes';
+import { StatCard } from '@/components/shared';
 import {
   Calendar, Plus, X, Save, Edit2,
   ChevronRight, ChevronLeft, Trash2,
   Repeat, Users, Upload, MapPin, Bus, DollarSign,
   ClipboardCheck, AlertTriangle, Clock, CheckCircle,
-  FileText, Send, Eye, ChevronDown, Shield, History,
+  FileText, Send, Eye, ChevronDown, Shield, History, Star,
 } from 'lucide-react';
 
 interface CalendarEvent {
@@ -54,7 +55,7 @@ interface ImportedEvent {
   conflict: boolean;
 }
 
-type CalendarView = 'yearly' | 'monthly' | 'weekly' | 'today';
+type CalendarView = 'yearly' | 'monthly' | 'weekly' | 'today' | 'ptm';
 
 export default function CalendarModule({ theme }: { theme: Theme }) {
   const [calendarView, setCalendarView] = useState<CalendarView>('monthly');
@@ -133,6 +134,12 @@ export default function CalendarModule({ theme }: { theme: Theme }) {
     { timestamp: '8 Feb 2026, 11:30 AM', user: 'Coordinator', action: 'Updated budget for', eventName: 'Inter-House Cricket' },
   ]);
 
+  // PTM state
+  const [showPtmForm, setShowPtmForm] = useState(false);
+  const [ptmForm, setPtmForm] = useState({
+    title: '', date: '', startTime: '09:00', duration: '4', classes: '' as string, slotDuration: '15', venue: '', notes: '',
+  });
+
   const daysInMonth = 28;
   const startDay = 0; // Feb 2026 starts on Sunday
   const today = 13;
@@ -184,6 +191,7 @@ export default function CalendarModule({ theme }: { theme: Theme }) {
     { id: 'monthly', label: 'Monthly' },
     { id: 'weekly', label: 'Weekly' },
     { id: 'today', label: 'Today' },
+    { id: 'ptm', label: 'PTM' },
   ];
 
   const handleDateClick = (day: number) => {
@@ -697,6 +705,225 @@ export default function CalendarModule({ theme }: { theme: Theme }) {
     </div>
   );
 
+  // ─── PTM VIEW ─────────────────────────
+  const renderPtmView = () => {
+    const recentPtms = [
+      { title: 'Class 10 Board Prep PTM', date: '20 Feb 2026', attendance: '38/42 (90%)', feedback: 4.5 },
+      { title: 'Special PTM — At-risk Students', date: '15 Feb 2026', attendance: '12/15 (80%)', feedback: 4.2 },
+      { title: 'Term End PTM (Dec)', date: '18 Dec 2025', attendance: '245/280 (88%)', feedback: 4.0 },
+    ];
+
+    return (
+      <div className="space-y-4">
+        {/* PTM Stats */}
+        <div className="grid grid-cols-4 gap-4">
+          <StatCard icon={Calendar} label="PTMs This Year" value="5" color="bg-amber-500" theme={theme} />
+          <StatCard icon={Users} label="Avg Attendance" value="84%" color="bg-emerald-500" theme={theme} />
+          <StatCard icon={Star} label="Avg Feedback" value="4.3/5" color="bg-amber-500" theme={theme} />
+          <StatCard icon={CheckCircle} label="Booking Rate" value="89%" color="bg-purple-500" theme={theme} />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Next Upcoming PTM */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5`}>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center text-white">
+                  <Calendar size={18} />
+                </div>
+                <div>
+                  <p className={`text-sm font-bold ${theme.highlight}`}>Term 1 PTM</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>05 Mar 2026 | 09:00 AM - 01:00 PM</p>
+                </div>
+              </div>
+              <span className="text-[10px] px-2.5 py-1 rounded-full font-bold bg-amber-100 text-amber-700">Upcoming</span>
+            </div>
+            <div className="grid grid-cols-3 gap-3 mb-3">
+              <div className={`p-3 rounded-xl ${theme.secondaryBg} text-center`}>
+                <p className={`text-lg font-bold ${theme.primaryText}`}>120</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Total Slots</p>
+              </div>
+              <div className={`p-3 rounded-xl ${theme.secondaryBg} text-center`}>
+                <p className={`text-lg font-bold ${theme.highlight}`}>85</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Booked</p>
+              </div>
+              <div className={`p-3 rounded-xl ${theme.secondaryBg} text-center`}>
+                <p className={`text-lg font-bold text-amber-600`}>35</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Available</p>
+              </div>
+            </div>
+            {/* Booking Progress */}
+            <div className="space-y-1 mb-3">
+              <div className="flex items-center justify-between">
+                <span className={`text-[10px] ${theme.iconColor}`}>Booking Progress</span>
+                <span className={`text-[10px] font-bold ${theme.primaryText}`}>71%</span>
+              </div>
+              <div className={`h-2.5 rounded-full ${theme.secondaryBg} overflow-hidden`}>
+                <div className="h-full rounded-full bg-amber-500" style={{ width: '71%' }} />
+              </div>
+            </div>
+            <button
+              onClick={() => setShowPtmForm(!showPtmForm)}
+              className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-xs font-bold flex items-center gap-1`}
+            >
+              <Plus size={12} /> Schedule PTM
+            </button>
+          </div>
+
+          {/* Recent PTM Results */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5`}>
+            <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Recent PTM Results</h3>
+            <div className="space-y-2">
+              {recentPtms.map((ptm, idx) => (
+                <div key={idx} className={`flex items-center gap-3 p-3 rounded-xl ${theme.secondaryBg}`}>
+                  <CheckCircle size={14} className="text-emerald-500" />
+                  <div className="flex-1">
+                    <p className={`text-xs font-bold ${theme.highlight}`}>{ptm.title}</p>
+                    <p className={`text-[10px] ${theme.iconColor}`}>{ptm.date}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className={`text-[10px] font-bold ${theme.highlight}`}>{ptm.attendance}</p>
+                    <div className="flex items-center gap-0.5 justify-end">
+                      <Star size={8} className="text-amber-500 fill-amber-500" />
+                      <span className={`text-[10px] font-bold ${theme.primaryText}`}>{ptm.feedback.toFixed(1)}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Schedule New PTM Form (collapsible) */}
+        {showPtmForm && (
+          <div className={`${theme.cardBg} rounded-2xl border-2 border-dashed ${theme.border} p-5`}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className={`text-sm font-bold ${theme.highlight} flex items-center gap-2`}>
+                <Calendar size={14} /> Schedule New PTM
+              </h3>
+              <button onClick={() => setShowPtmForm(false)} className={`p-1.5 rounded-lg ${theme.buttonHover}`}>
+                <X size={14} className={theme.iconColor} />
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="col-span-2">
+                <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>PTM Title</label>
+                <input
+                  type="text"
+                  value={ptmForm.title}
+                  onChange={e => setPtmForm(prev => ({ ...prev, title: e.target.value }))}
+                  placeholder="e.g., Term 2 PTM — Classes VI to X"
+                  className={`w-full px-3 py-2 rounded-lg text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight} outline-none focus:ring-2 focus:ring-amber-300`}
+                />
+              </div>
+              <div>
+                <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>Date</label>
+                <input
+                  type="date"
+                  value={ptmForm.date}
+                  onChange={e => setPtmForm(prev => ({ ...prev, date: e.target.value }))}
+                  className={`w-full px-3 py-2 rounded-lg text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight} outline-none focus:ring-2 focus:ring-amber-300`}
+                />
+              </div>
+              <div>
+                <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>Start Time</label>
+                <input
+                  type="time"
+                  value={ptmForm.startTime}
+                  onChange={e => setPtmForm(prev => ({ ...prev, startTime: e.target.value }))}
+                  className={`w-full px-3 py-2 rounded-lg text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight} outline-none focus:ring-2 focus:ring-amber-300`}
+                />
+              </div>
+              <div>
+                <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>Duration (hours)</label>
+                <select
+                  value={ptmForm.duration}
+                  onChange={e => setPtmForm(prev => ({ ...prev, duration: e.target.value }))}
+                  className={`w-full px-3 py-2 rounded-lg text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight} outline-none cursor-pointer focus:ring-2 focus:ring-amber-300`}
+                >
+                  <option value="2">2 hours</option>
+                  <option value="3">3 hours</option>
+                  <option value="4">4 hours</option>
+                  <option value="5">5 hours</option>
+                  <option value="6">Full day (6 hours)</option>
+                </select>
+              </div>
+              <div>
+                <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>Slot Duration</label>
+                <select
+                  value={ptmForm.slotDuration}
+                  onChange={e => setPtmForm(prev => ({ ...prev, slotDuration: e.target.value }))}
+                  className={`w-full px-3 py-2 rounded-lg text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight} outline-none cursor-pointer focus:ring-2 focus:ring-amber-300`}
+                >
+                  <option value="10">10 minutes</option>
+                  <option value="15">15 minutes</option>
+                  <option value="20">20 minutes</option>
+                </select>
+              </div>
+              <div>
+                <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>Classes</label>
+                <input
+                  type="text"
+                  value={ptmForm.classes}
+                  onChange={e => setPtmForm(prev => ({ ...prev, classes: e.target.value }))}
+                  placeholder="e.g., VI, VII, VIII, IX, X"
+                  className={`w-full px-3 py-2 rounded-lg text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight} outline-none focus:ring-2 focus:ring-amber-300`}
+                />
+              </div>
+              <div>
+                <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>Venue</label>
+                <input
+                  type="text"
+                  value={ptmForm.venue}
+                  onChange={e => setPtmForm(prev => ({ ...prev, venue: e.target.value }))}
+                  placeholder="e.g., Respective Classrooms"
+                  className={`w-full px-3 py-2 rounded-lg text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight} outline-none focus:ring-2 focus:ring-amber-300`}
+                />
+              </div>
+              <div className="col-span-2">
+                <label className={`text-[10px] font-bold ${theme.iconColor} uppercase block mb-1`}>Notes</label>
+                <textarea
+                  value={ptmForm.notes}
+                  onChange={e => setPtmForm(prev => ({ ...prev, notes: e.target.value }))}
+                  placeholder="Any additional instructions for parents or teachers..."
+                  rows={2}
+                  className={`w-full px-3 py-2 rounded-lg text-xs ${theme.inputBg} border ${theme.border} ${theme.highlight} outline-none resize-none focus:ring-2 focus:ring-amber-300`}
+                />
+              </div>
+            </div>
+            {/* Slot calculation preview */}
+            {ptmForm.duration && ptmForm.slotDuration && (
+              <div className={`mt-3 p-3 rounded-xl ${theme.secondaryBg} flex items-center gap-4`}>
+                <div className="flex items-center gap-1.5">
+                  <Clock size={12} className={theme.iconColor} />
+                  <span className={`text-[10px] ${theme.iconColor}`}>Estimated slots per teacher:</span>
+                  <span className={`text-xs font-bold ${theme.highlight}`}>{Math.floor((Number(ptmForm.duration) * 60) / Number(ptmForm.slotDuration))}</span>
+                </div>
+              </div>
+            )}
+            <div className="flex gap-2 mt-4">
+              <button
+                onClick={() => {
+                  setShowPtmForm(false);
+                  setPtmForm({ title: '', date: '', startTime: '09:00', duration: '4', classes: '', slotDuration: '15', venue: '', notes: '' });
+                }}
+                className={`px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold flex items-center gap-1.5`}
+              >
+                <Save size={12} /> Schedule PTM
+              </button>
+              <button
+                onClick={() => setShowPtmForm(false)}
+                className={`px-4 py-2 rounded-xl border ${theme.border} text-xs font-bold ${theme.highlight}`}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   // ─── RSVP DETAILS PANEL ─────────────────────────
   const renderRsvpPanel = () => {
     if (!showRsvpDetails) return null;
@@ -1136,6 +1363,7 @@ export default function CalendarModule({ theme }: { theme: Theme }) {
       {calendarView === 'weekly' && renderWeeklyView()}
       {calendarView === 'today' && renderTodayView()}
       {calendarView === 'yearly' && renderYearlyView()}
+      {calendarView === 'ptm' && renderPtmView()}
 
       {/* RSVP Details Panel */}
       {renderRsvpPanel()}
