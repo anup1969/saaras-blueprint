@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Lock, Plus, X, Info, Eye, Search, Download, Filter, Save, FileText, Calendar } from 'lucide-react';
+import { Lock, Plus, X, Info, Eye, Search, Download, Upload, Filter, Save, FileText, Calendar, Trash2, Settings2, ArrowRight } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import { BulkImportWizard } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
@@ -72,7 +72,6 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
     { type: 'SC/ST Scholarship', method: 'fixed', value: '25000', maxAmount: '', approvalRequired: true, active: true, appliesTo: 'all-components' },
     { type: 'Single Parent', method: 'percentage', value: '20', maxAmount: '20000', approvalRequired: true, active: true, appliesTo: 'tuition-annual' },
   ]);
-  const [concessionApprovalMode, setConcessionApprovalMode] = useState('Principal + Admin');
   const [concessionApprovalRequired, setConcessionApprovalRequired] = useState(true);
   const [concessionApprovalChain, setConcessionApprovalChain] = useState([
     { name: 'Mrs. Meera Shah', role: 'Accounts Officer', avatar: 'MS' },
@@ -84,9 +83,11 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
   const [perStudentCustom, setPerStudentCustom] = useState(true);
   const [overrideApproval, setOverrideApproval] = useState(true);
   const [concessionSearch, setConcessionSearch] = useState('');
+  const [addingApprover, setAddingApprover] = useState(false);
+  const [newApproverName, setNewApproverName] = useState('');
+  const [newApproverRole, setNewApproverRole] = useState('');
 
   // ═══════ Payments state ═══════
-  const [paymentModes, setPaymentModes] = useState<Record<string, boolean>>({ UPI: true, 'Net Banking': true, 'Credit Card': true, 'Debit Card': true, Cash: true, Cheque: true, 'DD/NEFT': true });
   const [paymentModesTable, setPaymentModesTable] = useState([
     { name: 'Cash', active: true, processingFee: '0', autoReceipt: true, reconciliation: 'Auto', isDefault: true, gateway: 'N/A', refundPolicy: 'Manual' },
     { name: 'Cheque', active: true, processingFee: '0', autoReceipt: false, reconciliation: 'Manual', isDefault: false, gateway: 'N/A', refundPolicy: 'Manual' },
@@ -112,9 +113,7 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
   const [autoPenaltyBounce, setAutoPenaltyBounce] = useState(false);
   const [bouncePenalty, setBouncePenalty] = useState('500');
   const [notifyBounce, setNotifyBounce] = useState(true);
-  // Online payment state (absorbed from OnlinePaymentConfigModule)
   const [gateway, setGateway] = useState('Razorpay');
-  const [refundPolicy, setRefundPolicy] = useState('Manual');
   const [convenienceFeeAmt, setConvenienceFeeAmt] = useState('0');
   const [payToggles, setPayToggles] = useState<Record<string, boolean>>({
     'Auto-receipt Generation': true, 'Partial Payment Allowed': false, 'Convenience Fee': false,
@@ -135,6 +134,8 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
   const [failoverEnabled, setFailoverEnabled] = useState(false);
   const [fallbackGateway, setFallbackGateway] = useState('PayU');
   const [switchThreshold, setSwitchThreshold] = useState('3');
+  const [addingPaymentMode, setAddingPaymentMode] = useState(false);
+  const [newPaymentModeName, setNewPaymentModeName] = useState('');
 
   // ═══════ Rules & Reminders state ═══════
   const [blockRules, setBlockRules] = useState<Record<string, boolean>>({
@@ -143,14 +144,14 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
     'Block exam hall ticket if current term unpaid': false,
     'Send auto-reminder before blocking': true,
   });
-  const [reminders] = useState([
-    { timing: '7 days before due', channel: 'Push + SMS', enabled: true },
-    { timing: '3 days before due', channel: 'Push', enabled: true },
-    { timing: '1 day before due', channel: 'Push + SMS', enabled: true },
-    { timing: '1 day after due', channel: 'Push + SMS + Email', enabled: true },
-    { timing: '7 days after due', channel: 'Push + SMS', enabled: true },
-    { timing: '15 days after due', channel: 'Push + SMS + Call', enabled: true },
-    { timing: '30 days after due', channel: 'Push + SMS + Email + Call', enabled: true },
+  const [reminderConfig, setReminderConfig] = useState([
+    { timing: '7 days before due', enabled: true, push: true, sms: true, email: false, call: false },
+    { timing: '3 days before due', enabled: true, push: true, sms: false, email: false, call: false },
+    { timing: '1 day before due', enabled: true, push: true, sms: true, email: false, call: false },
+    { timing: '1 day after due', enabled: true, push: true, sms: true, email: true, call: false },
+    { timing: '7 days after due', enabled: true, push: true, sms: true, email: false, call: false },
+    { timing: '15 days after due', enabled: true, push: true, sms: true, email: false, call: true },
+    { timing: '30 days after due', enabled: true, push: true, sms: true, email: true, call: true },
   ]);
   const [feeEstShowAdmission, setFeeEstShowAdmission] = useState(false);
   const [feeEstTransport, setFeeEstTransport] = useState(true);
@@ -165,12 +166,26 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
   const [receiptSignature, setReceiptSignature] = useState(true);
   const [auditConfigChanges, setAuditConfigChanges] = useState(true);
   const [auditRefundDecisions, setAuditRefundDecisions] = useState(true);
-  const [txnSuccessRate, setTxnSuccessRate] = useState(true);
-  const [txnReconciliation, setTxnReconciliation] = useState(false);
-  const [txnBankDeposit, setTxnBankDeposit] = useState(false);
   const [reportDateFrom, setReportDateFrom] = useState('2026-01-01');
   const [reportDateTo, setReportDateTo] = useState('2026-03-02');
   const [reportFilter, setReportFilter] = useState('all');
+  const [reportSearch, setReportSearch] = useState('');
+  const [reportGroupBy, setReportGroupBy] = useState('none');
+
+  // ═══════ Settings sub-tab state ═══════
+  type SettingsSubTab = 'masters' | 'templates' | 'rules-config' | 'payment-config' | 'import';
+  const [settingsTab, setSettingsTab] = useState<SettingsSubTab>('masters');
+
+  // Term Master
+  const [terms, setTerms] = useState([
+    { name: 'Term 1', startMonth: 'April', endMonth: 'July', active: true },
+    { name: 'Term 2', startMonth: 'August', endMonth: 'November', active: true },
+    { name: 'Term 3', startMonth: 'December', endMonth: 'March', active: true },
+  ]);
+  const [termSearch, setTermSearch] = useState('');
+
+  // Receipt template selection
+  const [selectedReceiptTemplate, setSelectedReceiptTemplate] = useState('standard');
 
   // ═══════ Derived ═══════
   const activeHeads = Object.entries(feeHeads).filter(([, v]) => v).map(([k]) => k);
@@ -182,6 +197,10 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
   const filteredConcessions = concessionSearch
     ? concessions.filter(c => c.type.toLowerCase().includes(concessionSearch.toLowerCase()))
     : concessions;
+  const filteredTerms = termSearch
+    ? terms.filter(t => t.name.toLowerCase().includes(termSearch.toLowerCase()))
+    : terms;
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
   return (
     <div className="space-y-4">
@@ -210,26 +229,10 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
             <p className="text-xs text-rose-700"><strong>Fee Structure Changes</strong> is a locked field. Editing fee heads or amounts will require OTP verification from the registered Trustee.</p>
           </div>
 
-          {/* Fee Template */}
-          <div className="relative">
-            <span className="absolute -top-1 right-3 z-10 flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-100 border border-rose-300 text-[9px] font-bold text-rose-700">
-              <Lock size={9} /> LOCKED
-            </span>
-            <SectionCard title="Fee Template" subtitle="Choose how fees are structured for your school" theme={theme}>
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { id: 'simple-annual', name: 'Simple Annual', desc: 'One lump-sum fee per year per class' },
-                  { id: 'component-based', name: 'Component-Based', desc: 'Multiple fee heads with individual amounts' },
-                  { id: 'term-wise', name: 'Term-Wise', desc: 'Split by terms (Term 1, Term 2, etc.)' },
-                ].map(t => (
-                  <button key={t.id} onClick={() => setFeeTemplate(t.id)}
-                    className={`p-3 rounded-xl text-left border-2 transition-all ${feeTemplate === t.id ? `${theme.primary} text-white border-transparent` : `${theme.secondaryBg} ${theme.border} ${theme.highlight}`}`}>
-                    <p className="text-xs font-bold">{t.name}</p>
-                    <p className={`text-[10px] mt-1 ${feeTemplate === t.id ? 'text-white/80' : theme.iconColor}`}>{t.desc}</p>
-                  </button>
-                ))}
-              </div>
-            </SectionCard>
+          {/* Note: Fee Template moved to Settings > Templates */}
+          <div className={`flex items-center gap-2 p-3 rounded-xl ${theme.secondaryBg} border ${theme.border}`}>
+            <Settings2 size={14} className={theme.iconColor} />
+            <p className={`text-xs ${theme.iconColor}`}>Fee Template configuration has moved to <button onClick={() => { setActiveTab('settings'); setSettingsTab('templates'); }} className={`font-bold ${theme.primaryText} hover:underline`}>Settings &rarr; Templates</button></p>
           </div>
 
           {/* Grade-wise Fee Amounts */}
@@ -241,10 +244,10 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
               {feeTemplate === 'term-wise' && (
                 <div className="flex items-center gap-2 mb-3">
                   <p className={`text-[10px] font-bold ${theme.iconColor}`}>Term:</p>
-                  {['Term 1', 'Term 2', 'Term 3'].map(t => (
-                    <button key={t} onClick={() => setSelectedTerm(t)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${selectedTerm === t ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.highlight} ${theme.border} border`}`}>
-                      {t}
+                  {terms.filter(t => t.active).map(t => (
+                    <button key={t.name} onClick={() => setSelectedTerm(t.name)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${selectedTerm === t.name ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.highlight} ${theme.border} border`}`}>
+                      {t.name}
                     </button>
                   ))}
                 </div>
@@ -303,7 +306,7 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
           <div className={`flex items-center justify-between p-4 rounded-2xl ${theme.secondaryBg} border ${theme.border}`}>
             <div>
               <p className={`text-sm font-bold ${theme.highlight}`}>Save Fee Structure</p>
-              <p className={`text-[10px] ${theme.iconColor}`}>Save template, grade-wise amounts, and term settings</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Save grade-wise amounts and term settings</p>
             </div>
             <button className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold ${theme.primary} text-white shadow-lg hover:shadow-xl transition-all`}>
               <Save size={16} /> Save Changes
@@ -342,10 +345,46 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
                               <p className={`text-[9px] ${theme.iconColor}`}>{step.role}</p>
                             </div>
                           </div>
-                          <button className={`text-[9px] px-2 py-1 rounded-lg ${theme.buttonHover} ${theme.iconColor} border ${theme.border}`}>Change</button>
+                          <div className="flex items-center gap-1">
+                            <button className={`text-[9px] px-2 py-1 rounded-lg ${theme.buttonHover} ${theme.iconColor} border ${theme.border}`}>Change</button>
+                            <button onClick={() => setConcessionApprovalChain(p => p.filter((_, j) => j !== i))}
+                              className="text-[9px] px-2 py-1 rounded-lg text-red-500 hover:bg-red-50 border border-red-200" title="Remove from chain">
+                              <Trash2 size={10} />
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
+                    {/* Add Approver */}
+                    {addingApprover ? (
+                      <div className={`mt-2 p-3 rounded-xl border ${theme.border} ${theme.secondaryBg}`}>
+                        <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Add New Approver</p>
+                        <div className="grid grid-cols-2 gap-2 mb-2">
+                          <InputField value={newApproverName} onChange={setNewApproverName} theme={theme} placeholder="Full Name" />
+                          <InputField value={newApproverRole} onChange={setNewApproverRole} theme={theme} placeholder="Role / Designation" />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => {
+                            if (newApproverName && newApproverRole) {
+                              const initials = newApproverName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+                              setConcessionApprovalChain(p => [...p, { name: newApproverName, role: newApproverRole, avatar: initials }]);
+                              setNewApproverName(''); setNewApproverRole(''); setAddingApprover(false);
+                            }
+                          }} className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold ${theme.primary} text-white`}>
+                            <Plus size={12} /> Add
+                          </button>
+                          <button onClick={() => { setAddingApprover(false); setNewApproverName(''); setNewApproverRole(''); }}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold ${theme.iconColor} ${theme.buttonHover}`}>
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button onClick={() => setAddingApprover(true)}
+                        className={`mt-2 flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
+                        <Plus size={12} /> Add Person to Chain
+                      </button>
+                    )}
                   </div>
                   <div>
                     <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Max Concession Without Approval ({'\u20B9'})</p>
@@ -425,12 +464,17 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
       )}
 
       {/* ══════════════════════════════════════════════════════════════
-          TAB 3: Payments
+          TAB 3: Payments — Config moved to Settings > Payment Config
           ══════════════════════════════════════════════════════════════ */}
       {activeTab === 'payments' && (
         <div className="space-y-4">
+          <div className={`flex items-center gap-2 p-3 rounded-xl ${theme.secondaryBg} border ${theme.border}`}>
+            <Settings2 size={14} className={theme.iconColor} />
+            <p className={`text-xs ${theme.iconColor}`}>Payment configuration (modes, gateways, links, QR, retry, international) has moved to <button onClick={() => { setActiveTab('settings'); setSettingsTab('payment-config'); }} className={`font-bold ${theme.primaryText} hover:underline`}>Settings &rarr; Payment Config</button></p>
+          </div>
+
+          {/* Billing Cycle & Due Date + Late Fee — core payment behavior */}
           <div className="grid grid-cols-2 gap-4">
-            {/* Billing Cycle & Due Date */}
             <SectionCard title="Billing Cycle & Due Date" subtitle="Payment schedule configuration" theme={theme}>
               <div className="space-y-3">
                 <div>
@@ -448,7 +492,6 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
               </div>
             </SectionCard>
 
-            {/* Late Fee Rules */}
             <SectionCard title="Late Fee Rules" subtitle="Penalties for overdue payments" theme={theme}>
               <div className="space-y-3">
                 <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
@@ -481,10 +524,6 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
 
           {/* EMI / Installment Plans */}
           <SectionCard title="EMI / Installment Plans" subtitle="Parents can pay fees in EMIs with optional interest" theme={theme}>
-            <div className="flex items-center mb-3">
-              <p className={`text-[10px] font-bold ${theme.iconColor}`}>Configure installment payment options</p>
-              <InfoIcon tip="Parents can pay fees in EMIs with optional interest" />
-            </div>
             <div className="space-y-3">
               <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
                 <p className={`text-xs font-bold ${theme.highlight}`}>Enable EMI Plans</p>
@@ -513,10 +552,6 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
 
           {/* Cheque Management */}
           <SectionCard title="Cheque Management" subtitle="Track cheques and auto-penalize bounced payments" theme={theme}>
-            <div className="flex items-center mb-3">
-              <p className={`text-[10px] font-bold ${theme.iconColor}`}>Manage cheque payments and bounce penalties</p>
-              <InfoIcon tip="Track cheques and auto-penalize bounced payments" />
-            </div>
             <div className="space-y-2">
               <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
                 <p className={`text-xs font-bold ${theme.highlight}`}>Post-dated cheque register</p>
@@ -544,189 +579,11 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
             </div>
           </SectionCard>
 
-          {/* Payment Features */}
-          <SectionCard title="Payment Features" subtitle="Receipt generation, partial payments, and convenience fees" theme={theme}>
-            <div className="space-y-2">
-              {Object.entries(payToggles).map(([feat, enabled]) => (
-                <div key={feat} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                  <div className="flex-1 mr-3">
-                    <p className={`text-xs font-bold ${theme.highlight}`}>{feat}</p>
-                    <p className={`text-[10px] ${theme.iconColor}`}>{
-                      ({
-                        'Auto-receipt Generation': 'Automatically generates a payment receipt after successful payment',
-                        'Partial Payment Allowed': 'Parents can pay a portion of the total fee at once',
-                        'Convenience Fee': 'Add a processing fee on online payments',
-                      } as Record<string, string>)[feat]
-                    }</p>
-                  </div>
-                  <SSAToggle on={enabled} onChange={() => setPayToggles(p => ({ ...p, [feat]: !p[feat] }))} theme={theme} />
-                </div>
-              ))}
-              {payToggles['Convenience Fee'] && (
-                <div className="ml-4 mt-1">
-                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Convenience Fee Amount ({'\u20B9'})</p>
-                  <InputField value={convenienceFeeAmt} onChange={setConvenienceFeeAmt} theme={theme} type="number" />
-                </div>
-              )}
-            </div>
-          </SectionCard>
-
-          {/* Payment Links */}
-          <SectionCard title="Payment Links" subtitle="Unique payment link per student per invoice" theme={theme}>
-            <div className="flex items-center mb-3">
-              <p className={`text-[10px] font-bold ${theme.iconColor}`}>Generate and send payment links to parents</p>
-              <InfoIcon tip="Unique payment link per student per invoice" />
-            </div>
-            <div className="space-y-2">
-              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <p className={`text-xs font-bold ${theme.highlight}`}>Generate per-student payment link</p>
-                <SSAToggle on={payLinkPerStudent} onChange={() => setPayLinkPerStudent(!payLinkPerStudent)} theme={theme} />
-              </div>
-              {payLinkPerStudent && (
-                <>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Link expiry (days)</p>
-                      <InputField value={payLinkExpiry} onChange={setPayLinkExpiry} theme={theme} type="number" />
-                    </div>
-                  </div>
-                  <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                    <div className="flex items-center">
-                      <p className={`text-xs font-bold ${theme.highlight}`}>Auto-send via SMS/WhatsApp</p>
-                      <MobileBadge />
-                    </div>
-                    <SSAToggle on={payLinkAutoSend} onChange={() => setPayLinkAutoSend(!payLinkAutoSend)} theme={theme} />
-                  </div>
-                </>
-              )}
-            </div>
-          </SectionCard>
-
-          {/* Dynamic QR Codes */}
-          <SectionCard title="Dynamic QR Codes" subtitle="Generate student-specific UPI QR codes for instant payment" theme={theme}>
-            <div className="flex items-center mb-3">
-              <p className={`text-[10px] font-bold ${theme.iconColor}`}>Configure UPI QR code generation</p>
-              <InfoIcon tip="Generate student-specific UPI QR codes for instant payment" />
-            </div>
-            <div className="space-y-2">
-              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <p className={`text-xs font-bold ${theme.highlight}`}>UPI QR per student</p>
-                <SSAToggle on={qrPerStudent} onChange={() => setQrPerStudent(!qrPerStudent)} theme={theme} />
-              </div>
-              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <p className={`text-xs font-bold ${theme.highlight}`}>Counter QR for walk-in</p>
-                <SSAToggle on={qrCounter} onChange={() => setQrCounter(!qrCounter)} theme={theme} />
-              </div>
-              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <p className={`text-xs font-bold ${theme.highlight}`}>QR on fee receipt</p>
-                <SSAToggle on={qrOnReceipt} onChange={() => setQrOnReceipt(!qrOnReceipt)} theme={theme} />
-              </div>
-            </div>
-          </SectionCard>
-
-          {/* Payment Retry & Recovery */}
-          <SectionCard title="Payment Retry & Recovery" subtitle="Auto-retry failed transactions and notify parents" theme={theme}>
-            <div className="flex items-center mb-3">
-              <p className={`text-[10px] font-bold ${theme.iconColor}`}>Handle failed payment transactions</p>
-              <InfoIcon tip="Automatically retry failed payments and alert parents" />
-            </div>
-            <div className="space-y-2">
-              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <p className={`text-xs font-bold ${theme.highlight}`}>Auto-retry failed transactions</p>
-                <SSAToggle on={autoRetry} onChange={() => setAutoRetry(!autoRetry)} theme={theme} />
-              </div>
-              {autoRetry && (
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Retry after (minutes)</p>
-                    <InputField value={retryMinutes} onChange={setRetryMinutes} theme={theme} type="number" />
-                  </div>
-                  <div>
-                    <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Max retries</p>
-                    <InputField value={maxRetries} onChange={setMaxRetries} theme={theme} type="number" />
-                  </div>
-                </div>
-              )}
-              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <div className="flex items-center">
-                  <p className={`text-xs font-bold ${theme.highlight}`}>Failed payment notification</p>
-                  <MobileBadge />
-                </div>
-                <SSAToggle on={failedNotify} onChange={() => setFailedNotify(!failedNotify)} theme={theme} />
-              </div>
-            </div>
-          </SectionCard>
-
-          {/* International Payments */}
-          <SectionCard title="International Payments" subtitle="Support NRI parent payments in foreign currencies" theme={theme}>
-            <div className="flex items-center mb-3">
-              <p className={`text-[10px] font-bold ${theme.iconColor}`}>Enable cross-border fee payments</p>
-              <InfoIcon tip="Allow NRI parents to pay fees in their local currency" />
-            </div>
-            <div className="space-y-3">
-              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <p className={`text-xs font-bold ${theme.highlight}`}>Enable NRI parent payments</p>
-                <SSAToggle on={nriEnabled} onChange={() => setNriEnabled(!nriEnabled)} theme={theme} />
-              </div>
-              {nriEnabled && (
-                <>
-                  <div>
-                    <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Supported Currencies</p>
-                    <div className="flex flex-wrap gap-2">
-                      {Object.entries(currencies).map(([cur, on]) => (
-                        <label key={cur} className={`flex items-center gap-2 p-2 rounded-lg ${theme.secondaryBg} cursor-pointer`}>
-                          <input type="checkbox" checked={on} onChange={() => setCurrencies(p => ({ ...p, [cur]: !p[cur] }))} className="accent-emerald-500 w-3.5 h-3.5" />
-                          <span className={`text-[10px] font-medium ${theme.highlight}`}>{cur}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Currency Conversion</p>
-                    <SelectField options={['Live rate', 'Fixed rate']} value={currencyConversion} onChange={setCurrencyConversion} theme={theme} />
-                  </div>
-                </>
-              )}
-            </div>
-          </SectionCard>
-
-          {/* Multi-Gateway Failover */}
-          <SectionCard title="Multi-Gateway Failover" subtitle="Automatic gateway switching on consecutive failures" theme={theme}>
-            <div className="flex items-center mb-3">
-              <p className={`text-[10px] font-bold ${theme.iconColor}`}>Route payments to backup gateway on failure</p>
-              <InfoIcon tip="Automatically switch to fallback gateway after consecutive failures" />
-            </div>
-            <div className="space-y-3">
-              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <p className={`text-xs font-bold ${theme.highlight}`}>Enable failover routing</p>
-                <SSAToggle on={failoverEnabled} onChange={() => setFailoverEnabled(!failoverEnabled)} theme={theme} />
-              </div>
-              {failoverEnabled && (
-                <>
-                  <div className={`p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                    <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Primary Gateway</p>
-                    <p className={`text-xs font-bold ${theme.highlight}`}>{gateway}</p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Fallback Gateway</p>
-                      <SelectField options={['PayU', 'CCAvenue', 'Cashfree']} value={fallbackGateway} onChange={setFallbackGateway} theme={theme} />
-                    </div>
-                    <div>
-                      <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Switch threshold (consecutive failures)</p>
-                      <InputField value={switchThreshold} onChange={setSwitchThreshold} theme={theme} type="number" />
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          </SectionCard>
-
           {/* Save Bar */}
           <div className={`flex items-center justify-between p-4 rounded-2xl ${theme.secondaryBg} border ${theme.border}`}>
             <div>
               <p className={`text-sm font-bold ${theme.highlight}`}>Save Payment Settings</p>
-              <p className={`text-[10px] ${theme.iconColor}`}>Save billing, late fees, EMI, gateway, and online payment config</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Save billing cycle, late fees, EMI, and cheque settings</p>
             </div>
             <button className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold ${theme.primary} text-white shadow-lg hover:shadow-xl transition-all`}>
               <Save size={16} /> Save Changes
@@ -736,221 +593,78 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
       )}
 
       {/* ══════════════════════════════════════════════════════════════
-          TAB 4: Rules & Reminders
+          TAB 4: Rules & Reminders — Config moved to Settings > Rules & Config
           ══════════════════════════════════════════════════════════════ */}
       {activeTab === 'rules' && (
         <div className="space-y-4">
-          {/* Blocking Rules */}
-          <SectionCard title="Fee Defaulter Blocking Rules" subtitle="Restrict access to services when fees are overdue" theme={theme}>
-            <div className="space-y-2">
-              {Object.entries(blockRules).map(([rule, enabled]) => (
-                <div key={rule} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                  <div className="flex-1 mr-3">
-                    <p className={`text-xs font-bold ${theme.highlight}`}>{rule}</p>
-                    <p className={`text-[10px] ${theme.iconColor}`}>{
-                      ({
-                        'Block report card if fees overdue > 60 days': 'Report card download/view is blocked if any fee is unpaid for more than 60 days',
-                        'Block TC generation if outstanding > 0': 'Transfer Certificate cannot be generated until all outstanding dues are cleared',
-                        'Block exam hall ticket if current term unpaid': 'Student cannot receive hall ticket for exams if current term fees are unpaid',
-                        'Send auto-reminder before blocking': 'System sends an automatic warning to parents before any blocking action takes effect',
-                      } as Record<string, string>)[rule]
-                    }</p>
-                  </div>
-                  <SSAToggle on={enabled} onChange={() => setBlockRules(p => ({ ...p, [rule]: !p[rule] }))} theme={theme} label={rule} />
-                </div>
-              ))}
-            </div>
-          </SectionCard>
-
-          {/* Reminder Schedule */}
-          <SectionCard title="Fee Reminder Schedule" subtitle="Automated reminders before and after due date" theme={theme}>
-            <div className="space-y-1.5">
-              {reminders.map((r, i) => (
-                <div key={i} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                  <div className="flex items-center gap-3">
-                    <span className={`text-xs font-bold ${theme.highlight}`}>{r.timing}</span>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-lg ${theme.accentBg} ${theme.iconColor}`}>{r.channel}</span>
-                  </div>
-                  <div className={`w-2 h-2 rounded-full ${r.enabled ? 'bg-emerald-500' : 'bg-slate-300'}`} />
-                </div>
-              ))}
-            </div>
-          </SectionCard>
-
-          {/* Fee Estimation Calculator */}
-          <SectionCard title="Fee Estimation Calculator" subtitle="Parents see estimated annual fee during enquiry/admission" theme={theme}>
-            <div className="flex items-center mb-3">
-              <p className={`text-[10px] font-bold ${theme.iconColor}`}>Show fee estimator to parents</p>
-              <InfoIcon tip="Parents see estimated annual fee during enquiry/admission" />
-            </div>
-            <div className="space-y-2">
-              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <div className="flex items-center">
-                  <p className={`text-xs font-bold ${theme.highlight}`}>Show in admission portal</p>
-                  <MobileBadge />
-                </div>
-                <SSAToggle on={feeEstShowAdmission} onChange={() => setFeeEstShowAdmission(!feeEstShowAdmission)} theme={theme} />
-              </div>
-              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <p className={`text-xs font-bold ${theme.highlight}`}>Include transport fee</p>
-                <SSAToggle on={feeEstTransport} onChange={() => setFeeEstTransport(!feeEstTransport)} theme={theme} />
-              </div>
-              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <p className={`text-xs font-bold ${theme.highlight}`}>Include optional fees</p>
-                <SSAToggle on={feeEstOptional} onChange={() => setFeeEstOptional(!feeEstOptional)} theme={theme} />
-              </div>
-            </div>
-          </SectionCard>
-
-          {/* Save Bar */}
-          <div className={`flex items-center justify-between p-4 rounded-2xl ${theme.secondaryBg} border ${theme.border}`}>
-            <div>
-              <p className={`text-sm font-bold ${theme.highlight}`}>Save Rules & Reminders</p>
-              <p className={`text-[10px] ${theme.iconColor}`}>Save blocking rules, reminder schedule, and estimation settings</p>
-            </div>
-            <button className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold ${theme.primary} text-white shadow-lg hover:shadow-xl transition-all`}>
-              <Save size={16} /> Save Changes
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-8 text-center`}>
+            <Settings2 size={32} className={`${theme.iconColor} mx-auto mb-3`} />
+            <h3 className={`text-sm font-bold ${theme.highlight} mb-2`}>Rules & Reminders moved to Settings</h3>
+            <p className={`text-xs ${theme.iconColor} mb-4 max-w-md mx-auto`}>
+              Fee Defaulter Blocking Rules, Reminder Schedule, and Fee Estimation Calculator are now in the Settings tab under &ldquo;Rules &amp; Config&rdquo; for centralized configuration.
+            </p>
+            <button onClick={() => { setActiveTab('settings'); setSettingsTab('rules-config'); }}
+              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold ${theme.primary} text-white shadow-lg hover:shadow-xl transition-all`}>
+              Go to Settings <ArrowRight size={16} />
             </button>
           </div>
         </div>
       )}
 
       {/* ══════════════════════════════════════════════════════════════
-          TAB 5: Reports
+          TAB 5: Reports — Enhanced with Search, Filter, Group By, Export
           ══════════════════════════════════════════════════════════════ */}
       {activeTab === 'reports' && (
         <div className="space-y-4">
-          {/* Report Toolbar */}
-          <div className={`flex items-center justify-between p-3 rounded-xl ${theme.secondaryBg}`}>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <Calendar size={14} className={theme.iconColor} />
-                <input type="date" value={reportDateFrom} onChange={e => setReportDateFrom(e.target.value)}
-                  className={`px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
-                <span className={`text-[10px] ${theme.iconColor}`}>to</span>
-                <input type="date" value={reportDateTo} onChange={e => setReportDateTo(e.target.value)}
-                  className={`px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
-              </div>
-              <div className="flex items-center gap-1.5">
-                <Filter size={12} className={theme.iconColor} />
-                <select value={reportFilter} onChange={e => setReportFilter(e.target.value)}
-                  className={`px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`}>
-                  <option value="all">All Transactions</option>
-                  <option value="success">Successful</option>
-                  <option value="failed">Failed</option>
-                  <option value="refunded">Refunded</option>
-                </select>
-              </div>
+          {/* Report Toolbar — Enhanced */}
+          <div className={`flex flex-wrap items-center gap-3 p-3 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex items-center gap-2">
+              <Calendar size={14} className={theme.iconColor} />
+              <input type="date" value={reportDateFrom} onChange={e => setReportDateFrom(e.target.value)}
+                className={`px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+              <span className={`text-[10px] ${theme.iconColor}`}>to</span>
+              <input type="date" value={reportDateTo} onChange={e => setReportDateTo(e.target.value)}
+                className={`px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
             </div>
-            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-red-100 text-red-700 hover:bg-red-200 transition-colors">
-              <FileText size={12} /> Export PDF
-            </button>
-          </div>
-
-          {/* Transaction Reports */}
-          <SectionCard title="Transaction Reports" subtitle="Dashboard-level reporting for payment transactions" theme={theme}>
-            <div className="flex items-center mb-3">
-              <p className={`text-[10px] font-bold ${theme.iconColor}`}>Enable transaction analytics and reconciliation</p>
-              <InfoIcon tip="Monitor payment success rates, settlement reconciliation, and bank deposits" />
+            <div className="relative">
+              <Search size={12} className={`absolute left-2.5 top-1/2 -translate-y-1/2 ${theme.iconColor}`} />
+              <input value={reportSearch} onChange={e => setReportSearch(e.target.value)}
+                placeholder="Search reports..."
+                className={`pl-7 pr-3 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none w-40`} />
             </div>
-            <div className="space-y-2">
-              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <p className={`text-xs font-bold ${theme.highlight}`}>Success/Failure rate dashboard</p>
-                <SSAToggle on={txnSuccessRate} onChange={() => setTxnSuccessRate(!txnSuccessRate)} theme={theme} />
-              </div>
-              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <p className={`text-xs font-bold ${theme.highlight}`}>Settlement reconciliation</p>
-                <SSAToggle on={txnReconciliation} onChange={() => setTxnReconciliation(!txnReconciliation)} theme={theme} />
-              </div>
-              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <p className={`text-xs font-bold ${theme.highlight}`}>Bank deposit tracking</p>
-                <SSAToggle on={txnBankDeposit} onChange={() => setTxnBankDeposit(!txnBankDeposit)} theme={theme} />
-              </div>
+            <div className="flex items-center gap-1.5">
+              <Filter size={12} className={theme.iconColor} />
+              <select value={reportFilter} onChange={e => setReportFilter(e.target.value)}
+                className={`px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`}>
+                <option value="all">All Transactions</option>
+                <option value="success">Successful</option>
+                <option value="failed">Failed</option>
+                <option value="refunded">Refunded</option>
+              </select>
             </div>
-          </SectionCard>
-
-          {/* Gateway Audit Trail */}
-          <SectionCard title="Gateway Audit Trail" subtitle="Track who changed payment gateway settings" theme={theme}>
-            <div className="flex items-center mb-3">
-              <p className={`text-[10px] font-bold ${theme.iconColor}`}>Log all gateway configuration changes</p>
-              <InfoIcon tip="Track who changed payment gateway settings" />
+            <div className="flex items-center gap-1.5">
+              <span className={`text-[10px] font-bold ${theme.iconColor}`}>Group:</span>
+              <select value={reportGroupBy} onChange={e => setReportGroupBy(e.target.value)}
+                className={`px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`}>
+                <option value="none">No Grouping</option>
+                <option value="class">By Class</option>
+                <option value="month">By Month</option>
+                <option value="payment-mode">By Payment Mode</option>
+                <option value="fee-head">By Fee Head</option>
+              </select>
             </div>
-            <div className="space-y-3">
-              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <p className={`text-xs font-bold ${theme.highlight}`}>Log all config changes</p>
-                <SSAToggle on={auditConfigChanges} onChange={() => setAuditConfigChanges(!auditConfigChanges)} theme={theme} />
-              </div>
-              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <p className={`text-xs font-bold ${theme.highlight}`}>Log refund decisions</p>
-                <SSAToggle on={auditRefundDecisions} onChange={() => setAuditRefundDecisions(!auditRefundDecisions)} theme={theme} />
-              </div>
-              <div>
-                <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Recent Changes</p>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs">
-                    <thead><tr className={theme.secondaryBg}>
-                      {['Date', 'Change', 'By', 'IP'].map(h => (
-                        <th key={h} className={`text-left px-2 py-2 font-bold ${theme.iconColor}`}>{h}</th>
-                      ))}
-                    </tr></thead>
-                    <tbody>
-                      {[
-                        { date: '28 Feb 2026', change: 'Gateway changed to Razorpay', by: 'Admin (Piush)', ip: '192.168.1.10' },
-                        { date: '25 Feb 2026', change: 'Convenience fee updated to 0%', by: 'Admin (Piush)', ip: '192.168.1.10' },
-                        { date: '20 Feb 2026', change: 'Refund policy set to Manual', by: 'Accounts (Meera)', ip: '192.168.1.15' },
-                      ].map((entry, i) => (
-                        <tr key={i} className={`border-t ${theme.border}`}>
-                          <td className={`px-2 py-1.5 ${theme.iconColor}`}>{entry.date}</td>
-                          <td className={`px-2 py-1.5 font-bold ${theme.highlight}`}>{entry.change}</td>
-                          <td className={`px-2 py-1.5 ${theme.iconColor}`}>{entry.by}</td>
-                          <td className={`px-2 py-1.5 ${theme.iconColor} font-mono text-[10px]`}>{entry.ip}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </SectionCard>
-
-          {/* Fee Receipt Template */}
-          <SectionCard title="Fee Receipt Template" subtitle="Customize printed/PDF fee receipt layout" theme={theme}>
-            <div className="flex items-center mb-3">
-              <p className={`text-[10px] font-bold ${theme.iconColor}`}>Design fee receipt template</p>
-              <InfoIcon tip="Customize printed/PDF fee receipt layout" />
-            </div>
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
-                {[
-                  { label: 'School Logo', val: receiptLogo, set: setReceiptLogo },
-                  { label: 'Show HSN/SAC codes (GST)', val: receiptHSN, set: setReceiptHSN },
-                  { label: 'Duplicate watermark', val: receiptWatermark, set: setReceiptWatermark },
-                  { label: 'Signature field', val: receiptSignature, set: setReceiptSignature },
-                ].map(item => (
-                  <div key={item.label} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                    <span className={`text-xs font-medium ${theme.highlight}`}>{item.label}</span>
-                    <SSAToggle on={item.val} onChange={() => item.set(!item.val)} theme={theme} />
-                  </div>
-                ))}
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Header Text</p>
-                  <InputField value={receiptHeader} onChange={setReceiptHeader} theme={theme} />
-                </div>
-                <div>
-                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Footer Text</p>
-                  <InputField value={receiptFooter} onChange={setReceiptFooter} theme={theme} />
-                </div>
-              </div>
-              <button className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold ${theme.primary} text-white`}>
-                <Eye size={14} /> Preview Receipt
+            <div className="flex items-center gap-1.5 ml-auto">
+              <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-red-100 text-red-700 hover:bg-red-200 transition-colors">
+                <FileText size={12} /> Export PDF
+              </button>
+              <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-colors">
+                <Download size={12} /> Export Excel
               </button>
             </div>
-          </SectionCard>
+          </div>
 
-          {/* Mock Summary Table */}
-          <SectionCard title="Fee Collection Summary" subtitle="Overview of fee collection status" theme={theme}>
+          {/* Fee Collection Report */}
+          <SectionCard title="Fee Collection Report" subtitle="Detailed fee collection status with search, filter, and export" theme={theme}>
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
                 <thead><tr className={theme.secondaryBg}>
@@ -975,261 +689,824 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
                 </tbody>
               </table>
             </div>
-            <p className={`text-[10px] ${theme.iconColor} mt-2`}>Showing 1-3 of 3 months</p>
+            <div className="flex items-center justify-between mt-2">
+              <p className={`text-[10px] ${theme.iconColor}`}>Showing 1-3 of 3 months</p>
+              <div className="flex gap-1.5">
+                <button className="flex items-center gap-1 px-2 py-1 rounded text-[9px] font-bold bg-red-100 text-red-700"><FileText size={10} /> PDF</button>
+                <button className="flex items-center gap-1 px-2 py-1 rounded text-[9px] font-bold bg-emerald-100 text-emerald-700"><Download size={10} /> Excel</button>
+              </div>
+            </div>
           </SectionCard>
 
-          {/* Save Bar */}
-          <div className={`flex items-center justify-between p-4 rounded-2xl ${theme.secondaryBg} border ${theme.border}`}>
-            <div>
-              <p className={`text-sm font-bold ${theme.highlight}`}>Save Report Settings</p>
-              <p className={`text-[10px] ${theme.iconColor}`}>Save receipt template, transaction report, and audit settings</p>
+          {/* Transaction Reports — as report cards with View/Export */}
+          <SectionCard title="Transaction Reports" subtitle="Payment transaction analytics and reconciliation" theme={theme}>
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { name: 'Success / Failure Rate', desc: 'Payment success rate dashboard with trend analysis', count: '2,847 transactions' },
+                { name: 'Settlement Reconciliation', desc: 'Match gateway settlements with bank deposits', count: '₹32.4L settled' },
+                { name: 'Bank Deposit Tracking', desc: 'Track deposits per bank account with daily totals', count: '3 bank accounts' },
+              ].map(report => (
+                <div key={report.name} className={`${theme.secondaryBg} rounded-xl p-3 border ${theme.border}`}>
+                  <p className={`text-xs font-bold ${theme.highlight} mb-1`}>{report.name}</p>
+                  <p className={`text-[10px] ${theme.iconColor} mb-2`}>{report.desc}</p>
+                  <p className={`text-[10px] font-bold ${theme.primaryText} mb-2`}>{report.count}</p>
+                  <div className="flex gap-1.5">
+                    <button className={`flex items-center gap-1 px-2 py-1 rounded text-[9px] font-bold ${theme.primary} text-white`}><Eye size={9} /> View</button>
+                    <button className="flex items-center gap-1 px-2 py-1 rounded text-[9px] font-bold bg-red-100 text-red-700"><FileText size={9} /> PDF</button>
+                    <button className="flex items-center gap-1 px-2 py-1 rounded text-[9px] font-bold bg-emerald-100 text-emerald-700"><Download size={9} /> Excel</button>
+                  </div>
+                </div>
+              ))}
             </div>
-            <button className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold ${theme.primary} text-white shadow-lg hover:shadow-xl transition-all`}>
-              <Save size={16} /> Save Changes
-            </button>
-          </div>
+          </SectionCard>
+
+          {/* Cheque Register Report */}
+          <SectionCard title="Cheque Register Report" subtitle="Track all cheque payments, clearances, and bounces" theme={theme}>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead><tr className={theme.secondaryBg}>
+                  {['Cheque No.', 'Student', 'Class', 'Amount', 'Bank', 'Date', 'Status'].map(h => (
+                    <th key={h} className={`text-left px-2 py-2 font-bold ${theme.iconColor}`}>{h}</th>
+                  ))}
+                </tr></thead>
+                <tbody>
+                  {[
+                    { no: 'CHQ-001234', student: 'Rahul Sharma', cls: 'Grade 5', amount: '36,000', bank: 'SBI', date: '01 Feb 2026', status: 'Cleared' },
+                    { no: 'CHQ-001235', student: 'Sneha Patel', cls: 'Grade 8', amount: '45,000', bank: 'HDFC', date: '05 Feb 2026', status: 'Cleared' },
+                    { no: 'CHQ-001236', student: 'Amit Kumar', cls: 'Grade 3', amount: '28,000', bank: 'ICICI', date: '10 Feb 2026', status: 'Bounced' },
+                    { no: 'CHQ-001237', student: 'Priya Joshi', cls: 'Grade 10', amount: '55,000', bank: 'Axis', date: '15 Feb 2026', status: 'Pending' },
+                  ].map((row, i) => (
+                    <tr key={i} className={`border-t ${theme.border}`}>
+                      <td className={`px-2 py-1.5 font-mono font-bold ${theme.highlight}`}>{row.no}</td>
+                      <td className={`px-2 py-1.5 font-bold ${theme.highlight}`}>{row.student}</td>
+                      <td className={`px-2 py-1.5 ${theme.iconColor}`}>{row.cls}</td>
+                      <td className={`px-2 py-1.5 font-bold ${theme.highlight}`}>{'\u20B9'}{row.amount}</td>
+                      <td className={`px-2 py-1.5 ${theme.iconColor}`}>{row.bank}</td>
+                      <td className={`px-2 py-1.5 ${theme.iconColor}`}>{row.date}</td>
+                      <td className="px-2 py-1.5">
+                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
+                          row.status === 'Cleared' ? 'bg-emerald-100 text-emerald-700' :
+                          row.status === 'Bounced' ? 'bg-red-100 text-red-700' :
+                          'bg-amber-100 text-amber-700'
+                        }`}>{row.status}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="flex items-center justify-between mt-2">
+              <p className={`text-[10px] ${theme.iconColor}`}>Showing 1-4 of 4 cheques</p>
+              <div className="flex gap-1.5">
+                <button className="flex items-center gap-1 px-2 py-1 rounded text-[9px] font-bold bg-red-100 text-red-700"><FileText size={10} /> PDF</button>
+                <button className="flex items-center gap-1 px-2 py-1 rounded text-[9px] font-bold bg-emerald-100 text-emerald-700"><Download size={10} /> Excel</button>
+              </div>
+            </div>
+          </SectionCard>
+
+          {/* Gateway Audit Trail */}
+          <SectionCard title="Gateway Audit Trail" subtitle="Track who changed payment gateway settings" theme={theme}>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 mb-2">
+                <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg} flex-1`}>
+                  <p className={`text-xs font-bold ${theme.highlight}`}>Log all config changes</p>
+                  <SSAToggle on={auditConfigChanges} onChange={() => setAuditConfigChanges(!auditConfigChanges)} theme={theme} />
+                </div>
+                <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg} flex-1`}>
+                  <p className={`text-xs font-bold ${theme.highlight}`}>Log refund decisions</p>
+                  <SSAToggle on={auditRefundDecisions} onChange={() => setAuditRefundDecisions(!auditRefundDecisions)} theme={theme} />
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead><tr className={theme.secondaryBg}>
+                    {['Date', 'Change', 'By', 'IP'].map(h => (
+                      <th key={h} className={`text-left px-2 py-2 font-bold ${theme.iconColor}`}>{h}</th>
+                    ))}
+                  </tr></thead>
+                  <tbody>
+                    {[
+                      { date: '28 Feb 2026', change: 'Gateway changed to Razorpay', by: 'Admin (Piush)', ip: '192.168.1.10' },
+                      { date: '25 Feb 2026', change: 'Convenience fee updated to 0%', by: 'Admin (Piush)', ip: '192.168.1.10' },
+                      { date: '20 Feb 2026', change: 'Refund policy set to Manual', by: 'Accounts (Meera)', ip: '192.168.1.15' },
+                    ].map((entry, i) => (
+                      <tr key={i} className={`border-t ${theme.border}`}>
+                        <td className={`px-2 py-1.5 ${theme.iconColor}`}>{entry.date}</td>
+                        <td className={`px-2 py-1.5 font-bold ${theme.highlight}`}>{entry.change}</td>
+                        <td className={`px-2 py-1.5 ${theme.iconColor}`}>{entry.by}</td>
+                        <td className={`px-2 py-1.5 ${theme.iconColor} font-mono text-[10px]`}>{entry.ip}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </SectionCard>
         </div>
       )}
 
       {/* ══════════════════════════════════════════════════════════════
-          TAB 6: Settings
+          TAB 6: Settings — Restructured with Sub-Tabs
           ══════════════════════════════════════════════════════════════ */}
       {activeTab === 'settings' && (
         <div className="space-y-4">
-          {/* Fee Heads Master */}
-          <SectionCard title="Fee Heads Master" subtitle="Create, update, delete, enable/disable fee components" theme={theme}>
-            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg} mb-3`}>
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  <Search size={14} className={`absolute left-2.5 top-1/2 -translate-y-1/2 ${theme.iconColor}`} />
-                  <input value={feeHeadSearch} onChange={e => setFeeHeadSearch(e.target.value)}
-                    placeholder="Search fee heads..."
-                    className={`pl-8 pr-3 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none w-52`} />
-                </div>
-                <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${theme.accentBg} ${theme.iconColor}`}>
-                  {activeHeads.length} active / {allFeeHeadNames.length + customFeeHeads.length} total
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-colors">
-                  <Download size={12} /> Export
-                </button>
-                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors">
-                  <Plus size={12} /> Import
-                </button>
-              </div>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead><tr className={theme.secondaryBg}>
-                  {['Fee Head Name', 'Frequency', 'Active', ''].map(h => (
-                    <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
-                  ))}
-                </tr></thead>
-                <tbody>
-                  {filteredFeeHeads.map(head => (
-                    <tr key={head} className={`border-t ${theme.border}`}>
-                      <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{head}</td>
-                      <td className="px-3 py-1.5">
-                        <select value={feeFrequency[head] || 'Yearly'} onChange={e => setFeeFrequency(p => ({ ...p, [head]: e.target.value }))}
-                          className={`px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] font-bold ${theme.highlight}`}>
-                          {(feeTemplate === 'term-wise' ? ['Term 1', 'Term 2', 'Term 3', 'All Terms'] : frequencies).map(f => <option key={f} value={f}>{f}</option>)}
-                        </select>
-                      </td>
-                      <td className="px-3 py-1.5">
-                        <SSAToggle on={feeHeads[head]} onChange={() => setFeeHeads(p => ({ ...p, [head]: !p[head] }))} theme={theme} label={head} />
-                      </td>
-                      <td className="px-3 py-1.5">
-                        <button onClick={() => {
-                          setFeeHeads(p => { const n = { ...p }; delete n[head]; return n; });
-                          setFeeFrequency(p => { const n = { ...p }; delete n[head]; return n; });
-                        }} className="text-red-400 hover:text-red-600"><X size={12} /></button>
-                      </td>
-                    </tr>
-                  ))}
-                  {customFeeHeads.filter(cfh => !feeHeadSearch || cfh.name.toLowerCase().includes(feeHeadSearch.toLowerCase())).map((cfh, idx) => (
-                    <tr key={`custom-${idx}`} className={`border-t ${theme.border} bg-emerald-50/30`}>
-                      <td className="px-3 py-1.5">
-                        <input value={cfh.name} onChange={e => setCustomFeeHeads(p => p.map((h, i) => i === idx ? { ...h, name: e.target.value } : h))}
-                          placeholder="New fee head name..."
-                          className={`w-full px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} />
-                      </td>
-                      <td className="px-3 py-1.5">
-                        <select value={cfh.frequency} onChange={e => setCustomFeeHeads(p => p.map((h, i) => i === idx ? { ...h, frequency: e.target.value } : h))}
-                          className={`px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] font-bold ${theme.highlight}`}>
-                          {(feeTemplate === 'term-wise' ? ['Term 1', 'Term 2', 'Term 3', 'All Terms'] : frequencies).map(f => <option key={f} value={f}>{f}</option>)}
-                        </select>
-                      </td>
-                      <td className="px-3 py-1.5">
-                        <SSAToggle on={cfh.enabled} onChange={() => setCustomFeeHeads(p => p.map((h, i) => i === idx ? { ...h, enabled: !h.enabled } : h))} theme={theme} label={cfh.name} />
-                      </td>
-                      <td className="px-3 py-1.5">
-                        <button onClick={() => setCustomFeeHeads(p => p.filter((_, i) => i !== idx))} className="text-red-400 hover:text-red-600"><X size={12} /></button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className="flex items-center justify-between mt-3 flex-wrap gap-2">
-              <div className="flex items-center gap-2">
-                <button onClick={() => setCustomFeeHeads(p => [...p, { name: '', frequency: 'Monthly', enabled: true }])}
-                  className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
-                  <Plus size={12} /> Add Fee Head
-                </button>
-                <button onClick={() => setFeeHeads(p => { const n = { ...p }; Object.keys(n).forEach(k => n[k] = true); return n; })}
-                  className="px-2.5 py-1.5 rounded-lg text-[9px] font-bold bg-emerald-100 text-emerald-700 hover:bg-emerald-200">Enable All</button>
-                <button onClick={() => setFeeHeads(p => { const n = { ...p }; Object.keys(n).forEach(k => n[k] = false); return n; })}
-                  className="px-2.5 py-1.5 rounded-lg text-[9px] font-bold bg-gray-100 text-gray-600 hover:bg-gray-200">Disable All</button>
-              </div>
-              <p className={`text-[10px] ${theme.iconColor}`}>Showing {filteredFeeHeads.length} of {allFeeHeadNames.length} fee heads</p>
-            </div>
-          </SectionCard>
-
-          {/* Payment Modes Master */}
-          <SectionCard title="Payment Modes Master" subtitle="Enable/disable payment modes and configure gateway per mode" theme={theme}>
-            <p className={`text-[10px] ${theme.iconColor} mb-3 italic`}>Payment modes are pre-configured. You can enable/disable and set gateway & refund policy per mode.</p>
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead><tr className={theme.secondaryBg}>
-                  {['Mode', 'Active', 'Gateway', 'Refund Policy', 'Fee (%)', 'Auto Receipt', 'Reconciliation', 'Default'].map(h => (
-                    <th key={h} className={`text-left px-2 py-2 font-bold ${theme.iconColor}`}>{h}</th>
-                  ))}
-                </tr></thead>
-                <tbody>
-                  {paymentModesTable.map((m, i) => (
-                    <tr key={i} className={`border-t ${theme.border} ${!m.active ? 'opacity-50' : ''}`}>
-                      <td className={`px-2 py-1.5 font-bold ${theme.highlight}`}>{m.name}</td>
-                      <td className="px-2 py-1.5">
-                        <SSAToggle on={m.active} onChange={() => { const n = [...paymentModesTable]; n[i] = { ...n[i], active: !n[i].active }; setPaymentModesTable(n); }} theme={theme} />
-                      </td>
-                      <td className="px-2 py-1.5">
-                        {m.name === 'Cash' || m.name === 'Cheque' || m.name === 'DD/NEFT' ? (
-                          <span className={`text-[10px] ${theme.iconColor}`}>N/A</span>
-                        ) : (
-                          <select value={m.gateway} onChange={e => { const n = [...paymentModesTable]; n[i] = { ...n[i], gateway: e.target.value }; setPaymentModesTable(n); }}
-                            className={`px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] font-bold ${theme.highlight}`}>
-                            <option value="Razorpay">Razorpay</option><option value="PayU">PayU</option><option value="CCAvenue">CCAvenue</option><option value="Cashfree">Cashfree</option>
-                          </select>
-                        )}
-                      </td>
-                      <td className="px-2 py-1.5">
-                        <select value={m.refundPolicy} onChange={e => { const n = [...paymentModesTable]; n[i] = { ...n[i], refundPolicy: e.target.value }; setPaymentModesTable(n); }}
-                          className={`px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] font-bold ${theme.highlight}`}>
-                          <option value="Manual">Manual</option><option value="Auto">Auto</option>
-                        </select>
-                      </td>
-                      <td className={`px-2 py-1.5 ${theme.highlight}`}>{m.processingFee}%</td>
-                      <td className="px-2 py-1.5">
-                        <SSAToggle on={m.autoReceipt} onChange={() => { const n = [...paymentModesTable]; n[i] = { ...n[i], autoReceipt: !n[i].autoReceipt }; setPaymentModesTable(n); }} theme={theme} />
-                      </td>
-                      <td className="px-2 py-1.5">
-                        <select value={m.reconciliation} onChange={e => { const n = [...paymentModesTable]; n[i] = { ...n[i], reconciliation: e.target.value }; setPaymentModesTable(n); }}
-                          className={`px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] font-bold ${theme.highlight}`}>
-                          <option value="Auto">Auto</option><option value="Manual">Manual</option>
-                        </select>
-                      </td>
-                      <td className="px-2 py-1.5">
-                        <input type="radio" name="defaultPayMode" checked={m.isDefault}
-                          onChange={() => setPaymentModesTable(p => p.map((x, j) => ({ ...x, isDefault: j === i })))} className="accent-emerald-500" />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </SectionCard>
-
-          {/* Concession & Scholarship Master */}
-          <SectionCard title="Concession & Scholarship Master" subtitle="Configure discount types, approval requirements, and limits" theme={theme}>
-            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg} mb-3`}>
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  <Search size={14} className={`absolute left-2.5 top-1/2 -translate-y-1/2 ${theme.iconColor}`} />
-                  <input value={concessionSearch} onChange={e => setConcessionSearch(e.target.value)}
-                    placeholder="Search concessions..."
-                    className={`pl-8 pr-3 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none w-52`} />
-                </div>
-                <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${theme.accentBg} ${theme.iconColor}`}>
-                  {filteredConcessions.length} of {concessions.length} types
-                </span>
-              </div>
-              <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-colors">
-                <Download size={12} /> Export CSV
+          {/* Settings Sub-Tab Bar */}
+          <div className={`flex items-center gap-1 p-1 rounded-xl ${theme.cardBg} border ${theme.border} overflow-x-auto`}>
+            {([
+              { id: 'masters' as SettingsSubTab, label: 'Masters' },
+              { id: 'templates' as SettingsSubTab, label: 'Templates' },
+              { id: 'rules-config' as SettingsSubTab, label: 'Rules & Config' },
+              { id: 'payment-config' as SettingsSubTab, label: 'Payment Config' },
+              { id: 'import' as SettingsSubTab, label: 'Import' },
+            ]).map(st => (
+              <button key={st.id} onClick={() => setSettingsTab(st.id)}
+                className={`px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${
+                  settingsTab === st.id ? `${theme.primary} text-white shadow-sm` : `${theme.iconColor} hover:${theme.highlight} ${theme.buttonHover}`
+                }`}>
+                {st.label}
               </button>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead><tr className={theme.secondaryBg}>
-                  {['Type Name', 'Applies To', 'Method', 'Value', 'Max Amt', 'Approval', 'Active', ''].map(h => (
-                    <th key={h} className={`text-left px-2 py-2 font-bold ${theme.iconColor}`}>{h}</th>
-                  ))}
-                </tr></thead>
-                <tbody>
-                  {filteredConcessions.map((c, i) => {
-                    const realIdx = concessions.indexOf(c);
-                    return (
-                    <tr key={realIdx} className={`border-t ${theme.border}`}>
-                      <td className="px-2 py-1.5">
-                        <input value={c.type} onChange={e => { const n = [...concessions]; n[realIdx] = { ...n[realIdx], type: e.target.value }; setConcessions(n); }}
-                          className={`w-full px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} />
-                      </td>
-                      <td className="px-2 py-1.5">
-                        <select value={c.appliesTo || 'all-components'} onChange={e => { const n = [...concessions]; n[realIdx] = { ...n[realIdx], appliesTo: e.target.value }; setConcessions(n); }}
-                          className={`px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight}`}>
-                          <option value="all-components">All Components</option>
-                          <option value="tuition-only">Tuition Only</option>
-                          <option value="tuition-annual">Tuition + Annual</option>
-                          <option value="excluding-transport">Excl. Transport</option>
-                          <option value="custom">Custom Selection</option>
-                        </select>
-                      </td>
-                      <td className="px-2 py-1.5">
-                        <select value={c.method} onChange={e => { const n = [...concessions]; n[realIdx] = { ...n[realIdx], method: e.target.value }; setConcessions(n); }}
-                          className={`px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight}`}>
-                          <option value="percentage">%</option>
-                          <option value="fixed">{'\u20B9'} Fixed</option>
-                        </select>
-                      </td>
-                      <td className="px-2 py-1.5">
-                        <input value={c.value} onChange={e => { const n = [...concessions]; n[realIdx] = { ...n[realIdx], value: e.target.value }; setConcessions(n); }}
-                          className={`w-14 px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none`} />
-                      </td>
-                      <td className="px-2 py-1.5">
-                        <input value={c.maxAmount} onChange={e => { const n = [...concessions]; n[realIdx] = { ...n[realIdx], maxAmount: e.target.value }; setConcessions(n); }}
-                          placeholder="-" className={`w-16 px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none`} />
-                      </td>
-                      <td className="px-2 py-1.5">
-                        <SSAToggle on={c.approvalRequired} onChange={() => { const n = [...concessions]; n[realIdx] = { ...n[realIdx], approvalRequired: !n[realIdx].approvalRequired }; setConcessions(n); }} theme={theme} />
-                      </td>
-                      <td className="px-2 py-1.5">
-                        <SSAToggle on={c.active} onChange={() => { const n = [...concessions]; n[realIdx] = { ...n[realIdx], active: !n[realIdx].active }; setConcessions(n); }} theme={theme} label={c.type} />
-                      </td>
-                      <td className="px-2 py-1.5"><button onClick={() => setConcessions(p => p.filter((_, j) => j !== realIdx))} className="text-red-400 hover:text-red-600"><X size={12} /></button></td>
-                    </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-            <div className="flex items-center justify-between mt-2 flex-wrap gap-2">
-              <div className="flex items-center gap-2">
-                <button onClick={() => setConcessions(p => [...p, { type: '', method: 'percentage', value: '0', maxAmount: '', approvalRequired: false, active: true, appliesTo: 'all-components' }])}
-                  className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
-                  <Plus size={12} /> Add Concession Type
-                </button>
-                <button onClick={() => setConcessions(p => p.map(c => ({ ...c, active: true })))}
-                  className="px-2.5 py-1.5 rounded-lg text-[9px] font-bold bg-emerald-100 text-emerald-700 hover:bg-emerald-200">Activate All</button>
-                <button onClick={() => setConcessions(p => p.map(c => ({ ...c, active: false })))}
-                  className="px-2.5 py-1.5 rounded-lg text-[9px] font-bold bg-gray-100 text-gray-600 hover:bg-gray-200">Deactivate All</button>
-              </div>
-            </div>
-          </SectionCard>
+            ))}
+          </div>
 
-          {/* Bulk Import */}
-          <SectionCard title="Bulk Import" subtitle="Import data from Excel templates" theme={theme}>
-            <BulkImportWizard entityName="Fee Structure" templateFields={['Fee Head', 'Class', 'Amount', 'Due Date', 'Concession Type']} sampleData={[['Tuition Fee', 'Grade 5', '3600', '2026-04-10', 'None']]} theme={theme} />
-          </SectionCard>
+          {/* ═══ Settings > Masters ═══ */}
+          {settingsTab === 'masters' && (
+            <div className="space-y-4">
+              {/* Fee Heads Master */}
+              <SectionCard title="Fee Heads Master" subtitle="Create, edit, delete, enable/disable fee components" theme={theme}>
+                <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg} mb-3`}>
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <Search size={14} className={`absolute left-2.5 top-1/2 -translate-y-1/2 ${theme.iconColor}`} />
+                      <input value={feeHeadSearch} onChange={e => setFeeHeadSearch(e.target.value)}
+                        placeholder="Search fee heads..."
+                        className={`pl-8 pr-3 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none w-52`} />
+                    </div>
+                    <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${theme.accentBg} ${theme.iconColor}`}>
+                      {activeHeads.length} active / {allFeeHeadNames.length + customFeeHeads.length} total
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-colors">
+                      <Download size={12} /> Export
+                    </button>
+                    <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors">
+                      <Upload size={12} /> Import
+                    </button>
+                  </div>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead><tr className={theme.secondaryBg}>
+                      {['Fee Head Name', 'Frequency', 'Active', ''].map(h => (
+                        <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
+                      ))}
+                    </tr></thead>
+                    <tbody>
+                      {filteredFeeHeads.map(head => (
+                        <tr key={head} className={`border-t ${theme.border}`}>
+                          <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{head}</td>
+                          <td className="px-3 py-1.5">
+                            <select value={feeFrequency[head] || 'Yearly'} onChange={e => setFeeFrequency(p => ({ ...p, [head]: e.target.value }))}
+                              className={`px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] font-bold ${theme.highlight}`}>
+                              {(feeTemplate === 'term-wise' ? ['Term 1', 'Term 2', 'Term 3', 'All Terms'] : frequencies).map(f => <option key={f} value={f}>{f}</option>)}
+                            </select>
+                          </td>
+                          <td className="px-3 py-1.5">
+                            <SSAToggle on={feeHeads[head]} onChange={() => setFeeHeads(p => ({ ...p, [head]: !p[head] }))} theme={theme} label={head} />
+                          </td>
+                          <td className="px-3 py-1.5">
+                            <button onClick={() => {
+                              setFeeHeads(p => { const n = { ...p }; delete n[head]; return n; });
+                              setFeeFrequency(p => { const n = { ...p }; delete n[head]; return n; });
+                            }} className="text-red-400 hover:text-red-600"><Trash2 size={12} /></button>
+                          </td>
+                        </tr>
+                      ))}
+                      {customFeeHeads.filter(cfh => !feeHeadSearch || cfh.name.toLowerCase().includes(feeHeadSearch.toLowerCase())).map((cfh, idx) => (
+                        <tr key={`custom-${idx}`} className={`border-t ${theme.border} bg-emerald-50/30`}>
+                          <td className="px-3 py-1.5">
+                            <input value={cfh.name} onChange={e => setCustomFeeHeads(p => p.map((h, i) => i === idx ? { ...h, name: e.target.value } : h))}
+                              placeholder="New fee head name..."
+                              className={`w-full px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} />
+                          </td>
+                          <td className="px-3 py-1.5">
+                            <select value={cfh.frequency} onChange={e => setCustomFeeHeads(p => p.map((h, i) => i === idx ? { ...h, frequency: e.target.value } : h))}
+                              className={`px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] font-bold ${theme.highlight}`}>
+                              {(feeTemplate === 'term-wise' ? ['Term 1', 'Term 2', 'Term 3', 'All Terms'] : frequencies).map(f => <option key={f} value={f}>{f}</option>)}
+                            </select>
+                          </td>
+                          <td className="px-3 py-1.5">
+                            <SSAToggle on={cfh.enabled} onChange={() => setCustomFeeHeads(p => p.map((h, i) => i === idx ? { ...h, enabled: !h.enabled } : h))} theme={theme} label={cfh.name} />
+                          </td>
+                          <td className="px-3 py-1.5">
+                            <button onClick={() => setCustomFeeHeads(p => p.filter((_, i) => i !== idx))} className="text-red-400 hover:text-red-600"><Trash2 size={12} /></button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="flex items-center justify-between mt-3 flex-wrap gap-2">
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => setCustomFeeHeads(p => [...p, { name: '', frequency: 'Monthly', enabled: true }])}
+                      className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
+                      <Plus size={12} /> Add Fee Head
+                    </button>
+                    <button onClick={() => setFeeHeads(p => { const n = { ...p }; Object.keys(n).forEach(k => n[k] = true); return n; })}
+                      className="px-2.5 py-1.5 rounded-lg text-[9px] font-bold bg-emerald-100 text-emerald-700 hover:bg-emerald-200">Enable All</button>
+                    <button onClick={() => setFeeHeads(p => { const n = { ...p }; Object.keys(n).forEach(k => n[k] = false); return n; })}
+                      className="px-2.5 py-1.5 rounded-lg text-[9px] font-bold bg-gray-100 text-gray-600 hover:bg-gray-200">Disable All</button>
+                  </div>
+                  <p className={`text-[10px] ${theme.iconColor}`}>Showing {filteredFeeHeads.length} of {allFeeHeadNames.length} fee heads</p>
+                </div>
+              </SectionCard>
+
+              {/* Payment Modes Master — Enhanced with Add */}
+              <SectionCard title="Payment Modes Master" subtitle="Create, edit, delete payment modes and configure gateway per mode" theme={theme}>
+                <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg} mb-3`}>
+                  <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${theme.accentBg} ${theme.iconColor}`}>
+                    {paymentModesTable.filter(m => m.active).length} active / {paymentModesTable.length} total
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-colors">
+                      <Download size={12} /> Export
+                    </button>
+                    <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors">
+                      <Upload size={12} /> Import
+                    </button>
+                  </div>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead><tr className={theme.secondaryBg}>
+                      {['Mode', 'Active', 'Gateway', 'Refund Policy', 'Fee (%)', 'Auto Receipt', 'Reconciliation', 'Default', ''].map(h => (
+                        <th key={h} className={`text-left px-2 py-2 font-bold ${theme.iconColor}`}>{h}</th>
+                      ))}
+                    </tr></thead>
+                    <tbody>
+                      {paymentModesTable.map((m, i) => (
+                        <tr key={i} className={`border-t ${theme.border} ${!m.active ? 'opacity-50' : ''}`}>
+                          <td className={`px-2 py-1.5 font-bold ${theme.highlight}`}>{m.name}</td>
+                          <td className="px-2 py-1.5">
+                            <SSAToggle on={m.active} onChange={() => { const n = [...paymentModesTable]; n[i] = { ...n[i], active: !n[i].active }; setPaymentModesTable(n); }} theme={theme} />
+                          </td>
+                          <td className="px-2 py-1.5">
+                            {m.name === 'Cash' || m.name === 'Cheque' || m.name === 'DD/NEFT' ? (
+                              <span className={`text-[10px] ${theme.iconColor}`}>N/A</span>
+                            ) : (
+                              <select value={m.gateway} onChange={e => { const n = [...paymentModesTable]; n[i] = { ...n[i], gateway: e.target.value }; setPaymentModesTable(n); }}
+                                className={`px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] font-bold ${theme.highlight}`}>
+                                <option value="Razorpay">Razorpay</option><option value="PayU">PayU</option><option value="CCAvenue">CCAvenue</option><option value="Cashfree">Cashfree</option>
+                              </select>
+                            )}
+                          </td>
+                          <td className="px-2 py-1.5">
+                            <select value={m.refundPolicy} onChange={e => { const n = [...paymentModesTable]; n[i] = { ...n[i], refundPolicy: e.target.value }; setPaymentModesTable(n); }}
+                              className={`px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] font-bold ${theme.highlight}`}>
+                              <option value="Manual">Manual</option><option value="Auto">Auto</option>
+                            </select>
+                          </td>
+                          <td className={`px-2 py-1.5 ${theme.highlight}`}>{m.processingFee}%</td>
+                          <td className="px-2 py-1.5">
+                            <SSAToggle on={m.autoReceipt} onChange={() => { const n = [...paymentModesTable]; n[i] = { ...n[i], autoReceipt: !n[i].autoReceipt }; setPaymentModesTable(n); }} theme={theme} />
+                          </td>
+                          <td className="px-2 py-1.5">
+                            <select value={m.reconciliation} onChange={e => { const n = [...paymentModesTable]; n[i] = { ...n[i], reconciliation: e.target.value }; setPaymentModesTable(n); }}
+                              className={`px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] font-bold ${theme.highlight}`}>
+                              <option value="Auto">Auto</option><option value="Manual">Manual</option>
+                            </select>
+                          </td>
+                          <td className="px-2 py-1.5">
+                            <input type="radio" name="defaultPayMode" checked={m.isDefault}
+                              onChange={() => setPaymentModesTable(p => p.map((x, j) => ({ ...x, isDefault: j === i })))} className="accent-emerald-500" />
+                          </td>
+                          <td className="px-2 py-1.5">
+                            <button onClick={() => setPaymentModesTable(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><Trash2 size={12} /></button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {addingPaymentMode ? (
+                  <div className={`mt-3 p-3 rounded-xl border ${theme.border} ${theme.secondaryBg}`}>
+                    <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Add New Payment Mode</p>
+                    <div className="flex items-center gap-2">
+                      <InputField value={newPaymentModeName} onChange={setNewPaymentModeName} theme={theme} placeholder="Payment mode name" />
+                      <button onClick={() => {
+                        if (newPaymentModeName) {
+                          setPaymentModesTable(p => [...p, { name: newPaymentModeName, active: true, processingFee: '0', autoReceipt: true, reconciliation: 'Manual', isDefault: false, gateway: 'N/A', refundPolicy: 'Manual' }]);
+                          setNewPaymentModeName(''); setAddingPaymentMode(false);
+                        }
+                      }} className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold ${theme.primary} text-white whitespace-nowrap`}>
+                        <Plus size={12} /> Add
+                      </button>
+                      <button onClick={() => { setAddingPaymentMode(false); setNewPaymentModeName(''); }}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold ${theme.iconColor} ${theme.buttonHover}`}>Cancel</button>
+                    </div>
+                  </div>
+                ) : (
+                  <button onClick={() => setAddingPaymentMode(true)}
+                    className={`mt-3 flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
+                    <Plus size={12} /> Add Payment Mode
+                  </button>
+                )}
+              </SectionCard>
+
+              {/* Concession & Scholarship Master */}
+              <SectionCard title="Concession & Scholarship Master" subtitle="Create, edit, delete discount types, approval requirements, and limits" theme={theme}>
+                <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg} mb-3`}>
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <Search size={14} className={`absolute left-2.5 top-1/2 -translate-y-1/2 ${theme.iconColor}`} />
+                      <input value={concessionSearch} onChange={e => setConcessionSearch(e.target.value)}
+                        placeholder="Search concessions..."
+                        className={`pl-8 pr-3 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none w-52`} />
+                    </div>
+                    <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${theme.accentBg} ${theme.iconColor}`}>
+                      {filteredConcessions.length} of {concessions.length} types
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-colors">
+                      <Download size={12} /> Export
+                    </button>
+                    <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors">
+                      <Upload size={12} /> Import
+                    </button>
+                  </div>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead><tr className={theme.secondaryBg}>
+                      {['Type Name', 'Applies To', 'Method', 'Value', 'Max Amt', 'Approval', 'Active', ''].map(h => (
+                        <th key={h} className={`text-left px-2 py-2 font-bold ${theme.iconColor}`}>{h}</th>
+                      ))}
+                    </tr></thead>
+                    <tbody>
+                      {filteredConcessions.map((c, i) => {
+                        const realIdx = concessions.indexOf(c);
+                        return (
+                        <tr key={realIdx} className={`border-t ${theme.border}`}>
+                          <td className="px-2 py-1.5">
+                            <input value={c.type} onChange={e => { const n = [...concessions]; n[realIdx] = { ...n[realIdx], type: e.target.value }; setConcessions(n); }}
+                              className={`w-full px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} />
+                          </td>
+                          <td className="px-2 py-1.5">
+                            <select value={c.appliesTo || 'all-components'} onChange={e => { const n = [...concessions]; n[realIdx] = { ...n[realIdx], appliesTo: e.target.value }; setConcessions(n); }}
+                              className={`px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight}`}>
+                              <option value="all-components">All Components</option>
+                              <option value="tuition-only">Tuition Only</option>
+                              <option value="tuition-annual">Tuition + Annual</option>
+                              <option value="excluding-transport">Excl. Transport</option>
+                              <option value="custom">Custom Selection</option>
+                            </select>
+                          </td>
+                          <td className="px-2 py-1.5">
+                            <select value={c.method} onChange={e => { const n = [...concessions]; n[realIdx] = { ...n[realIdx], method: e.target.value }; setConcessions(n); }}
+                              className={`px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight}`}>
+                              <option value="percentage">%</option>
+                              <option value="fixed">{'\u20B9'} Fixed</option>
+                            </select>
+                          </td>
+                          <td className="px-2 py-1.5">
+                            <input value={c.value} onChange={e => { const n = [...concessions]; n[realIdx] = { ...n[realIdx], value: e.target.value }; setConcessions(n); }}
+                              className={`w-14 px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none`} />
+                          </td>
+                          <td className="px-2 py-1.5">
+                            <input value={c.maxAmount} onChange={e => { const n = [...concessions]; n[realIdx] = { ...n[realIdx], maxAmount: e.target.value }; setConcessions(n); }}
+                              placeholder="-" className={`w-16 px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none`} />
+                          </td>
+                          <td className="px-2 py-1.5">
+                            <SSAToggle on={c.approvalRequired} onChange={() => { const n = [...concessions]; n[realIdx] = { ...n[realIdx], approvalRequired: !n[realIdx].approvalRequired }; setConcessions(n); }} theme={theme} />
+                          </td>
+                          <td className="px-2 py-1.5">
+                            <SSAToggle on={c.active} onChange={() => { const n = [...concessions]; n[realIdx] = { ...n[realIdx], active: !n[realIdx].active }; setConcessions(n); }} theme={theme} label={c.type} />
+                          </td>
+                          <td className="px-2 py-1.5"><button onClick={() => setConcessions(p => p.filter((_, j) => j !== realIdx))} className="text-red-400 hover:text-red-600"><Trash2 size={12} /></button></td>
+                        </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="flex items-center justify-between mt-2 flex-wrap gap-2">
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => setConcessions(p => [...p, { type: '', method: 'percentage', value: '0', maxAmount: '', approvalRequired: false, active: true, appliesTo: 'all-components' }])}
+                      className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
+                      <Plus size={12} /> Add Concession Type
+                    </button>
+                    <button onClick={() => setConcessions(p => p.map(c => ({ ...c, active: true })))}
+                      className="px-2.5 py-1.5 rounded-lg text-[9px] font-bold bg-emerald-100 text-emerald-700 hover:bg-emerald-200">Activate All</button>
+                    <button onClick={() => setConcessions(p => p.map(c => ({ ...c, active: false })))}
+                      className="px-2.5 py-1.5 rounded-lg text-[9px] font-bold bg-gray-100 text-gray-600 hover:bg-gray-200">Deactivate All</button>
+                  </div>
+                </div>
+              </SectionCard>
+
+              {/* Term Master — NEW */}
+              <SectionCard title="Term Master" subtitle="Create, edit, delete academic terms for fee scheduling" theme={theme}>
+                <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg} mb-3`}>
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <Search size={14} className={`absolute left-2.5 top-1/2 -translate-y-1/2 ${theme.iconColor}`} />
+                      <input value={termSearch} onChange={e => setTermSearch(e.target.value)}
+                        placeholder="Search terms..."
+                        className={`pl-8 pr-3 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none w-44`} />
+                    </div>
+                    <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${theme.accentBg} ${theme.iconColor}`}>
+                      {terms.filter(t => t.active).length} active / {terms.length} total
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-colors">
+                      <Download size={12} /> Export
+                    </button>
+                    <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors">
+                      <Upload size={12} /> Import
+                    </button>
+                  </div>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead><tr className={theme.secondaryBg}>
+                      {['Term Name', 'Start Month', 'End Month', 'Active', ''].map(h => (
+                        <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
+                      ))}
+                    </tr></thead>
+                    <tbody>
+                      {filteredTerms.map((term, idx) => (
+                        <tr key={idx} className={`border-t ${theme.border}`}>
+                          <td className="px-3 py-1.5">
+                            <input value={term.name} onChange={e => setTerms(p => p.map((t, i) => i === idx ? { ...t, name: e.target.value } : t))}
+                              className={`w-full px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} />
+                          </td>
+                          <td className="px-3 py-1.5">
+                            <select value={term.startMonth} onChange={e => setTerms(p => p.map((t, i) => i === idx ? { ...t, startMonth: e.target.value } : t))}
+                              className={`px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] font-bold ${theme.highlight}`}>
+                              {months.map(m => <option key={m} value={m}>{m}</option>)}
+                            </select>
+                          </td>
+                          <td className="px-3 py-1.5">
+                            <select value={term.endMonth} onChange={e => setTerms(p => p.map((t, i) => i === idx ? { ...t, endMonth: e.target.value } : t))}
+                              className={`px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] font-bold ${theme.highlight}`}>
+                              {months.map(m => <option key={m} value={m}>{m}</option>)}
+                            </select>
+                          </td>
+                          <td className="px-3 py-1.5">
+                            <SSAToggle on={term.active} onChange={() => setTerms(p => p.map((t, i) => i === idx ? { ...t, active: !t.active } : t))} theme={theme} label={term.name} />
+                          </td>
+                          <td className="px-3 py-1.5">
+                            <button onClick={() => setTerms(p => p.filter((_, i) => i !== idx))} className="text-red-400 hover:text-red-600"><Trash2 size={12} /></button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="flex items-center justify-between mt-3">
+                  <button onClick={() => setTerms(p => [...p, { name: `Term ${p.length + 1}`, startMonth: 'April', endMonth: 'July', active: true }])}
+                    className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
+                    <Plus size={12} /> Add Term
+                  </button>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{filteredTerms.length} of {terms.length} terms</p>
+                </div>
+              </SectionCard>
+            </div>
+          )}
+
+          {/* ═══ Settings > Templates ═══ */}
+          {settingsTab === 'templates' && (
+            <div className="space-y-4">
+              {/* Fee Template — moved from Structure tab */}
+              <div className="relative">
+                <span className="absolute -top-1 right-3 z-10 flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-100 border border-rose-300 text-[9px] font-bold text-rose-700">
+                  <Lock size={9} /> LOCKED
+                </span>
+                <SectionCard title="Fee Template" subtitle="Choose how fees are structured for your school" theme={theme}>
+                  <div className="grid grid-cols-3 gap-3">
+                    {[
+                      { id: 'simple-annual', name: 'Simple Annual', desc: 'One lump-sum fee per year per class' },
+                      { id: 'component-based', name: 'Component-Based', desc: 'Multiple fee heads with individual amounts' },
+                      { id: 'term-wise', name: 'Term-Wise', desc: 'Split by terms (Term 1, Term 2, etc.)' },
+                    ].map(t => (
+                      <button key={t.id} onClick={() => setFeeTemplate(t.id)}
+                        className={`p-3 rounded-xl text-left border-2 transition-all ${feeTemplate === t.id ? `${theme.primary} text-white border-transparent` : `${theme.secondaryBg} ${theme.border} ${theme.highlight}`}`}>
+                        <p className="text-xs font-bold">{t.name}</p>
+                        <p className={`text-[10px] mt-1 ${feeTemplate === t.id ? 'text-white/80' : theme.iconColor}`}>{t.desc}</p>
+                      </button>
+                    ))}
+                  </div>
+                </SectionCard>
+              </div>
+
+              {/* Fee Receipt Template — moved from Reports, enhanced with multiple templates */}
+              <SectionCard title="Fee Receipt Template" subtitle="Choose, customize, and preview fee receipt layouts" theme={theme}>
+                <div className="mb-4">
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Select Template</p>
+                  <div className="grid grid-cols-3 gap-3">
+                    {[
+                      { id: 'standard', name: 'Standard', desc: 'Classic school receipt with header, items, and footer' },
+                      { id: 'compact', name: 'Compact', desc: 'Single-page minimal receipt for quick printing' },
+                      { id: 'detailed', name: 'Detailed GST', desc: 'Full receipt with HSN/SAC codes and GST breakdown' },
+                    ].map(tpl => (
+                      <button key={tpl.id} onClick={() => setSelectedReceiptTemplate(tpl.id)}
+                        className={`p-3 rounded-xl text-left border-2 transition-all ${selectedReceiptTemplate === tpl.id ? `${theme.primary} text-white border-transparent` : `${theme.secondaryBg} ${theme.border} ${theme.highlight}`}`}>
+                        <div className={`w-full h-16 rounded-lg mb-2 flex items-center justify-center text-lg ${selectedReceiptTemplate === tpl.id ? 'bg-white/20' : theme.accentBg}`}>
+                          <FileText size={24} className={selectedReceiptTemplate === tpl.id ? 'text-white/70' : theme.iconColor} />
+                        </div>
+                        <p className="text-xs font-bold">{tpl.name}</p>
+                        <p className={`text-[10px] mt-0.5 ${selectedReceiptTemplate === tpl.id ? 'text-white/80' : theme.iconColor}`}>{tpl.desc}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <p className={`text-[10px] font-bold ${theme.iconColor}`}>Template Options</p>
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+                    {[
+                      { label: 'School Logo', val: receiptLogo, set: setReceiptLogo },
+                      { label: 'Show HSN/SAC codes (GST)', val: receiptHSN, set: setReceiptHSN },
+                      { label: 'Duplicate watermark', val: receiptWatermark, set: setReceiptWatermark },
+                      { label: 'Signature field', val: receiptSignature, set: setReceiptSignature },
+                    ].map(item => (
+                      <div key={item.label} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                        <span className={`text-xs font-medium ${theme.highlight}`}>{item.label}</span>
+                        <SSAToggle on={item.val} onChange={() => item.set(!item.val)} theme={theme} />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Header Text</p>
+                      <InputField value={receiptHeader} onChange={setReceiptHeader} theme={theme} />
+                    </div>
+                    <div>
+                      <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Footer Text</p>
+                      <InputField value={receiptFooter} onChange={setReceiptFooter} theme={theme} />
+                    </div>
+                  </div>
+                  <button className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold ${theme.primary} text-white`}>
+                    <Eye size={14} /> Preview Receipt
+                  </button>
+                </div>
+              </SectionCard>
+            </div>
+          )}
+
+          {/* ═══ Settings > Rules & Config ═══ */}
+          {settingsTab === 'rules-config' && (
+            <div className="space-y-4">
+              {/* Blocking Rules — moved from Rules tab */}
+              <SectionCard title="Fee Defaulter Blocking Rules" subtitle="Restrict access to services when fees are overdue" theme={theme}>
+                <div className="space-y-2">
+                  {Object.entries(blockRules).map(([rule, enabled]) => (
+                    <div key={rule} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                      <div className="flex-1 mr-3">
+                        <p className={`text-xs font-bold ${theme.highlight}`}>{rule}</p>
+                        <p className={`text-[10px] ${theme.iconColor}`}>{
+                          ({
+                            'Block report card if fees overdue > 60 days': 'Report card download/view is blocked if any fee is unpaid for more than 60 days',
+                            'Block TC generation if outstanding > 0': 'Transfer Certificate cannot be generated until all outstanding dues are cleared',
+                            'Block exam hall ticket if current term unpaid': 'Student cannot receive hall ticket for exams if current term fees are unpaid',
+                            'Send auto-reminder before blocking': 'System sends an automatic warning to parents before any blocking action takes effect',
+                          } as Record<string, string>)[rule]
+                        }</p>
+                      </div>
+                      <SSAToggle on={enabled} onChange={() => setBlockRules(p => ({ ...p, [rule]: !p[rule] }))} theme={theme} label={rule} />
+                    </div>
+                  ))}
+                </div>
+              </SectionCard>
+
+              {/* Reminder Schedule — moved from Rules tab, enhanced with per-channel toggles */}
+              <SectionCard title="Fee Reminder Schedule" subtitle="Automated reminders with per-channel enable/disable" theme={theme}>
+                <div className="space-y-1.5">
+                  <div className={`grid grid-cols-[1fr_auto_auto_auto_auto_auto] gap-0 text-[10px] font-bold ${theme.iconColor} px-2.5 py-1.5`}>
+                    <span>Timing</span>
+                    <span className="w-14 text-center">Enabled</span>
+                    <span className="w-14 text-center">Push</span>
+                    <span className="w-14 text-center">SMS</span>
+                    <span className="w-14 text-center">Email</span>
+                    <span className="w-14 text-center">Call</span>
+                  </div>
+                  {reminderConfig.map((r, i) => (
+                    <div key={i} className={`grid grid-cols-[1fr_auto_auto_auto_auto_auto] gap-0 items-center p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                      <span className={`text-xs font-bold ${theme.highlight}`}>{r.timing}</span>
+                      <div className="w-14 flex justify-center">
+                        <SSAToggle on={r.enabled} onChange={() => setReminderConfig(p => p.map((x, j) => j === i ? { ...x, enabled: !x.enabled } : x))} theme={theme} />
+                      </div>
+                      <div className="w-14 flex justify-center">
+                        <SSAToggle on={r.push} onChange={() => setReminderConfig(p => p.map((x, j) => j === i ? { ...x, push: !x.push } : x))} theme={theme} />
+                      </div>
+                      <div className="w-14 flex justify-center">
+                        <SSAToggle on={r.sms} onChange={() => setReminderConfig(p => p.map((x, j) => j === i ? { ...x, sms: !x.sms } : x))} theme={theme} />
+                      </div>
+                      <div className="w-14 flex justify-center">
+                        <SSAToggle on={r.email} onChange={() => setReminderConfig(p => p.map((x, j) => j === i ? { ...x, email: !x.email } : x))} theme={theme} />
+                      </div>
+                      <div className="w-14 flex justify-center">
+                        <SSAToggle on={r.call} onChange={() => setReminderConfig(p => p.map((x, j) => j === i ? { ...x, call: !x.call } : x))} theme={theme} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </SectionCard>
+
+              {/* Fee Estimation Calculator — moved from Rules tab */}
+              <SectionCard title="Fee Estimation Calculator" subtitle="Parents see estimated annual fee during enquiry/admission" theme={theme}>
+                <div className="space-y-2">
+                  <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                    <div className="flex items-center">
+                      <p className={`text-xs font-bold ${theme.highlight}`}>Show in admission portal</p>
+                      <MobileBadge />
+                    </div>
+                    <SSAToggle on={feeEstShowAdmission} onChange={() => setFeeEstShowAdmission(!feeEstShowAdmission)} theme={theme} />
+                  </div>
+                  <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                    <p className={`text-xs font-bold ${theme.highlight}`}>Include transport fee</p>
+                    <SSAToggle on={feeEstTransport} onChange={() => setFeeEstTransport(!feeEstTransport)} theme={theme} />
+                  </div>
+                  <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                    <p className={`text-xs font-bold ${theme.highlight}`}>Include optional fees</p>
+                    <SSAToggle on={feeEstOptional} onChange={() => setFeeEstOptional(!feeEstOptional)} theme={theme} />
+                  </div>
+                </div>
+              </SectionCard>
+            </div>
+          )}
+
+          {/* ═══ Settings > Payment Config ═══ */}
+          {settingsTab === 'payment-config' && (
+            <div className="space-y-4">
+              {/* Payment Features */}
+              <SectionCard title="Payment Features" subtitle="Receipt generation, partial payments, and convenience fees" theme={theme}>
+                <div className="space-y-2">
+                  {Object.entries(payToggles).map(([feat, enabled]) => (
+                    <div key={feat} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                      <div className="flex-1 mr-3">
+                        <p className={`text-xs font-bold ${theme.highlight}`}>{feat}</p>
+                        <p className={`text-[10px] ${theme.iconColor}`}>{
+                          ({
+                            'Auto-receipt Generation': 'Automatically generates a payment receipt after successful payment',
+                            'Partial Payment Allowed': 'Parents can pay a portion of the total fee at once',
+                            'Convenience Fee': 'Add a processing fee on online payments',
+                          } as Record<string, string>)[feat]
+                        }</p>
+                      </div>
+                      <SSAToggle on={enabled} onChange={() => setPayToggles(p => ({ ...p, [feat]: !p[feat] }))} theme={theme} />
+                    </div>
+                  ))}
+                  {payToggles['Convenience Fee'] && (
+                    <div className="ml-4 mt-1">
+                      <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Convenience Fee Amount ({'\u20B9'})</p>
+                      <InputField value={convenienceFeeAmt} onChange={setConvenienceFeeAmt} theme={theme} type="number" />
+                    </div>
+                  )}
+                </div>
+              </SectionCard>
+
+              {/* Payment Links */}
+              <SectionCard title="Payment Links" subtitle="Unique payment link per student per invoice" theme={theme}>
+                <div className="space-y-2">
+                  <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                    <p className={`text-xs font-bold ${theme.highlight}`}>Generate per-student payment link</p>
+                    <SSAToggle on={payLinkPerStudent} onChange={() => setPayLinkPerStudent(!payLinkPerStudent)} theme={theme} />
+                  </div>
+                  {payLinkPerStudent && (
+                    <>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Link expiry (days)</p>
+                          <InputField value={payLinkExpiry} onChange={setPayLinkExpiry} theme={theme} type="number" />
+                        </div>
+                      </div>
+                      <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                        <div className="flex items-center">
+                          <p className={`text-xs font-bold ${theme.highlight}`}>Auto-send via SMS/WhatsApp</p>
+                          <MobileBadge />
+                        </div>
+                        <SSAToggle on={payLinkAutoSend} onChange={() => setPayLinkAutoSend(!payLinkAutoSend)} theme={theme} />
+                      </div>
+                    </>
+                  )}
+                </div>
+              </SectionCard>
+
+              {/* Dynamic QR Codes */}
+              <SectionCard title="Dynamic QR Codes" subtitle="Generate student-specific UPI QR codes for instant payment" theme={theme}>
+                <div className="space-y-2">
+                  <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                    <p className={`text-xs font-bold ${theme.highlight}`}>UPI QR per student</p>
+                    <SSAToggle on={qrPerStudent} onChange={() => setQrPerStudent(!qrPerStudent)} theme={theme} />
+                  </div>
+                  <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                    <p className={`text-xs font-bold ${theme.highlight}`}>Counter QR for walk-in</p>
+                    <SSAToggle on={qrCounter} onChange={() => setQrCounter(!qrCounter)} theme={theme} />
+                  </div>
+                  <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                    <p className={`text-xs font-bold ${theme.highlight}`}>QR on fee receipt</p>
+                    <SSAToggle on={qrOnReceipt} onChange={() => setQrOnReceipt(!qrOnReceipt)} theme={theme} />
+                  </div>
+                </div>
+              </SectionCard>
+
+              {/* Payment Retry & Recovery */}
+              <SectionCard title="Payment Retry & Recovery" subtitle="Auto-retry failed transactions and notify parents" theme={theme}>
+                <div className="space-y-2">
+                  <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                    <p className={`text-xs font-bold ${theme.highlight}`}>Auto-retry failed transactions</p>
+                    <SSAToggle on={autoRetry} onChange={() => setAutoRetry(!autoRetry)} theme={theme} />
+                  </div>
+                  {autoRetry && (
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Retry after (minutes)</p>
+                        <InputField value={retryMinutes} onChange={setRetryMinutes} theme={theme} type="number" />
+                      </div>
+                      <div>
+                        <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Max retries</p>
+                        <InputField value={maxRetries} onChange={setMaxRetries} theme={theme} type="number" />
+                      </div>
+                    </div>
+                  )}
+                  <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                    <div className="flex items-center">
+                      <p className={`text-xs font-bold ${theme.highlight}`}>Failed payment notification</p>
+                      <MobileBadge />
+                    </div>
+                    <SSAToggle on={failedNotify} onChange={() => setFailedNotify(!failedNotify)} theme={theme} />
+                  </div>
+                </div>
+              </SectionCard>
+
+              {/* International Payments */}
+              <SectionCard title="International Payments" subtitle="Support NRI parent payments in foreign currencies" theme={theme}>
+                <div className="space-y-3">
+                  <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                    <p className={`text-xs font-bold ${theme.highlight}`}>Enable NRI parent payments</p>
+                    <SSAToggle on={nriEnabled} onChange={() => setNriEnabled(!nriEnabled)} theme={theme} />
+                  </div>
+                  {nriEnabled && (
+                    <>
+                      <div>
+                        <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Supported Currencies</p>
+                        <div className="flex flex-wrap gap-2">
+                          {Object.entries(currencies).map(([cur, on]) => (
+                            <label key={cur} className={`flex items-center gap-2 p-2 rounded-lg ${theme.secondaryBg} cursor-pointer`}>
+                              <input type="checkbox" checked={on} onChange={() => setCurrencies(p => ({ ...p, [cur]: !p[cur] }))} className="accent-emerald-500 w-3.5 h-3.5" />
+                              <span className={`text-[10px] font-medium ${theme.highlight}`}>{cur}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Currency Conversion</p>
+                        <SelectField options={['Live rate', 'Fixed rate']} value={currencyConversion} onChange={setCurrencyConversion} theme={theme} />
+                      </div>
+                    </>
+                  )}
+                </div>
+              </SectionCard>
+
+              {/* Multi-Gateway Failover */}
+              <SectionCard title="Multi-Gateway Failover" subtitle="Automatic gateway switching on consecutive failures" theme={theme}>
+                <div className="space-y-3">
+                  <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                    <p className={`text-xs font-bold ${theme.highlight}`}>Enable failover routing</p>
+                    <SSAToggle on={failoverEnabled} onChange={() => setFailoverEnabled(!failoverEnabled)} theme={theme} />
+                  </div>
+                  {failoverEnabled && (
+                    <>
+                      <div className={`p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                        <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Primary Gateway</p>
+                        <p className={`text-xs font-bold ${theme.highlight}`}>{gateway}</p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Fallback Gateway</p>
+                          <SelectField options={['PayU', 'CCAvenue', 'Cashfree']} value={fallbackGateway} onChange={setFallbackGateway} theme={theme} />
+                        </div>
+                        <div>
+                          <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Switch threshold (consecutive failures)</p>
+                          <InputField value={switchThreshold} onChange={setSwitchThreshold} theme={theme} type="number" />
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </SectionCard>
+            </div>
+          )}
+
+          {/* ═══ Settings > Import ═══ */}
+          {settingsTab === 'import' && (
+            <div className="space-y-4">
+              <SectionCard title="Bulk Import" subtitle="Import data from Excel templates" theme={theme}>
+                <BulkImportWizard entityName="Fee Structure" templateFields={['Fee Head', 'Class', 'Amount', 'Due Date', 'Concession Type']} sampleData={[['Tuition Fee', 'Grade 5', '3600', '2026-04-10', 'None']]} theme={theme} />
+              </SectionCard>
+            </div>
+          )}
 
           {/* Save All Bar */}
           <div className={`flex items-center justify-between p-4 rounded-2xl ${theme.secondaryBg} border ${theme.border}`}>
