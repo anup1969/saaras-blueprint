@@ -14,7 +14,9 @@ interface ConsentType {
   renewal: string;
 }
 
-export default function ConsentESignatureConfigModule({ theme }: { theme: Theme }) {
+type TabId = 'consent' | 'settings';
+
+export default function ConsentESignatureConfigModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
   // ─── Consent Types ────────────────────────────────
   const [consentTypes, setConsentTypes] = useState<ConsentType[]>([
     { id: 1, name: 'Photo/Video Consent', description: 'Events, social media, yearbook photography', enabled: true, mandatory: true, renewal: 'Annual' },
@@ -72,10 +74,15 @@ export default function ConsentESignatureConfigModule({ theme }: { theme: Theme 
   // ─── Save state ───
   const [saved, setSaved] = useState(false);
 
+  const [internalTab, setInternalTab] = useState<TabId>('consent');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
+
   return (
     <div className="space-y-4">
       <ModuleHeader title="Consent & E-Signature Configuration" subtitle="Parent consent forms, digital signatures, lifecycle management, and compliance tracking" theme={theme} />
 
+      {activeTab === 'consent' && (<div className="space-y-4">
       {/* Row 1: Consent Types + E-Signature Settings */}
       <div className="grid grid-cols-2 gap-4">
         <SectionCard title="Consent Types" subtitle="Configure which consent types are active, mandatory, and renewal frequency" theme={theme}>
@@ -152,7 +159,7 @@ export default function ConsentESignatureConfigModule({ theme }: { theme: Theme 
         </SectionCard>
       </div>
 
-      {/* Row 2: Consent Lifecycle + Audit & Analytics */}
+      {/* Row 2: Consent Lifecycle + Consent Statistics */}
       <div className="grid grid-cols-2 gap-4">
         <SectionCard title="Consent Lifecycle" subtitle="Version control, expiry, withdrawal tracking, and bulk collection" theme={theme}>
           <div className="space-y-3">
@@ -206,58 +213,63 @@ export default function ConsentESignatureConfigModule({ theme }: { theme: Theme 
           </div>
         </SectionCard>
 
-        <SectionCard title="Audit & Analytics" subtitle="Consent audit trail, compliance reports, and missing consent alerts" theme={theme}>
-          <div className="space-y-3">
-            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <div>
-                <p className={`text-xs font-bold ${theme.highlight}`}>Consent Audit Trail</p>
-                <p className={`text-[10px] ${theme.iconColor}`}>Log every consent action with timestamp</p>
-              </div>
-              <SSAToggle on={consentAuditTrail} onChange={() => setConsentAuditTrail(!consentAuditTrail)} theme={theme} />
-            </div>
-            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <div>
-                <p className={`text-xs font-bold ${theme.highlight}`}>Analytics Dashboard</p>
-                <p className={`text-[10px] ${theme.iconColor}`}>Visual consent metrics and trends</p>
-              </div>
-              <SSAToggle on={analyticsDashboard} onChange={() => setAnalyticsDashboard(!analyticsDashboard)} theme={theme} />
-            </div>
-            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <div>
-                <p className={`text-xs font-bold ${theme.highlight}`}>Compliance Report</p>
-                <p className={`text-[10px] ${theme.iconColor}`}>Generate consent compliance reports</p>
-              </div>
-              <SSAToggle on={complianceReport} onChange={() => setComplianceReport(!complianceReport)} theme={theme} />
-            </div>
-            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <div className="flex-1 mr-3">
-                <p className={`text-xs font-bold ${theme.highlight}`}>Missing Consent Alerts</p>
-                <p className={`text-[10px] ${theme.iconColor}`}>Alert when student has missing consents</p>
-              </div>
-              <SSAToggle on={missingAlerts} onChange={() => setMissingAlerts(!missingAlerts)} theme={theme} />
-            </div>
-            {missingAlerts && (
-              <div>
-                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Notify To</p>
-                <SelectField options={['Class Teacher', 'Admin', 'Principal']} value={alertNotifyTo} onChange={setAlertNotifyTo} theme={theme} />
-              </div>
-            )}
-
-            {/* Dynamic Stats Cards — computed from consent types */}
-            <div>
-              <p className={`text-[10px] font-bold ${theme.iconColor} mb-2 uppercase tracking-wide`}>Consent Statistics</p>
-              <div className="grid grid-cols-2 gap-2">
-                {dynamicStats.map(s => (
-                  <div key={s.label} className={`p-2.5 rounded-xl ${theme.secondaryBg} text-center`}>
-                    <p className={`text-lg font-bold ${theme.highlight}`}>{s.value}</p>
-                    <p className={`text-[9px] font-bold ${theme.iconColor}`}>{s.label}</p>
-                  </div>
-                ))}
-              </div>
+        <SectionCard title="Consent Statistics" subtitle="Overview of consent collection status across all types" theme={theme}>
+          {/* Dynamic Stats Cards — computed from consent types */}
+          <div>
+            <div className="grid grid-cols-2 gap-2">
+              {dynamicStats.map(s => (
+                <div key={s.label} className={`p-2.5 rounded-xl ${theme.secondaryBg} text-center`}>
+                  <p className={`text-lg font-bold ${theme.highlight}`}>{s.value}</p>
+                  <p className={`text-[9px] font-bold ${theme.iconColor}`}>{s.label}</p>
+                </div>
+              ))}
             </div>
           </div>
         </SectionCard>
       </div>
+      </div>)}
+
+      {activeTab === 'settings' && (<div className="space-y-4">
+      {/* Audit & Analytics */}
+      <SectionCard title="Audit & Analytics" subtitle="Consent audit trail, compliance reports, and missing consent alerts" theme={theme}>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Consent Audit Trail</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Log every consent action with timestamp</p>
+            </div>
+            <SSAToggle on={consentAuditTrail} onChange={() => setConsentAuditTrail(!consentAuditTrail)} theme={theme} />
+          </div>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Analytics Dashboard</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Visual consent metrics and trends</p>
+            </div>
+            <SSAToggle on={analyticsDashboard} onChange={() => setAnalyticsDashboard(!analyticsDashboard)} theme={theme} />
+          </div>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Compliance Report</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Generate consent compliance reports</p>
+            </div>
+            <SSAToggle on={complianceReport} onChange={() => setComplianceReport(!complianceReport)} theme={theme} />
+          </div>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex-1 mr-3">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Missing Consent Alerts</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Alert when student has missing consents</p>
+            </div>
+            <SSAToggle on={missingAlerts} onChange={() => setMissingAlerts(!missingAlerts)} theme={theme} />
+          </div>
+          {missingAlerts && (
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Notify To</p>
+              <SelectField options={['Class Teacher', 'Admin', 'Principal']} value={alertNotifyTo} onChange={setAlertNotifyTo} theme={theme} />
+            </div>
+          )}
+        </div>
+      </SectionCard>
+      </div>)}
 
       {/* ─── Save Configuration ─── */}
       <div className="flex justify-end">

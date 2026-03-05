@@ -8,7 +8,9 @@ import type { Theme } from '../_helpers/types';
 
 const PAGE_SIZE = 5;
 
-export default function CertificateConfigModule({ theme }: { theme: Theme }) {
+type TabId = 'templates' | 'settings';
+
+export default function CertificateConfigModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
   // ── Certificate Templates ──────────────────────────────────────────────────
   const [templates, setTemplates] = useState([
     { name: 'Transfer Certificate (TC)', status: 'uploaded', enabled: true, lastModified: '15 Jan 2025' },
@@ -48,6 +50,9 @@ export default function CertificateConfigModule({ theme }: { theme: Theme }) {
   const [stepSearch, setStepSearch] = useState('');
   const [stepPage, setStepPage] = useState(1);
   const [showStepImport, setShowStepImport] = useState(false);
+  const [internalTab, setInternalTab] = useState<TabId>('templates');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
 
   const filteredSteps = steps.filter(s => s.label.toLowerCase().includes(stepSearch.toLowerCase()));
   const stepPages = Math.ceil(filteredSteps.length / PAGE_SIZE);
@@ -66,6 +71,7 @@ export default function CertificateConfigModule({ theme }: { theme: Theme }) {
     <div className="space-y-4">
       <ModuleHeader title="Certificate Configuration" subtitle="Templates, auto-numbering, digital signatures, and approval workflow" theme={theme} />
 
+      {activeTab === 'templates' && (<div className="space-y-4">
       {/* ── Certificate Templates ── */}
       <SectionCard title="Certificate Templates" subtitle="Add, edit, upload, enable/disable, or remove certificate types" theme={theme}>
         {/* Count + Toolbar */}
@@ -295,7 +301,9 @@ export default function CertificateConfigModule({ theme }: { theme: Theme }) {
           )}
         </SectionCard>
       </div>
+      </div>)}
 
+      {activeTab === 'settings' && (<div className="space-y-4">
       <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
         <MasterPermissionGrid masterName="Certificate Templates" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
       </SectionCard>
@@ -308,6 +316,7 @@ export default function CertificateConfigModule({ theme }: { theme: Theme }) {
           theme={theme}
         />
       </SectionCard>
+      </div>)}
 
       {/* ── Save ── */}
       <div className="flex justify-end pt-1">

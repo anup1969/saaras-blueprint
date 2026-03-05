@@ -58,8 +58,9 @@ import ConsentESignatureConfigModule from '../_modules/ConsentESignatureConfigMo
 import FormBuilderConfigModule from '../_modules/FormBuilderConfigModule';
 
 // ─── Module ID → Component mapping ──────────────────
-const MODULE_COMPONENTS: Record<string, React.ComponentType<{ theme: Theme }>> = {
+const MODULE_COMPONENTS: Record<string, React.ComponentType<{ theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }>> = {
   'onboarding-wizard': OnboardingWizardModule,
+  'fee-config': FeeConfigModule,
   'subscription-mgmt': SubscriptionMgmtModule,
   'academic-config': AcademicConfigModule,
   'hr-config': HRConfigModule,
@@ -113,9 +114,10 @@ export default function SchoolSuperAdminDashboard({ theme, currentUser }: { them
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({});
   if (!theme) return null;
 
-  const isFeeModule = activeModule.startsWith('fee-config');
-  const feeTab = activeModule.startsWith('fee-config:') ? activeModule.split(':')[1] : 'structure';
-  const ActiveComponent = MODULE_COMPONENTS[activeModule];
+  const colonIdx = activeModule.indexOf(':');
+  const baseModule = colonIdx > -1 ? activeModule.substring(0, colonIdx) : activeModule;
+  const subTab = colonIdx > -1 ? activeModule.substring(colonIdx + 1) : undefined;
+  const ActiveComponent = MODULE_COMPONENTS[baseModule];
 
   const toggleExpand = (id: string) => {
     setExpandedMenus(prev => ({ ...prev, [id]: !prev[id] }));
@@ -185,10 +187,11 @@ export default function SchoolSuperAdminDashboard({ theme, currentUser }: { them
       </div>
 
       <div className="flex-1 p-6 space-y-4 overflow-x-hidden">
-        {activeModule === 'dashboard' && <SSADashboardHome theme={theme} onNavigate={setActiveModule} />}
-        {activeModule === 'support' && <SupportModule theme={theme} role="school-super-admin" />}
-        {isFeeModule && <FeeConfigModule theme={theme} activeTab={feeTab} onTabChange={(tab: string) => setActiveModule(`fee-config:${tab}`)} />}
-        {ActiveComponent && !isFeeModule && activeModule !== 'dashboard' && activeModule !== 'support' && <ActiveComponent theme={theme} />}
+        {baseModule === 'dashboard' && <SSADashboardHome theme={theme} onNavigate={setActiveModule} />}
+        {baseModule === 'support' && <SupportModule theme={theme} role="school-super-admin" />}
+        {ActiveComponent && baseModule !== 'dashboard' && baseModule !== 'support' && (
+          <ActiveComponent theme={theme} activeTab={subTab} onTabChange={(tab: string) => setActiveModule(`${baseModule}:${tab}`)} />
+        )}
       </div>
     </div>
   );

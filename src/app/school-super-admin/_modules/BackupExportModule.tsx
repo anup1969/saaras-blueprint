@@ -5,7 +5,9 @@ import { Download, Upload, AlertTriangle, Cloud, HardDrive, Shield, Trash2, Bell
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
 
-export default function BackupExportModule({ theme }: { theme: Theme }) {
+type TabId = 'backup' | 'export' | 'settings';
+
+export default function BackupExportModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
   const [autoBackup, setAutoBackup] = useState(true);
   const [backupFreq, setBackupFreq] = useState('Daily');
   const [exportModules, setExportModules] = useState<Record<string, boolean>>({
@@ -39,6 +41,10 @@ export default function BackupExportModule({ theme }: { theme: Theme }) {
   const [storageAlerts, setStorageAlerts] = useState(true);
   const [storageAlertThreshold, setStorageAlertThreshold] = useState('80%');
   const [virusScanOnUpload, setVirusScanOnUpload] = useState(true);
+
+  const [internalTab, setInternalTab] = useState<TabId>('backup');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
 
   const backupHistory = [
     { date: '25 Feb 2026 02:00', type: 'Auto', size: '2.3 GB', status: 'Complete' },
@@ -82,6 +88,9 @@ export default function BackupExportModule({ theme }: { theme: Theme }) {
     <div className="space-y-4">
       <ModuleHeader title="Backup & Export" subtitle="Data backup scheduling, manual backup, and data export tools" theme={theme} />
 
+      {/* ─── Backup Tab ─── */}
+      {activeTab === 'backup' && (
+      <div className="space-y-4">
       <SectionCard title="Last Backup" subtitle="Most recent successful backup" theme={theme}>
         <div className={`p-4 rounded-xl ${theme.secondaryBg} flex items-center justify-between`}>
           <div>
@@ -92,132 +101,36 @@ export default function BackupExportModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
-      <div className="grid grid-cols-2 gap-4">
-        <SectionCard title="Backup Schedule" subtitle="Configure automatic backup frequency" theme={theme}>
-          <div className="space-y-3">
-            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <div>
-                <p className={`text-xs font-bold ${theme.highlight}`}>Auto Backup</p>
-                <p className={`text-[10px] ${theme.iconColor}`}>Automatically backup data on schedule</p>
-              </div>
-              <SSAToggle on={autoBackup} onChange={() => setAutoBackup(!autoBackup)} theme={theme} />
-            </div>
-            {autoBackup && (
-              <div>
-                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Frequency</p>
-                <SelectField options={['Daily', 'Weekly', 'Monthly']} value={backupFreq} onChange={setBackupFreq} theme={theme} />
-              </div>
-            )}
-            {/* Manual backup with progress */}
-            {backupProgress !== null && (
-              <div className="space-y-1">
-                <div className="w-full h-2 rounded-full bg-slate-200">
-                  <div className={`h-full rounded-full transition-all duration-300 ${backupSuccess ? 'bg-emerald-500' : theme.primary}`} style={{ width: `${backupProgress}%` }} />
-                </div>
-                <p className={`text-[10px] ${backupSuccess ? 'text-emerald-600 font-bold' : theme.iconColor}`}>
-                  {backupSuccess ? 'Backup completed successfully! Size: 2.3 GB' : `Backing up... ${backupProgress}%`}
-                </p>
-              </div>
-            )}
-            <button onClick={runManualBackup} disabled={backupProgress !== null && !backupSuccess}
-              className={`w-full flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white ${theme.primary} hover:opacity-90 transition-all disabled:opacity-50`}>
-              <Download size={14} /> {backupSuccess ? 'Run Another Backup' : 'Run Manual Backup Now'}
-            </button>
-          </div>
-        </SectionCard>
-
-        <SectionCard title="Export Data" subtitle="Export school data in various formats" theme={theme}>
-          <div className="space-y-3">
+      <SectionCard title="Backup Schedule" subtitle="Configure automatic backup frequency" theme={theme}>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
             <div>
-              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Select Data</p>
-              <div className="grid grid-cols-3 gap-1.5">
-                {Object.entries(exportModules).map(([mod, enabled]) => (
-                  <div key={mod} className={`flex items-center gap-1.5 p-1.5 rounded-lg ${theme.secondaryBg}`}>
-                    <SSAToggle on={enabled} onChange={() => setExportModules(p => ({ ...p, [mod]: !p[mod] }))} theme={theme} />
-                    <span className={`text-[10px] font-medium ${theme.highlight}`}>{mod}</span>
-                  </div>
-                ))}
-              </div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Auto Backup</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Automatically backup data on schedule</p>
             </div>
+            <SSAToggle on={autoBackup} onChange={() => setAutoBackup(!autoBackup)} theme={theme} />
+          </div>
+          {autoBackup && (
             <div>
-              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Format</p>
-              <div className="flex gap-1">
-                {['CSV', 'Excel', 'JSON'].map(f => (
-                  <button key={f} onClick={() => setExportFormat(f)}
-                    className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-bold transition-all ${exportFormat === f ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.highlight}`}`}>{f}</button>
-                ))}
-              </div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Frequency</p>
+              <SelectField options={['Daily', 'Weekly', 'Monthly']} value={backupFreq} onChange={setBackupFreq} theme={theme} />
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>From</p>
-                <InputField value={exportDateFrom} onChange={setExportDateFrom} theme={theme} type="date" />
-              </div>
-              <div>
-                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>To</p>
-                <InputField value={exportDateTo} onChange={setExportDateTo} theme={theme} type="date" />
-              </div>
-            </div>
-            {exportProgress !== null && (
-              <div className="space-y-1">
-                <div className="w-full h-2 rounded-full bg-slate-200">
-                  <div className={`h-full rounded-full transition-all duration-300 ${exportSuccess ? 'bg-emerald-500' : theme.primary}`} style={{ width: `${exportProgress}%` }} />
-                </div>
-                <p className={`text-[10px] ${exportSuccess ? 'text-emerald-600 font-bold' : theme.iconColor}`}>
-                  {exportSuccess ? `${exportFormat} export ready for download!` : `Exporting ${exportFormat}... ${exportProgress}%`}
-                </p>
-              </div>
-            )}
-            <button onClick={runExport} disabled={exportProgress !== null && !exportSuccess}
-              className={`w-full flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white ${theme.primary} hover:opacity-90 transition-all disabled:opacity-50`}>
-              <Download size={14} /> {exportSuccess ? 'Download Export' : 'Export Data'}
-            </button>
-          </div>
-        </SectionCard>
-      </div>
-
-      <SectionCard title="Restore from Backup" subtitle="Upload a backup file to restore data" theme={theme}>
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2 mb-3">
-          <AlertTriangle size={14} className="text-amber-500 mt-0.5 shrink-0" />
-          <p className="text-xs text-amber-700"><strong>Warning:</strong> Restoring from backup will overwrite current data. This action cannot be undone. Ensure you have a recent backup before proceeding.</p>
-        </div>
-        <div className={`p-3 rounded-xl ${theme.secondaryBg} space-y-3`}>
-          <div className="flex items-center gap-3">
-            <label className="flex-1 cursor-pointer">
-              <input type="file" accept=".sql,.gz,.zip" className="hidden" onChange={(e) => setRestoreFile(e.target.files?.[0]?.name || '')} />
-              <div className={`flex items-center gap-2 p-2.5 rounded-xl border-2 border-dashed ${theme.border} ${theme.buttonHover} transition-all`}>
-                <Upload size={16} className={theme.iconColor} />
-                <div className="flex-1">
-                  <p className={`text-xs font-bold ${theme.highlight}`}>{restoreFile || 'Click to select backup file'}</p>
-                  <p className={`text-[10px] ${theme.iconColor}`}>Accepted formats: .sql, .gz, .zip</p>
-                </div>
-              </div>
-            </label>
-          </div>
-          {restoreProgress !== null && (
+          )}
+          {/* Manual backup with progress */}
+          {backupProgress !== null && (
             <div className="space-y-1">
               <div className="w-full h-2 rounded-full bg-slate-200">
-                <div className={`h-full rounded-full transition-all duration-500 ${restoreProgress >= 100 ? 'bg-emerald-500' : 'bg-rose-500'}`} style={{ width: `${restoreProgress}%` }} />
+                <div className={`h-full rounded-full transition-all duration-300 ${backupSuccess ? 'bg-emerald-500' : theme.primary}`} style={{ width: `${backupProgress}%` }} />
               </div>
-              <p className={`text-[10px] ${restoreProgress >= 100 ? 'text-emerald-600 font-bold' : 'text-rose-600'}`}>
-                {restoreProgress >= 100 ? 'Restore completed successfully!' : `Restoring data... ${restoreProgress}%`}
+              <p className={`text-[10px] ${backupSuccess ? 'text-emerald-600 font-bold' : theme.iconColor}`}>
+                {backupSuccess ? 'Backup completed successfully! Size: 2.3 GB' : `Backing up... ${backupProgress}%`}
               </p>
             </div>
           )}
-          {!restoreConfirm ? (
-            <button onClick={() => { if (restoreFile) setRestoreConfirm(true); }} disabled={!restoreFile}
-              className="px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-rose-500 hover:bg-rose-600 transition-all disabled:opacity-50">
-              Restore
-            </button>
-          ) : (
-            <div className="bg-rose-50 border border-rose-200 rounded-xl p-3 space-y-2">
-              <p className="text-xs text-rose-700 font-bold">Are you sure? This will overwrite all current data with the backup.</p>
-              <div className="flex gap-2">
-                <button onClick={() => setRestoreConfirm(false)} className={`px-3 py-1.5 rounded-xl text-xs font-bold ${theme.secondaryBg} ${theme.highlight}`}>Cancel</button>
-                <button onClick={runRestore} className="px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700">Yes, Restore Now</button>
-              </div>
-            </div>
-          )}
+          <button onClick={runManualBackup} disabled={backupProgress !== null && !backupSuccess}
+            className={`w-full flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white ${theme.primary} hover:opacity-90 transition-all disabled:opacity-50`}>
+            <Download size={14} /> {backupSuccess ? 'Run Another Backup' : 'Run Manual Backup Now'}
+          </button>
         </div>
       </SectionCard>
 
@@ -272,6 +185,110 @@ export default function BackupExportModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
+      <SectionCard title="Restore from Backup" subtitle="Upload a backup file to restore data" theme={theme}>
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2 mb-3">
+          <AlertTriangle size={14} className="text-amber-500 mt-0.5 shrink-0" />
+          <p className="text-xs text-amber-700"><strong>Warning:</strong> Restoring from backup will overwrite current data. This action cannot be undone. Ensure you have a recent backup before proceeding.</p>
+        </div>
+        <div className={`p-3 rounded-xl ${theme.secondaryBg} space-y-3`}>
+          <div className="flex items-center gap-3">
+            <label className="flex-1 cursor-pointer">
+              <input type="file" accept=".sql,.gz,.zip" className="hidden" onChange={(e) => setRestoreFile(e.target.files?.[0]?.name || '')} />
+              <div className={`flex items-center gap-2 p-2.5 rounded-xl border-2 border-dashed ${theme.border} ${theme.buttonHover} transition-all`}>
+                <Upload size={16} className={theme.iconColor} />
+                <div className="flex-1">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{restoreFile || 'Click to select backup file'}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>Accepted formats: .sql, .gz, .zip</p>
+                </div>
+              </div>
+            </label>
+          </div>
+          {restoreProgress !== null && (
+            <div className="space-y-1">
+              <div className="w-full h-2 rounded-full bg-slate-200">
+                <div className={`h-full rounded-full transition-all duration-500 ${restoreProgress >= 100 ? 'bg-emerald-500' : 'bg-rose-500'}`} style={{ width: `${restoreProgress}%` }} />
+              </div>
+              <p className={`text-[10px] ${restoreProgress >= 100 ? 'text-emerald-600 font-bold' : 'text-rose-600'}`}>
+                {restoreProgress >= 100 ? 'Restore completed successfully!' : `Restoring data... ${restoreProgress}%`}
+              </p>
+            </div>
+          )}
+          {!restoreConfirm ? (
+            <button onClick={() => { if (restoreFile) setRestoreConfirm(true); }} disabled={!restoreFile}
+              className="px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-rose-500 hover:bg-rose-600 transition-all disabled:opacity-50">
+              Restore
+            </button>
+          ) : (
+            <div className="bg-rose-50 border border-rose-200 rounded-xl p-3 space-y-2">
+              <p className="text-xs text-rose-700 font-bold">Are you sure? This will overwrite all current data with the backup.</p>
+              <div className="flex gap-2">
+                <button onClick={() => setRestoreConfirm(false)} className={`px-3 py-1.5 rounded-xl text-xs font-bold ${theme.secondaryBg} ${theme.highlight}`}>Cancel</button>
+                <button onClick={runRestore} className="px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700">Yes, Restore Now</button>
+              </div>
+            </div>
+          )}
+        </div>
+      </SectionCard>
+      </div>
+      )}
+
+      {/* ─── Export Tab ─── */}
+      {activeTab === 'export' && (
+      <div className="space-y-4">
+      <SectionCard title="Export Data" subtitle="Export school data in various formats" theme={theme}>
+        <div className="space-y-3">
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Select Data</p>
+            <div className="grid grid-cols-3 gap-1.5">
+              {Object.entries(exportModules).map(([mod, enabled]) => (
+                <div key={mod} className={`flex items-center gap-1.5 p-1.5 rounded-lg ${theme.secondaryBg}`}>
+                  <SSAToggle on={enabled} onChange={() => setExportModules(p => ({ ...p, [mod]: !p[mod] }))} theme={theme} />
+                  <span className={`text-[10px] font-medium ${theme.highlight}`}>{mod}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Format</p>
+            <div className="flex gap-1">
+              {['CSV', 'Excel', 'JSON'].map(f => (
+                <button key={f} onClick={() => setExportFormat(f)}
+                  className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-bold transition-all ${exportFormat === f ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.highlight}`}`}>{f}</button>
+              ))}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>From</p>
+              <InputField value={exportDateFrom} onChange={setExportDateFrom} theme={theme} type="date" />
+            </div>
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>To</p>
+              <InputField value={exportDateTo} onChange={setExportDateTo} theme={theme} type="date" />
+            </div>
+          </div>
+          {exportProgress !== null && (
+            <div className="space-y-1">
+              <div className="w-full h-2 rounded-full bg-slate-200">
+                <div className={`h-full rounded-full transition-all duration-300 ${exportSuccess ? 'bg-emerald-500' : theme.primary}`} style={{ width: `${exportProgress}%` }} />
+              </div>
+              <p className={`text-[10px] ${exportSuccess ? 'text-emerald-600 font-bold' : theme.iconColor}`}>
+                {exportSuccess ? `${exportFormat} export ready for download!` : `Exporting ${exportFormat}... ${exportProgress}%`}
+              </p>
+            </div>
+          )}
+          <button onClick={runExport} disabled={exportProgress !== null && !exportSuccess}
+            className={`w-full flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white ${theme.primary} hover:opacity-90 transition-all disabled:opacity-50`}>
+            <Download size={14} /> {exportSuccess ? 'Download Export' : 'Export Data'}
+          </button>
+        </div>
+      </SectionCard>
+      </div>
+      )}
+
+      {/* ─── Settings Tab ─── */}
+      {activeTab === 'settings' && (
+      <div className="space-y-4">
       {/* ─── Storage Management (Gap Feature) ─── */}
       <div className="grid grid-cols-2 gap-4">
         <SectionCard title="Cloud Storage Settings" subtitle="Configure primary cloud storage provider and security" theme={theme}>
@@ -400,6 +417,8 @@ export default function BackupExportModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
       </div>
+      </div>
+      )}
 
       {/* ─── Save Bar ─── */}
       <div className={`${theme.cardBg} rounded-2xl border-2 ${theme.border} p-4 flex items-center justify-between`}>

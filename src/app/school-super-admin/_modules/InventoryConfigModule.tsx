@@ -50,7 +50,9 @@ const INITIAL_LOW_STOCK: LowStockItem[] = [
 const CONDITION_OPTIONS = ['Good', 'Fair', 'Poor', 'Disposed'];
 const PAGE_SIZE = 5;
 
-export default function InventoryConfigModule({ theme }: { theme: Theme }) {
+type TabId = 'assets' | 'procurement' | 'settings';
+
+export default function InventoryConfigModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
   // ── Feature Toggles ──────────────────────────────────────────────────────────
   const [lowStockThreshold, setLowStockThreshold] = useState('10');
   const [invToggles, setInvToggles] = useState<Record<string, boolean>>({
@@ -84,6 +86,11 @@ export default function InventoryConfigModule({ theme }: { theme: Theme }) {
   // ── Low Stock Alerts ─────────────────────────────────────────────────────────
   const [lowStockItems, setLowStockItems] = useState<LowStockItem[]>(INITIAL_LOW_STOCK);
   const [lowStockSearch, setLowStockSearch] = useState('');
+
+  // ── Tab State ──────────────────────────────────────────────────────────────
+  const [internalTab, setInternalTab] = useState<TabId>('assets');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
 
   // ── Helpers ──────────────────────────────────────────────────────────────────
   const filteredAssets = assets.filter(a =>
@@ -134,6 +141,8 @@ export default function InventoryConfigModule({ theme }: { theme: Theme }) {
     <div className="space-y-4">
       <ModuleHeader title="Inventory & Asset Configuration" subtitle="Asset register, approval tiers, low stock alerts, and feature toggles" theme={theme} />
 
+      {/* ── TAB: assets ─────────────────────────────────────────────────────── */}
+      {activeTab === 'assets' && (<div className="space-y-4">
       {/* ── Asset Register ──────────────────────────────────────────────────── */}
       <SectionCard title="Asset Register" subtitle="Master list of all school assets — CRUD with condition and assignment tracking" theme={theme}>
         <div className="flex items-center gap-2 mb-3">
@@ -218,6 +227,62 @@ export default function InventoryConfigModule({ theme }: { theme: Theme }) {
         )}
       </SectionCard>
 
+      {/* ── Asset Categories ────────────────────────────────────────────────── */}
+      <SectionCard title="Asset Categories" subtitle="Manage inventory categories used in the asset register" theme={theme}>
+          <div className="flex items-center gap-2 mb-2">
+            <div className={`flex items-center gap-1.5 flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg}`}>
+              <Search size={12} className={theme.iconColor} />
+              <input value={catSearch} onChange={e => setCatSearch(e.target.value)} placeholder="Search..."
+                className={`flex-1 bg-transparent text-xs ${theme.highlight} outline-none`} />
+            </div>
+            <span className={`text-[10px] px-2 py-1 rounded-lg ${theme.accentBg} ${theme.iconColor} font-bold`}>{filteredCats.length}</span>
+          </div>
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {filteredCats.map(c => (
+              <span key={c} className={`flex items-center gap-1 px-2.5 py-1 rounded-lg ${theme.secondaryBg} text-xs font-medium ${theme.highlight}`}>
+                {c}
+                <button onClick={() => setAssetCategories(p => p.filter(x => x !== c))} className="text-red-400 hover:text-red-600"><X size={10} /></button>
+              </span>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <input value={newAssetCat} onChange={e => setNewAssetCat(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && newAssetCat.trim()) { setAssetCategories(p => [...p, newAssetCat.trim()]); setNewAssetCat(''); } }}
+              placeholder="Add category..."
+              className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+            <button onClick={() => { if (newAssetCat.trim()) { setAssetCategories(p => [...p, newAssetCat.trim()]); setNewAssetCat(''); } }}
+              className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}><Plus size={14} /></button>
+          </div>
+      </SectionCard>
+
+      {/* ── Inventory Features ──────────────────────────────────────────────── */}
+      <SectionCard title="Inventory Features" subtitle="Asset tracking, stock alerts, and depreciation management" theme={theme}>
+          <div className="space-y-2">
+            {Object.entries(invToggles).map(([feat, enabled]) => (
+              <div key={feat} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <div className="flex-1 mr-3">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{feat}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{
+                    ({
+                      'Barcode/QR Asset Tagging': 'Each asset gets a unique barcode/QR label — scan to view details, location, and condition',
+                      'Low Stock Alerts': 'Auto-alert admin when consumable items fall below the minimum quantity threshold',
+                      'Depreciation Tracking': 'Automatically calculate asset depreciation over time for accounting and budgeting',
+                    } as Record<string, string>)[feat]
+                  }</p>
+                </div>
+                <SSAToggle on={enabled} onChange={() => setInvToggles(p => ({ ...p, [feat]: !p[feat] }))} theme={theme} />
+              </div>
+            ))}
+            <div className="pt-1">
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Global Low Stock Threshold (qty)</p>
+              <InputField value={lowStockThreshold} onChange={setLowStockThreshold} theme={theme} type="number" />
+            </div>
+          </div>
+      </SectionCard>
+      </div>)}
+
+      {/* ── TAB: procurement ──────────────────────────────────────────────────── */}
+      {activeTab === 'procurement' && (<div className="space-y-4">
       {/* ── Purchase Approval Tiers (editable) ────────────────────────────────── */}
       <SectionCard title="Purchase Approval Tiers" subtitle="Editable tiered approval chains based on purchase value — click a tier to edit" theme={theme}>
         <div className="flex justify-end mb-3">
@@ -328,61 +393,10 @@ export default function InventoryConfigModule({ theme }: { theme: Theme }) {
           </table>
         </div>
       </SectionCard>
+      </div>)}
 
-      {/* ── Inventory Features + Categories ─────────────────────────────────── */}
-      <div className="grid grid-cols-2 gap-4">
-        <SectionCard title="Inventory Features" subtitle="Asset tracking, stock alerts, and depreciation management" theme={theme}>
-          <div className="space-y-2">
-            {Object.entries(invToggles).map(([feat, enabled]) => (
-              <div key={feat} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <div className="flex-1 mr-3">
-                  <p className={`text-xs font-bold ${theme.highlight}`}>{feat}</p>
-                  <p className={`text-[10px] ${theme.iconColor}`}>{
-                    ({
-                      'Barcode/QR Asset Tagging': 'Each asset gets a unique barcode/QR label — scan to view details, location, and condition',
-                      'Low Stock Alerts': 'Auto-alert admin when consumable items fall below the minimum quantity threshold',
-                      'Depreciation Tracking': 'Automatically calculate asset depreciation over time for accounting and budgeting',
-                    } as Record<string, string>)[feat]
-                  }</p>
-                </div>
-                <SSAToggle on={enabled} onChange={() => setInvToggles(p => ({ ...p, [feat]: !p[feat] }))} theme={theme} />
-              </div>
-            ))}
-            <div className="pt-1">
-              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Global Low Stock Threshold (qty)</p>
-              <InputField value={lowStockThreshold} onChange={setLowStockThreshold} theme={theme} type="number" />
-            </div>
-          </div>
-        </SectionCard>
-
-        <SectionCard title="Asset Categories" subtitle="Manage inventory categories used in the asset register" theme={theme}>
-          <div className="flex items-center gap-2 mb-2">
-            <div className={`flex items-center gap-1.5 flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg}`}>
-              <Search size={12} className={theme.iconColor} />
-              <input value={catSearch} onChange={e => setCatSearch(e.target.value)} placeholder="Search..."
-                className={`flex-1 bg-transparent text-xs ${theme.highlight} outline-none`} />
-            </div>
-            <span className={`text-[10px] px-2 py-1 rounded-lg ${theme.accentBg} ${theme.iconColor} font-bold`}>{filteredCats.length}</span>
-          </div>
-          <div className="flex flex-wrap gap-1.5 mb-3">
-            {filteredCats.map(c => (
-              <span key={c} className={`flex items-center gap-1 px-2.5 py-1 rounded-lg ${theme.secondaryBg} text-xs font-medium ${theme.highlight}`}>
-                {c}
-                <button onClick={() => setAssetCategories(p => p.filter(x => x !== c))} className="text-red-400 hover:text-red-600"><X size={10} /></button>
-              </span>
-            ))}
-          </div>
-          <div className="flex gap-2">
-            <input value={newAssetCat} onChange={e => setNewAssetCat(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter' && newAssetCat.trim()) { setAssetCategories(p => [...p, newAssetCat.trim()]); setNewAssetCat(''); } }}
-              placeholder="Add category..."
-              className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
-            <button onClick={() => { if (newAssetCat.trim()) { setAssetCategories(p => [...p, newAssetCat.trim()]); setNewAssetCat(''); } }}
-              className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}><Plus size={14} /></button>
-          </div>
-        </SectionCard>
-      </div>
-
+      {/* ── TAB: settings ─────────────────────────────────────────────────────── */}
+      {activeTab === 'settings' && (<div className="space-y-4">
       {/* ── Permissions ──────────────────────────────────────────────────────── */}
       <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
         <div className="space-y-4">
@@ -396,6 +410,7 @@ export default function InventoryConfigModule({ theme }: { theme: Theme }) {
       <SectionCard title="Bulk Import" subtitle="Import data from Excel templates" theme={theme}>
         <BulkImportWizard entityName="Assets" templateFields={['Asset Name', 'Category', 'Serial No', 'Quantity', 'Location', 'Condition', 'Purchase Date', 'Value (₹)', 'Assigned To']} sampleData={[['Projector BenQ MX535', 'Electronics', 'PRJ-2026-001', '1', 'Room 204', 'Good', '2026-01-15', '45000', 'AV Department']]} theme={theme} />
       </SectionCard>
+      </div>)}
     </div>
   );
 }

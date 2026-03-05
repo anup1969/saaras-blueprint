@@ -5,7 +5,9 @@ import { X, Plus, Search, Download, Upload, Save, Trash2 } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
 
-export default function SchoolIdentityConfigModule({ theme }: { theme: Theme }) {
+type TabId = 'basic' | 'schedule' | 'system';
+
+export default function SchoolIdentityConfigModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
   const [schoolName, setSchoolName] = useState('Delhi Public School, Ahmedabad');
   const [medium, setMedium] = useState('English');
   const [category, setCategory] = useState('Co-educational');
@@ -34,6 +36,10 @@ export default function SchoolIdentityConfigModule({ theme }: { theme: Theme }) 
   const [apiRateLimit, setApiRateLimit] = useState('100');
   const [logoFile, setLogoFile] = useState<string | null>(null);
 
+  const [internalTab, setInternalTab] = useState<TabId>('basic');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
+
   // Gap 23: Locale & Format Settings
   const [currency, setCurrency] = useState('INR (\u20B9)');
   const [dateFormat, setDateFormat] = useState('DD/MM/YYYY');
@@ -49,6 +55,7 @@ export default function SchoolIdentityConfigModule({ theme }: { theme: Theme }) 
     <div className="space-y-4">
       <ModuleHeader title="School Identity Configuration" subtitle="Core school details captured during onboarding — editable by SSA" theme={theme} />
 
+      {activeTab === 'basic' && (<div className="space-y-4">
       <SectionCard title="Basic Information" subtitle="School name and classification" theme={theme}>
         <div className="space-y-3">
           <div>
@@ -68,40 +75,40 @@ export default function SchoolIdentityConfigModule({ theme }: { theme: Theme }) 
         </div>
       </SectionCard>
 
-      <div className="grid grid-cols-2 gap-4">
-        <SectionCard title="Academic Configuration" subtitle="Year pattern and board affiliation" theme={theme}>
-          <div className="space-y-3">
-            <div>
-              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Academic Year Pattern</p>
-              <SelectField options={['April-March', 'June-May', 'January-December']} value={academicPattern} onChange={setAcademicPattern} theme={theme} />
-            </div>
-            <div>
-              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Board Affiliation</p>
-              <SelectField options={['CBSE', 'ICSE', 'State Board', 'IB', 'Custom']} value={board} onChange={setBoard} theme={theme} />
-            </div>
+      <SectionCard title="Academic Configuration" subtitle="Year pattern and board affiliation" theme={theme}>
+        <div className="space-y-3">
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Academic Year Pattern</p>
+            <SelectField options={['April-March', 'June-May', 'January-December']} value={academicPattern} onChange={setAcademicPattern} theme={theme} />
           </div>
-        </SectionCard>
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Board Affiliation</p>
+            <SelectField options={['CBSE', 'ICSE', 'State Board', 'IB', 'Custom']} value={board} onChange={setBoard} theme={theme} />
+          </div>
+        </div>
+      </SectionCard>
+      </div>)}
 
-        <SectionCard title="Working Days" subtitle="Weekly schedule pattern" theme={theme}>
-          <div className="space-y-3">
-            <SelectField options={['Mon-Fri', 'Mon-Sat', 'Custom']} value={workingDays} onChange={setWorkingDays} theme={theme} />
-            {workingDays === 'Custom' && (
-              <div className="grid grid-cols-3 gap-2">
-                {(Object.keys(customDays) as Array<keyof typeof customDays>).map(day => (
-                  <div key={day} className={`flex items-center gap-2 p-2 rounded-lg ${theme.secondaryBg}`}>
-                    <SSAToggle
-                      on={customDays[day]}
-                      onChange={() => setCustomDays(prev => ({ ...prev, [day]: !prev[day] }))}
-                      theme={theme}
-                    />
-                    <span className={`text-xs ${theme.highlight}`}>{day}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </SectionCard>
-      </div>
+      {activeTab === 'schedule' && (<div className="space-y-4">
+      <SectionCard title="Working Days" subtitle="Weekly schedule pattern" theme={theme}>
+        <div className="space-y-3">
+          <SelectField options={['Mon-Fri', 'Mon-Sat', 'Custom']} value={workingDays} onChange={setWorkingDays} theme={theme} />
+          {workingDays === 'Custom' && (
+            <div className="grid grid-cols-3 gap-2">
+              {(Object.keys(customDays) as Array<keyof typeof customDays>).map(day => (
+                <div key={day} className={`flex items-center gap-2 p-2 rounded-lg ${theme.secondaryBg}`}>
+                  <SSAToggle
+                    on={customDays[day]}
+                    onChange={() => setCustomDays(prev => ({ ...prev, [day]: !prev[day] }))}
+                    theme={theme}
+                  />
+                  <span className={`text-xs ${theme.highlight}`}>{day}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </SectionCard>
 
       {/* Shift Configuration — full master table pattern */}
       <SectionCard title="Shift Configuration" subtitle="Define shifts and assigned classes" theme={theme}>
@@ -251,7 +258,9 @@ export default function SchoolIdentityConfigModule({ theme }: { theme: Theme }) 
           )}
         </div>
       </SectionCard>
+      </div>)}
 
+      {activeTab === 'system' && (<div className="space-y-4">
       <SectionCard title="System Configuration" subtitle="Platform-level settings for notifications, permissions, and API" theme={theme}>
         <div className="space-y-3">
           <div>
@@ -306,6 +315,7 @@ export default function SchoolIdentityConfigModule({ theme }: { theme: Theme }) 
           </div>
         </div>
       </SectionCard>
+      </div>)}
 
       {/* Save Bar */}
       <div className={`flex items-center justify-between p-3 rounded-2xl border-2 ${theme.border} ${theme.secondaryBg}`}>

@@ -50,7 +50,9 @@ function Pagination({ page, totalPages, onPage, theme }: { page: number; totalPa
   );
 }
 
-export default function CommunicationConfigModule({ theme }: { theme: Theme }) {
+type TabId = 'messaging' | 'content' | 'notifications' | 'settings';
+
+export default function CommunicationConfigModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
   const [dmPermissions, setDmPermissions] = useState<Record<string, boolean>>({
     'Parent to Class Teacher': true,
     'Parent to Subject Teacher': false,
@@ -197,6 +199,12 @@ export default function CommunicationConfigModule({ theme }: { theme: Theme }) {
 
   // Save feedback
   const [saved, setSaved] = useState(false);
+
+  // Tab state
+  const [internalTab, setInternalTab] = useState<TabId>('messaging');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
+
   function handleSave() {
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
@@ -206,6 +214,7 @@ export default function CommunicationConfigModule({ theme }: { theme: Theme }) {
     <div className="space-y-4">
       <ModuleHeader title="Communication Configuration" subtitle="DM permissions, group rules, storage limits, and file sharing" theme={theme} />
 
+      {activeTab === 'messaging' && (<div className="space-y-4">
       <SectionCard title="DM Permission Matrix" subtitle="Control who can initiate direct messages to whom in the school chat system" theme={theme}>
         <div className="space-y-1.5">
           {Object.entries(dmPermissions).map(([perm, enabled]) => (
@@ -409,7 +418,9 @@ export default function CommunicationConfigModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
       </div>
+      </div>)}
 
+      {activeTab === 'content' && (<div className="space-y-4">
       {/* ─── Message Templates (keep expand-to-edit, with search, count, export/import, pagination) ─── */}
       <SectionCard title="Message Templates" subtitle="SMS, Email, WhatsApp & Push notification templates with variable placeholders" theme={theme}>
         <TableToolbar search={templateSearch} onSearch={v => { setTemplateSearch(v); setTemplatePage(1); }} count={filteredTemplates.length} total={msgTemplates.length} theme={theme} />
@@ -489,12 +500,6 @@ export default function CommunicationConfigModule({ theme }: { theme: Theme }) {
             </div>
             <SSAToggle on={notifySender} onChange={() => setNotifySender(!notifySender)} theme={theme} />
           </div>
-        </div>
-      </SectionCard>
-
-      <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
-        <div className="space-y-4">
-          <MasterPermissionGrid masterName="Communication Templates" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
         </div>
       </SectionCard>
 
@@ -608,7 +613,9 @@ export default function CommunicationConfigModule({ theme }: { theme: Theme }) {
           </div>
         </div>
       </SectionCard>
+      </div>)}
 
+      {activeTab === 'notifications' && (<div className="space-y-4">
       <SectionCard title="Notification Center Settings" subtitle="Global notification delivery and channel configuration" theme={theme}>
         <div className="space-y-3">
           <div>
@@ -653,6 +660,14 @@ export default function CommunicationConfigModule({ theme }: { theme: Theme }) {
             </div>
             <SSAToggle on={notifAutoReport} onChange={() => setNotifAutoReport(!notifAutoReport)} theme={theme} />
           </div>
+        </div>
+      </SectionCard>
+      </div>)}
+
+      {activeTab === 'settings' && (<div className="space-y-4">
+      <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
+        <div className="space-y-4">
+          <MasterPermissionGrid masterName="Communication Templates" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
         </div>
       </SectionCard>
 
@@ -758,6 +773,7 @@ export default function CommunicationConfigModule({ theme }: { theme: Theme }) {
           </div>
         </div>
       </SectionCard>
+      </div>)}
 
       {/* ─── Global Save Button ─── */}
       <div className="flex justify-end pt-2 pb-4">

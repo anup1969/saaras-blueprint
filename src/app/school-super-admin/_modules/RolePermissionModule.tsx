@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Plus, X, Edit, Lock, Trash2, Eye, CheckCircle, AlertTriangle, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Search, LogIn, ShieldAlert, Save, Download, Upload } from 'lucide-react';
-import { TabBar, MasterPermissionGrid } from '@/components/shared';
+import { MasterPermissionGrid } from '@/components/shared';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
 
@@ -75,7 +75,9 @@ const MODULE_PERMISSIONS: Record<string, string[]> = {
 const ALL_MODULE_NAMES = Object.keys(MODULE_PERMISSIONS);
 const SCOPE_OPTIONS = ['Own Class', 'Own Department', 'Own Branch', 'Full School', 'Custom'];
 
-export default function RolePermissionModule({ theme }: { theme: Theme }) {
+type TabId = 'matrix' | 'roles' | 'users' | 'settings';
+
+export default function RolePermissionModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
   const systemRoles = [
     'Super Admin', 'Principal', 'Vice Principal', 'Teacher', 'Class Teacher',
     'School Admin', 'Account Head', 'HR Manager', 'Transport Head', 'Receptionist',
@@ -123,8 +125,9 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
   const [customRoles, setCustomRoles] = useState<string[]>([]);
   const [customRolesMeta, setCustomRolesMeta] = useState<Record<string, { description: string; parent: string; inheritedPerms: Record<string, Record<string, boolean>> }>>({});
   const [disabledRoles, setDisabledRoles] = useState<string[]>([]);
-  const [rpTab, setRpTab] = useState('Permission Matrix');
-  const rpTabs = ['Permission Matrix', 'Roles & Hierarchy', 'Access Control', 'Audit & Temp'];
+  const [internalTab, setInternalTab] = useState<TabId>('matrix');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
 
   const [editingRole, setEditingRole] = useState<string | null>(null);
   const [editingRoleBackup, setEditingRoleBackup] = useState<Record<string, Record<string, boolean>> | null>(null);
@@ -279,7 +282,7 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
       return s;
     });
     setNewRoleName(''); setNewRoleDesc(''); setNewRoleParent(''); setNewRoleBase('blank'); setShowCreateRoleModal(false);
-    setRpTab('Permission Matrix');
+    setActiveTab('matrix');
     setEditingRole(role);
   };
 
@@ -299,7 +302,7 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
     setCloneBanner(`Role "${name}" created with permissions copied from "${cloneSource}". Review and adjust permissions below.`);
     setCloneName('');
     setTimeout(() => setCloneBanner(''), 5000);
-    setRpTab('Permission Matrix');
+    setActiveTab('matrix');
     setEditingRole(name);
   };
 
@@ -328,8 +331,6 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
   return (
     <div className="space-y-4">
       <ModuleHeader title="Roles & Permissions" subtitle="Configure module-specific access permissions for each role" theme={theme} />
-
-      <TabBar tabs={rpTabs} active={rpTab} onChange={setRpTab} theme={theme} />
 
       {/* Save Banner */}
       {saveBanner && (
@@ -471,8 +472,8 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
         </div>
       )}
 
-      {/* ────── TAB 1: Permission Matrix ────── */}
-      {rpTab === 'Permission Matrix' && <>
+      {/* ────── TAB: matrix ────── */}
+      {activeTab === 'matrix' && <div className="space-y-4">
         {editingRole && (
           <div className="bg-blue-50 border border-blue-200 rounded-2xl p-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -607,52 +608,6 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
           )}
         </SectionCard>
 
-        {/* Custom Roles section — M16 upgraded with Search, Enable-Disable, Export/Import, Pagination, Count Badge */}
-        <SectionCard title="Custom Roles" subtitle="Create roles with specific permissions, hierarchy, and descriptions" theme={theme}>
-          <TableToolbar
-            search={crSearch} onSearch={v => { setCrSearch(v); setCrPage(1); }}
-            count={filteredCR.length} label="custom roles"
-            onAdd={() => setShowCreateRoleModal(true)}
-            addLabel="Create Role"
-            onExport={() => alert('Export custom roles to CSV')}
-            onImport={() => alert('Import custom roles from CSV')}
-            theme={theme}
-          />
-          <div className="space-y-1">
-            {pagedCR.length > 0 ? pagedCR.map(r => (
-              <div key={r} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg} ${disabledCustomRoles.includes(r) ? 'opacity-50' : ''}`}>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className={`text-xs font-bold ${theme.highlight}`}>{r}</span>
-                    {disabledCustomRoles.includes(r) && <span className="text-[8px] px-1.5 py-0.5 rounded bg-gray-200 text-gray-500 font-bold">DISABLED</span>}
-                  </div>
-                  {customRolesMeta[r]?.description && <p className={`text-[10px] ${theme.iconColor}`}>{customRolesMeta[r].description}</p>}
-                  {customRolesMeta[r]?.parent && <p className={`text-[9px] ${theme.iconColor}`}>Inherits from: {customRolesMeta[r].parent}</p>}
-                </div>
-                <div className="flex items-center gap-2">
-                  <SSAToggle on={!disabledCustomRoles.includes(r)} onChange={() => setDisabledCustomRoles(p => p.includes(r) ? p.filter(x => x !== r) : [...p, r])} theme={theme} />
-                  <button onClick={() => { setEditingRole(r); setRpTab('Permission Matrix'); }}
-                    className={`px-2 py-0.5 rounded-lg text-[9px] font-bold ${theme.iconColor} hover:underline`}>Edit Perms</button>
-                  <button onClick={() => setConfirmModal({
-                    title: `Delete "${r}"?`,
-                    message: 'This custom role and all its permissions will be permanently removed.',
-                    onConfirm: () => {
-                      setCustomRoles(p => p.filter(x => x !== r));
-                      setMatrix(p => { const n = { ...p }; delete n[r]; return n; });
-                      const meta = { ...customRolesMeta }; delete meta[r]; setCustomRolesMeta(meta);
-                    }
-                  })} className="text-red-400 hover:text-red-600"><Trash2 size={11} /></button>
-                </div>
-              </div>
-            )) : (
-              <div className={`p-4 text-center text-xs ${theme.iconColor}`}>
-                {customRoles.length === 0 ? 'No custom roles created yet. Click "Create Role" to add one.' : 'No custom roles match your search.'}
-              </div>
-            )}
-          </div>
-          <Pagination page={crPage} total={filteredCR.length} pageSize={PAGE_SIZE} onChange={setCrPage} theme={theme} />
-        </SectionCard>
-
         {/* Master-Level CRUD Permissions */}
         <SectionCard title="Master-Level Permissions" subtitle="CRUD permissions for each module's configurable entities (Fee Heads, Subjects, Routes, etc.)" theme={theme}>
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-2.5 flex items-center gap-2 mb-4">
@@ -682,21 +637,55 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
 
-        {/* E7: Save Bar for Permission Matrix tab */}
-        <div className={`flex items-center justify-between p-4 rounded-2xl ${theme.secondaryBg} border ${theme.border}`}>
-          <div>
-            <p className={`text-sm font-bold ${theme.highlight}`}>Save Permission Matrix</p>
-            <p className={`text-[10px] ${theme.iconColor}`}>Save all role permissions, custom roles, and master-level access settings</p>
-          </div>
-          <button onClick={() => showSaveBanner('Permission matrix configuration saved successfully!')}
-            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold ${theme.primary} text-white shadow-lg hover:shadow-xl transition-all`}>
-            <Save size={16} /> Save Configuration
-          </button>
-        </div>
-      </>}
+      </div>}
 
-      {/* ────── TAB 2: Roles & Hierarchy ────── */}
-      {rpTab === 'Roles & Hierarchy' && <>
+      {/* ────── TAB: roles ────── */}
+      {activeTab === 'roles' && <div className="space-y-4">
+        {/* Custom Roles section — M16 upgraded with Search, Enable-Disable, Export/Import, Pagination, Count Badge */}
+        <SectionCard title="Custom Roles" subtitle="Create roles with specific permissions, hierarchy, and descriptions" theme={theme}>
+          <TableToolbar
+            search={crSearch} onSearch={v => { setCrSearch(v); setCrPage(1); }}
+            count={filteredCR.length} label="custom roles"
+            onAdd={() => setShowCreateRoleModal(true)}
+            addLabel="Create Role"
+            onExport={() => alert('Export custom roles to CSV')}
+            onImport={() => alert('Import custom roles from CSV')}
+            theme={theme}
+          />
+          <div className="space-y-1">
+            {pagedCR.length > 0 ? pagedCR.map(r => (
+              <div key={r} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg} ${disabledCustomRoles.includes(r) ? 'opacity-50' : ''}`}>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className={`text-xs font-bold ${theme.highlight}`}>{r}</span>
+                    {disabledCustomRoles.includes(r) && <span className="text-[8px] px-1.5 py-0.5 rounded bg-gray-200 text-gray-500 font-bold">DISABLED</span>}
+                  </div>
+                  {customRolesMeta[r]?.description && <p className={`text-[10px] ${theme.iconColor}`}>{customRolesMeta[r].description}</p>}
+                  {customRolesMeta[r]?.parent && <p className={`text-[9px] ${theme.iconColor}`}>Inherits from: {customRolesMeta[r].parent}</p>}
+                </div>
+                <div className="flex items-center gap-2">
+                  <SSAToggle on={!disabledCustomRoles.includes(r)} onChange={() => setDisabledCustomRoles(p => p.includes(r) ? p.filter(x => x !== r) : [...p, r])} theme={theme} />
+                  <button onClick={() => { setEditingRole(r); setActiveTab('matrix'); }}
+                    className={`px-2 py-0.5 rounded-lg text-[9px] font-bold ${theme.iconColor} hover:underline`}>Edit Perms</button>
+                  <button onClick={() => setConfirmModal({
+                    title: `Delete "${r}"?`,
+                    message: 'This custom role and all its permissions will be permanently removed.',
+                    onConfirm: () => {
+                      setCustomRoles(p => p.filter(x => x !== r));
+                      setMatrix(p => { const n = { ...p }; delete n[r]; return n; });
+                      const meta = { ...customRolesMeta }; delete meta[r]; setCustomRolesMeta(meta);
+                    }
+                  })} className="text-red-400 hover:text-red-600"><Trash2 size={11} /></button>
+                </div>
+              </div>
+            )) : (
+              <div className={`p-4 text-center text-xs ${theme.iconColor}`}>
+                {customRoles.length === 0 ? 'No custom roles created yet. Click "Create Role" to add one.' : 'No custom roles match your search.'}
+              </div>
+            )}
+          </div>
+          <Pagination page={crPage} total={filteredCR.length} pageSize={PAGE_SIZE} onChange={setCrPage} theme={theme} />
+        </SectionCard>
         <SectionCard title="Role Hierarchy" subtitle="Parent-child role relationships. Child roles inherit all parent permissions + their own additions." theme={theme}>
           <div className={`p-3 rounded-xl ${theme.secondaryBg} text-xs space-y-0.5`}>
             {[
@@ -761,7 +750,10 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
             )}
           </div>
         </SectionCard>
+      </div>}
 
+      {/* ────── TAB: users ────── */}
+      {activeTab === 'users' && <div className="space-y-4">
         {/* User-Role Assignment — M16 upgraded with Search, Export/Import, Pagination, Count Badge */}
         <SectionCard title="Assign Roles to Users" subtitle="Users can have multiple roles. Click Change/+Role to open the role selector." theme={theme}>
           <TableToolbar
@@ -879,21 +871,6 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
 
-        {/* E7: Save Bar for Roles & Hierarchy tab */}
-        <div className={`flex items-center justify-between p-4 rounded-2xl ${theme.secondaryBg} border ${theme.border}`}>
-          <div>
-            <p className={`text-sm font-bold ${theme.highlight}`}>Save Roles & Hierarchy</p>
-            <p className={`text-[10px] ${theme.iconColor}`}>Save role hierarchy, cloned roles, user assignments, and bulk operations</p>
-          </div>
-          <button onClick={() => showSaveBanner('Roles & hierarchy configuration saved successfully!')}
-            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold ${theme.primary} text-white shadow-lg hover:shadow-xl transition-all`}>
-            <Save size={16} /> Save Configuration
-          </button>
-        </div>
-      </>}
-
-      {/* ────── TAB 3: Access Control ────── */}
-      {rpTab === 'Access Control' && <>
         {/* User Permission Override — M16 upgraded with Enable-Disable, Export/Import, Pagination, Count Badge */}
         <SectionCard title="User Permission Override" subtitle="Grant or restrict specific permissions for individual users beyond their base role" theme={theme}>
           <div className="space-y-3">
@@ -991,6 +968,53 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
 
+        {/* Support Impersonation */}
+        <SectionCard title="Support Impersonation" subtitle="Log in as any user to troubleshoot their experience. All sessions are fully audited." theme={theme}>
+          <div className="space-y-3">
+            <div className="bg-red-50 border border-red-200 rounded-xl p-2.5 flex items-start gap-2">
+              <ShieldAlert size={14} className="text-red-500 mt-0.5 shrink-0" />
+              <p className="text-[10px] text-red-700 font-medium">All impersonation sessions are logged with admin ID, target user, start time, and end time. This feature is restricted to Super Admin only.</p>
+            </div>
+            <div className="relative">
+              <Search size={14} className={`absolute left-3 top-1/2 -translate-y-1/2 ${theme.iconColor}`} />
+              <input
+                type="text"
+                value={impersonateSearch}
+                onChange={e => setImpersonateSearch(e.target.value)}
+                placeholder="Search user by name, role, or email..."
+                className={`w-full pl-9 pr-4 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} placeholder:${theme.iconColor}`}
+              />
+            </div>
+            <div className={`rounded-xl border ${theme.border} overflow-hidden`}>
+              {impersonateUsers
+                .filter(u => !impersonateSearch || u.name.toLowerCase().includes(impersonateSearch.toLowerCase()) || u.role.toLowerCase().includes(impersonateSearch.toLowerCase()) || u.email.toLowerCase().includes(impersonateSearch.toLowerCase()))
+                .map((user, i) => (
+                <div key={i} className={`flex items-center justify-between px-4 py-3 ${i > 0 ? `border-t ${theme.border}` : ''} ${theme.buttonHover} transition-all`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-full ${theme.primary} text-white flex items-center justify-center text-[10px] font-bold`}>
+                      {user.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                    </div>
+                    <div>
+                      <p className={`text-xs font-bold ${theme.highlight}`}>{user.name}</p>
+                      <p className={`text-[10px] ${theme.iconColor}`}>{user.role} {user.dept !== '\u2014' ? `| ${user.dept}` : ''} | {user.email}</p>
+                    </div>
+                  </div>
+                  <button className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 text-white text-[10px] font-bold hover:bg-amber-600 transition-all`}>
+                    <LogIn size={12} /> Login As
+                  </button>
+                </div>
+              ))}
+              {impersonateSearch && impersonateUsers.filter(u => u.name.toLowerCase().includes(impersonateSearch.toLowerCase()) || u.role.toLowerCase().includes(impersonateSearch.toLowerCase()) || u.email.toLowerCase().includes(impersonateSearch.toLowerCase())).length === 0 && (
+                <div className={`px-4 py-6 text-center ${theme.iconColor} text-xs`}>No users found matching &quot;{impersonateSearch}&quot;</div>
+              )}
+            </div>
+            <p className={`text-[10px] ${theme.iconColor} italic`}>Recent impersonation sessions: Rajesh Kumar (2 days ago, 4 min), Admin01 (5 days ago, 12 min)</p>
+          </div>
+        </SectionCard>
+      </div>}
+
+      {/* ────── TAB: settings ────── */}
+      {activeTab === 'settings' && <div className="space-y-4">
         {/* Data Scope Configuration */}
         <SectionCard title="Data Scope Configuration" subtitle="Define what data each role can access per module. Click 'Edit' to set module-wise scope." theme={theme}>
           <div className={`rounded-xl border ${theme.border} overflow-hidden`}>
@@ -1074,7 +1098,10 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
             </table>
           </div>
         </SectionCard>
+      </div>}
 
+      {/* ────── TAB: matrix (continued) ── Field-Level Access ────── */}
+      {activeTab === 'matrix' && <div className="space-y-4">
         <SectionCard title="Field-Level Access" subtitle="Control visibility and masking of sensitive data fields per role" theme={theme}>
           <div className={`rounded-xl border ${theme.border} overflow-hidden`}>
             <table className="w-full text-[10px]">
@@ -1109,7 +1136,10 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
             </table>
           </div>
         </SectionCard>
+      </div>}
 
+      {/* ────── TAB: roles (continued) ── Default Dashboard Widgets ────── */}
+      {activeTab === 'roles' && <div className="space-y-4">
         <SectionCard title="Default Dashboard Widgets" subtitle="Configure which widgets appear on each role's dashboard. Click Edit to toggle widgets." theme={theme}>
           <div className="space-y-2">
             {Object.entries(dashboardWidgets).map(([role, widgets]) => (
@@ -1146,7 +1176,10 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
             ))}
           </div>
         </SectionCard>
+      </div>}
 
+      {/* ────── TAB: matrix (continued) ── Field-Level Data Masking ────── */}
+      {activeTab === 'matrix' && <div className="space-y-4">
         <SectionCard title="Field-Level Data Masking" subtitle="Configure which sensitive fields are masked when displayed to users. Masking format is shown next to each field." theme={theme}>
           <div className="space-y-2">
             {Object.entries(maskingToggles).map(([field, enabled]) => (
@@ -1169,65 +1202,10 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
             </div>
           </div>
         </SectionCard>
+      </div>}
 
-        <SectionCard title="Support Impersonation" subtitle="Log in as any user to troubleshoot their experience. All sessions are fully audited." theme={theme}>
-          <div className="space-y-3">
-            <div className="bg-red-50 border border-red-200 rounded-xl p-2.5 flex items-start gap-2">
-              <ShieldAlert size={14} className="text-red-500 mt-0.5 shrink-0" />
-              <p className="text-[10px] text-red-700 font-medium">All impersonation sessions are logged with admin ID, target user, start time, and end time. This feature is restricted to Super Admin only.</p>
-            </div>
-            <div className="relative">
-              <Search size={14} className={`absolute left-3 top-1/2 -translate-y-1/2 ${theme.iconColor}`} />
-              <input
-                type="text"
-                value={impersonateSearch}
-                onChange={e => setImpersonateSearch(e.target.value)}
-                placeholder="Search user by name, role, or email..."
-                className={`w-full pl-9 pr-4 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} placeholder:${theme.iconColor}`}
-              />
-            </div>
-            <div className={`rounded-xl border ${theme.border} overflow-hidden`}>
-              {impersonateUsers
-                .filter(u => !impersonateSearch || u.name.toLowerCase().includes(impersonateSearch.toLowerCase()) || u.role.toLowerCase().includes(impersonateSearch.toLowerCase()) || u.email.toLowerCase().includes(impersonateSearch.toLowerCase()))
-                .map((user, i) => (
-                <div key={i} className={`flex items-center justify-between px-4 py-3 ${i > 0 ? `border-t ${theme.border}` : ''} ${theme.buttonHover} transition-all`}>
-                  <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full ${theme.primary} text-white flex items-center justify-center text-[10px] font-bold`}>
-                      {user.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                    </div>
-                    <div>
-                      <p className={`text-xs font-bold ${theme.highlight}`}>{user.name}</p>
-                      <p className={`text-[10px] ${theme.iconColor}`}>{user.role} {user.dept !== '\u2014' ? `| ${user.dept}` : ''} | {user.email}</p>
-                    </div>
-                  </div>
-                  <button className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 text-white text-[10px] font-bold hover:bg-amber-600 transition-all`}>
-                    <LogIn size={12} /> Login As
-                  </button>
-                </div>
-              ))}
-              {impersonateSearch && impersonateUsers.filter(u => u.name.toLowerCase().includes(impersonateSearch.toLowerCase()) || u.role.toLowerCase().includes(impersonateSearch.toLowerCase()) || u.email.toLowerCase().includes(impersonateSearch.toLowerCase())).length === 0 && (
-                <div className={`px-4 py-6 text-center ${theme.iconColor} text-xs`}>No users found matching &quot;{impersonateSearch}&quot;</div>
-              )}
-            </div>
-            <p className={`text-[10px] ${theme.iconColor} italic`}>Recent impersonation sessions: Rajesh Kumar (2 days ago, 4 min), Admin01 (5 days ago, 12 min)</p>
-          </div>
-        </SectionCard>
-
-        {/* E7: Save Bar for Access Control tab */}
-        <div className={`flex items-center justify-between p-4 rounded-2xl ${theme.secondaryBg} border ${theme.border}`}>
-          <div>
-            <p className={`text-sm font-bold ${theme.highlight}`}>Save Access Control</p>
-            <p className={`text-[10px] ${theme.iconColor}`}>Save overrides, data scopes, field-level access, widgets, and masking settings</p>
-          </div>
-          <button onClick={() => showSaveBanner('Access control configuration saved successfully!')}
-            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold ${theme.primary} text-white shadow-lg hover:shadow-xl transition-all`}>
-            <Save size={16} /> Save Configuration
-          </button>
-        </div>
-      </>}
-
-      {/* ────── TAB 4: Audit & Temp ────── */}
-      {rpTab === 'Audit & Temp' && <>
+      {/* ────── TAB: settings (continued) ── Permission Change Log ────── */}
+      {activeTab === 'settings' && <div className="space-y-4">
         <SectionCard title="Permission Change Log" subtitle="Track all role and permission changes with full audit trail" theme={theme}>
           <div className="flex gap-2 mb-3">
             <InputField value="" onChange={() => {}} theme={theme} placeholder="Filter by date range..." type="date" />
@@ -1271,7 +1249,10 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
             </table>
           </div>
         </SectionCard>
+      </div>}
 
+      {/* ────── TAB: roles (continued) ── Temporary Roles & Compare Roles ────── */}
+      {activeTab === 'roles' && <div className="space-y-4">
         <SectionCard title="Temporary Roles" subtitle="Grant time-bound role elevations that auto-revert on expiry" theme={theme}>
           <div className="space-y-3">
             {tempRoleBanner && (
@@ -1387,18 +1368,7 @@ export default function RolePermissionModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
 
-        {/* E7: Save Bar for Audit & Temp tab */}
-        <div className={`flex items-center justify-between p-4 rounded-2xl ${theme.secondaryBg} border ${theme.border}`}>
-          <div>
-            <p className={`text-sm font-bold ${theme.highlight}`}>Save Audit & Temp Settings</p>
-            <p className={`text-[10px] ${theme.iconColor}`}>Save temporary role grants and comparison preferences</p>
-          </div>
-          <button onClick={() => showSaveBanner('Audit & temporary role settings saved successfully!')}
-            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold ${theme.primary} text-white shadow-lg hover:shadow-xl transition-all`}>
-            <Save size={16} /> Save Configuration
-          </button>
-        </div>
-      </>}
+      </div>}
 
     </div>
   );

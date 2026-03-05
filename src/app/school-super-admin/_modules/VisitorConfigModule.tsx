@@ -175,11 +175,17 @@ const defaultVisitorLog: VisitorLogEntry[] = [
   { id: 6, name: 'Dr. Neha Kapoor', phone: '9876001234', type: 'Alumni', purpose: 'Guest lecture', meetingWith: 'Vice Principal', timeIn: '11:30 AM', timeOut: '', status: 'Active' },
 ];
 
+type TabId = 'management' | 'settings';
+
 // ── Main Module ────────────────────────────────────
-export default function VisitorConfigModule({ theme }: { theme: Theme }) {
+export default function VisitorConfigModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
   const [pickupMethod, setPickupMethod] = useState('otp');
   const [cctvParentAccess, setCctvParentAccess] = useState(false);
   const [cctvRetentionDays, setCctvRetentionDays] = useState('30');
+
+  const [internalTab, setInternalTab] = useState<TabId>('management');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
 
   // ── Visitor Types (M14 — full master table) ────
   const [visitorTypes, setVisitorTypes] = useState<VisitorTypeRow[]>(defaultVisitorTypes);
@@ -281,6 +287,7 @@ export default function VisitorConfigModule({ theme }: { theme: Theme }) {
     <div className="space-y-4">
       <ModuleHeader title="Visitor & Pickup Rules" subtitle="Per-visitor-type rules, verification, and security configuration" theme={theme} />
 
+      {activeTab === 'management' && (<div className="space-y-4">
       <SectionCard title="Pickup Verification Method" subtitle="How student pickup is verified" theme={theme}>
         <div className="grid grid-cols-3 gap-2">
           {[
@@ -598,12 +605,15 @@ export default function VisitorConfigModule({ theme }: { theme: Theme }) {
           </div>
         </div>
       </SectionCard>
+      </div>)}
 
+      {activeTab === 'settings' && (<div className="space-y-4">
       <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
         <div className="space-y-4">
           <MasterPermissionGrid masterName="Visitor Categories" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
         </div>
       </SectionCard>
+      </div>)}
 
       {/* ── Save Bar ── */}
       <div className={`flex items-center justify-between p-4 rounded-2xl ${theme.secondaryBg} border ${theme.border}`}>

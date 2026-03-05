@@ -139,8 +139,10 @@ const EVENT_TYPES: EventRow['type'][] = ['Reunion', 'Meetup', 'Workshop', 'Fundr
 const EVENT_STATUSES: EventRow['status'][] = ['Upcoming', 'Ongoing', 'Completed', 'Cancelled'];
 const MENTOR_STATUSES: MentorPairRow['status'][] = ['Active', 'Pending', 'Completed'];
 
+type TabId = 'portal' | 'engagement';
+
 // ── Main Module ──────────────────────────────────────
-export default function AlumniConfigModule({ theme }: { theme: Theme }) {
+export default function AlumniConfigModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
   const [selfRegistration, setSelfRegistration] = useState(true);
   const [donationModule, setDonationModule] = useState(false);
   const [jobBoard, setJobBoard] = useState(false);
@@ -271,6 +273,11 @@ export default function AlumniConfigModule({ theme }: { theme: Theme }) {
   // ─── Save ───
   const [saved, setSaved] = useState(false);
 
+  // ─── Tabs ───
+  const [internalTab, setInternalTab] = useState<TabId>('portal');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
+
   function formatINR(n: number) {
     const s = n.toString();
     if (s.length <= 3) return s;
@@ -288,6 +295,7 @@ export default function AlumniConfigModule({ theme }: { theme: Theme }) {
     <div className="space-y-4">
       <ModuleHeader title="Alumni Configuration" subtitle="Manage alumni engagement portal features" theme={theme} />
 
+      {activeTab === 'portal' && (<div className="space-y-4">
       {/* ── Portal Features (toggles) ── */}
       <SectionCard title="Alumni Portal Features" subtitle="Features available to school alumni through the alumni engagement portal" theme={theme}>
         <div className="space-y-2">
@@ -409,7 +417,9 @@ export default function AlumniConfigModule({ theme }: { theme: Theme }) {
         </div>
         <Pagination page={alumniPage} total={filteredAlumni.length} pageSize={PAGE_SIZE} onChange={setAlumniPage} theme={theme} />
       </SectionCard>
+      </div>)}
 
+      {activeTab === 'engagement' && (<div className="space-y-4">
       {/* ─── B) Alumni Events — Full Interactive Table ─── */}
       <SectionCard title="Alumni Events" subtitle="Reunions, meets, and engagement events — add, edit, manage" theme={theme}>
         <TableToolbar
@@ -725,6 +735,7 @@ export default function AlumniConfigModule({ theme }: { theme: Theme }) {
           </div>
         </div>
       </SectionCard>
+      </div>)}
 
       {/* ─── Save Configuration Button ─── */}
       <div className="flex justify-end">

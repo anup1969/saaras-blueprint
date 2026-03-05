@@ -5,7 +5,9 @@ import { AlertTriangle, Smartphone, Wifi, WifiOff, RefreshCw, Palette, Layout, G
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
 
-export default function MobileAppConfigModule({ theme }: { theme: Theme }) {
+type TabId = 'dashboard' | 'features' | 'management';
+
+export default function MobileAppConfigModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
   // Dashboard Behaviour
   const [pullToRefresh, setPullToRefresh] = useState(true);
   const [widgetMiniMode, setWidgetMiniMode] = useState('Card');
@@ -78,10 +80,15 @@ export default function MobileAppConfigModule({ theme }: { theme: Theme }) {
   const [backgroundSync, setBackgroundSync] = useState(true);
   const [offlineIndicatorStyle, setOfflineIndicatorStyle] = useState('Banner');
 
+  const [internalTab, setInternalTab] = useState<TabId>('dashboard');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
+
   return (
     <div className="space-y-4">
       <ModuleHeader title="Mobile App Configuration" subtitle="Dashboard behaviour, push notifications, geofencing, and version control for mobile users" theme={theme} />
 
+      {activeTab === 'dashboard' && (<div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <SectionCard title="Dashboard Behaviour" subtitle="Mobile-specific dashboard UX settings" theme={theme}>
           <div className="space-y-2">
@@ -103,8 +110,31 @@ export default function MobileAppConfigModule({ theme }: { theme: Theme }) {
             </div>
           </div>
         </SectionCard>
+      </div>
 
-        <SectionCard title="Mobile-Specific Settings" subtitle="Notifications, biometrics, and data usage" theme={theme}>
+      <SectionCard title="Role-Specific Mobile Views" subtitle="Control which features each role sees on mobile" theme={theme}>
+        <div className="space-y-3">
+          {Object.entries(roleViews).map(([role, features]) => (
+            <div key={role} className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>{role}</p>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(features).map(([feat, enabled]) => (
+                  <div key={feat} className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border ${enabled ? 'border-emerald-300 bg-emerald-50' : `${theme.border} ${theme.cardBg}`}`}>
+                    <span className={`text-[10px] font-medium ${enabled ? 'text-emerald-700' : theme.iconColor}`}>{feat}</span>
+                    <SSAToggle on={enabled} onChange={() => setRoleViews(p => ({
+                      ...p, [role]: { ...p[role], [feat]: !p[role][feat] }
+                    }))} theme={theme} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </SectionCard>
+      </div>)}
+
+      {activeTab === 'features' && (<div className="space-y-4">
+      <SectionCard title="Mobile-Specific Settings" subtitle="Notifications, biometrics, and data usage" theme={theme}>
           <div className="space-y-2">
             <div>
               <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Push Notification Frequency</p>
@@ -131,69 +161,6 @@ export default function MobileAppConfigModule({ theme }: { theme: Theme }) {
             )}
           </div>
         </SectionCard>
-      </div>
-
-      <SectionCard title="Role-Specific Mobile Views" subtitle="Control which features each role sees on mobile" theme={theme}>
-        <div className="space-y-3">
-          {Object.entries(roleViews).map(([role, features]) => (
-            <div key={role} className={`p-3 rounded-xl ${theme.secondaryBg}`}>
-              <p className={`text-xs font-bold ${theme.highlight} mb-2`}>{role}</p>
-              <div className="flex flex-wrap gap-2">
-                {Object.entries(features).map(([feat, enabled]) => (
-                  <div key={feat} className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border ${enabled ? 'border-emerald-300 bg-emerald-50' : `${theme.border} ${theme.cardBg}`}`}>
-                    <span className={`text-[10px] font-medium ${enabled ? 'text-emerald-700' : theme.iconColor}`}>{feat}</span>
-                    <SSAToggle on={enabled} onChange={() => setRoleViews(p => ({
-                      ...p, [role]: { ...p[role], [feat]: !p[role][feat] }
-                    }))} theme={theme} />
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </SectionCard>
-
-      <SectionCard title="Version Control & Updates" subtitle="Manage mobile app versions and force-update rules" theme={theme}>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-3">
-            <div>
-              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Current App Version</p>
-              <InputField value={currentVersion} onChange={setCurrentVersion} theme={theme} placeholder="e.g., 2.1.0" />
-            </div>
-            <div>
-              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Minimum Supported Version</p>
-              <InputField value={minVersion} onChange={setMinVersion} theme={theme} placeholder="e.g., 2.0.0" />
-            </div>
-            {[
-              { label: 'Force Update', desc: 'Users below minimum version must update before using the app', value: forceUpdate, toggle: () => setForceUpdate(!forceUpdate) },
-              { label: 'Maintenance Mode', desc: 'Show "Under Maintenance" screen on all mobile devices', value: maintenanceMode, toggle: () => setMaintenanceMode(!maintenanceMode) },
-            ].map(item => (
-              <div key={item.label} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <div className="flex-1 mr-3">
-                  <p className={`text-xs font-bold ${theme.highlight}`}>{item.label}</p>
-                  <p className={`text-[10px] ${theme.iconColor}`}>{item.desc}</p>
-                </div>
-                <SSAToggle on={item.value} onChange={item.toggle} theme={theme} />
-              </div>
-            ))}
-          </div>
-          <div className="space-y-3">
-            <div>
-              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Google Play Store URL</p>
-              <InputField value={playStoreUrl} onChange={setPlayStoreUrl} theme={theme} />
-            </div>
-            <div>
-              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Apple App Store URL</p>
-              <InputField value={appStoreUrl} onChange={setAppStoreUrl} theme={theme} />
-            </div>
-            {maintenanceMode && (
-              <div className="p-2.5 rounded-xl bg-red-50 border border-red-200">
-                <p className="text-[10px] text-red-700 flex items-center gap-1 font-bold"><AlertTriangle size={10} /> Maintenance mode is ACTIVE — all mobile users see a maintenance screen</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </SectionCard>
 
       <SectionCard title="Dark Mode" subtitle="Allow users to switch between light and dark themes" theme={theme}>
         <div className="space-y-3">
@@ -209,30 +176,6 @@ export default function MobileAppConfigModule({ theme }: { theme: Theme }) {
               <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Default Mode</p>
               <SelectField options={['Light', 'Dark', 'System']} value={defaultMode} onChange={setDefaultMode} theme={theme} />
             </div>
-          )}
-        </div>
-      </SectionCard>
-
-      <SectionCard title="Crash Reporting" subtitle="Automatically capture and report app crashes" theme={theme}>
-        <div className="space-y-3">
-          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-            <div className="flex-1 mr-3">
-              <p className={`text-xs font-bold ${theme.highlight}`}>Enable Crash Reporting</p>
-              <p className={`text-[10px] ${theme.iconColor}`}>Automatically capture crash logs for debugging</p>
-            </div>
-            <SSAToggle on={crashReportEnabled} onChange={() => setCrashReportEnabled(!crashReportEnabled)} theme={theme} />
-          </div>
-          {crashReportEnabled && (
-            <>
-              <div>
-                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Reporting Service</p>
-                <SelectField options={['Firebase Crashlytics', 'Sentry', 'Bugsnag', 'Custom']} value={crashService} onChange={setCrashService} theme={theme} />
-              </div>
-              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <p className={`text-xs font-bold ${theme.highlight}`}>Auto-Send Reports</p>
-                <SSAToggle on={autoSendCrash} onChange={() => setAutoSendCrash(!autoSendCrash)} theme={theme} />
-              </div>
-            </>
           )}
         </div>
       </SectionCard>
@@ -403,6 +346,75 @@ export default function MobileAppConfigModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
       </div>
+      </div>)}
+
+      {activeTab === 'management' && (<div className="space-y-4">
+      <SectionCard title="Version Control & Updates" subtitle="Manage mobile app versions and force-update rules" theme={theme}>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-3">
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Current App Version</p>
+              <InputField value={currentVersion} onChange={setCurrentVersion} theme={theme} placeholder="e.g., 2.1.0" />
+            </div>
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Minimum Supported Version</p>
+              <InputField value={minVersion} onChange={setMinVersion} theme={theme} placeholder="e.g., 2.0.0" />
+            </div>
+            {[
+              { label: 'Force Update', desc: 'Users below minimum version must update before using the app', value: forceUpdate, toggle: () => setForceUpdate(!forceUpdate) },
+              { label: 'Maintenance Mode', desc: 'Show "Under Maintenance" screen on all mobile devices', value: maintenanceMode, toggle: () => setMaintenanceMode(!maintenanceMode) },
+            ].map(item => (
+              <div key={item.label} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <div className="flex-1 mr-3">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{item.label}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{item.desc}</p>
+                </div>
+                <SSAToggle on={item.value} onChange={item.toggle} theme={theme} />
+              </div>
+            ))}
+          </div>
+          <div className="space-y-3">
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Google Play Store URL</p>
+              <InputField value={playStoreUrl} onChange={setPlayStoreUrl} theme={theme} />
+            </div>
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Apple App Store URL</p>
+              <InputField value={appStoreUrl} onChange={setAppStoreUrl} theme={theme} />
+            </div>
+            {maintenanceMode && (
+              <div className="p-2.5 rounded-xl bg-red-50 border border-red-200">
+                <p className="text-[10px] text-red-700 flex items-center gap-1 font-bold"><AlertTriangle size={10} /> Maintenance mode is ACTIVE — all mobile users see a maintenance screen</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Crash Reporting" subtitle="Automatically capture and report app crashes" theme={theme}>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex-1 mr-3">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Enable Crash Reporting</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Automatically capture crash logs for debugging</p>
+            </div>
+            <SSAToggle on={crashReportEnabled} onChange={() => setCrashReportEnabled(!crashReportEnabled)} theme={theme} />
+          </div>
+          {crashReportEnabled && (
+            <>
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Reporting Service</p>
+                <SelectField options={['Firebase Crashlytics', 'Sentry', 'Bugsnag', 'Custom']} value={crashService} onChange={setCrashService} theme={theme} />
+              </div>
+              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <p className={`text-xs font-bold ${theme.highlight}`}>Auto-Send Reports</p>
+                <SSAToggle on={autoSendCrash} onChange={() => setAutoSendCrash(!autoSendCrash)} theme={theme} />
+              </div>
+            </>
+          )}
+        </div>
+      </SectionCard>
+      </div>)}
 
       {/* ─── Save Bar ─── */}
       <div className={`${theme.cardBg} rounded-2xl border-2 ${theme.border} p-4 flex items-center justify-between`}>

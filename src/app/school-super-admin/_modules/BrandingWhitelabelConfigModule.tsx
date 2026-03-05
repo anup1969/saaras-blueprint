@@ -4,7 +4,9 @@ import { Upload, Globe, ShieldCheck, CheckCircle, AlertTriangle, Clock, Mail, X,
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
 
-export default function BrandingWhitelabelConfigModule({ theme }: { theme: Theme }) {
+type TabId = 'identity' | 'domain';
+
+export default function BrandingWhitelabelConfigModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
   const [customDomain, setCustomDomain] = useState(false);
   const [domainValue, setDomainValue] = useState('');
   const [whitelabelApp, setWhitelabelApp] = useState(false);
@@ -26,6 +28,10 @@ export default function BrandingWhitelabelConfigModule({ theme }: { theme: Theme
   const [dnsVerified, setDnsVerified] = useState(false);
   const [dnsVerifying, setDnsVerifying] = useState(false);
   const [customEmailDomain, setCustomEmailDomain] = useState(false);
+
+  const [internalTab, setInternalTab] = useState<TabId>('identity');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
 
   const verifyDns = () => {
     setDnsVerifying(true);
@@ -92,6 +98,7 @@ export default function BrandingWhitelabelConfigModule({ theme }: { theme: Theme
     <div className="space-y-4">
       <ModuleHeader title="Branding & White-label Configuration" subtitle="Custom domain, branding, logo, and white-label settings" theme={theme} />
 
+      {activeTab === 'identity' && (<div className="space-y-4">
       <SectionCard title="Custom Domain" subtitle="Use your own domain for the school portal" theme={theme}>
         <div className="space-y-3">
           <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
@@ -198,7 +205,9 @@ export default function BrandingWhitelabelConfigModule({ theme }: { theme: Theme
           </div>
         </SectionCard>
       </div>
+      </div>)}
 
+      {activeTab === 'domain' && (<div className="space-y-4">
       {/* ─── Custom Domain Setup (Gap Feature) ─── */}
       <SectionCard title="Custom Domain Setup" subtitle="Configure your own domain with DNS verification, SSL, and custom email" theme={theme}>
         <div className="space-y-4">
@@ -305,6 +314,7 @@ export default function BrandingWhitelabelConfigModule({ theme }: { theme: Theme
           )}
         </div>
       </SectionCard>
+      </div>)}
     </div>
   );
 }

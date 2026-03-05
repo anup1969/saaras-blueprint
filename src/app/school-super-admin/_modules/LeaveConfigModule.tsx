@@ -78,7 +78,9 @@ function Pagination({ page, total, pageSize, onChange, theme }: { page: number; 
 }
 
 // ─── Main Module ────────────────────────────────────
-export default function LeaveConfigModule({ theme }: { theme: Theme }) {
+type TabId = 'types' | 'approval' | 'settings';
+
+export default function LeaveConfigModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
 
   // ── Leave Types ────────────────────────────────────
   const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>([
@@ -91,6 +93,9 @@ export default function LeaveConfigModule({ theme }: { theme: Theme }) {
   ]);
   const [leaveSearch, setLeaveSearch] = useState('');
   const [leavePage, setLeavePage] = useState(1);
+  const [internalTab, setInternalTab] = useState<TabId>('types');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
 
   const filteredLeaveTypes = leaveTypes.filter(lt =>
     lt.type.toLowerCase().includes(leaveSearch.toLowerCase())
@@ -170,6 +175,8 @@ export default function LeaveConfigModule({ theme }: { theme: Theme }) {
     <div className="space-y-4">
       <ModuleHeader title="Leave Policy Configuration" subtitle="Leave types, carry-forward rules, approval chain, and thresholds" theme={theme} />
 
+      {activeTab === 'types' && (
+      <div className="space-y-4">
       {/* ── 1. Leave Types ───────────────────────────── */}
       <SectionCard title="Leave Types &amp; Annual Allocation" subtitle="Edit leave type names, days, carry-forward — add, delete, or disable" theme={theme}>
         <TableToolbar
@@ -230,111 +237,110 @@ export default function LeaveConfigModule({ theme }: { theme: Theme }) {
         <Pagination page={leavePage} total={filteredLeaveTypes.length} pageSize={PAGE_SIZE} onChange={setLeavePage} theme={theme} />
       </SectionCard>
 
-      {/* ── 2. Leave Rules + Approval Chains ─────────── */}
-      <div className="grid grid-cols-2 gap-4">
-
-        {/* Leave Rules */}
-        <SectionCard title="Leave Rules" subtitle="Special rules for leave calculation" theme={theme}>
-          <div className="space-y-3">
-            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <div>
-                <p className={`text-xs font-bold ${theme.highlight}`}>Sandwich Rule</p>
-                <p className={`text-[10px] ${theme.iconColor}`}>Holidays between leave days count as leave</p>
-              </div>
-              <SSAToggle on={sandwichRule} onChange={() => setSandwichRule(!sandwichRule)} theme={theme} />
-            </div>
-            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <div>
-                <p className={`text-xs font-bold ${theme.highlight}`}>Half-Day Leave</p>
-                <p className={`text-[10px] ${theme.iconColor}`}>Allow staff to take half-day leave</p>
-              </div>
-              <SSAToggle on={halfDayLeave} onChange={() => setHalfDayLeave(!halfDayLeave)} theme={theme} />
-            </div>
+      {/* ── 2. Leave Rules ────────────────────────────── */}
+      <SectionCard title="Leave Rules" subtitle="Special rules for leave calculation" theme={theme}>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
             <div>
-              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Max Consecutive Leave Days (without special approval)</p>
-              <InputField value={maxConsecutive} onChange={setMaxConsecutive} theme={theme} type="number" />
+              <p className={`text-xs font-bold ${theme.highlight}`}>Sandwich Rule</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Holidays between leave days count as leave</p>
             </div>
-            <div>
-              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>LWP Threshold (days after leave balance exhausted)</p>
-              <InputField value={lwpThreshold} onChange={setLwpThreshold} theme={theme} type="number" />
-            </div>
+            <SSAToggle on={sandwichRule} onChange={() => setSandwichRule(!sandwichRule)} theme={theme} />
           </div>
-        </SectionCard>
-
-        {/* Right column: both approval chain cards stacked */}
-        <div className="space-y-4">
-
-          {/* Teaching Staff Approval Chain */}
-          <SectionCard title="Teaching Staff Approval Chain" subtitle="Edit approver, time limit, and enable/disable each step" theme={theme}>
-            <TableToolbar
-              search={teachSearch} onSearch={v => { setTeachSearch(v); setTeachPage(1); }}
-              count={filteredTeach.length} label="steps"
-              onAdd={addTeachStep}
-              onExport={() => alert('Export teaching chain as CSV')}
-              onImport={() => alert('Import teaching chain from CSV')}
-              theme={theme}
-            />
-            <div className="space-y-2">
-              {pagedTeach.length === 0 ? (
-                <p className={`text-center py-4 text-xs ${theme.iconColor}`}>No approval steps found</p>
-              ) : pagedTeach.map((a) => (
-                <div key={a.id} className={`flex items-center gap-2 p-2.5 rounded-xl border ${theme.border} ${!a.enabled ? 'opacity-50' : theme.secondaryBg}`}>
-                  <span className={`text-[10px] w-6 h-6 rounded-full ${theme.primary} text-white flex items-center justify-center font-bold shrink-0`}>{a.level}</span>
-                  <input value={a.approver}
-                    onChange={e => updateTeachStep(a.id, 'approver', e.target.value)}
-                    className={`flex-1 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`}
-                    placeholder="Approver role" />
-                  <input value={a.timeLimit}
-                    onChange={e => updateTeachStep(a.id, 'timeLimit', e.target.value)}
-                    className={`w-24 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.iconColor} outline-none`}
-                    placeholder="e.g. 24 hours" />
-                  <SSAToggle on={a.enabled} onChange={() => updateTeachStep(a.id, 'enabled', !a.enabled)} theme={theme} />
-                  <button onClick={() => deleteTeachStep(a.id)} className="text-red-400 hover:text-red-600 shrink-0">
-                    <X size={10} />
-                  </button>
-                </div>
-              ))}
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Half-Day Leave</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Allow staff to take half-day leave</p>
             </div>
-            <Pagination page={teachPage} total={filteredTeach.length} pageSize={PAGE_SIZE} onChange={setTeachPage} theme={theme} />
-          </SectionCard>
-
-          {/* Non-Teaching Staff Approval Chain */}
-          <SectionCard title="Non-Teaching Staff Approval Chain" subtitle="Edit approver, time limit, and enable/disable each step" theme={theme}>
-            <TableToolbar
-              search={nonTeachSearch} onSearch={v => { setNonTeachSearch(v); setNonTeachPage(1); }}
-              count={filteredNonTeach.length} label="steps"
-              onAdd={addNonTeachStep}
-              onExport={() => alert('Export non-teaching chain as CSV')}
-              onImport={() => alert('Import non-teaching chain from CSV')}
-              theme={theme}
-            />
-            <div className="space-y-2">
-              {pagedNonTeach.length === 0 ? (
-                <p className={`text-center py-4 text-xs ${theme.iconColor}`}>No approval steps found</p>
-              ) : pagedNonTeach.map((a) => (
-                <div key={a.id} className={`flex items-center gap-2 p-2.5 rounded-xl border ${theme.border} ${!a.enabled ? 'opacity-50' : theme.secondaryBg}`}>
-                  <span className={`text-[10px] w-6 h-6 rounded-full ${theme.primary} text-white flex items-center justify-center font-bold shrink-0`}>{a.level}</span>
-                  <input value={a.approver}
-                    onChange={e => updateNonTeachStep(a.id, 'approver', e.target.value)}
-                    className={`flex-1 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`}
-                    placeholder="Approver role" />
-                  <input value={a.timeLimit}
-                    onChange={e => updateNonTeachStep(a.id, 'timeLimit', e.target.value)}
-                    className={`w-24 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.iconColor} outline-none`}
-                    placeholder="e.g. 24 hours" />
-                  <SSAToggle on={a.enabled} onChange={() => updateNonTeachStep(a.id, 'enabled', !a.enabled)} theme={theme} />
-                  <button onClick={() => deleteNonTeachStep(a.id)} className="text-red-400 hover:text-red-600 shrink-0">
-                    <X size={10} />
-                  </button>
-                </div>
-              ))}
-            </div>
-            <Pagination page={nonTeachPage} total={filteredNonTeach.length} pageSize={PAGE_SIZE} onChange={setNonTeachPage} theme={theme} />
-          </SectionCard>
-
+            <SSAToggle on={halfDayLeave} onChange={() => setHalfDayLeave(!halfDayLeave)} theme={theme} />
+          </div>
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Max Consecutive Leave Days (without special approval)</p>
+            <InputField value={maxConsecutive} onChange={setMaxConsecutive} theme={theme} type="number" />
+          </div>
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>LWP Threshold (days after leave balance exhausted)</p>
+            <InputField value={lwpThreshold} onChange={setLwpThreshold} theme={theme} type="number" />
+          </div>
         </div>
+      </SectionCard>
       </div>
+      )}
 
+      {activeTab === 'approval' && (
+      <div className="space-y-4">
+      {/* ── Teaching Staff Approval Chain ──────────────── */}
+      <SectionCard title="Teaching Staff Approval Chain" subtitle="Edit approver, time limit, and enable/disable each step" theme={theme}>
+        <TableToolbar
+          search={teachSearch} onSearch={v => { setTeachSearch(v); setTeachPage(1); }}
+          count={filteredTeach.length} label="steps"
+          onAdd={addTeachStep}
+          onExport={() => alert('Export teaching chain as CSV')}
+          onImport={() => alert('Import teaching chain from CSV')}
+          theme={theme}
+        />
+        <div className="space-y-2">
+          {pagedTeach.length === 0 ? (
+            <p className={`text-center py-4 text-xs ${theme.iconColor}`}>No approval steps found</p>
+          ) : pagedTeach.map((a) => (
+            <div key={a.id} className={`flex items-center gap-2 p-2.5 rounded-xl border ${theme.border} ${!a.enabled ? 'opacity-50' : theme.secondaryBg}`}>
+              <span className={`text-[10px] w-6 h-6 rounded-full ${theme.primary} text-white flex items-center justify-center font-bold shrink-0`}>{a.level}</span>
+              <input value={a.approver}
+                onChange={e => updateTeachStep(a.id, 'approver', e.target.value)}
+                className={`flex-1 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`}
+                placeholder="Approver role" />
+              <input value={a.timeLimit}
+                onChange={e => updateTeachStep(a.id, 'timeLimit', e.target.value)}
+                className={`w-24 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.iconColor} outline-none`}
+                placeholder="e.g. 24 hours" />
+              <SSAToggle on={a.enabled} onChange={() => updateTeachStep(a.id, 'enabled', !a.enabled)} theme={theme} />
+              <button onClick={() => deleteTeachStep(a.id)} className="text-red-400 hover:text-red-600 shrink-0">
+                <X size={10} />
+              </button>
+            </div>
+          ))}
+        </div>
+        <Pagination page={teachPage} total={filteredTeach.length} pageSize={PAGE_SIZE} onChange={setTeachPage} theme={theme} />
+      </SectionCard>
+
+      {/* ── Non-Teaching Staff Approval Chain ──────────── */}
+      <SectionCard title="Non-Teaching Staff Approval Chain" subtitle="Edit approver, time limit, and enable/disable each step" theme={theme}>
+        <TableToolbar
+          search={nonTeachSearch} onSearch={v => { setNonTeachSearch(v); setNonTeachPage(1); }}
+          count={filteredNonTeach.length} label="steps"
+          onAdd={addNonTeachStep}
+          onExport={() => alert('Export non-teaching chain as CSV')}
+          onImport={() => alert('Import non-teaching chain from CSV')}
+          theme={theme}
+        />
+        <div className="space-y-2">
+          {pagedNonTeach.length === 0 ? (
+            <p className={`text-center py-4 text-xs ${theme.iconColor}`}>No approval steps found</p>
+          ) : pagedNonTeach.map((a) => (
+            <div key={a.id} className={`flex items-center gap-2 p-2.5 rounded-xl border ${theme.border} ${!a.enabled ? 'opacity-50' : theme.secondaryBg}`}>
+              <span className={`text-[10px] w-6 h-6 rounded-full ${theme.primary} text-white flex items-center justify-center font-bold shrink-0`}>{a.level}</span>
+              <input value={a.approver}
+                onChange={e => updateNonTeachStep(a.id, 'approver', e.target.value)}
+                className={`flex-1 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`}
+                placeholder="Approver role" />
+              <input value={a.timeLimit}
+                onChange={e => updateNonTeachStep(a.id, 'timeLimit', e.target.value)}
+                className={`w-24 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.iconColor} outline-none`}
+                placeholder="e.g. 24 hours" />
+              <SSAToggle on={a.enabled} onChange={() => updateNonTeachStep(a.id, 'enabled', !a.enabled)} theme={theme} />
+              <button onClick={() => deleteNonTeachStep(a.id)} className="text-red-400 hover:text-red-600 shrink-0">
+                <X size={10} />
+              </button>
+            </div>
+          ))}
+        </div>
+        <Pagination page={nonTeachPage} total={filteredNonTeach.length} pageSize={PAGE_SIZE} onChange={setNonTeachPage} theme={theme} />
+      </SectionCard>
+      </div>
+      )}
+
+      {activeTab === 'settings' && (
+      <div className="space-y-4">
       {/* ── 3. Role-Based Permissions ─────────────────── */}
       <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
         <div className="space-y-4">
@@ -351,6 +357,8 @@ export default function LeaveConfigModule({ theme }: { theme: Theme }) {
           theme={theme}
         />
       </SectionCard>
+      </div>
+      )}
 
       {/* ── Save Button ───────────────────────────────── */}
       <div className="flex justify-end pt-2">

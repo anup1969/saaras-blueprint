@@ -90,8 +90,10 @@ function Pagination({ page, total, pageSize, onChange, theme }: { page: number; 
   );
 }
 
+type TabId = 'builder' | 'management';
+
 // ─── Main Module ────────────────────────────────────
-export default function FormBuilderConfigModule({ theme }: { theme: Theme }) {
+export default function FormBuilderConfigModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
   // ─── Form Builder Settings ────────────────────────
   const [builderEnabled, setBuilderEnabled] = useState(true);
   const [maxFields, setMaxFields] = useState('50');
@@ -150,6 +152,11 @@ export default function FormBuilderConfigModule({ theme }: { theme: Theme }) {
   const [workflowIntegration, setWorkflowIntegration] = useState(true);
   const [responseNotifyTo, setResponseNotifyTo] = useState('Form Creator');
 
+  // ─── Tab state ───
+  const [internalTab, setInternalTab] = useState<TabId>('builder');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
+
   // ─── Save state ───
   const [saved, setSaved] = useState(false);
 
@@ -157,6 +164,7 @@ export default function FormBuilderConfigModule({ theme }: { theme: Theme }) {
     <div className="space-y-4">
       <ModuleHeader title="Form Builder Configuration" subtitle="Drag-and-drop form designer, field types, templates, and response analytics" theme={theme} />
 
+      {activeTab === 'builder' && (<div className="space-y-4">
       {/* Row 1: Form Builder Settings + Field Types */}
       <div className="grid grid-cols-2 gap-4">
         <SectionCard title="Form Builder Settings" subtitle="Core form builder configuration and limits" theme={theme}>
@@ -223,7 +231,9 @@ export default function FormBuilderConfigModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
       </div>
+      </div>)}
 
+      {activeTab === 'management' && (<div className="space-y-4">
       {/* Row 2: Templates Library (full width interactive table) */}
       <SectionCard title="Templates Library" subtitle="Pre-built form templates ready to use" theme={theme}>
         <TableToolbar
@@ -334,6 +344,7 @@ export default function FormBuilderConfigModule({ theme }: { theme: Theme }) {
           </div>
         </div>
       </SectionCard>
+      </div>)}
 
       {/* ─── Save Configuration ─── */}
       <div className="flex justify-end">

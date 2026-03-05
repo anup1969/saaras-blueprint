@@ -12,7 +12,9 @@ function MobileBadge() {
   return <span className="ml-1.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-green-100 text-green-700 whitespace-nowrap">{'\uD83D\uDCF1'} Mobile</span>;
 }
 
-export default function HomeworkConfigModule({ theme }: { theme: Theme }) {
+type TabId = 'assignments' | 'review' | 'settings';
+
+export default function HomeworkConfigModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
   const [submissionMode, setSubmissionMode] = useState('Both');
   const [hwGracePeriod, setHwGracePeriod] = useState('2');
   const [maxFileSize, setMaxFileSize] = useState('10');
@@ -46,9 +48,14 @@ export default function HomeworkConfigModule({ theme }: { theme: Theme }) {
   const [ackViaApp, setAckViaApp] = useState(true);
   const [reminderHours, setReminderHours] = useState('24');
 
+  const [internalTab, setInternalTab] = useState<TabId>('assignments');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
+
   return (
     <div className="space-y-4">
       <ModuleHeader title="Homework & Assignment Configuration" subtitle="Submission modes, late policies, notifications, and plagiarism checks" theme={theme} />
+      {activeTab === 'assignments' && (<div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <SectionCard title="Submission Settings" subtitle="Mode, file limits, and late policy" theme={theme}>
           <div className="space-y-3">
@@ -86,10 +93,6 @@ export default function HomeworkConfigModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
       </div>
-
-      {/* ═══════════════════════════════════════════════════════════════
-          NEW SECTIONS
-          ═══════════════════════════════════════════════════════════════ */}
 
       <SectionCard title="Assignment Enhancements" subtitle="File attachments, type restrictions, and difficulty tagging" theme={theme}>
         <div className="flex items-center mb-3">
@@ -135,6 +138,38 @@ export default function HomeworkConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
+      <SectionCard title="Parent Diary" subtitle="Parent acknowledgement and reminders for homework" theme={theme}>
+        <div className="flex items-center mb-3">
+          <p className={`text-[10px] font-bold ${theme.iconColor}`}>Configure parent notification and acknowledgement</p>
+          <InfoIcon tip="Require parents to acknowledge they have seen their child's homework via app" />
+        </div>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex items-center">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Parent acknowledgement required</p>
+              <MobileBadge />
+            </div>
+            <SSAToggle on={parentAckRequired} onChange={() => setParentAckRequired(!parentAckRequired)} theme={theme} />
+          </div>
+          {parentAckRequired && (
+            <>
+              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <p className={`text-xs font-bold ${theme.highlight}`}>Acknowledge via app</p>
+                <SSAToggle on={ackViaApp} onChange={() => setAckViaApp(!ackViaApp)} theme={theme} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Reminder if unread after (hours)</p>
+                  <InputField value={reminderHours} onChange={setReminderHours} theme={theme} type="number" />
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </SectionCard>
+      </div>)}
+
+      {activeTab === 'review' && (<div className="space-y-4">
       <SectionCard title="Grading & Review" subtitle="Assignment grades feed into gradebook internal marks" theme={theme}>
         <div className="flex items-center mb-3">
           <p className={`text-[10px] font-bold ${theme.iconColor}`}>Teacher grading and assessment integration</p>
@@ -214,37 +249,9 @@ export default function HomeworkConfigModule({ theme }: { theme: Theme }) {
           </div>
         </div>
       </SectionCard>
+      </div>)}
 
-      <SectionCard title="Parent Diary" subtitle="Parent acknowledgement and reminders for homework" theme={theme}>
-        <div className="flex items-center mb-3">
-          <p className={`text-[10px] font-bold ${theme.iconColor}`}>Configure parent notification and acknowledgement</p>
-          <InfoIcon tip="Require parents to acknowledge they have seen their child's homework via app" />
-        </div>
-        <div className="space-y-3">
-          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-            <div className="flex items-center">
-              <p className={`text-xs font-bold ${theme.highlight}`}>Parent acknowledgement required</p>
-              <MobileBadge />
-            </div>
-            <SSAToggle on={parentAckRequired} onChange={() => setParentAckRequired(!parentAckRequired)} theme={theme} />
-          </div>
-          {parentAckRequired && (
-            <>
-              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <p className={`text-xs font-bold ${theme.highlight}`}>Acknowledge via app</p>
-                <SSAToggle on={ackViaApp} onChange={() => setAckViaApp(!ackViaApp)} theme={theme} />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Reminder if unread after (hours)</p>
-                  <InputField value={reminderHours} onChange={setReminderHours} theme={theme} type="number" />
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-      </SectionCard>
-
+      {activeTab === 'settings' && (<div className="space-y-4">
       <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
         <div className="space-y-4">
           <MasterPermissionGrid masterName="Assignment Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
@@ -254,6 +261,7 @@ export default function HomeworkConfigModule({ theme }: { theme: Theme }) {
       <SectionCard title="Bulk Import" subtitle="Import data from Excel templates" theme={theme}>
         <BulkImportWizard entityName="Assignments" templateFields={['Class', 'Section', 'Subject', 'Title', 'Due Date', 'Max Marks']} sampleData={[['Grade 8', 'A', 'Science', 'Chapter 5 Worksheet', '2026-04-20', '25']]} theme={theme} />
       </SectionCard>
+      </div>)}
 
       {/* ─── Save Bar ─── */}
       <div className={`${theme.cardBg} rounded-2xl border-2 ${theme.border} p-4 flex items-center justify-between`}>

@@ -5,7 +5,9 @@ import { CalendarCog, CheckCircle, AlertTriangle } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
 
-export default function YearEndOperationsModule({ theme }: { theme: Theme }) {
+type TabId = 'rollover' | 'copy' | 'finalize';
+
+export default function YearEndOperationsModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
   // Academic Year Rollover
   const [currentYear] = useState('2025-26');
   const [nextYear, setNextYear] = useState('2026-27');
@@ -42,10 +44,15 @@ export default function YearEndOperationsModule({ theme }: { theme: Theme }) {
   const [lockGradesDate, setLockGradesDate] = useState('2026-03-15');
   const [principalOverride, setPrincipalOverride] = useState(true);
 
+  const [internalTab, setInternalTab] = useState<TabId>('rollover');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
+
   return (
     <div className="space-y-4">
       <ModuleHeader title="Year-End Operations" subtitle="Academic year rollover, promotion rules, fee copy, archival, and contract renewals" theme={theme} />
 
+      {activeTab === 'rollover' && (<div className="space-y-4">
       {/* Academic Year Rollover */}
       <SectionCard title="Academic Year Rollover" subtitle="Initiate transition from current academic year to the next" theme={theme}>
         <div className="grid grid-cols-3 gap-3">
@@ -81,130 +88,130 @@ export default function YearEndOperationsModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
-      <div className="grid grid-cols-2 gap-4">
-        {/* Student Promotion Rules */}
-        <SectionCard title="Student Promotion Rules" subtitle="Auto-promotion criteria and TC generation for dropouts" theme={theme}>
-          <div className="space-y-2.5">
-            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <div>
-                <p className={`text-xs font-bold ${theme.highlight}`}>Auto-Promote Passing Students</p>
-                <p className={`text-[10px] ${theme.iconColor}`}>Students meeting criteria are promoted automatically</p>
-              </div>
-              <SSAToggle on={autoPromote} onChange={() => setAutoPromote(!autoPromote)} theme={theme} />
+      {/* Student Promotion Rules */}
+      <SectionCard title="Student Promotion Rules" subtitle="Auto-promotion criteria and TC generation for dropouts" theme={theme}>
+        <div className="space-y-2.5">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Auto-Promote Passing Students</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Students meeting criteria are promoted automatically</p>
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Minimum Attendance %</p>
-                <InputField value={minAttendance} onChange={setMinAttendance} theme={theme} type="number" />
-              </div>
-              <div>
-                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Failed Subject Threshold</p>
-                <InputField value={failedSubjectThreshold} onChange={setFailedSubjectThreshold} theme={theme} type="number" />
-              </div>
+            <SSAToggle on={autoPromote} onChange={() => setAutoPromote(!autoPromote)} theme={theme} />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Minimum Attendance %</p>
+              <InputField value={minAttendance} onChange={setMinAttendance} theme={theme} type="number" />
             </div>
-            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <div>
-                <p className={`text-xs font-bold ${theme.highlight}`}>TC Auto-Generation for Dropouts</p>
-                <p className={`text-[10px] ${theme.iconColor}`}>Transfer certificates generated for students leaving mid-year</p>
-              </div>
-              <SSAToggle on={tcAutoGenerate} onChange={() => setTcAutoGenerate(!tcAutoGenerate)} theme={theme} />
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Failed Subject Threshold</p>
+              <InputField value={failedSubjectThreshold} onChange={setFailedSubjectThreshold} theme={theme} type="number" />
             </div>
           </div>
-        </SectionCard>
-
-        {/* Fee Structure Copy */}
-        <SectionCard title="Fee Structure Copy" subtitle="Copy current year fee structure to next year with adjustments" theme={theme}>
-          <div className="space-y-2.5">
-            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <div>
-                <p className={`text-xs font-bold ${theme.highlight}`}>Copy Fees to Next Year</p>
-                <p className={`text-[10px] ${theme.iconColor}`}>Duplicate {currentYear} fee structure to {nextYear}</p>
-              </div>
-              <SSAToggle on={copyFees} onChange={() => setCopyFees(!copyFees)} theme={theme} />
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>TC Auto-Generation for Dropouts</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Transfer certificates generated for students leaving mid-year</p>
             </div>
-            {copyFees && (
-              <>
-                <div>
-                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>What to copy</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {[
-                      { label: 'Fee Heads', val: copyFeeHeads, set: setCopyFeeHeads },
-                      { label: 'Grade Amounts', val: copyGradeAmounts, set: setCopyGradeAmounts },
-                      { label: 'Concession Rules', val: copyConcessionRules, set: setCopyConcessionRules },
-                      { label: 'Late Fee Rules', val: copyLateFeeRules, set: setCopyLateFeeRules },
-                    ].map(item => (
-                      <label key={item.label} className={`flex items-center gap-2 p-2.5 rounded-xl ${theme.secondaryBg} cursor-pointer`}>
-                        <input type="checkbox" checked={item.val} onChange={() => item.set(!item.val)} className="accent-emerald-500 w-3.5 h-3.5" />
-                        <span className={`text-xs font-medium ${theme.highlight}`}>{item.label}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
+            <SSAToggle on={tcAutoGenerate} onChange={() => setTcAutoGenerate(!tcAutoGenerate)} theme={theme} />
+          </div>
+        </div>
+      </SectionCard>
+      </div>)}
+
+      {activeTab === 'copy' && (<div className="space-y-4">
+      {/* Fee Structure Copy */}
+      <SectionCard title="Fee Structure Copy" subtitle="Copy current year fee structure to next year with adjustments" theme={theme}>
+        <div className="space-y-2.5">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Copy Fees to Next Year</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Duplicate {currentYear} fee structure to {nextYear}</p>
+            </div>
+            <SSAToggle on={copyFees} onChange={() => setCopyFees(!copyFees)} theme={theme} />
+          </div>
+          {copyFees && (
+            <>
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>What to copy</p>
                 <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Adjustment % (+/-)</p>
-                    <InputField value={feeAdjustment} onChange={setFeeAdjustment} theme={theme} placeholder="+5 or -3" />
-                  </div>
-                  <div>
-                    <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Effective Date</p>
-                    <InputField value={feeEffectiveDate} onChange={setFeeEffectiveDate} theme={theme} type="date" />
-                  </div>
+                  {[
+                    { label: 'Fee Heads', val: copyFeeHeads, set: setCopyFeeHeads },
+                    { label: 'Grade Amounts', val: copyGradeAmounts, set: setCopyGradeAmounts },
+                    { label: 'Concession Rules', val: copyConcessionRules, set: setCopyConcessionRules },
+                    { label: 'Late Fee Rules', val: copyLateFeeRules, set: setCopyLateFeeRules },
+                  ].map(item => (
+                    <label key={item.label} className={`flex items-center gap-2 p-2.5 rounded-xl ${theme.secondaryBg} cursor-pointer`}>
+                      <input type="checkbox" checked={item.val} onChange={() => item.set(!item.val)} className="accent-emerald-500 w-3.5 h-3.5" />
+                      <span className={`text-xs font-medium ${theme.highlight}`}>{item.label}</span>
+                    </label>
+                  ))}
                 </div>
-                <button onClick={() => { setCopyConfirmed(true); setTimeout(() => setCopyConfirmed(false), 3000); }}
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white ${theme.primary}`}>
-                  Copy to {nextYear}
-                </button>
-                {copyConfirmed && <p className="text-xs text-emerald-600 font-bold animate-pulse">Fee structure copied to {nextYear} successfully!</p>}
-              </>
-            )}
-          </div>
-        </SectionCard>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        {/* Data Archival */}
-        <SectionCard title="Data Archival" subtitle="Archive old records and set retention policies" theme={theme}>
-          <div className="space-y-2.5">
-            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <div>
-                <p className={`text-xs font-bold ${theme.highlight}`}>Archive Old Records</p>
-                <p className={`text-[10px] ${theme.iconColor}`}>Move records older than retention period to archive storage</p>
               </div>
-              <SSAToggle on={archiveOldRecords} onChange={() => setArchiveOldRecords(!archiveOldRecords)} theme={theme} />
-            </div>
-            <div>
-              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Retention Period</p>
-              <SelectField options={['3 Years', '5 Years', '7 Years', '10 Years']} value={retentionPeriod} onChange={setRetentionPeriod} theme={theme} />
-            </div>
-            <button onClick={() => { setArchiveStatus('running'); setTimeout(() => setArchiveStatus('done'), 1500); }}
-              disabled={archiveStatus === 'running'}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white ${theme.primary} ${archiveStatus === 'running' ? 'opacity-60' : ''}`}>
-              {archiveStatus === 'done' ? <><CheckCircle size={13} /> Archived</> : archiveStatus === 'running' ? 'Archiving...' : 'Archive Now'}
-            </button>
-          </div>
-        </SectionCard>
-
-        {/* Staff Contract Renewal */}
-        <SectionCard title="Staff Contract Renewal" subtitle="Flag expiring contracts and batch renewal processing" theme={theme}>
-          <div className="space-y-2.5">
-            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <div>
-                <p className={`text-xs font-bold ${theme.highlight}`}>Auto-Flag Expiring Contracts</p>
-                <p className={`text-[10px] ${theme.iconColor}`}>Contracts nearing expiry are flagged in HR dashboard</p>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Adjustment % (+/-)</p>
+                  <InputField value={feeAdjustment} onChange={setFeeAdjustment} theme={theme} placeholder="+5 or -3" />
+                </div>
+                <div>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Effective Date</p>
+                  <InputField value={feeEffectiveDate} onChange={setFeeEffectiveDate} theme={theme} type="date" />
+                </div>
               </div>
-              <SSAToggle on={autoFlagContracts} onChange={() => setAutoFlagContracts(!autoFlagContracts)} theme={theme} />
-            </div>
+              <button onClick={() => { setCopyConfirmed(true); setTimeout(() => setCopyConfirmed(false), 3000); }}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white ${theme.primary}`}>
+                Copy to {nextYear}
+              </button>
+              {copyConfirmed && <p className="text-xs text-emerald-600 font-bold animate-pulse">Fee structure copied to {nextYear} successfully!</p>}
+            </>
+          )}
+        </div>
+      </SectionCard>
+
+      {/* Staff Contract Renewal */}
+      <SectionCard title="Staff Contract Renewal" subtitle="Flag expiring contracts and batch renewal processing" theme={theme}>
+        <div className="space-y-2.5">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
             <div>
-              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Renewal Reminder (days before)</p>
-              <InputField value={renewalReminderDays} onChange={setRenewalReminderDays} theme={theme} type="number" />
+              <p className={`text-xs font-bold ${theme.highlight}`}>Auto-Flag Expiring Contracts</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Contracts nearing expiry are flagged in HR dashboard</p>
             </div>
-            <button onClick={() => setBatchRenewalStatus('done')}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white ${theme.primary}`}>
-              {batchRenewalStatus === 'done' ? <><CheckCircle size={13} /> Renewal Initiated</> : 'Batch Renewal'}
-            </button>
+            <SSAToggle on={autoFlagContracts} onChange={() => setAutoFlagContracts(!autoFlagContracts)} theme={theme} />
           </div>
-        </SectionCard>
-      </div>
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Renewal Reminder (days before)</p>
+            <InputField value={renewalReminderDays} onChange={setRenewalReminderDays} theme={theme} type="number" />
+          </div>
+          <button onClick={() => setBatchRenewalStatus('done')}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white ${theme.primary}`}>
+            {batchRenewalStatus === 'done' ? <><CheckCircle size={13} /> Renewal Initiated</> : 'Batch Renewal'}
+          </button>
+        </div>
+      </SectionCard>
+      </div>)}
+
+      {activeTab === 'finalize' && (<div className="space-y-4">
+      {/* Data Archival */}
+      <SectionCard title="Data Archival" subtitle="Archive old records and set retention policies" theme={theme}>
+        <div className="space-y-2.5">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Archive Old Records</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Move records older than retention period to archive storage</p>
+            </div>
+            <SSAToggle on={archiveOldRecords} onChange={() => setArchiveOldRecords(!archiveOldRecords)} theme={theme} />
+          </div>
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Retention Period</p>
+            <SelectField options={['3 Years', '5 Years', '7 Years', '10 Years']} value={retentionPeriod} onChange={setRetentionPeriod} theme={theme} />
+          </div>
+          <button onClick={() => { setArchiveStatus('running'); setTimeout(() => setArchiveStatus('done'), 1500); }}
+            disabled={archiveStatus === 'running'}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white ${theme.primary} ${archiveStatus === 'running' ? 'opacity-60' : ''}`}>
+            {archiveStatus === 'done' ? <><CheckCircle size={13} /> Archived</> : archiveStatus === 'running' ? 'Archiving...' : 'Archive Now'}
+          </button>
+        </div>
+      </SectionCard>
 
       {/* Report Card Finalization */}
       <SectionCard title="Report Card Finalization" subtitle="Lock grades after a specific date to prevent changes" theme={theme}>
@@ -222,6 +229,7 @@ export default function YearEndOperationsModule({ theme }: { theme: Theme }) {
           </div>
         </div>
       </SectionCard>
+      </div>)}
     </div>
   );
 }

@@ -4,7 +4,9 @@ import { Save } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, SelectField, InputField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
 
-export default function AnalyticsBIConfigModule({ theme }: { theme: Theme }) {
+type TabId = 'dashboards' | 'metrics' | 'settings';
+
+export default function AnalyticsBIConfigModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
   const [predictiveAI, setPredictiveAI] = useState(false);
   const [comparativeAnalysis, setComparativeAnalysis] = useState(true);
   const [autoMonthlyReports, setAutoMonthlyReports] = useState(true);
@@ -53,10 +55,15 @@ export default function AnalyticsBIConfigModule({ theme }: { theme: Theme }) {
     { kpi: 'Exam Pass Rate', green: '80', amber: '60', red: '60' },
   ]);
 
+  const [internalTab, setInternalTab] = useState<TabId>('dashboards');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
+
   return (
     <div className="space-y-4">
       <ModuleHeader title="Analytics & BI Configuration" subtitle="Business intelligence, predictive analytics, and dashboard widgets" theme={theme} />
 
+      {activeTab === 'dashboards' && (<div className="space-y-4">
       <SectionCard title="Core Analytics" subtitle="Enable or disable analytics features" theme={theme}>
         <div className="space-y-2">
           <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
@@ -104,8 +111,35 @@ export default function AnalyticsBIConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
-      <SectionCard title="Data Retention" subtitle="How long analytics data is stored" theme={theme}>
-        <SelectField options={['1 year', '3 years', '5 years', '10 years', 'Unlimited']} value={dataRetention} onChange={setDataRetention} theme={theme} />
+      <SectionCard title="Custom Dashboard Builder" subtitle="Allow users to create personalized analytics dashboards" theme={theme}>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex-1 mr-3">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Enable Custom Dashboards</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Users can build their own dashboards by dragging widgets</p>
+            </div>
+            <SSAToggle on={customDashEnabled} onChange={() => setCustomDashEnabled(!customDashEnabled)} theme={theme} />
+          </div>
+          {customDashEnabled && (
+            <>
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Max Widgets per Dashboard</p>
+                <InputField value={maxWidgets} onChange={setMaxWidgets} theme={theme} type="number" />
+              </div>
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Widget Types</p>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(widgetTypes).map(([wt, on]) => (
+                    <label key={wt} className={`flex items-center gap-2 p-2 rounded-lg ${theme.secondaryBg} cursor-pointer`}>
+                      <input type="checkbox" checked={on} onChange={() => setWidgetTypes(p => ({ ...p, [wt]: !p[wt] }))} className="accent-emerald-500 w-3.5 h-3.5" />
+                      <span className={`text-[10px] font-medium ${theme.highlight}`}>{wt}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
       </SectionCard>
 
       <SectionCard title="Force-Push Mandatory Dashlet" subtitle="Push a required dashlet to all users — non-removable until task is done" theme={theme}>
@@ -135,7 +169,9 @@ export default function AnalyticsBIConfigModule({ theme }: { theme: Theme }) {
           )}
         </div>
       </SectionCard>
+      </div>)}
 
+      {activeTab === 'metrics' && (<div className="space-y-4">
       <SectionCard title="KPI Threshold Alerts" subtitle="Configure red/amber/green thresholds for dashboard KPIs" theme={theme}>
         <div className="space-y-2">
           <div className={`grid grid-cols-5 gap-2 px-2.5 py-1.5`}>
@@ -307,37 +343,6 @@ export default function AnalyticsBIConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
-      <SectionCard title="Custom Dashboard Builder" subtitle="Allow users to create personalized analytics dashboards" theme={theme}>
-        <div className="space-y-3">
-          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-            <div className="flex-1 mr-3">
-              <p className={`text-xs font-bold ${theme.highlight}`}>Enable Custom Dashboards</p>
-              <p className={`text-[10px] ${theme.iconColor}`}>Users can build their own dashboards by dragging widgets</p>
-            </div>
-            <SSAToggle on={customDashEnabled} onChange={() => setCustomDashEnabled(!customDashEnabled)} theme={theme} />
-          </div>
-          {customDashEnabled && (
-            <>
-              <div>
-                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Max Widgets per Dashboard</p>
-                <InputField value={maxWidgets} onChange={setMaxWidgets} theme={theme} type="number" />
-              </div>
-              <div>
-                <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Widget Types</p>
-                <div className="flex flex-wrap gap-2">
-                  {Object.entries(widgetTypes).map(([wt, on]) => (
-                    <label key={wt} className={`flex items-center gap-2 p-2 rounded-lg ${theme.secondaryBg} cursor-pointer`}>
-                      <input type="checkbox" checked={on} onChange={() => setWidgetTypes(p => ({ ...p, [wt]: !p[wt] }))} className="accent-emerald-500 w-3.5 h-3.5" />
-                      <span className={`text-[10px] font-medium ${theme.highlight}`}>{wt}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-      </SectionCard>
-
       <SectionCard title="AI Summary Generation" subtitle="Auto-generate natural language summaries of analytics data" theme={theme}>
         <div className="space-y-3">
           <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
@@ -355,6 +360,13 @@ export default function AnalyticsBIConfigModule({ theme }: { theme: Theme }) {
           )}
         </div>
       </SectionCard>
+      </div>)}
+
+      {activeTab === 'settings' && (<div className="space-y-4">
+      <SectionCard title="Data Retention" subtitle="How long analytics data is stored" theme={theme}>
+        <SelectField options={['1 year', '3 years', '5 years', '10 years', 'Unlimited']} value={dataRetention} onChange={setDataRetention} theme={theme} />
+      </SectionCard>
+      </div>)}
 
       {/* ─── Save Bar ─── */}
       <div className={`${theme.cardBg} rounded-2xl border-2 ${theme.border} p-4 flex items-center justify-between`}>

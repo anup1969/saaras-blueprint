@@ -68,7 +68,9 @@ function PaginationBar({ page, totalPages, onPage, theme }: {
   );
 }
 
-export default function AcademicConfigModule({ theme }: { theme: Theme }) {
+type TabId = 'structure' | 'subjects' | 'calendar' | 'rules' | 'settings';
+
+export default function AcademicConfigModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
   const [preschoolEnabled, setPreschoolEnabled] = useState(true);
   const allGrades = preschoolEnabled
     ? ['Nursery', 'Jr. KG', 'Sr. KG', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12']
@@ -335,6 +337,10 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
   // ─── Gap #67: Term-wise Scoping ───
   const [activeTerm, setActiveTerm] = useState('Full Year');
 
+  const [internalTab, setInternalTab] = useState<TabId>('structure');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
+
   return (
     <div className="space-y-4">
       <ModuleHeader title="Academic Configuration" subtitle="Subjects, sections, houses, holidays, and academic calendar" theme={theme} />
@@ -363,6 +369,7 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
         </div>
       </div>
 
+      {activeTab === 'structure' && (<div className="space-y-4">
       <SectionCard title="Academic Year" subtitle="Set start and end dates" theme={theme}>
         <div className="grid grid-cols-2 gap-4 mb-3">
           <div>
@@ -403,7 +410,9 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
           </div>
         )}
       </SectionCard>
+      </div>)}
 
+      {activeTab === 'subjects' && (<div className="space-y-4">
       <SectionCard title="Subject Master List" subtitle="Add subjects per grade — subjects from other grades appear as quick-add suggestions" theme={theme}>
         {/* Preschool toggle */}
         <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg} mb-3`}>
@@ -501,7 +510,9 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
           );
         })()}
       </SectionCard>
+      </div>)}
 
+      {activeTab === 'structure' && (<div className="space-y-4">
       <SectionCard title="Section Configuration" subtitle="Define section names once (school-wide), then assign per grade" theme={theme}>
         {/* Global section names with toolbar */}
         <TableToolbar label="School-wide Section Names" count={globalSectionNames.length} search={sectionSearch}
@@ -710,7 +721,9 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
           </button>
         </div>
       </SectionCard>
+      </div>)}
 
+      {activeTab === 'calendar' && (<div className="space-y-4">
       <SectionCard title="Holiday Calendar" subtitle="School holidays, vacations & observances — supports single-day holidays and multi-day vacation ranges" theme={theme}>
         <TableToolbar label="Holidays" count={holidays.length} search={holidaySearch}
           onSearch={v => { setHolidaySearch(v); setHolidayPage(1); }} onExport={() => {}} onImport={() => {}} theme={theme} />
@@ -843,7 +856,9 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
       </div>
+      </div>)}
 
+      {activeTab === 'rules' && (<div className="space-y-4">
       <SectionCard title="Demographics Configuration" subtitle="Religion, caste category, and mother tongue options for student profiles" theme={theme}>
         <div className="grid grid-cols-3 gap-4">
           {/* ─── Religions Column ─── */}
@@ -998,8 +1013,9 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
           </div>
         </div>
       </SectionCard>
+      </div>)}
 
-      {/* ─── Gap #22: Streams Configuration (Class 11-12) — Enhanced ─── */}
+      {activeTab === 'structure' && (<div className="space-y-4">
       <SectionCard title="Streams Configuration (Class 11-12)" subtitle="Define streams with core & optional subjects and seat limits for higher secondary" theme={theme}>
         <TableToolbar label="Streams" count={streamConfig.length} search={streamSearch}
           onSearch={v => { setStreamSearch(v); setStreamPage(1); }} onExport={() => {}} onImport={() => {}} theme={theme} />
@@ -1107,8 +1123,9 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
         </div>
         <p className={`text-[10px] ${theme.iconColor} mt-2 italic`}>Note: When a grade reaches max strength and admission is closed, new applicants are automatically added to the waitlist.</p>
       </SectionCard>
+      </div>)}
 
-      {/* ─── Gap #17: Subject-Teacher Allocation (B9 — interactive) ─── */}
+      {activeTab === 'subjects' && (<div className="space-y-4">
       <SectionCard title="Subject-Teacher Allocation" subtitle="Map subjects to teachers per grade and section with period counts" theme={theme}>
         <TableToolbar label="Mappings" count={subjectTeacherMap.length} search={stmSearch}
           onSearch={v => { setStmSearch(v); setStmPage(1); }} onExport={() => {}} onImport={() => {}} theme={theme} />
@@ -1198,8 +1215,9 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
           <Plus size={12} /> Add Allocation
         </button>
       </SectionCard>
+      </div>)}
 
-      {/* ─── B) Class Capacity & Waitlist (B9 — editable) ─── */}
+      {activeTab === 'rules' && (<div className="space-y-4">
       <SectionCard title="Class Capacity & Waitlist" subtitle="Maximum strength per section and waitlist management" theme={theme}>
         <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg} mb-3`}>
           <div>
@@ -1330,8 +1348,9 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
           </button>
         </div>
       </SectionCard>
+      </div>)}
 
-      {/* ─── D) Bulk Import / Export ─── */}
+      {activeTab === 'settings' && (<div className="space-y-4">
       <SectionCard title="Bulk Import / Export" subtitle="Import courses and batches via CSV or export the current academic structure" theme={theme}>
         <div className="grid grid-cols-2 gap-4 mb-3">
           <button className={`flex items-center justify-center gap-2 p-3 rounded-xl border ${theme.border} ${theme.buttonHover} transition-all`}>
@@ -1350,8 +1369,9 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
           <a href="#" className={`text-[10px] font-bold text-blue-500 hover:underline`}>Download Template</a>
         </div>
       </SectionCard>
+      </div>)}
 
-      {/* ─── E) GPA & Credit System (Higher Secondary) ─── */}
+      {activeTab === 'rules' && (<div className="space-y-4">
       <SectionCard title="GPA & Credit System (Higher Secondary)" subtitle="Credit-based grading configuration for Class 11-12" theme={theme}>
         <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg} mb-3`}>
           <div>
@@ -1383,8 +1403,9 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
           </div>
         )}
       </SectionCard>
+      </div>)}
 
-      {/* ─── F) Class Teacher Assignment ─── */}
+      {activeTab === 'subjects' && (<div className="space-y-4">
       <SectionCard title="Class Teacher Assignment" subtitle="Assign class teachers to each section" theme={theme}>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
@@ -1419,8 +1440,9 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
           </table>
         </div>
       </SectionCard>
+      </div>)}
 
-      {/* ─── Gap #83: Promotion Rules ─── */}
+      {activeTab === 'rules' && (<div className="space-y-4">
       <SectionCard title="Promotion Rules" subtitle="Configure minimum criteria for student promotion to the next grade" theme={theme}>
         <div className="grid grid-cols-2 gap-4 mb-3">
           <div>
@@ -1456,7 +1478,9 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
           </p>
         </div>
       </SectionCard>
+      </div>)}
 
+      {activeTab === 'settings' && (<div className="space-y-4">
       <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
         <div className="space-y-4">
           <MasterPermissionGrid masterName="Subjects" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
@@ -1467,6 +1491,7 @@ export default function AcademicConfigModule({ theme }: { theme: Theme }) {
       <SectionCard title="Bulk Import" subtitle="Import data from Excel templates" theme={theme}>
         <BulkImportWizard entityName="Subject Allocation" templateFields={['Class', 'Section', 'Subject', 'Teacher', 'Periods/Week']} sampleData={[['Grade 9', 'A', 'Mathematics', 'Mr. Patel', '6']]} theme={theme} />
       </SectionCard>
+      </div>)}
     </div>
   );
 }

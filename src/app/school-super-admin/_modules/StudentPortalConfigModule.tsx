@@ -4,7 +4,9 @@ import { AlertTriangle, Plus, X, Pencil, Check, Save } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
 
-export default function StudentPortalConfigModule({ theme }: { theme: Theme }) {
+type TabId = 'features' | 'settings';
+
+export default function StudentPortalConfigModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
   const [homeworkSubmission, setHomeworkSubmission] = useState(true);
   const [showClassRank, setShowClassRank] = useState(false);
   const [showAttendance, setShowAttendance] = useState(true);
@@ -85,10 +87,16 @@ export default function StudentPortalConfigModule({ theme }: { theme: Theme }) {
   const [dailyCheckInTime, setDailyCheckInTime] = useState('08:30');
   const [moodAlertThreshold, setMoodAlertThreshold] = useState('3');
 
+  const [internalTab, setInternalTab] = useState<TabId>('features');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
+
   return (
     <div className="space-y-4">
       <ModuleHeader title="Student Portal Configuration" subtitle="Control what students can see and do through their portal" theme={theme} />
 
+      {activeTab === 'features' && (
+      <div className="space-y-4">
       <SectionCard title="Portal Features" subtitle="Control what students can see and do when they log in to their portal" theme={theme}>
         <div className="space-y-2">
           {[
@@ -248,7 +256,11 @@ export default function StudentPortalConfigModule({ theme }: { theme: Theme }) {
           )}
         </div>
       </SectionCard>
+      </div>
+      )}
 
+      {activeTab === 'settings' && (
+      <div className="space-y-4">
       <SectionCard title="AI Study Planner" subtitle="AI-powered personalized study schedule for students" theme={theme}>
         <div className="space-y-3">
           <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
@@ -307,6 +319,8 @@ export default function StudentPortalConfigModule({ theme }: { theme: Theme }) {
           <Save size={16} /> Save Changes
         </button>
       </div>
+      </div>
+      )}
     </div>
   );
 }

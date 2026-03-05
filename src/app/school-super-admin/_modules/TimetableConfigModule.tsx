@@ -69,8 +69,10 @@ function Pagination({ page, total, pageSize, onChange, theme }: { page: number; 
   );
 }
 
+type TabId = 'schedule' | 'builder' | 'substitution' | 'settings';
+
 // ─── Main Module ────────────────────────────────────
-export default function TimetableConfigModule({ theme }: { theme: Theme }) {
+export default function TimetableConfigModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
 
   // ── A) Timing Sets (full master table) ─────────────
   const [timingSets, setTimingSets] = useState<TimingSetData[]>([
@@ -314,6 +316,10 @@ export default function TimetableConfigModule({ theme }: { theme: Theme }) {
     { name: 'Ms. Verma', freePeriods: 'P1, P8' },
   ]);
 
+  const [internalTab, setInternalTab] = useState<TabId>('schedule');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
+
   // ── Duration helper ───────────────────────────────
   function calcDuration(start: string, end: string) {
     const [sh, sm] = start.split(':').map(Number);
@@ -325,6 +331,7 @@ export default function TimetableConfigModule({ theme }: { theme: Theme }) {
     <div className="space-y-4">
       <ModuleHeader title="Timetable & Bell Schedule" subtitle="Bell timings, breaks, Saturday schedule, and special periods" theme={theme} />
 
+      {activeTab === 'schedule' && (<div className="space-y-4">
       {/* ─── A) Timing Sets (full master table) ─── */}
       <SectionCard title="Timing Sets" subtitle="Different bell schedules for different grade groups -- each set defines period durations independently" theme={theme}>
         {/* Set tabs with edit/delete/toggle */}
@@ -515,7 +522,9 @@ export default function TimetableConfigModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
       </div>
+      </div>)}
 
+      {activeTab === 'builder' && (<div className="space-y-4">
       {/* ─── D) Timetable Builder (clickable cells with inline picker) ─── */}
       <SectionCard title="Timetable Builder" subtitle="Visual timetable for Class 10-A -- click any cell to assign subject &amp; teacher" theme={theme}>
         <div className="overflow-x-auto mb-3">
@@ -591,91 +600,6 @@ export default function TimetableConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
-      {/* ─── Substitution + Period Swaps ─── */}
-      <div className="grid grid-cols-2 gap-4">
-        <SectionCard title="Teacher Substitution" subtitle="How absent teacher periods are handled" theme={theme}>
-          <div className="space-y-3">
-            <div>
-              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Substitution Mode</p>
-              <SelectField options={['Manual', 'Auto-suggest', 'Both']} value={substitutionMode} onChange={setSubstitutionMode} theme={theme} />
-            </div>
-            {(substitutionMode === 'Auto-suggest' || substitutionMode === 'Both') && (
-              <div>
-                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Auto-suggest Based On</p>
-                <SelectField options={['Free periods', 'Subject match', 'Both']} value={substitutionBasis} onChange={setSubstitutionBasis} theme={theme} />
-              </div>
-            )}
-          </div>
-        </SectionCard>
-
-        <SectionCard title="Period Swaps" subtitle="Teacher-initiated period exchange" theme={theme}>
-          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-            <div>
-              <p className={`text-xs font-bold ${theme.highlight}`}>Allow Teachers to Swap Periods</p>
-              <p className={`text-[10px] ${theme.iconColor}`}>Teachers can request mutual period swaps for a given day</p>
-            </div>
-            <SSAToggle on={allowPeriodSwaps} onChange={() => setAllowPeriodSwaps(!allowPeriodSwaps)} theme={theme} />
-          </div>
-        </SectionCard>
-      </div>
-
-      {/* ─── Today's Substitutions & Available Teachers ─── */}
-      <SectionCard title="Today's Substitutions" subtitle="Substitution assignments for absent teachers today" theme={theme}>
-        <div className="overflow-x-auto mb-3">
-          <table className="w-full text-xs">
-            <thead><tr className={theme.secondaryBg}>
-              {['Period', 'Absent Teacher', 'Substitute', 'Class', 'Status'].map(h => (
-                <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
-              ))}
-            </tr></thead>
-            <tbody>
-              {todaySubstitutions.map((s, i) => (
-                <tr key={i} className={`border-t ${theme.border}`}>
-                  <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{s.period}</td>
-                  <td className={`px-3 py-2 ${theme.iconColor}`}>{s.absentTeacher}</td>
-                  <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{s.substitute}</td>
-                  <td className={`px-3 py-2 ${theme.iconColor}`}>{s.class}</td>
-                  <td className="px-3 py-2">
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${s.status === 'Confirmed' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{s.status}</span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div>
-          <p className={`text-[10px] font-bold ${theme.iconColor} mb-2 uppercase tracking-wide`}>Available Teachers (Free Periods Today)</p>
-          <div className="flex flex-wrap gap-2">
-            {availableTeachers.map((t, i) => (
-              <div key={i} className={`px-3 py-1.5 rounded-xl ${theme.secondaryBg}`}>
-                <span className={`text-xs font-bold ${theme.highlight}`}>{t.name}</span>
-                <span className={`text-[10px] ${theme.iconColor} ml-2`}>Free: {t.freePeriods}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </SectionCard>
-
-      {/* ─── Import Timetable from Excel ─── */}
-      <SectionCard title="Import Timetable from Excel" subtitle="Upload a pre-built timetable via spreadsheet" theme={theme}>
-        <div className="grid grid-cols-2 gap-4">
-          <div className={`p-4 rounded-xl border-2 border-dashed ${theme.border} text-center`}>
-            <Upload size={24} className={`mx-auto mb-2 ${theme.iconColor}`} />
-            <p className={`text-xs font-bold ${theme.highlight} mb-1`}>Drag &amp; drop Excel file here</p>
-            <p className={`text-[10px] ${theme.iconColor}`}>or click to browse</p>
-          </div>
-          <div className={`p-4 rounded-xl ${theme.secondaryBg}`}>
-            <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Instructions</p>
-            <ul className={`text-[10px] ${theme.iconColor} space-y-1 list-disc pl-3`}>
-              <li>Use the provided template format</li>
-              <li>One sheet per class-section</li>
-              <li>Teacher names must match staff records</li>
-            </ul>
-            <a href="#" className="text-[10px] font-bold text-blue-500 hover:underline mt-2 inline-block">Download Template</a>
-          </div>
-        </div>
-      </SectionCard>
-
       {/* ─── C) Rooms & Infrastructure (full master table) ─── */}
       <SectionCard title="Rooms & Infrastructure" subtitle="Manage school rooms, labs, and facilities with capacity and status" theme={theme}>
         <TableToolbar
@@ -742,6 +666,95 @@ export default function TimetableConfigModule({ theme }: { theme: Theme }) {
         <Pagination page={roomPage} total={filteredRooms.length} pageSize={PAGE_SIZE} onChange={setRoomPage} theme={theme} />
       </SectionCard>
 
+      {/* ─── Import Timetable from Excel ─── */}
+      <SectionCard title="Import Timetable from Excel" subtitle="Upload a pre-built timetable via spreadsheet" theme={theme}>
+        <div className="grid grid-cols-2 gap-4">
+          <div className={`p-4 rounded-xl border-2 border-dashed ${theme.border} text-center`}>
+            <Upload size={24} className={`mx-auto mb-2 ${theme.iconColor}`} />
+            <p className={`text-xs font-bold ${theme.highlight} mb-1`}>Drag &amp; drop Excel file here</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>or click to browse</p>
+          </div>
+          <div className={`p-4 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Instructions</p>
+            <ul className={`text-[10px] ${theme.iconColor} space-y-1 list-disc pl-3`}>
+              <li>Use the provided template format</li>
+              <li>One sheet per class-section</li>
+              <li>Teacher names must match staff records</li>
+            </ul>
+            <a href="#" className="text-[10px] font-bold text-blue-500 hover:underline mt-2 inline-block">Download Template</a>
+          </div>
+        </div>
+      </SectionCard>
+      </div>)}
+
+      {activeTab === 'substitution' && (<div className="space-y-4">
+      {/* ─── Substitution + Period Swaps ─── */}
+      <div className="grid grid-cols-2 gap-4">
+        <SectionCard title="Teacher Substitution" subtitle="How absent teacher periods are handled" theme={theme}>
+          <div className="space-y-3">
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Substitution Mode</p>
+              <SelectField options={['Manual', 'Auto-suggest', 'Both']} value={substitutionMode} onChange={setSubstitutionMode} theme={theme} />
+            </div>
+            {(substitutionMode === 'Auto-suggest' || substitutionMode === 'Both') && (
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Auto-suggest Based On</p>
+                <SelectField options={['Free periods', 'Subject match', 'Both']} value={substitutionBasis} onChange={setSubstitutionBasis} theme={theme} />
+              </div>
+            )}
+          </div>
+        </SectionCard>
+
+        <SectionCard title="Period Swaps" subtitle="Teacher-initiated period exchange" theme={theme}>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Allow Teachers to Swap Periods</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Teachers can request mutual period swaps for a given day</p>
+            </div>
+            <SSAToggle on={allowPeriodSwaps} onChange={() => setAllowPeriodSwaps(!allowPeriodSwaps)} theme={theme} />
+          </div>
+        </SectionCard>
+      </div>
+
+      {/* ─── Today's Substitutions & Available Teachers ─── */}
+      <SectionCard title="Today's Substitutions" subtitle="Substitution assignments for absent teachers today" theme={theme}>
+        <div className="overflow-x-auto mb-3">
+          <table className="w-full text-xs">
+            <thead><tr className={theme.secondaryBg}>
+              {['Period', 'Absent Teacher', 'Substitute', 'Class', 'Status'].map(h => (
+                <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
+              ))}
+            </tr></thead>
+            <tbody>
+              {todaySubstitutions.map((s, i) => (
+                <tr key={i} className={`border-t ${theme.border}`}>
+                  <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{s.period}</td>
+                  <td className={`px-3 py-2 ${theme.iconColor}`}>{s.absentTeacher}</td>
+                  <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{s.substitute}</td>
+                  <td className={`px-3 py-2 ${theme.iconColor}`}>{s.class}</td>
+                  <td className="px-3 py-2">
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${s.status === 'Confirmed' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{s.status}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <p className={`text-[10px] font-bold ${theme.iconColor} mb-2 uppercase tracking-wide`}>Available Teachers (Free Periods Today)</p>
+          <div className="flex flex-wrap gap-2">
+            {availableTeachers.map((t, i) => (
+              <div key={i} className={`px-3 py-1.5 rounded-xl ${theme.secondaryBg}`}>
+                <span className={`text-xs font-bold ${theme.highlight}`}>{t.name}</span>
+                <span className={`text-[10px] ${theme.iconColor} ml-2`}>Free: {t.freePeriods}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </SectionCard>
+      </div>)}
+
+      {activeTab === 'settings' && (<div className="space-y-4">
       {/* ─── Role-Based Permissions ─── */}
       <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
         <div className="space-y-4">
@@ -749,6 +762,7 @@ export default function TimetableConfigModule({ theme }: { theme: Theme }) {
           <MasterPermissionGrid masterName="Room Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
         </div>
       </SectionCard>
+      </div>)}
 
       {/* ─── Save Button ─── */}
       <div className="flex justify-end pt-2">

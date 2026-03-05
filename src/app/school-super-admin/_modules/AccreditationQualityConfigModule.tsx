@@ -16,7 +16,9 @@ interface Milestone {
   status: string;
 }
 
-export default function AccreditationQualityConfigModule({ theme }: { theme: Theme }) {
+type TabId = 'frameworks' | 'assessment';
+
+export default function AccreditationQualityConfigModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
   // ─── Accreditation Frameworks ─────────────────────
   const [framework, setFramework] = useState('NAAC');
   const [accreditationStatus, setAccreditationStatus] = useState('In Progress');
@@ -61,6 +63,10 @@ export default function AccreditationQualityConfigModule({ theme }: { theme: The
     { name: 'Action Plan Submission', deadline: '2027-01-15', status: 'Identified' },
   ]);
 
+  const [internalTab, setInternalTab] = useState<TabId>('frameworks');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
+
   const statusColors: Record<string, string> = {
     'Preparing': 'bg-yellow-100 text-yellow-700',
     'In Progress': 'bg-blue-100 text-blue-700',
@@ -75,6 +81,8 @@ export default function AccreditationQualityConfigModule({ theme }: { theme: The
     <div className="space-y-4">
       <ModuleHeader title="Accreditation & Quality Configuration" subtitle="Manage accreditation frameworks, quality metrics, assessments, and improvement tracking" theme={theme} />
 
+      {activeTab === 'frameworks' && (
+      <div className="space-y-4">
       {/* Row 1: Accreditation Frameworks + Quality Metrics */}
       <div className="grid grid-cols-2 gap-4">
         <SectionCard title="Accreditation Frameworks" subtitle="Active accreditation standard, status, and key dates" theme={theme}>
@@ -151,7 +159,11 @@ export default function AccreditationQualityConfigModule({ theme }: { theme: The
           </div>
         </SectionCard>
       </div>
+      </div>
+      )}
 
+      {activeTab === 'assessment' && (
+      <div className="space-y-4">
       {/* Row 2: Self-Assessment + Improvement Tracking */}
       <div className="grid grid-cols-2 gap-4">
         <SectionCard title="Self-Assessment & Peer Review" subtitle="Assessment schedules, audits, and evidence collection" theme={theme}>
@@ -254,6 +266,8 @@ export default function AccreditationQualityConfigModule({ theme }: { theme: The
           </div>
         </SectionCard>
       </div>
+      </div>
+      )}
 
       {/* ─── Save Bar ─── */}
       <div className={`${theme.cardBg} rounded-2xl border-2 ${theme.border} p-4 flex items-center justify-between`}>

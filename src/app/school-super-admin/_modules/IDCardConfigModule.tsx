@@ -5,7 +5,9 @@ import { CreditCard, CheckCircle, Upload, X, FileImage, Save } from 'lucide-reac
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
 
-export default function IDCardConfigModule({ theme }: { theme: Theme }) {
+type TabId = 'design' | 'fields' | 'print';
+
+export default function IDCardConfigModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
   // Card Layout Settings
   const [cardSize, setCardSize] = useState('Standard (CR80)');
   const [orientation, setOrientation] = useState('Landscape');
@@ -60,6 +62,10 @@ export default function IDCardConfigModule({ theme }: { theme: Theme }) {
   // Save state
   const [saved, setSaved] = useState(false);
 
+  const [internalTab, setInternalTab] = useState<TabId>('design');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
+
   // Format file size
   const formatSize = (bytes: number): string => {
     if (bytes < 1024) return `${bytes} B`;
@@ -97,6 +103,8 @@ export default function IDCardConfigModule({ theme }: { theme: Theme }) {
     <div className="space-y-4">
       <ModuleHeader title="ID Card Configuration" subtitle="Card layout, field selection, templates, security, and print settings" theme={theme} />
 
+      {activeTab === 'design' && (
+      <div className="space-y-4">
       {/* Card Layout Settings */}
       <SectionCard title="Card Layout Settings" subtitle="Physical card dimensions and school logo placement" theme={theme}>
         <div className="grid grid-cols-3 gap-3">
@@ -114,32 +122,6 @@ export default function IDCardConfigModule({ theme }: { theme: Theme }) {
           </div>
         </div>
       </SectionCard>
-
-      <div className="grid grid-cols-2 gap-4">
-        {/* Student ID Fields */}
-        <SectionCard title="Student ID Fields" subtitle="Select which fields to display on student ID cards" theme={theme}>
-          <div className="grid grid-cols-2 gap-2">
-            {Object.entries(studentFields).map(([field, enabled]) => (
-              <div key={field} className={`flex items-center justify-between p-2 rounded-xl ${theme.secondaryBg}`}>
-                <span className={`text-xs font-bold ${theme.highlight}`}>{field}</span>
-                <SSAToggle on={enabled} onChange={() => setStudentFields(p => ({ ...p, [field]: !p[field] }))} theme={theme} />
-              </div>
-            ))}
-          </div>
-        </SectionCard>
-
-        {/* Staff ID Fields */}
-        <SectionCard title="Staff ID Fields" subtitle="Select which fields to display on staff ID cards" theme={theme}>
-          <div className="grid grid-cols-2 gap-2">
-            {Object.entries(staffFields).map(([field, enabled]) => (
-              <div key={field} className={`flex items-center justify-between p-2 rounded-xl ${theme.secondaryBg}`}>
-                <span className={`text-xs font-bold ${theme.highlight}`}>{field}</span>
-                <SSAToggle on={enabled} onChange={() => setStaffFields(p => ({ ...p, [field]: !p[field] }))} theme={theme} />
-              </div>
-            ))}
-          </div>
-        </SectionCard>
-      </div>
 
       {/* Design Templates */}
       <SectionCard title="Design Templates" subtitle="Choose a preset card design, or upload your own custom template" theme={theme}>
@@ -229,61 +211,93 @@ export default function IDCardConfigModule({ theme }: { theme: Theme }) {
         )}
       </SectionCard>
 
+      {/* Security Features */}
+      <SectionCard title="Security Features" subtitle="Anti-fraud measures and card authentication options" theme={theme}>
+        <div className="space-y-2.5">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Hologram Overlay</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Adds a holographic strip for tamper resistance</p>
+            </div>
+            <SSAToggle on={hologram} onChange={() => setHologram(!hologram)} theme={theme} />
+          </div>
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Barcode Type</p>
+            <SelectField options={['Code128', 'QR Code', 'Code39', 'None']} value={barcodeType} onChange={setBarcodeType} theme={theme} />
+          </div>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Expiry Date on Card</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Print validity period on the card face</p>
+            </div>
+            <SSAToggle on={expiryDate} onChange={() => setExpiryDate(!expiryDate)} theme={theme} />
+          </div>
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Card Validity Period</p>
+            <SelectField options={['6 Months', '1 Year', '2 Years', 'Until Graduation']} value={validityPeriod} onChange={setValidityPeriod} theme={theme} />
+          </div>
+        </div>
+      </SectionCard>
+      </div>
+      )}
+
+      {activeTab === 'fields' && (
+      <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
-        {/* Security Features */}
-        <SectionCard title="Security Features" subtitle="Anti-fraud measures and card authentication options" theme={theme}>
-          <div className="space-y-2.5">
-            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <div>
-                <p className={`text-xs font-bold ${theme.highlight}`}>Hologram Overlay</p>
-                <p className={`text-[10px] ${theme.iconColor}`}>Adds a holographic strip for tamper resistance</p>
+        {/* Student ID Fields */}
+        <SectionCard title="Student ID Fields" subtitle="Select which fields to display on student ID cards" theme={theme}>
+          <div className="grid grid-cols-2 gap-2">
+            {Object.entries(studentFields).map(([field, enabled]) => (
+              <div key={field} className={`flex items-center justify-between p-2 rounded-xl ${theme.secondaryBg}`}>
+                <span className={`text-xs font-bold ${theme.highlight}`}>{field}</span>
+                <SSAToggle on={enabled} onChange={() => setStudentFields(p => ({ ...p, [field]: !p[field] }))} theme={theme} />
               </div>
-              <SSAToggle on={hologram} onChange={() => setHologram(!hologram)} theme={theme} />
-            </div>
-            <div>
-              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Barcode Type</p>
-              <SelectField options={['Code128', 'QR Code', 'Code39', 'None']} value={barcodeType} onChange={setBarcodeType} theme={theme} />
-            </div>
-            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <div>
-                <p className={`text-xs font-bold ${theme.highlight}`}>Expiry Date on Card</p>
-                <p className={`text-[10px] ${theme.iconColor}`}>Print validity period on the card face</p>
-              </div>
-              <SSAToggle on={expiryDate} onChange={() => setExpiryDate(!expiryDate)} theme={theme} />
-            </div>
-            <div>
-              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Card Validity Period</p>
-              <SelectField options={['6 Months', '1 Year', '2 Years', 'Until Graduation']} value={validityPeriod} onChange={setValidityPeriod} theme={theme} />
-            </div>
+            ))}
           </div>
         </SectionCard>
 
-        {/* Print Settings */}
-        <SectionCard title="Print Settings" subtitle="Page layout and batch printing configuration" theme={theme}>
-          <div className="space-y-2.5">
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Cards Per Page</p>
-                <SelectField options={['1', '2', '4', '8']} value={cardsPerPage} onChange={setCardsPerPage} theme={theme} />
+        {/* Staff ID Fields */}
+        <SectionCard title="Staff ID Fields" subtitle="Select which fields to display on staff ID cards" theme={theme}>
+          <div className="grid grid-cols-2 gap-2">
+            {Object.entries(staffFields).map(([field, enabled]) => (
+              <div key={field} className={`flex items-center justify-between p-2 rounded-xl ${theme.secondaryBg}`}>
+                <span className={`text-xs font-bold ${theme.highlight}`}>{field}</span>
+                <SSAToggle on={enabled} onChange={() => setStaffFields(p => ({ ...p, [field]: !p[field] }))} theme={theme} />
               </div>
-              <div>
-                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Paper Size</p>
-                <SelectField options={['A4', 'A3', 'Letter', 'Legal']} value={paperSize} onChange={setPaperSize} theme={theme} />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Margins</p>
-                <SelectField options={['3mm', '5mm', '8mm', '10mm']} value={margins} onChange={setMargins} theme={theme} />
-              </div>
-              <div>
-                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Print Batch Size</p>
-                <InputField value={batchSize} onChange={setBatchSize} theme={theme} type="number" />
-              </div>
-            </div>
+            ))}
           </div>
         </SectionCard>
       </div>
+      </div>
+      )}
+
+      {activeTab === 'print' && (
+      <div className="space-y-4">
+      {/* Print Settings */}
+      <SectionCard title="Print Settings" subtitle="Page layout and batch printing configuration" theme={theme}>
+        <div className="space-y-2.5">
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Cards Per Page</p>
+              <SelectField options={['1', '2', '4', '8']} value={cardsPerPage} onChange={setCardsPerPage} theme={theme} />
+            </div>
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Paper Size</p>
+              <SelectField options={['A4', 'A3', 'Letter', 'Legal']} value={paperSize} onChange={setPaperSize} theme={theme} />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Margins</p>
+              <SelectField options={['3mm', '5mm', '8mm', '10mm']} value={margins} onChange={setMargins} theme={theme} />
+            </div>
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Print Batch Size</p>
+              <InputField value={batchSize} onChange={setBatchSize} theme={theme} type="number" />
+            </div>
+          </div>
+        </div>
+      </SectionCard>
 
       {/* Reprint Policy */}
       <SectionCard title="Reprint Policy" subtitle="Charges and approval for reprinted or replacement ID cards" theme={theme}>
@@ -308,6 +322,8 @@ export default function IDCardConfigModule({ theme }: { theme: Theme }) {
           </div>
         </div>
       </SectionCard>
+      </div>
+      )}
 
       {/* Save Configuration Button */}
       <div className="flex items-center justify-end gap-3">

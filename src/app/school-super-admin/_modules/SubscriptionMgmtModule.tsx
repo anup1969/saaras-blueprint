@@ -70,7 +70,9 @@ function Pagination({ page, total, pageSize, onChange, theme }: { page: number; 
   );
 }
 
-export default function SubscriptionMgmtModule({ theme }: { theme: Theme }) {
+type TabId = 'plans' | 'billing';
+
+export default function SubscriptionMgmtModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
   const [selectedPlan, setSelectedPlan] = useState('Professional');
   const [planChangeSuccess, setPlanChangeSuccess] = useState<string | null>(null);
   const plans = [
@@ -147,10 +149,15 @@ export default function SubscriptionMgmtModule({ theme }: { theme: Theme }) {
   const [rtlSupport, setRtlSupport] = useState(false);
   const [autoTranslateNotifications, setAutoTranslateNotifications] = useState(false);
 
+  const [internalTab, setInternalTab] = useState<TabId>('plans');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
+
   return (
     <div className="space-y-4">
       <ModuleHeader title="Subscription Management" subtitle="View your plan, usage, and billing history" theme={theme} />
 
+      {activeTab === 'plans' && (<div className="space-y-4">
       <SectionCard title="Current Plan" subtitle="Your active subscription details" theme={theme}>
         <div className={`p-4 rounded-xl ${theme.secondaryBg} flex items-center justify-between`}>
           <div>
@@ -213,142 +220,6 @@ export default function SubscriptionMgmtModule({ theme }: { theme: Theme }) {
             </div>
           ))}
         </div>
-      </SectionCard>
-
-      {/* ─── Billing History — Full CRUD ──────────────── */}
-      <SectionCard title="Billing History" subtitle="Past invoices and payment status — add, edit, delete, search, export" theme={theme}>
-        <TableToolbar
-          search={billingSearch} onSearch={v => { setBillingSearch(v); setBillingPage(1); }}
-          count={filteredBilling.length} label="invoices"
-          onAdd={addBillingEntry}
-          onExport={() => alert('Export billing history as CSV')}
-          onImport={() => alert('Import billing entries from CSV')}
-          theme={theme}
-        />
-        <div className={`rounded-xl border ${theme.border} overflow-hidden`}>
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead className={theme.secondaryBg}>
-                <tr>
-                  {['Invoice #', 'Date', 'Amount', 'Plan', 'Status', 'Payment Method', 'Enabled', 'Actions'].map(h => (
-                    <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor} text-[10px] uppercase whitespace-nowrap`}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {pagedBilling.length === 0 ? (
-                  <tr><td colSpan={8} className={`text-center py-6 text-xs ${theme.iconColor}`}>No billing entries found</td></tr>
-                ) : pagedBilling.map(b => {
-                  const isEditing = editingBillingId === b.id;
-                  const draft = isEditing ? editBillingDraft! : b;
-                  return (
-                    <tr key={b.id} className={`border-t ${theme.border} ${!b.enabled ? 'opacity-50' : ''}`}>
-                      {/* Invoice # */}
-                      <td className="px-2 py-1.5">
-                        {isEditing ? (
-                          <input value={draft.invoice} onChange={e => setEditBillingDraft({ ...draft, invoice: e.target.value })}
-                            className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`}
-                            placeholder="INV-XXXX-XXXX" />
-                        ) : (
-                          <span className={`font-bold ${theme.highlight}`}>{b.invoice}</span>
-                        )}
-                      </td>
-                      {/* Date */}
-                      <td className="px-2 py-1.5">
-                        {isEditing ? (
-                          <input value={draft.date} onChange={e => setEditBillingDraft({ ...draft, date: e.target.value })}
-                            className={`w-28 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}
-                            placeholder="DD Mon YYYY" />
-                        ) : (
-                          <span className={`text-[10px] ${theme.iconColor}`}>{b.date}</span>
-                        )}
-                      </td>
-                      {/* Amount */}
-                      <td className="px-2 py-1.5">
-                        {isEditing ? (
-                          <input value={draft.amount} onChange={e => setEditBillingDraft({ ...draft, amount: e.target.value })}
-                            className={`w-24 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`}
-                            placeholder="\u20B90" />
-                        ) : (
-                          <span className={`font-bold ${theme.highlight}`}>{b.amount}</span>
-                        )}
-                      </td>
-                      {/* Plan */}
-                      <td className="px-2 py-1.5">
-                        {isEditing ? (
-                          <select value={draft.plan} onChange={e => setEditBillingDraft({ ...draft, plan: e.target.value })}
-                            className={`w-28 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}>
-                            <option value="Starter">Starter</option>
-                            <option value="Professional">Professional</option>
-                            <option value="Enterprise">Enterprise</option>
-                          </select>
-                        ) : (
-                          <span className={`text-[10px] ${theme.iconColor}`}>{b.plan}</span>
-                        )}
-                      </td>
-                      {/* Status */}
-                      <td className="px-2 py-1.5">
-                        {isEditing ? (
-                          <select value={draft.status} onChange={e => setEditBillingDraft({ ...draft, status: e.target.value as BillingEntry['status'] })}
-                            className={`w-24 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}>
-                            <option value="Paid">Paid</option>
-                            <option value="Pending">Pending</option>
-                            <option value="Overdue">Overdue</option>
-                          </select>
-                        ) : (
-                          <span className={`text-[9px] px-2 py-0.5 rounded-lg font-bold ${b.status === 'Paid' ? 'bg-emerald-100 text-emerald-700' : b.status === 'Pending' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>{b.status}</span>
-                        )}
-                      </td>
-                      {/* Payment Method */}
-                      <td className="px-2 py-1.5">
-                        {isEditing ? (
-                          <select value={draft.paymentMethod} onChange={e => setEditBillingDraft({ ...draft, paymentMethod: e.target.value })}
-                            className={`w-28 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}>
-                            {['Bank Transfer', 'UPI', 'Credit Card', 'Debit Card', 'Cheque', 'Cash'].map(m => (
-                              <option key={m} value={m}>{m}</option>
-                            ))}
-                          </select>
-                        ) : (
-                          <span className={`text-[10px] ${theme.iconColor}`}>{b.paymentMethod}</span>
-                        )}
-                      </td>
-                      {/* Enabled toggle */}
-                      <td className="px-3 py-1.5">
-                        <SSAToggle on={b.enabled} onChange={() => toggleBillingEnabled(b.id)} theme={theme} />
-                      </td>
-                      {/* Actions */}
-                      <td className="px-2 py-1.5">
-                        <div className="flex items-center gap-1.5">
-                          {isEditing ? (
-                            <button onClick={saveEditBilling} className="text-emerald-500 hover:text-emerald-700" title="Save">
-                              <Check size={13} />
-                            </button>
-                          ) : (
-                            <button onClick={() => startEditBilling(b)} className={`${theme.iconColor} hover:text-blue-500`} title="Edit">
-                              <Pencil size={12} />
-                            </button>
-                          )}
-                          <button onClick={() => deleteBillingEntry(b.id)} className="text-red-400 hover:text-red-600" title="Delete">
-                            <Trash2 size={12} />
-                          </button>
-                          <button onClick={() => {
-                            const a = document.createElement('a');
-                            a.href = `data:text/plain;charset=utf-8,${encodeURIComponent(`Invoice: ${b.invoice}\nDate: ${b.date}\nAmount: ${b.amount}\nPlan: ${b.plan}\nStatus: ${b.status}\nPayment Method: ${b.paymentMethod}\n\nThis is a blueprint demo invoice.`)}`;
-                            a.download = `${b.invoice}.txt`;
-                            a.click();
-                          }} className={`${theme.iconColor} hover:text-blue-500`} title="Download">
-                            <Download size={12} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <Pagination page={billingPage} total={filteredBilling.length} pageSize={PAGE_SIZE} onChange={setBillingPage} theme={theme} />
       </SectionCard>
 
       {/* ─── SLA & Performance Monitoring (stats computed from billing data) ── */}
@@ -586,6 +457,145 @@ export default function SubscriptionMgmtModule({ theme }: { theme: Theme }) {
           </div>
         </div>
       </SectionCard>
+      </div>)}
+
+      {activeTab === 'billing' && (<div className="space-y-4">
+      {/* ─── Billing History — Full CRUD ──────────────── */}
+      <SectionCard title="Billing History" subtitle="Past invoices and payment status — add, edit, delete, search, export" theme={theme}>
+        <TableToolbar
+          search={billingSearch} onSearch={v => { setBillingSearch(v); setBillingPage(1); }}
+          count={filteredBilling.length} label="invoices"
+          onAdd={addBillingEntry}
+          onExport={() => alert('Export billing history as CSV')}
+          onImport={() => alert('Import billing entries from CSV')}
+          theme={theme}
+        />
+        <div className={`rounded-xl border ${theme.border} overflow-hidden`}>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead className={theme.secondaryBg}>
+                <tr>
+                  {['Invoice #', 'Date', 'Amount', 'Plan', 'Status', 'Payment Method', 'Enabled', 'Actions'].map(h => (
+                    <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor} text-[10px] uppercase whitespace-nowrap`}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {pagedBilling.length === 0 ? (
+                  <tr><td colSpan={8} className={`text-center py-6 text-xs ${theme.iconColor}`}>No billing entries found</td></tr>
+                ) : pagedBilling.map(b => {
+                  const isEditing = editingBillingId === b.id;
+                  const draft = isEditing ? editBillingDraft! : b;
+                  return (
+                    <tr key={b.id} className={`border-t ${theme.border} ${!b.enabled ? 'opacity-50' : ''}`}>
+                      {/* Invoice # */}
+                      <td className="px-2 py-1.5">
+                        {isEditing ? (
+                          <input value={draft.invoice} onChange={e => setEditBillingDraft({ ...draft, invoice: e.target.value })}
+                            className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`}
+                            placeholder="INV-XXXX-XXXX" />
+                        ) : (
+                          <span className={`font-bold ${theme.highlight}`}>{b.invoice}</span>
+                        )}
+                      </td>
+                      {/* Date */}
+                      <td className="px-2 py-1.5">
+                        {isEditing ? (
+                          <input value={draft.date} onChange={e => setEditBillingDraft({ ...draft, date: e.target.value })}
+                            className={`w-28 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}
+                            placeholder="DD Mon YYYY" />
+                        ) : (
+                          <span className={`text-[10px] ${theme.iconColor}`}>{b.date}</span>
+                        )}
+                      </td>
+                      {/* Amount */}
+                      <td className="px-2 py-1.5">
+                        {isEditing ? (
+                          <input value={draft.amount} onChange={e => setEditBillingDraft({ ...draft, amount: e.target.value })}
+                            className={`w-24 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`}
+                            placeholder="\u20B90" />
+                        ) : (
+                          <span className={`font-bold ${theme.highlight}`}>{b.amount}</span>
+                        )}
+                      </td>
+                      {/* Plan */}
+                      <td className="px-2 py-1.5">
+                        {isEditing ? (
+                          <select value={draft.plan} onChange={e => setEditBillingDraft({ ...draft, plan: e.target.value })}
+                            className={`w-28 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}>
+                            <option value="Starter">Starter</option>
+                            <option value="Professional">Professional</option>
+                            <option value="Enterprise">Enterprise</option>
+                          </select>
+                        ) : (
+                          <span className={`text-[10px] ${theme.iconColor}`}>{b.plan}</span>
+                        )}
+                      </td>
+                      {/* Status */}
+                      <td className="px-2 py-1.5">
+                        {isEditing ? (
+                          <select value={draft.status} onChange={e => setEditBillingDraft({ ...draft, status: e.target.value as BillingEntry['status'] })}
+                            className={`w-24 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}>
+                            <option value="Paid">Paid</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Overdue">Overdue</option>
+                          </select>
+                        ) : (
+                          <span className={`text-[9px] px-2 py-0.5 rounded-lg font-bold ${b.status === 'Paid' ? 'bg-emerald-100 text-emerald-700' : b.status === 'Pending' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>{b.status}</span>
+                        )}
+                      </td>
+                      {/* Payment Method */}
+                      <td className="px-2 py-1.5">
+                        {isEditing ? (
+                          <select value={draft.paymentMethod} onChange={e => setEditBillingDraft({ ...draft, paymentMethod: e.target.value })}
+                            className={`w-28 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}>
+                            {['Bank Transfer', 'UPI', 'Credit Card', 'Debit Card', 'Cheque', 'Cash'].map(m => (
+                              <option key={m} value={m}>{m}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <span className={`text-[10px] ${theme.iconColor}`}>{b.paymentMethod}</span>
+                        )}
+                      </td>
+                      {/* Enabled toggle */}
+                      <td className="px-3 py-1.5">
+                        <SSAToggle on={b.enabled} onChange={() => toggleBillingEnabled(b.id)} theme={theme} />
+                      </td>
+                      {/* Actions */}
+                      <td className="px-2 py-1.5">
+                        <div className="flex items-center gap-1.5">
+                          {isEditing ? (
+                            <button onClick={saveEditBilling} className="text-emerald-500 hover:text-emerald-700" title="Save">
+                              <Check size={13} />
+                            </button>
+                          ) : (
+                            <button onClick={() => startEditBilling(b)} className={`${theme.iconColor} hover:text-blue-500`} title="Edit">
+                              <Pencil size={12} />
+                            </button>
+                          )}
+                          <button onClick={() => deleteBillingEntry(b.id)} className="text-red-400 hover:text-red-600" title="Delete">
+                            <Trash2 size={12} />
+                          </button>
+                          <button onClick={() => {
+                            const a = document.createElement('a');
+                            a.href = `data:text/plain;charset=utf-8,${encodeURIComponent(`Invoice: ${b.invoice}\nDate: ${b.date}\nAmount: ${b.amount}\nPlan: ${b.plan}\nStatus: ${b.status}\nPayment Method: ${b.paymentMethod}\n\nThis is a blueprint demo invoice.`)}`;
+                            a.download = `${b.invoice}.txt`;
+                            a.click();
+                          }} className={`${theme.iconColor} hover:text-blue-500`} title="Download">
+                            <Download size={12} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <Pagination page={billingPage} total={filteredBilling.length} pageSize={PAGE_SIZE} onChange={setBillingPage} theme={theme} />
+      </SectionCard>
+      </div>)}
 
       {/* ─── Save Configuration ────────────────────────── */}
       <div className="flex justify-end pt-2">

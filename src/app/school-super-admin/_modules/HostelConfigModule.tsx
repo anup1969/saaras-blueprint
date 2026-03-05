@@ -99,8 +99,10 @@ function SectionSaveBar({ label, theme }: { label: string; theme: Theme }) {
   );
 }
 
+type TabId = 'setup' | 'inventory' | 'settings';
+
 // ─── MAIN MODULE ──────────────────────────────────────────────────────────────
-export default function HostelConfigModule({ theme }: { theme: Theme }) {
+export default function HostelConfigModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
   // ── existing config state ──
   const [curfewTime, setCurfewTime] = useState('21:00');
   const [hostelToggles, setHostelToggles] = useState<Record<string, boolean>>({
@@ -141,6 +143,10 @@ export default function HostelConfigModule({ theme }: { theme: Theme }) {
   const [studentSearch, setStudentSearch] = useState('');
   const [selectedStudent, setSelectedStudent] = useState<typeof MOCK_STUDENTS[0] | null>(null);
 
+  const [internalTab, setInternalTab] = useState<TabId>('setup');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
+
   // ── derived ──
   const filteredBlocks = blocks.filter(b => b.name.toLowerCase().includes(blockSearch.toLowerCase()) || b.warden.toLowerCase().includes(blockSearch.toLowerCase()));
   const filteredRooms  = rooms.filter(r =>
@@ -175,6 +181,7 @@ export default function HostelConfigModule({ theme }: { theme: Theme }) {
     <div className="space-y-4">
       <ModuleHeader title="Hostel Configuration" subtitle="Blocks, rooms, beds, warden assignment, mess, and curfew settings" theme={theme} />
 
+      {activeTab === 'setup' && (<div className="space-y-4">
       {/* ── HOSTEL FEATURES + CURFEW ── */}
       <div className="grid grid-cols-2 gap-4">
         <SectionCard title="Hostel Features" subtitle="Core hostel management features for boarding students" theme={theme}>
@@ -428,7 +435,9 @@ export default function HostelConfigModule({ theme }: { theme: Theme }) {
         </div>
         <SectionSaveBar label="Rooms" theme={theme} />
       </SectionCard>
+      </div>)}
 
+      {activeTab === 'inventory' && (<div className="space-y-4">
       {/* ── BED INVENTORY TABLE ── */}
       <SectionCard title="Bed Inventory" subtitle="View all beds across rooms — assign students, track occupancy, vacate beds" theme={theme}>
         <div className="flex items-center gap-2 mb-3">
@@ -538,7 +547,9 @@ export default function HostelConfigModule({ theme }: { theme: Theme }) {
           </div>
         </div>
       )}
+      </div>)}
 
+      {activeTab === 'settings' && (<div className="space-y-4">
       {/* ── PERMISSIONS + IMPORT ── */}
       <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
         <div className="space-y-4">
@@ -551,6 +562,7 @@ export default function HostelConfigModule({ theme }: { theme: Theme }) {
       <SectionCard title="Bulk Import" subtitle="Import data from Excel templates" theme={theme}>
         <BulkImportWizard entityName="Hostel Students" templateFields={['Student Name', 'Class', 'Block', 'Room No', 'Bed No', 'Guardian Phone']} sampleData={[['Arjun Mehta', 'Grade 9', 'Block A', 'A-102', 'A-102-B1', '9876543210']]} theme={theme} />
       </SectionCard>
+      </div>)}
     </div>
   );
 }

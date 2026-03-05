@@ -90,7 +90,9 @@ function statusBadge(status: string) {
   }
 }
 
-export default function AttendanceConfigModule({ theme }: { theme: Theme }) {
+type TabId = 'config' | 'rules' | 'settings';
+
+export default function AttendanceConfigModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
   const [markingMethods, setMarkingMethods] = useState<Record<string, boolean>>({
     'Biometric (Fingerprint/Face)': true, 'Mobile App (Teacher)': true, 'RFID Card': false,
     'Manual Register': true, 'QR Code Scan': false,
@@ -182,6 +184,11 @@ export default function AttendanceConfigModule({ theme }: { theme: Theme }) {
     setCorrectionEntries(p => p.map((e, i) => i === index ? { ...e, reason } : e));
   }
 
+  // ─── Tab State ───
+  const [internalTab, setInternalTab] = useState<TabId>('config');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
+
   // ─── Employee Attendance ───
   const [recordInOut, setRecordInOut] = useState(true);
   const [autoFlagLOP, setAutoFlagLOP] = useState(true);
@@ -193,6 +200,7 @@ export default function AttendanceConfigModule({ theme }: { theme: Theme }) {
     <div className="space-y-4">
       <ModuleHeader title="Attendance Configuration" subtitle="Marking methods, frequency, grace periods, and notification rules" theme={theme} />
 
+      {activeTab === 'config' && (<div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <SectionCard title="Marking Methods" subtitle="How student attendance is recorded each day" theme={theme}>
           <div className="space-y-2">
@@ -238,29 +246,6 @@ export default function AttendanceConfigModule({ theme }: { theme: Theme }) {
         </SectionCard>
       </div>
 
-      <SectionCard title="Auto-Notification Rules" subtitle="Automated alerts sent to parents and staff based on attendance events" theme={theme}>
-        <div className="space-y-2">
-          {Object.entries(autoNotify).map(([rule, enabled]) => (
-            <div key={rule} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <div className="flex-1 mr-3">
-                <p className={`text-xs font-bold ${theme.highlight}`}>{rule}</p>
-                <p className={`text-[10px] ${theme.iconColor}`}>{
-                  ({
-                    'Notify parent on absence (immediate)': 'Parents receive instant SMS/app notification when their child is marked absent',
-                    'Notify parent on late arrival': 'Parents are notified when their child arrives after the grace period',
-                    'Weekly attendance summary to parents': 'Parents receive a weekly digest showing their child\'s attendance for the week',
-                    'Alert class teacher if absent > 3 consecutive days': 'Class teacher gets an alert when a student is absent for 3+ consecutive days',
-                    'Alert principal if attendance < 75%': 'Principal is notified when any student\'s attendance drops below 75%',
-                    'Auto-mark absent if not marked by 10 AM': 'System automatically marks students as absent if teacher hasn\'t marked attendance by 10 AM',
-                  } as Record<string, string>)[rule]
-                }</p>
-              </div>
-              <SSAToggle on={enabled} onChange={() => setAutoNotify(p => ({ ...p, [rule]: !p[rule] }))} theme={theme} />
-            </div>
-          ))}
-        </div>
-      </SectionCard>
-
       <SectionCard title="Attendance Types" subtitle="Named attendance statuses available to teachers when marking attendance" theme={theme}>
         <div className="space-y-2">
           {Object.entries(attendanceTypes).map(([type, enabled]) => (
@@ -289,6 +274,71 @@ export default function AttendanceConfigModule({ theme }: { theme: Theme }) {
             </div>
             <SSAToggle on={allowCustomAttendanceTypes} onChange={() => setAllowCustomAttendanceTypes(!allowCustomAttendanceTypes)} theme={theme} />
           </div>
+        </div>
+      </SectionCard>
+
+      {/* ─── C) Employee Attendance Settings ─── */}
+      <SectionCard title="Employee Attendance Settings" subtitle="Staff attendance configuration and comp-off rules" theme={theme}>
+        <div className="space-y-2">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Record In/Out Times</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Track exact check-in and check-out timestamps for staff</p>
+            </div>
+            <SSAToggle on={recordInOut} onChange={() => setRecordInOut(!recordInOut)} theme={theme} />
+          </div>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Auto-flag Loss of Pay when leave balance = 0</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Automatically mark LOP when staff exhausts all leave types</p>
+            </div>
+            <SSAToggle on={autoFlagLOP} onChange={() => setAutoFlagLOP(!autoFlagLOP)} theme={theme} />
+          </div>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Generate Monthly Summary Report</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Auto-generate staff attendance summary at month end</p>
+            </div>
+            <SSAToggle on={monthlyReport} onChange={() => setMonthlyReport(!monthlyReport)} theme={theme} />
+          </div>
+          <div className={`p-3 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-2 uppercase tracking-wide`}>Comp-off Earned For</p>
+            <div className="space-y-2">
+              <div className={`flex items-center justify-between p-2 rounded-lg ${theme.secondaryBg}`}>
+                <span className={`text-xs ${theme.highlight}`}>Working on holiday</span>
+                <SSAToggle on={compOffHoliday} onChange={() => setCompOffHoliday(!compOffHoliday)} theme={theme} />
+              </div>
+              <div className={`flex items-center justify-between p-2 rounded-lg ${theme.secondaryBg}`}>
+                <span className={`text-xs ${theme.highlight}`}>Extra hours &gt; 2</span>
+                <SSAToggle on={compOffExtra} onChange={() => setCompOffExtra(!compOffExtra)} theme={theme} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </SectionCard>
+      </div>)}
+
+      {activeTab === 'rules' && (<div className="space-y-4">
+      <SectionCard title="Auto-Notification Rules" subtitle="Automated alerts sent to parents and staff based on attendance events" theme={theme}>
+        <div className="space-y-2">
+          {Object.entries(autoNotify).map(([rule, enabled]) => (
+            <div key={rule} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <div className="flex-1 mr-3">
+                <p className={`text-xs font-bold ${theme.highlight}`}>{rule}</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>{
+                  ({
+                    'Notify parent on absence (immediate)': 'Parents receive instant SMS/app notification when their child is marked absent',
+                    'Notify parent on late arrival': 'Parents are notified when their child arrives after the grace period',
+                    'Weekly attendance summary to parents': 'Parents receive a weekly digest showing their child\'s attendance for the week',
+                    'Alert class teacher if absent > 3 consecutive days': 'Class teacher gets an alert when a student is absent for 3+ consecutive days',
+                    'Alert principal if attendance < 75%': 'Principal is notified when any student\'s attendance drops below 75%',
+                    'Auto-mark absent if not marked by 10 AM': 'System automatically marks students as absent if teacher hasn\'t marked attendance by 10 AM',
+                  } as Record<string, string>)[rule]
+                }</p>
+              </div>
+              <SSAToggle on={enabled} onChange={() => setAutoNotify(p => ({ ...p, [rule]: !p[rule] }))} theme={theme} />
+            </div>
+          ))}
         </div>
       </SectionCard>
 
@@ -547,47 +597,9 @@ export default function AttendanceConfigModule({ theme }: { theme: Theme }) {
           )}
         </div>
       </SectionCard>
+      </div>)}
 
-      {/* ─── C) Employee Attendance Settings ─── */}
-      <SectionCard title="Employee Attendance Settings" subtitle="Staff attendance configuration and comp-off rules" theme={theme}>
-        <div className="space-y-2">
-          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-            <div>
-              <p className={`text-xs font-bold ${theme.highlight}`}>Record In/Out Times</p>
-              <p className={`text-[10px] ${theme.iconColor}`}>Track exact check-in and check-out timestamps for staff</p>
-            </div>
-            <SSAToggle on={recordInOut} onChange={() => setRecordInOut(!recordInOut)} theme={theme} />
-          </div>
-          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-            <div>
-              <p className={`text-xs font-bold ${theme.highlight}`}>Auto-flag Loss of Pay when leave balance = 0</p>
-              <p className={`text-[10px] ${theme.iconColor}`}>Automatically mark LOP when staff exhausts all leave types</p>
-            </div>
-            <SSAToggle on={autoFlagLOP} onChange={() => setAutoFlagLOP(!autoFlagLOP)} theme={theme} />
-          </div>
-          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-            <div>
-              <p className={`text-xs font-bold ${theme.highlight}`}>Generate Monthly Summary Report</p>
-              <p className={`text-[10px] ${theme.iconColor}`}>Auto-generate staff attendance summary at month end</p>
-            </div>
-            <SSAToggle on={monthlyReport} onChange={() => setMonthlyReport(!monthlyReport)} theme={theme} />
-          </div>
-          <div className={`p-3 rounded-xl ${theme.accentBg} border ${theme.border}`}>
-            <p className={`text-[10px] font-bold ${theme.iconColor} mb-2 uppercase tracking-wide`}>Comp-off Earned For</p>
-            <div className="space-y-2">
-              <div className={`flex items-center justify-between p-2 rounded-lg ${theme.secondaryBg}`}>
-                <span className={`text-xs ${theme.highlight}`}>Working on holiday</span>
-                <SSAToggle on={compOffHoliday} onChange={() => setCompOffHoliday(!compOffHoliday)} theme={theme} />
-              </div>
-              <div className={`flex items-center justify-between p-2 rounded-lg ${theme.secondaryBg}`}>
-                <span className={`text-xs ${theme.highlight}`}>Extra hours &gt; 2</span>
-                <SSAToggle on={compOffExtra} onChange={() => setCompOffExtra(!compOffExtra)} theme={theme} />
-              </div>
-            </div>
-          </div>
-        </div>
-      </SectionCard>
-
+      {activeTab === 'settings' && (<div className="space-y-4">
       <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
         <div className="space-y-4">
           <MasterPermissionGrid masterName="Attendance Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
@@ -602,6 +614,7 @@ export default function AttendanceConfigModule({ theme }: { theme: Theme }) {
           <Save size={15} /> Save Configuration
         </button>
       </div>
+      </div>)}
     </div>
   );
 }

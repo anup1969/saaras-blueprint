@@ -76,7 +76,9 @@ function Pagination({ page, total, pageSize, onChange, theme }: { page: number; 
   );
 }
 
-export default function APIIntegrationConfigModule({ theme }: { theme: Theme }) {
+type TabId = 'integrations' | 'settings';
+
+export default function APIIntegrationConfigModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
   const [thirdParty, setThirdParty] = useState(false);
   const [webhookNotifications, setWebhookNotifications] = useState(false);
   const [apiRateLimit, setApiRateLimit] = useState('1000');
@@ -84,6 +86,10 @@ export default function APIIntegrationConfigModule({ theme }: { theme: Theme }) 
     'Tally (Accounting)': false, 'WhatsApp Business': false, 'SMS Gateway': false,
     'Google Workspace': false, 'Microsoft 365': false,
   });
+
+  const [internalTab, setInternalTab] = useState<TabId>('integrations');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
 
   // Extended Integrations state
   const [videoConferencing, setVideoConferencing] = useState(false);
@@ -177,6 +183,7 @@ export default function APIIntegrationConfigModule({ theme }: { theme: Theme }) 
     <div className="space-y-4">
       <ModuleHeader title="API & Integration Configuration" subtitle="Third-party integrations, webhooks, and API rate limits" theme={theme} />
 
+      {activeTab === 'integrations' && (<div className="space-y-4">
       <SectionCard title="Integration Master Switch" subtitle="Enable or disable all external integrations" theme={theme}>
         <div className="space-y-2">
           <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
@@ -216,13 +223,6 @@ export default function APIIntegrationConfigModule({ theme }: { theme: Theme }) 
             </div>
           ))}
           {!thirdParty && <p className={`text-[10px] ${theme.iconColor} italic`}>Enable &quot;Third-party integrations&quot; above to toggle individual services</p>}
-        </div>
-      </SectionCard>
-
-      <SectionCard title="API Rate Limit" subtitle="Maximum API requests per minute" theme={theme}>
-        <div className="flex items-center gap-3">
-          <InputField value={apiRateLimit} onChange={setApiRateLimit} theme={theme} type="number" placeholder="Requests per minute" />
-          <span className={`text-xs ${theme.iconColor} whitespace-nowrap`}>req/min</span>
         </div>
       </SectionCard>
 
@@ -350,6 +350,16 @@ export default function APIIntegrationConfigModule({ theme }: { theme: Theme }) 
           </div>
         </div>
       </SectionCard>
+      </div>)}
+
+      {activeTab === 'settings' && (<div className="space-y-4">
+      <SectionCard title="API Rate Limit" subtitle="Maximum API requests per minute" theme={theme}>
+        <div className="flex items-center gap-3">
+          <InputField value={apiRateLimit} onChange={setApiRateLimit} theme={theme} type="number" placeholder="Requests per minute" />
+          <span className={`text-xs ${theme.iconColor} whitespace-nowrap`}>req/min</span>
+        </div>
+      </SectionCard>
+      </div>)}
 
       {/* ─── API Marketplace & Webhooks (Interactive) ────────────────── */}
       <SectionCard title="API Marketplace & Webhooks" subtitle="Manage third-party API connections, webhook events, and API keys" theme={theme}>

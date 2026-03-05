@@ -45,7 +45,9 @@ const MOCK_OVERDUE: OverdueBook[] = [
 
 const PAGE_SIZE = 5;
 
-export default function LibraryConfigModule({ theme }: { theme: Theme }) {
+type TabId = 'catalog' | 'operations' | 'settings';
+
+export default function LibraryConfigModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
   // ── Loan Rules ──────────────────────────────────────────────────────────────
   const [maxBooks, setMaxBooks] = useState('2');
   const [loanPeriod, setLoanPeriod] = useState('14');
@@ -77,6 +79,11 @@ export default function LibraryConfigModule({ theme }: { theme: Theme }) {
   // ── Overdue ──────────────────────────────────────────────────────────────────
   const [overdueSearch, setOverdueSearch] = useState('');
   const [overduePage, setOverduePage] = useState(1);
+
+  // ── Tab State ──────────────────────────────────────────────────────────────
+  const [internalTab, setInternalTab] = useState<TabId>('catalog');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
 
   // ── Helpers ──────────────────────────────────────────────────────────────────
   const filteredBooks = books.filter(b =>
@@ -131,6 +138,7 @@ export default function LibraryConfigModule({ theme }: { theme: Theme }) {
     <div className="space-y-4">
       <ModuleHeader title="Library Configuration" subtitle="Book catalog, loan rules, issue/return workflow, and overdue tracking" theme={theme} />
 
+      {activeTab === 'catalog' && (<div className="space-y-4">
       {/* ── Book Catalog ─────────────────────────────────────────────────── */}
       <SectionCard title="Book Catalog" subtitle="Master list of all books — add, edit, toggle availability" theme={theme}>
         <div className="flex items-center gap-2 mb-3">
@@ -218,6 +226,36 @@ export default function LibraryConfigModule({ theme }: { theme: Theme }) {
         )}
       </SectionCard>
 
+      {/* ── Book Categories Table ────────────────────────────────────────────── */}
+      <SectionCard title="Book Categories" subtitle="Manage catalogue categories used in the book master" theme={theme}>
+        <div className="flex items-center gap-2 mb-3">
+          <div className={`flex items-center gap-1.5 flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg}`}>
+            <Search size={13} className={theme.iconColor} />
+            <input value={catSearch} onChange={e => setCatSearch(e.target.value)} placeholder="Search categories..."
+              className={`flex-1 bg-transparent text-xs ${theme.highlight} outline-none`} />
+          </div>
+          <span className={`text-[10px] px-2 py-1 rounded-lg ${theme.accentBg} ${theme.iconColor} font-bold`}>{filteredCats.length} categories</span>
+        </div>
+        <div className="flex flex-wrap gap-1.5 mb-3">
+          {filteredCats.map(c => (
+            <span key={c} className={`flex items-center gap-1 px-2.5 py-1 rounded-lg ${theme.secondaryBg} text-xs font-medium ${theme.highlight}`}>
+              {c}
+              <button onClick={() => setCategories(p => p.filter(x => x !== c))} className="text-red-400 hover:text-red-600"><X size={10} /></button>
+            </span>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <input value={newCategory} onChange={e => setNewCategory(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter' && newCategory.trim()) { setCategories(p => [...p, newCategory.trim()]); setNewCategory(''); } }}
+            placeholder="Add category..."
+            className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+          <button onClick={() => { if (newCategory.trim()) { setCategories(p => [...p, newCategory.trim()]); setNewCategory(''); } }}
+            className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}><Plus size={14} /></button>
+        </div>
+      </SectionCard>
+      </div>)}
+
+      {activeTab === 'operations' && (<div className="space-y-4">
       {/* ── Issue / Return Workflow ──────────────────────────────────────────── */}
       <SectionCard title="Issue / Return Workflow" subtitle="Search a student, view their borrowed books, issue or return" theme={theme}>
         {/* Tabs */}
@@ -400,35 +438,9 @@ export default function LibraryConfigModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
       </div>
+      </div>)}
 
-      {/* ── Book Categories Table ────────────────────────────────────────────── */}
-      <SectionCard title="Book Categories" subtitle="Manage catalogue categories used in the book master" theme={theme}>
-        <div className="flex items-center gap-2 mb-3">
-          <div className={`flex items-center gap-1.5 flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg}`}>
-            <Search size={13} className={theme.iconColor} />
-            <input value={catSearch} onChange={e => setCatSearch(e.target.value)} placeholder="Search categories..."
-              className={`flex-1 bg-transparent text-xs ${theme.highlight} outline-none`} />
-          </div>
-          <span className={`text-[10px] px-2 py-1 rounded-lg ${theme.accentBg} ${theme.iconColor} font-bold`}>{filteredCats.length} categories</span>
-        </div>
-        <div className="flex flex-wrap gap-1.5 mb-3">
-          {filteredCats.map(c => (
-            <span key={c} className={`flex items-center gap-1 px-2.5 py-1 rounded-lg ${theme.secondaryBg} text-xs font-medium ${theme.highlight}`}>
-              {c}
-              <button onClick={() => setCategories(p => p.filter(x => x !== c))} className="text-red-400 hover:text-red-600"><X size={10} /></button>
-            </span>
-          ))}
-        </div>
-        <div className="flex gap-2">
-          <input value={newCategory} onChange={e => setNewCategory(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter' && newCategory.trim()) { setCategories(p => [...p, newCategory.trim()]); setNewCategory(''); } }}
-            placeholder="Add category..."
-            className={`flex-1 px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
-          <button onClick={() => { if (newCategory.trim()) { setCategories(p => [...p, newCategory.trim()]); setNewCategory(''); } }}
-            className={`px-3 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}><Plus size={14} /></button>
-        </div>
-      </SectionCard>
-
+      {activeTab === 'settings' && (<div className="space-y-4">
       {/* ── Permissions ──────────────────────────────────────────────────────── */}
       <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
         <div className="space-y-4">
@@ -441,6 +453,7 @@ export default function LibraryConfigModule({ theme }: { theme: Theme }) {
       <SectionCard title="Bulk Import" subtitle="Import data from Excel templates" theme={theme}>
         <BulkImportWizard entityName="Books" templateFields={['ISBN', 'Title', 'Author', 'Publisher', 'Category', 'Copies', 'Shelf Location']} sampleData={[['978-0-13-468599-1', 'Clean Code', 'Robert C. Martin', 'Pearson', 'Reference', '5', 'A-12']]} theme={theme} />
       </SectionCard>
+      </div>)}
     </div>
   );
 }

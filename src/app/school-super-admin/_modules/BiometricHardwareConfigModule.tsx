@@ -69,7 +69,9 @@ function Pagination({ page, total, pageSize, onChange, theme }: { page: number; 
   );
 }
 
-export default function BiometricHardwareConfigModule({ theme }: { theme: Theme }) {
+type TabId = 'devices' | 'management';
+
+export default function BiometricHardwareConfigModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
   // ─── Attendance Devices ────────────────────────────
   const [attendanceDevices, setAttendanceDevices] = useState<Record<string, boolean>>({
     'Fingerprint Scanner': true, 'RFID Card Reader': true, 'Face Recognition': false, 'QR/Barcode Scanner': true,
@@ -163,6 +165,10 @@ export default function BiometricHardwareConfigModule({ theme }: { theme: Theme 
   const [offlineSync, setOfflineSync] = useState(true);
   const [deviceAccessRole, setDeviceAccessRole] = useState('Admin Only');
 
+  const [internalTab, setInternalTab] = useState<TabId>('devices');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
+
   const statusIcon = (s: Device['status']) => {
     if (s === 'Online') return <Wifi size={8} />;
     if (s === 'Maintenance') return <Wrench size={8} />;
@@ -178,6 +184,7 @@ export default function BiometricHardwareConfigModule({ theme }: { theme: Theme 
     <div className="space-y-4">
       <ModuleHeader title="Biometric & Hardware Configuration" subtitle="Manage attendance devices, GPS trackers, CCTV, smart boards, and device inventory" theme={theme} />
 
+      {activeTab === 'devices' && (<div className="space-y-4">
       {/* Row 1: Attendance Devices + GPS & Transport */}
       <div className="grid grid-cols-2 gap-4">
         <SectionCard title="Attendance Devices" subtitle="Biometric and scanning devices for student/staff attendance" theme={theme}>
@@ -342,7 +349,9 @@ export default function BiometricHardwareConfigModule({ theme }: { theme: Theme 
           </div>
         </SectionCard>
       </div>
+      </div>)}
 
+      {activeTab === 'management' && (<div className="space-y-4">
       {/* Row 3: Device Management (full width) — Full CRUD table */}
       <SectionCard title="Device Management" subtitle="Master inventory of all connected devices — add, edit, delete, enable/disable" theme={theme}>
         <div className="space-y-3">
@@ -494,6 +503,7 @@ export default function BiometricHardwareConfigModule({ theme }: { theme: Theme 
           <Save size={15} /> Save Configuration
         </button>
       </div>
+      </div>)}
     </div>
   );
 }

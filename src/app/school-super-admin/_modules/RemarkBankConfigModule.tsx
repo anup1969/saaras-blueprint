@@ -75,8 +75,10 @@ function Pagination({ page, total, pageSize, onChange, theme }: { page: number; 
   );
 }
 
+type TabId = 'bank' | 'settings';
+
 // ─── Main Module ────────────────────────────────────
-export default function RemarkBankConfigModule({ theme }: { theme: Theme }) {
+export default function RemarkBankConfigModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
   // ─── Moderation Policy ───
   const [requireModeration, setRequireModeration] = useState(true);
   const [allowEditAfterPublish, setAllowEditAfterPublish] = useState(false);
@@ -149,10 +151,16 @@ export default function RemarkBankConfigModule({ theme }: { theme: Theme }) {
   // ─── Save state ───
   const [saved, setSaved] = useState(false);
 
+  // ─── Tab state ───
+  const [internalTab, setInternalTab] = useState<TabId>('bank');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
+
   return (
     <div className="space-y-4">
       <ModuleHeader title="Remark Bank Configuration" subtitle="Manage remark templates, moderation policies, and submission deadlines" theme={theme} />
 
+      {activeTab === 'bank' && (<div className="space-y-4">
       {/* ─── Remark Moderation Policy ─── */}
       <SectionCard title="Remark Moderation Policy" subtitle="Control how remarks are reviewed before parents see them" theme={theme}>
         <div className="space-y-2">
@@ -299,7 +307,9 @@ export default function RemarkBankConfigModule({ theme }: { theme: Theme }) {
         </div>
         <Pagination page={deadlinePage} total={filteredDeadlines.length} pageSize={PAGE_SIZE} onChange={setDeadlinePage} theme={theme} />
       </SectionCard>
+      </div>)}
 
+      {activeTab === 'settings' && (<div className="space-y-4">
       <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
         <div className="space-y-4">
           <MasterPermissionGrid masterName="Remark Categories" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
@@ -309,6 +319,7 @@ export default function RemarkBankConfigModule({ theme }: { theme: Theme }) {
       <SectionCard title="Bulk Import" subtitle="Import data from Excel templates" theme={theme}>
         <BulkImportWizard entityName="Remarks" templateFields={['Category', 'Remark Text', 'Applicable To', 'Tone']} sampleData={[['Academic', 'Shows excellent analytical thinking', 'Student', 'Positive']]} theme={theme} />
       </SectionCard>
+      </div>)}
 
       {/* ─── Save Configuration ─── */}
       <div className="flex justify-end">

@@ -5,7 +5,9 @@ import { Save } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, SelectField, InputField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
 
-export default function ParentPortalConfigModule({ theme }: { theme: Theme }) {
+type TabId = 'features' | 'settings';
+
+export default function ParentPortalConfigModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
   const [multiChild, setMultiChild] = useState(true);
   const [feePayment, setFeePayment] = useState(true);
   const [ptmBooking, setPtmBooking] = useState(true);
@@ -23,6 +25,10 @@ export default function ParentPortalConfigModule({ theme }: { theme: Theme }) {
   const [directoryFields, setDirectoryFields] = useState<Record<string, boolean>>({ 'Name': true, 'Phone': true, 'Email': false, 'Child Class': true });
   const [optInRequired, setOptInRequired] = useState(true);
 
+  const [internalTab, setInternalTab] = useState<TabId>('features');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
+
   const [moduleToggles, setModuleToggles] = useState<Record<string, boolean>>({
     Fees: true, Attendance: true, Exams: true, LMS: false, Enquiry: true, Visitor: true,
     Transport: true, Library: false, Hostel: false, Canteen: false, Alumni: false,
@@ -33,6 +39,7 @@ export default function ParentPortalConfigModule({ theme }: { theme: Theme }) {
     <div className="space-y-4">
       <ModuleHeader title="Parent Portal Configuration" subtitle="Control what parents can access and do through their portal" theme={theme} />
 
+      {activeTab === 'features' && (<div className="space-y-4">
       <SectionCard title="Portal Features" subtitle="Toggle features available to parents" theme={theme}>
         <div className="space-y-2">
           {[
@@ -116,7 +123,9 @@ export default function ParentPortalConfigModule({ theme }: { theme: Theme }) {
           )}
         </div>
       </SectionCard>
+      </div>)}
 
+      {activeTab === 'settings' && (<div className="space-y-4">
       <SectionCard title="Parent Directory" subtitle="Allow parents to view other parents in same class" theme={theme}>
         <div className="space-y-3">
           <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
@@ -150,6 +159,7 @@ export default function ParentPortalConfigModule({ theme }: { theme: Theme }) {
           )}
         </div>
       </SectionCard>
+      </div>)}
 
       {/* ─── Save Bar ─── */}
       <div className={`${theme.cardBg} rounded-2xl border-2 ${theme.border} p-4 flex items-center justify-between`}>

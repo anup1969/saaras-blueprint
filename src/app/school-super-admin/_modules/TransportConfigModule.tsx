@@ -62,7 +62,9 @@ type Route = { name: string; stops: string; capacity: string; morning: string; e
 type Vehicle = { reg: string; type: string; capacity: string; year: string; insurance: string; gps: boolean; enabled: boolean };
 type Driver = { name: string; phone: string; license: string; expiry: string; badge: boolean; enabled: boolean };
 
-export default function TransportConfigModule({ theme }: { theme: Theme }) {
+type TabId = 'policy' | 'fleet' | 'safety' | 'settings';
+
+export default function TransportConfigModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
   const [routes, setRoutes] = useState<Route[]>([
     { name: 'Route A', stops: '8', capacity: '40', morning: '7:00 AM', evening: '3:30 PM', driver: 'Ramesh Kumar', vehicle: 'GJ-01-AB-1234', enabled: true, stopDetails: [
       { name: 'Satellite Circle', time: '7:00 AM', km: '0' },
@@ -185,10 +187,16 @@ export default function TransportConfigModule({ theme }: { theme: Theme }) {
   // ── Saved feedback ──
   const [saved, setSaved] = useState(false);
 
+  // ── Tab state ──
+  const [internalTab, setInternalTab] = useState<TabId>('policy');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
+
   return (
     <div className="space-y-4">
       <ModuleHeader title="Transport Configuration" subtitle="Routes, vehicles, drivers, safety, and fee structure" theme={theme} />
 
+      {activeTab === 'policy' && (<div className="space-y-4">
       <SectionCard title="Transport Policy" subtitle="Define your school's student commute and transport operation policy" theme={theme}>
         <div className="space-y-4">
           <div>
@@ -354,6 +362,9 @@ export default function TransportConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
+      </div>)}
+
+      {activeTab === 'fleet' && (<div className="space-y-4">
       {/* ══════════════ ROUTES — MASTER TABLE ══════════════ */}
       <SectionCard title="Routes" subtitle="Bus routes — assign drivers and vehicles from dropdowns. Expand a row to manage stops." theme={theme}>
         <TableToolbar search={routeSearch} onSearch={v => { setRouteSearch(v); setRoutePage(1); }} count={filteredRoutes.length}
@@ -575,8 +586,9 @@ export default function TransportConfigModule({ theme }: { theme: Theme }) {
         </div>
         <Pagination page={driverPage} total={filteredDrivers.length} pageSize={PAGE_SIZE} onChange={setDriverPage} theme={theme} />
       </SectionCard>
+      </div>)}
 
-      <div className="grid grid-cols-2 gap-4">
+      {activeTab === 'safety' && (<div className="space-y-4">
         <SectionCard title="Tracking &amp; Safety" subtitle="Safety features and alerts for school transport" theme={theme}>
           <div className="space-y-2">
             {Object.entries(safetyToggles).map(([feature, enabled]) => (
@@ -609,8 +621,9 @@ export default function TransportConfigModule({ theme }: { theme: Theme }) {
             ))}
           </div>
         </SectionCard>
+      </div>)}
 
-        <div className="space-y-4">
+      {activeTab === 'policy' && (<div className="space-y-4">
           <SectionCard title="Transport Fee Model" subtitle="How transport fees are calculated" theme={theme}>
             <div className="space-y-2">
               {[
@@ -648,8 +661,6 @@ export default function TransportConfigModule({ theme }: { theme: Theme }) {
               ))}
             </div>
           </SectionCard>
-        </div>
-      </div>
 
       <SectionCard title="Student Commute Tagging" subtitle="Tag how each student commutes to school" theme={theme}>
         <div className="space-y-3">
@@ -693,7 +704,9 @@ export default function TransportConfigModule({ theme }: { theme: Theme }) {
           )}
         </div>
       </SectionCard>
+      </div>)}
 
+      {activeTab === 'settings' && (<div className="space-y-4">
       <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
         <div className="space-y-4">
           <MasterPermissionGrid masterName="Routes" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
@@ -704,6 +717,7 @@ export default function TransportConfigModule({ theme }: { theme: Theme }) {
       <SectionCard title="Bulk Import" subtitle="Import data from Excel templates" theme={theme}>
         <BulkImportWizard entityName="Routes" templateFields={['Route Name', 'Start Point', 'End Point', 'Vehicle No', 'Driver', 'Stops']} sampleData={[['Route A - Satellite', 'Satellite Circle', 'Saaras School', 'GJ-01-AB-1234', 'Ramesh Kumar', '8']]} theme={theme} />
       </SectionCard>
+      </div>)}
 
       {/* ── Save Configuration ── */}
       <div className="flex justify-end pt-2">

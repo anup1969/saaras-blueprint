@@ -49,7 +49,9 @@ function Pagination({ page, totalPages, onPage, theme }: { page: number; totalPa
   );
 }
 
-export default function ComplianceConfigModule({ theme }: { theme: Theme }) {
+type TabId = 'frameworks' | 'monitoring' | 'tools';
+
+export default function ComplianceConfigModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
   const [framework, setFramework] = useState('SQAAF');
   const [auditSchedule, setAuditSchedule] = useState('Quarterly');
   const [compToggles, setCompToggles] = useState<Record<string, boolean>>({
@@ -214,9 +216,15 @@ export default function ComplianceConfigModule({ theme }: { theme: Theme }) {
   const [saved, setSaved] = useState(false);
   function handleSave() { setSaved(true); setTimeout(() => setSaved(false), 2500); }
 
+  const [internalTab, setInternalTab] = useState<TabId>('frameworks');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
+
   return (
     <div className="space-y-4">
       <ModuleHeader title="Compliance & Quality Configuration" subtitle="Assessment frameworks, audit schedules, and compliance domains" theme={theme} />
+
+      {activeTab === 'frameworks' && (<div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <SectionCard title="Framework & Schedule" subtitle="Assessment standard and audit frequency" theme={theme}>
           <div className="space-y-3">
@@ -508,7 +516,9 @@ export default function ComplianceConfigModule({ theme }: { theme: Theme }) {
           </div>
         </SectionCard>
       </div>
+      </div>)}
 
+      {activeTab === 'monitoring' && (<div className="space-y-4">
       {/* ─── Infrastructure & Ratio Monitoring ── */}
       <SectionCard title="Infrastructure & Ratio Monitoring" subtitle="Track student-teacher, classroom, washroom, and computer ratios against targets" theme={theme}>
         <div className="space-y-4">
@@ -579,228 +589,229 @@ export default function ComplianceConfigModule({ theme }: { theme: Theme }) {
       </SectionCard>
 
       {/* ─── Inspection & Readiness ───────── */}
-      <div className="grid grid-cols-2 gap-4">
-        <SectionCard title="Inspection Readiness Dashboard" subtitle="Track inspection schedule and preparedness" theme={theme}>
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <p className={`text-[9px] ${theme.iconColor} mb-0.5`}>Last Inspection</p>
-                <input type="date" value={lastInspectionDate} onChange={e => setLastInspectionDate(e.target.value)}
-                  className={`w-full px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
-              </div>
-              <div>
-                <p className={`text-[9px] ${theme.iconColor} mb-0.5`}>Next Expected</p>
-                <input type="date" value={nextInspectionDate} onChange={e => setNextInspectionDate(e.target.value)}
-                  className={`w-full px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
-              </div>
+      <SectionCard title="Inspection Readiness Dashboard" subtitle="Track inspection schedule and preparedness" theme={theme}>
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <p className={`text-[9px] ${theme.iconColor} mb-0.5`}>Last Inspection</p>
+              <input type="date" value={lastInspectionDate} onChange={e => setLastInspectionDate(e.target.value)}
+                className={`w-full px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
             </div>
-
-            <div className={`p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <div className="flex items-center justify-between mb-1.5">
-                <p className={`text-xs font-bold ${theme.highlight}`}>Readiness Score</p>
-                <span className={`text-xs font-bold ${Number(readinessScore) >= 80 ? 'text-green-600' : Number(readinessScore) >= 50 ? 'text-yellow-600' : 'text-red-600'}`}>{readinessScore}%</span>
-              </div>
-              <div className="w-full h-2.5 bg-gray-200 rounded-full overflow-hidden">
-                <div className={`h-full rounded-full transition-all ${Number(readinessScore) >= 80 ? 'bg-green-500' : Number(readinessScore) >= 50 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                  style={{ width: `${Math.min(100, Math.max(0, Number(readinessScore)))}%` }} />
-              </div>
-              <input type="range" min="0" max="100" value={readinessScore} onChange={e => setReadinessScore(e.target.value)}
-                className="w-full mt-1 h-1 accent-blue-500 cursor-pointer" />
-            </div>
-
-            <p className={`text-[10px] font-bold ${theme.iconColor} uppercase tracking-wide`}>Inspection Checklist</p>
-            <div className="space-y-1.5">
-              {Object.entries(inspectionChecklist).map(([item, done]) => (
-                <div key={item} className={`flex items-center justify-between p-2 rounded-xl ${theme.secondaryBg}`}>
-                  <div className="flex items-center gap-1.5">
-                    <ClipboardCheck size={11} className={done ? 'text-green-500' : 'text-gray-400'} />
-                    <span className={`text-xs font-medium ${theme.highlight}`}>{item}</span>
-                  </div>
-                  <SSAToggle on={done} onChange={() => setInspectionChecklist(p => ({ ...p, [item]: !p[item] }))} theme={theme} />
-                </div>
-              ))}
+            <div>
+              <p className={`text-[9px] ${theme.iconColor} mb-0.5`}>Next Expected</p>
+              <input type="date" value={nextInspectionDate} onChange={e => setNextInspectionDate(e.target.value)}
+                className={`w-full px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
             </div>
           </div>
-        </SectionCard>
 
-        {/* ─── B6: Compliance Gap Analysis (interactive CRUD) ─── */}
-        <SectionCard title="Compliance Gap Analysis" subtitle="Auto-detect and track compliance gaps with priorities" theme={theme}>
-          <div className="space-y-3">
-            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <div className="flex items-center gap-1.5 flex-1 mr-3">
-                <Search size={12} className={theme.iconColor} />
-                <div>
-                  <p className={`text-xs font-bold ${theme.highlight}`}>Auto-detect Gaps</p>
-                  <p className={`text-[10px] ${theme.iconColor}`}>Automatically compare current status against board requirements</p>
+          <div className={`p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex items-center justify-between mb-1.5">
+              <p className={`text-xs font-bold ${theme.highlight}`}>Readiness Score</p>
+              <span className={`text-xs font-bold ${Number(readinessScore) >= 80 ? 'text-green-600' : Number(readinessScore) >= 50 ? 'text-yellow-600' : 'text-red-600'}`}>{readinessScore}%</span>
+            </div>
+            <div className="w-full h-2.5 bg-gray-200 rounded-full overflow-hidden">
+              <div className={`h-full rounded-full transition-all ${Number(readinessScore) >= 80 ? 'bg-green-500' : Number(readinessScore) >= 50 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                style={{ width: `${Math.min(100, Math.max(0, Number(readinessScore)))}%` }} />
+            </div>
+            <input type="range" min="0" max="100" value={readinessScore} onChange={e => setReadinessScore(e.target.value)}
+              className="w-full mt-1 h-1 accent-blue-500 cursor-pointer" />
+          </div>
+
+          <p className={`text-[10px] font-bold ${theme.iconColor} uppercase tracking-wide`}>Inspection Checklist</p>
+          <div className="space-y-1.5">
+            {Object.entries(inspectionChecklist).map(([item, done]) => (
+              <div key={item} className={`flex items-center justify-between p-2 rounded-xl ${theme.secondaryBg}`}>
+                <div className="flex items-center gap-1.5">
+                  <ClipboardCheck size={11} className={done ? 'text-green-500' : 'text-gray-400'} />
+                  <span className={`text-xs font-medium ${theme.highlight}`}>{item}</span>
                 </div>
+                <SSAToggle on={done} onChange={() => setInspectionChecklist(p => ({ ...p, [item]: !p[item] }))} theme={theme} />
               </div>
-              <SSAToggle on={autoDetectGaps} onChange={() => setAutoDetectGaps(!autoDetectGaps)} theme={theme} />
+            ))}
+          </div>
+        </div>
+      </SectionCard>
+      </div>)}
+
+      {activeTab === 'tools' && (<div className="space-y-4">
+      {/* ─── B6: Compliance Gap Analysis (interactive CRUD) ─── */}
+      <SectionCard title="Compliance Gap Analysis" subtitle="Auto-detect and track compliance gaps with priorities" theme={theme}>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex items-center gap-1.5 flex-1 mr-3">
+              <Search size={12} className={theme.iconColor} />
+              <div>
+                <p className={`text-xs font-bold ${theme.highlight}`}>Auto-detect Gaps</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Automatically compare current status against board requirements</p>
+              </div>
             </div>
+            <SSAToggle on={autoDetectGaps} onChange={() => setAutoDetectGaps(!autoDetectGaps)} theme={theme} />
+          </div>
 
-            {/* Gap table toolbar */}
-            <TableToolbar search={gapSearch} onSearch={v => { setGapSearch(v); setGapPage(1); }} count={filteredGaps.length} total={complianceGaps.length} theme={theme} />
+          {/* Gap table toolbar */}
+          <TableToolbar search={gapSearch} onSearch={v => { setGapSearch(v); setGapPage(1); }} count={filteredGaps.length} total={complianceGaps.length} theme={theme} />
 
-            {/* Gap table */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-[10px]">
-                <thead>
-                  <tr className={`${theme.secondaryBg}`}>
-                    <th className={`text-left p-1.5 font-bold ${theme.iconColor} rounded-tl-lg`}>Area</th>
-                    <th className={`text-left p-1.5 font-bold ${theme.iconColor}`}>Requirement</th>
-                    <th className={`text-center p-1.5 font-bold ${theme.iconColor}`}>Status</th>
-                    <th className={`text-center p-1.5 font-bold ${theme.iconColor}`}>Priority</th>
-                    <th className={`text-left p-1.5 font-bold ${theme.iconColor}`}>Action</th>
-                    <th className={`text-center p-1.5 font-bold ${theme.iconColor} rounded-tr-lg`}></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pagedGaps.map((gap) => {
-                    const realIdx = complianceGaps.findIndex(x => x.area === gap.area && x.requirement === gap.requirement);
-                    const isEditing = editingGapIdx === realIdx;
-                    return (
-                      <tr key={realIdx} className={`border-t ${theme.border}`}>
-                        <td className={`p-1.5 font-medium ${theme.highlight}`}>
+          {/* Gap table */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-[10px]">
+              <thead>
+                <tr className={`${theme.secondaryBg}`}>
+                  <th className={`text-left p-1.5 font-bold ${theme.iconColor} rounded-tl-lg`}>Area</th>
+                  <th className={`text-left p-1.5 font-bold ${theme.iconColor}`}>Requirement</th>
+                  <th className={`text-center p-1.5 font-bold ${theme.iconColor}`}>Status</th>
+                  <th className={`text-center p-1.5 font-bold ${theme.iconColor}`}>Priority</th>
+                  <th className={`text-left p-1.5 font-bold ${theme.iconColor}`}>Action</th>
+                  <th className={`text-center p-1.5 font-bold ${theme.iconColor} rounded-tr-lg`}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {pagedGaps.map((gap) => {
+                  const realIdx = complianceGaps.findIndex(x => x.area === gap.area && x.requirement === gap.requirement);
+                  const isEditing = editingGapIdx === realIdx;
+                  return (
+                    <tr key={realIdx} className={`border-t ${theme.border}`}>
+                      <td className={`p-1.5 font-medium ${theme.highlight}`}>
+                        {isEditing ? (
+                          <input value={editingGap.area} onChange={e => setEditingGap(p => ({ ...p, area: e.target.value }))}
+                            className={`w-full px-1.5 py-0.5 rounded border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight} outline-none`} />
+                        ) : gap.area}
+                      </td>
+                      <td className={`p-1.5 ${theme.iconColor}`}>
+                        {isEditing ? (
+                          <input value={editingGap.requirement} onChange={e => setEditingGap(p => ({ ...p, requirement: e.target.value }))}
+                            className={`w-full px-1.5 py-0.5 rounded border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight} outline-none`} />
+                        ) : gap.requirement}
+                      </td>
+                      <td className="p-1.5 text-center">
+                        {isEditing ? (
+                          <select value={editingGap.status} onChange={e => setEditingGap(p => ({ ...p, status: e.target.value }))}
+                            className={`text-[9px] font-bold px-1 py-0.5 rounded-full border-none outline-none cursor-pointer ${editingGap.status === 'Compliant' ? 'bg-green-100 text-green-700' : editingGap.status === 'Partial' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
+                            {gapStatusOptions.map(s => <option key={s} value={s}>{s}</option>)}
+                          </select>
+                        ) : (
+                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${gap.status === 'Compliant' ? 'bg-green-100 text-green-700' : gap.status === 'Partial' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
+                            {gap.status}
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-1.5 text-center">
+                        {isEditing ? (
+                          <select value={editingGap.priority} onChange={e => setEditingGap(p => ({ ...p, priority: e.target.value }))}
+                            className={`text-[9px] font-bold px-1 py-0.5 rounded-full border-none outline-none cursor-pointer ${editingGap.priority === 'High' ? 'bg-red-50 text-red-600' : editingGap.priority === 'Medium' ? 'bg-orange-50 text-orange-600' : 'bg-blue-50 text-blue-600'}`}>
+                            {gapPriorityOptions.map(p => <option key={p} value={p}>{p}</option>)}
+                          </select>
+                        ) : (
+                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${gap.priority === 'High' ? 'bg-red-50 text-red-600' : gap.priority === 'Medium' ? 'bg-orange-50 text-orange-600' : 'bg-blue-50 text-blue-600'}`}>
+                            {gap.priority}
+                          </span>
+                        )}
+                      </td>
+                      <td className={`p-1.5 ${theme.iconColor}`}>
+                        {isEditing ? (
+                          <input value={editingGap.action} onChange={e => setEditingGap(p => ({ ...p, action: e.target.value }))}
+                            className={`w-full px-1.5 py-0.5 rounded border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight} outline-none`} />
+                        ) : gap.action}
+                      </td>
+                      <td className="p-1.5 text-center">
+                        <div className="flex items-center gap-1 justify-center">
                           {isEditing ? (
-                            <input value={editingGap.area} onChange={e => setEditingGap(p => ({ ...p, area: e.target.value }))}
-                              className={`w-full px-1.5 py-0.5 rounded border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight} outline-none`} />
-                          ) : gap.area}
-                        </td>
-                        <td className={`p-1.5 ${theme.iconColor}`}>
-                          {isEditing ? (
-                            <input value={editingGap.requirement} onChange={e => setEditingGap(p => ({ ...p, requirement: e.target.value }))}
-                              className={`w-full px-1.5 py-0.5 rounded border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight} outline-none`} />
-                          ) : gap.requirement}
-                        </td>
-                        <td className="p-1.5 text-center">
-                          {isEditing ? (
-                            <select value={editingGap.status} onChange={e => setEditingGap(p => ({ ...p, status: e.target.value }))}
-                              className={`text-[9px] font-bold px-1 py-0.5 rounded-full border-none outline-none cursor-pointer ${editingGap.status === 'Compliant' ? 'bg-green-100 text-green-700' : editingGap.status === 'Partial' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
-                              {gapStatusOptions.map(s => <option key={s} value={s}>{s}</option>)}
-                            </select>
+                            <>
+                              <button onClick={() => {
+                                setComplianceGaps(p => p.map((x, j) => j === realIdx ? { ...editingGap } : x));
+                                setEditingGapIdx(null);
+                              }} className="text-[9px] font-bold text-emerald-600 hover:text-emerald-800 px-1.5 py-0.5 rounded hover:bg-emerald-50">Save</button>
+                              <button onClick={() => setEditingGapIdx(null)}
+                                className={`text-[9px] font-bold ${theme.iconColor} hover:opacity-70 px-1.5 py-0.5 rounded`}>Cancel</button>
+                            </>
                           ) : (
-                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${gap.status === 'Compliant' ? 'bg-green-100 text-green-700' : gap.status === 'Partial' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
-                              {gap.status}
-                            </span>
+                            <>
+                              <button onClick={() => { setEditingGapIdx(realIdx); setEditingGap({ ...gap }); }}
+                                className={`${theme.iconColor} hover:opacity-70 p-0.5 rounded`}><Edit size={10} /></button>
+                              <button onClick={() => setComplianceGaps(p => p.filter((_, j) => j !== realIdx))}
+                                className="text-red-400 hover:text-red-600 p-0.5 rounded"><X size={10} /></button>
+                            </>
                           )}
-                        </td>
-                        <td className="p-1.5 text-center">
-                          {isEditing ? (
-                            <select value={editingGap.priority} onChange={e => setEditingGap(p => ({ ...p, priority: e.target.value }))}
-                              className={`text-[9px] font-bold px-1 py-0.5 rounded-full border-none outline-none cursor-pointer ${editingGap.priority === 'High' ? 'bg-red-50 text-red-600' : editingGap.priority === 'Medium' ? 'bg-orange-50 text-orange-600' : 'bg-blue-50 text-blue-600'}`}>
-                              {gapPriorityOptions.map(p => <option key={p} value={p}>{p}</option>)}
-                            </select>
-                          ) : (
-                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${gap.priority === 'High' ? 'bg-red-50 text-red-600' : gap.priority === 'Medium' ? 'bg-orange-50 text-orange-600' : 'bg-blue-50 text-blue-600'}`}>
-                              {gap.priority}
-                            </span>
-                          )}
-                        </td>
-                        <td className={`p-1.5 ${theme.iconColor}`}>
-                          {isEditing ? (
-                            <input value={editingGap.action} onChange={e => setEditingGap(p => ({ ...p, action: e.target.value }))}
-                              className={`w-full px-1.5 py-0.5 rounded border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight} outline-none`} />
-                          ) : gap.action}
-                        </td>
-                        <td className="p-1.5 text-center">
-                          <div className="flex items-center gap-1 justify-center">
-                            {isEditing ? (
-                              <>
-                                <button onClick={() => {
-                                  setComplianceGaps(p => p.map((x, j) => j === realIdx ? { ...editingGap } : x));
-                                  setEditingGapIdx(null);
-                                }} className="text-[9px] font-bold text-emerald-600 hover:text-emerald-800 px-1.5 py-0.5 rounded hover:bg-emerald-50">Save</button>
-                                <button onClick={() => setEditingGapIdx(null)}
-                                  className={`text-[9px] font-bold ${theme.iconColor} hover:opacity-70 px-1.5 py-0.5 rounded`}>Cancel</button>
-                              </>
-                            ) : (
-                              <>
-                                <button onClick={() => { setEditingGapIdx(realIdx); setEditingGap({ ...gap }); }}
-                                  className={`${theme.iconColor} hover:opacity-70 p-0.5 rounded`}><Edit size={10} /></button>
-                                <button onClick={() => setComplianceGaps(p => p.filter((_, j) => j !== realIdx))}
-                                  className="text-red-400 hover:text-red-600 p-0.5 rounded"><X size={10} /></button>
-                              </>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                  {pagedGaps.length === 0 && (
-                    <tr><td colSpan={6} className={`p-3 text-center text-xs ${theme.iconColor}`}>No compliance gaps found</td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-            <Pagination page={gapPage} totalPages={gapTotalPages} onPage={setGapPage} theme={theme} />
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {pagedGaps.length === 0 && (
+                  <tr><td colSpan={6} className={`p-3 text-center text-xs ${theme.iconColor}`}>No compliance gaps found</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+          <Pagination page={gapPage} totalPages={gapTotalPages} onPage={setGapPage} theme={theme} />
 
-            {/* Add new gap */}
-            {showAddGap ? (
-              <div className={`p-3 rounded-xl ${theme.accentBg} border ${theme.border}`}>
-                <div className="flex items-center justify-between mb-2">
-                  <p className={`text-xs font-bold ${theme.highlight}`}>Add Compliance Gap</p>
-                  <button onClick={() => setShowAddGap(false)} className="text-gray-400 hover:text-gray-600"><X size={14} /></button>
-                </div>
-                <div className="grid grid-cols-2 gap-2 mb-2">
-                  <div>
-                    <p className={`text-[9px] font-bold ${theme.iconColor} mb-0.5`}>Area</p>
-                    <input value={newGap.area} onChange={e => setNewGap(p => ({ ...p, area: e.target.value }))} placeholder="e.g. Library"
-                      className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
-                  </div>
-                  <div>
-                    <p className={`text-[9px] font-bold ${theme.iconColor} mb-0.5`}>Requirement</p>
-                    <input value={newGap.requirement} onChange={e => setNewGap(p => ({ ...p, requirement: e.target.value }))} placeholder="Description..."
-                      className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
-                  </div>
-                  <div>
-                    <p className={`text-[9px] font-bold ${theme.iconColor} mb-0.5`}>Status</p>
-                    <select value={newGap.status} onChange={e => setNewGap(p => ({ ...p, status: e.target.value }))}
-                      className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}>
-                      {gapStatusOptions.map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <p className={`text-[9px] font-bold ${theme.iconColor} mb-0.5`}>Priority</p>
-                    <select value={newGap.priority} onChange={e => setNewGap(p => ({ ...p, priority: e.target.value }))}
-                      className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}>
-                      {gapPriorityOptions.map(p => <option key={p} value={p}>{p}</option>)}
-                    </select>
-                  </div>
-                </div>
-                <div className="mb-2">
-                  <p className={`text-[9px] font-bold ${theme.iconColor} mb-0.5`}>Action Plan</p>
-                  <input value={newGap.action} onChange={e => setNewGap(p => ({ ...p, action: e.target.value }))} placeholder="Remediation steps..."
+          {/* Add new gap */}
+          {showAddGap ? (
+            <div className={`p-3 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+              <div className="flex items-center justify-between mb-2">
+                <p className={`text-xs font-bold ${theme.highlight}`}>Add Compliance Gap</p>
+                <button onClick={() => setShowAddGap(false)} className="text-gray-400 hover:text-gray-600"><X size={14} /></button>
+              </div>
+              <div className="grid grid-cols-2 gap-2 mb-2">
+                <div>
+                  <p className={`text-[9px] font-bold ${theme.iconColor} mb-0.5`}>Area</p>
+                  <input value={newGap.area} onChange={e => setNewGap(p => ({ ...p, area: e.target.value }))} placeholder="e.g. Library"
                     className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
                 </div>
-                <button onClick={() => {
-                  if (newGap.area.trim() && newGap.requirement.trim()) {
-                    setComplianceGaps(p => [...p, { ...newGap, area: newGap.area.trim(), requirement: newGap.requirement.trim(), action: newGap.action.trim() }]);
-                    setNewGap({ area: '', requirement: '', status: 'Compliant', priority: 'Medium', action: '' });
-                    setShowAddGap(false);
-                  }
-                }} className={`flex items-center gap-1.5 px-4 py-1.5 rounded-xl ${theme.primary} text-white text-xs font-bold`}>
-                  <Plus size={12} /> Add Gap
-                </button>
-              </div>
-            ) : (
-              <button onClick={() => setShowAddGap(true)}
-                className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl border ${theme.border}`}>
-                <Plus size={12} /> Add Gap Entry
-              </button>
-            )}
-
-            <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <div className="flex items-center gap-1.5 flex-1 mr-3">
-                <Bell size={12} className={theme.iconColor} />
                 <div>
-                  <p className={`text-xs font-bold ${theme.highlight}`}>Regulatory Update Alerts</p>
-                  <p className={`text-[10px] ${theme.iconColor}`}>Get notified when board issues new circulars or compliance changes</p>
+                  <p className={`text-[9px] font-bold ${theme.iconColor} mb-0.5`}>Requirement</p>
+                  <input value={newGap.requirement} onChange={e => setNewGap(p => ({ ...p, requirement: e.target.value }))} placeholder="Description..."
+                    className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                </div>
+                <div>
+                  <p className={`text-[9px] font-bold ${theme.iconColor} mb-0.5`}>Status</p>
+                  <select value={newGap.status} onChange={e => setNewGap(p => ({ ...p, status: e.target.value }))}
+                    className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}>
+                    {gapStatusOptions.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <p className={`text-[9px] font-bold ${theme.iconColor} mb-0.5`}>Priority</p>
+                  <select value={newGap.priority} onChange={e => setNewGap(p => ({ ...p, priority: e.target.value }))}
+                    className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}>
+                    {gapPriorityOptions.map(p => <option key={p} value={p}>{p}</option>)}
+                  </select>
                 </div>
               </div>
-              <SSAToggle on={regulatoryAlerts} onChange={() => setRegulatoryAlerts(!regulatoryAlerts)} theme={theme} />
+              <div className="mb-2">
+                <p className={`text-[9px] font-bold ${theme.iconColor} mb-0.5`}>Action Plan</p>
+                <input value={newGap.action} onChange={e => setNewGap(p => ({ ...p, action: e.target.value }))} placeholder="Remediation steps..."
+                  className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+              </div>
+              <button onClick={() => {
+                if (newGap.area.trim() && newGap.requirement.trim()) {
+                  setComplianceGaps(p => [...p, { ...newGap, area: newGap.area.trim(), requirement: newGap.requirement.trim(), action: newGap.action.trim() }]);
+                  setNewGap({ area: '', requirement: '', status: 'Compliant', priority: 'Medium', action: '' });
+                  setShowAddGap(false);
+                }
+              }} className={`flex items-center gap-1.5 px-4 py-1.5 rounded-xl ${theme.primary} text-white text-xs font-bold`}>
+                <Plus size={12} /> Add Gap
+              </button>
             </div>
+          ) : (
+            <button onClick={() => setShowAddGap(true)}
+              className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl border ${theme.border}`}>
+              <Plus size={12} /> Add Gap Entry
+            </button>
+          )}
+
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex items-center gap-1.5 flex-1 mr-3">
+              <Bell size={12} className={theme.iconColor} />
+              <div>
+                <p className={`text-xs font-bold ${theme.highlight}`}>Regulatory Update Alerts</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Get notified when board issues new circulars or compliance changes</p>
+              </div>
+            </div>
+            <SSAToggle on={regulatoryAlerts} onChange={() => setRegulatoryAlerts(!regulatoryAlerts)} theme={theme} />
           </div>
-        </SectionCard>
-      </div>
+        </div>
+      </SectionCard>
+      </div>)}
 
       {/* ─── Global Save Button ─── */}
       <div className="flex justify-end pt-2 pb-4">

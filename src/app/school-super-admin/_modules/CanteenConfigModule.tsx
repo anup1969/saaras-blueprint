@@ -80,8 +80,11 @@ function SectionSaveBar({ label, theme }: { label: string; theme: Theme }) {
   );
 }
 
+// ─── TAB TYPE ─────────────────────────────────────────────────────────────────
+type TabId = 'menu' | 'pricing' | 'settings';
+
 // ─── MAIN MODULE ──────────────────────────────────────────────────────────────
-export default function CanteenConfigModule({ theme }: { theme: Theme }) {
+export default function CanteenConfigModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
   // ── existing config state ──
   const [menuCycle, setMenuCycle] = useState('Weekly');
   const [canteenToggles, setCanteenToggles] = useState<Record<string, boolean>>({
@@ -120,6 +123,11 @@ export default function CanteenConfigModule({ theme }: { theme: Theme }) {
   // ── pricing matrix ──
   const [pricing, setPricing]           = useState<PricingEntry[]>(INIT_PRICING);
   const [pricingItemId, setPricingItemId] = useState<number | 'all'>('all');
+
+  // ── tab state ──
+  const [internalTab, setInternalTab] = useState<TabId>('menu');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
 
   // ── derived ──
   const activeMealTypeNames = mealTypes.filter(m => m.enabled).map(m => m.name);
@@ -175,6 +183,7 @@ export default function CanteenConfigModule({ theme }: { theme: Theme }) {
     <div className="space-y-4">
       <ModuleHeader title="Canteen / Meal Configuration" subtitle="Menu items, daily planner, pricing matrix, and canteen feature settings" theme={theme} />
 
+      {activeTab === 'menu' && (<div className="space-y-4">
       {/* ── CANTEEN FEATURES + MEAL TYPES ── */}
       <div className="grid grid-cols-2 gap-4">
         <SectionCard title="Canteen Features" subtitle="Ordering, wallet, and dietary safety features for school canteen" theme={theme}>
@@ -503,6 +512,26 @@ export default function CanteenConfigModule({ theme }: { theme: Theme }) {
         </div>
       )}
 
+      {/* ── PRESCHOOL MEAL PLAN (existing) ── */}
+      <SectionCard title="Preschool Meal Plan" subtitle="Meal plan type for nursery and kindergarten students" theme={theme}>
+        <div className="space-y-3">
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Meal Plan Type</p>
+            <SelectField options={['None', 'Snacks Only', 'Breakfast + Lunch', 'Full Day Meals']} value={preschoolMealPlan} onChange={setPreschoolMealPlan} theme={theme} />
+          </div>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div>
+              <p className={`text-xs font-bold ${theme.highlight}`}>Dietary Preferences Tracking</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Record dietary restrictions or preferences per preschool child</p>
+            </div>
+            <SSAToggle on={dietaryPrefTracking} onChange={() => setDietaryPrefTracking(!dietaryPrefTracking)} theme={theme} />
+          </div>
+        </div>
+        <SectionSaveBar label="Preschool Plan" theme={theme} />
+      </SectionCard>
+      </div>)}
+
+      {activeTab === 'pricing' && (<div className="space-y-4">
       {/* ── PRICING TABLE ── */}
       <SectionCard title="Pricing Table" subtitle="Set different prices for the same item by student type — Day Scholar, Hosteller, Staff Child, Pre-school" theme={theme}>
         <div className="flex items-center gap-2 mb-3">
@@ -549,25 +578,9 @@ export default function CanteenConfigModule({ theme }: { theme: Theme }) {
         </div>
         <SectionSaveBar label="Pricing" theme={theme} />
       </SectionCard>
+      </div>)}
 
-      {/* ── PRESCHOOL MEAL PLAN (existing) ── */}
-      <SectionCard title="Preschool Meal Plan" subtitle="Meal plan type for nursery and kindergarten students" theme={theme}>
-        <div className="space-y-3">
-          <div>
-            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Meal Plan Type</p>
-            <SelectField options={['None', 'Snacks Only', 'Breakfast + Lunch', 'Full Day Meals']} value={preschoolMealPlan} onChange={setPreschoolMealPlan} theme={theme} />
-          </div>
-          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-            <div>
-              <p className={`text-xs font-bold ${theme.highlight}`}>Dietary Preferences Tracking</p>
-              <p className={`text-[10px] ${theme.iconColor}`}>Record dietary restrictions or preferences per preschool child</p>
-            </div>
-            <SSAToggle on={dietaryPrefTracking} onChange={() => setDietaryPrefTracking(!dietaryPrefTracking)} theme={theme} />
-          </div>
-        </div>
-        <SectionSaveBar label="Preschool Plan" theme={theme} />
-      </SectionCard>
-
+      {activeTab === 'settings' && (<div className="space-y-4">
       {/* ── PERMISSIONS + IMPORT ── */}
       <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
         <div className="space-y-4">
@@ -580,6 +593,7 @@ export default function CanteenConfigModule({ theme }: { theme: Theme }) {
       <SectionCard title="Bulk Import" subtitle="Import data from Excel templates" theme={theme}>
         <BulkImportWizard entityName="Menu Items" templateFields={['Item Name', 'Category', 'Price', 'Vegetarian (Y/N)', 'Allergens', 'Available (Y/N)']} sampleData={[['Paneer Tikka Wrap', 'Main Course', '80', 'Y', 'Dairy, Gluten', 'Y']]} theme={theme} />
       </SectionCard>
+      </div>)}
     </div>
   );
 }

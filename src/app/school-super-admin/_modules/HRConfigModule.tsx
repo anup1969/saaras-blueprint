@@ -77,8 +77,11 @@ function MobileBadge() {
   return <span className="ml-1.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-green-100 text-green-700 whitespace-nowrap">{'\uD83D\uDCF1'} Mobile</span>;
 }
 
+// ─── Tab Type ───────────────────────────────────────
+type TabId = 'masters' | 'salary' | 'staff' | 'compliance' | 'settings';
+
 // ─── Main Module ────────────────────────────────────
-export default function HRConfigModule({ theme }: { theme: Theme }) {
+export default function HRConfigModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
 
   // ══════════════════════════════════════════════════
   // 1. DEPARTMENTS
@@ -329,6 +332,14 @@ export default function HRConfigModule({ theme }: { theme: Theme }) {
   // SAVE HANDLER
   // ═══════════════════════════════════════════════════
   const [saved, setSaved] = useState(false);
+
+  // ═══════════════════════════════════════════════════
+  // TAB STATE
+  // ═══════════════════════════════════════════════════
+  const [internalTab, setInternalTab] = useState<TabId>('masters');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
+
   function handleSave() {
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
@@ -339,8 +350,9 @@ export default function HRConfigModule({ theme }: { theme: Theme }) {
       <ModuleHeader title="HR & Payroll Configuration" subtitle="Departments, salary structure, pay cycle, attendance, and HR processes" theme={theme} />
 
       {/* ═══════════════════════════════════════════════
-          1. DEPARTMENTS — Full Master Table
+          TAB: MASTERS — Departments + Designations
           ═══════════════════════════════════════════════ */}
+      {activeTab === 'masters' && (<div className="space-y-4">
       <SectionCard title="Departments" subtitle="Add, edit, enable/disable, or remove departments" theme={theme}>
         <TableToolbar
           search={deptSearch} onSearch={v => { setDeptSearch(v); setDeptPage(1); }}
@@ -395,9 +407,6 @@ export default function HRConfigModule({ theme }: { theme: Theme }) {
         <Pagination page={deptPage} total={filteredDepts.length} pageSize={PAGE_SIZE} onChange={setDeptPage} theme={theme} />
       </SectionCard>
 
-      {/* ═══════════════════════════════════════════════
-          2. DESIGNATIONS — Full Master Table
-          ═══════════════════════════════════════════════ */}
       <SectionCard title="Designations" subtitle="Add, edit, enable/disable, or remove designations" theme={theme}>
         <TableToolbar
           search={desigSearch} onSearch={v => { setDesigSearch(v); setDesigPage(1); }}
@@ -451,10 +460,12 @@ export default function HRConfigModule({ theme }: { theme: Theme }) {
         </div>
         <Pagination page={desigPage} total={filteredDesigs.length} pageSize={PAGE_SIZE} onChange={setDesigPage} theme={theme} />
       </SectionCard>
+      </div>)}
 
       {/* ═══════════════════════════════════════════════
-          3. SALARY STRUCTURE — Full Master Table
+          TAB: SALARY — Salary Structure, Pay Cycle, LOP, Payslip, Payroll Extras, Export/Integration
           ═══════════════════════════════════════════════ */}
+      {activeTab === 'salary' && (<div className="space-y-4">
       <SectionCard title="Salary Structure" subtitle="Earning and deduction components — search, edit, enable/disable, export/import" theme={theme}>
         <TableToolbar
           search={salarySearch} onSearch={v => { setSalarySearch(v); setSalaryPage(1); }}
@@ -532,259 +543,15 @@ export default function HRConfigModule({ theme }: { theme: Theme }) {
         <Pagination page={salaryPage} total={filteredSalary.length} pageSize={PAGE_SIZE} onChange={setSalaryPage} theme={theme} />
       </SectionCard>
 
-      {/* ═══════════════════════════════════════════════
-          PAY CYCLE + STAFF ATTENDANCE (unchanged layout)
-          ═══════════════════════════════════════════════ */}
-      <div className="grid grid-cols-2 gap-4">
-        <SectionCard title="Pay Cycle" subtitle="Payment schedule and processing" theme={theme}>
-          <div className="space-y-3">
-            <div>
-              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Cycle</p>
-              <SelectField options={['Monthly', 'Bi-weekly', 'Weekly']} value={payCycle} onChange={setPayCycle} theme={theme} />
-            </div>
-            <div>
-              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Pay Day</p>
-              <SelectField options={['1st of month', '5th of month', '10th of month', 'Last working day']} value={payDay} onChange={setPayDay} theme={theme} />
-            </div>
-          </div>
-        </SectionCard>
-
-        <SectionCard title="Staff Attendance Methods" subtitle="How staff check-in/out is recorded daily" theme={theme}>
-          <div className="space-y-2">
-            {Object.entries(staffAttendance).map(([method, enabled]) => (
-              <div key={method} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <div className="flex-1 mr-3">
-                  <p className={`text-xs font-bold ${theme.highlight}`}>{method}</p>
-                  <p className={`text-[10px] ${theme.iconColor}`}>{
-                    ({
-                      'Biometric': 'Staff marks attendance via fingerprint or face recognition device at school entrance',
-                      'Mobile App': 'Staff checks in/out using the school mobile app with GPS verification',
-                      'RFID': 'Staff taps RFID card at entry point — auto-records time of arrival/departure',
-                      'Manual Register': 'Traditional sign-in register maintained by admin office',
-                      'Geo-fencing': 'Auto-marks attendance when staff\'s phone enters school campus geo-fence',
-                    } as Record<string, string>)[method]
-                  }</p>
-                </div>
-                <SSAToggle on={enabled} onChange={() => setStaffAttendance(p => ({ ...p, [method]: !p[method] }))} theme={theme} />
-              </div>
-            ))}
-          </div>
-        </SectionCard>
-      </div>
-
-      {/* ═══════════════════════════════════════════════
-          4. LETTER TEMPLATES — Full Master Table
-          ═══════════════════════════════════════════════ */}
-      <SectionCard title="HR Letter Templates" subtitle="Add, edit, enable/disable, or remove letter templates" theme={theme}>
-        <TableToolbar
-          search={letterSearch} onSearch={v => { setLetterSearch(v); setLetterPage(1); }}
-          count={filteredLetters.length} label="templates"
-          onAdd={addLetterTemplate}
-          onExport={() => alert('Export letter templates as CSV')}
-          onImport={() => alert('Import letter templates from CSV')}
-          theme={theme}
-        />
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className={theme.secondaryBg}>
-                {['Template Name', 'Type', 'Enabled', 'Actions'].map(h => (
-                  <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor} uppercase text-[10px]`}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {pagedLetters.length === 0 ? (
-                <tr><td colSpan={4} className={`text-center py-6 text-xs ${theme.iconColor}`}>No letter templates found</td></tr>
-              ) : pagedLetters.map(l => (
-                <tr key={l.id} className={`border-t ${theme.border} ${!l.enabled ? 'opacity-50' : ''}`}>
-                  <td className="px-2 py-1.5">
-                    {letterEdit === l.id ? (
-                      <input autoFocus value={l.name}
-                        onChange={e => setHrLetters(p => p.map(x => x.id === l.id ? { ...x, name: e.target.value } : x))}
-                        className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`}
-                        placeholder="Template name" />
-                    ) : (
-                      <span className={`font-bold ${theme.highlight}`}>{l.name || '(empty)'}</span>
-                    )}
-                  </td>
-                  <td className="px-2 py-1.5">
-                    {letterEdit === l.id ? (
-                      <select value={l.letterType}
-                        onChange={e => setHrLetters(p => p.map(x => x.id === l.id ? { ...x, letterType: e.target.value } : x))}
-                        className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}>
-                        {['Onboarding', 'Employment', 'Exit', 'Payroll', 'Disciplinary'].map(t => <option key={t} value={t}>{t}</option>)}
-                      </select>
-                    ) : (
-                      <span className={`text-[10px] px-2 py-0.5 rounded-lg ${theme.secondaryBg} font-medium ${theme.iconColor}`}>{l.letterType}</span>
-                    )}
-                  </td>
-                  <td className="px-3 py-2">
-                    <SSAToggle on={l.enabled} onChange={() => setHrLetters(p => p.map(x => x.id === l.id ? { ...x, enabled: !x.enabled } : x))} theme={theme} />
-                  </td>
-                  <td className="px-2 py-1.5">
-                    <div className="flex items-center gap-1.5">
-                      {letterEdit === l.id ? (
-                        <button onClick={() => setLetterEdit(null)} className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${theme.primary} text-white`}>Done</button>
-                      ) : (
-                        <button onClick={() => setLetterEdit(l.id)} className={`p-1 rounded-lg ${theme.buttonHover}`}><Pencil size={11} className={theme.iconColor} /></button>
-                      )}
-                      <button onClick={() => setHrLetters(p => p.filter(x => x.id !== l.id))} className="text-red-400 hover:text-red-600"><Trash2 size={12} /></button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <Pagination page={letterPage} total={filteredLetters.length} pageSize={PAGE_SIZE} onChange={setLetterPage} theme={theme} />
-      </SectionCard>
-
-      {/* ═══════════════════════════════════════════════
-          5. APPRAISAL STAGES — Full Master Table
-          ═══════════════════════════════════════════════ */}
-      <SectionCard title="Performance Appraisal Stages" subtitle="Multi-level review — add, edit, enable/disable, export/import" theme={theme}>
-        <TableToolbar
-          search={appraisalSearch} onSearch={v => { setAppraisalSearch(v); setAppraisalPage(1); }}
-          count={filteredAppraisals.length} label="stages"
-          onAdd={addAppraisalStage}
-          onExport={() => alert('Export appraisal stages as CSV')}
-          onImport={() => alert('Import appraisal stages from CSV')}
-          theme={theme}
-        />
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className={theme.secondaryBg}>
-                {['#', 'Stage Name', 'Enabled', 'Actions'].map(h => (
-                  <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor} uppercase text-[10px]`}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {pagedAppraisals.length === 0 ? (
-                <tr><td colSpan={4} className={`text-center py-6 text-xs ${theme.iconColor}`}>No appraisal stages found</td></tr>
-              ) : pagedAppraisals.map(s => (
-                <tr key={s.id} className={`border-t ${theme.border} ${!s.enabled ? 'opacity-50' : ''}`}>
-                  <td className="px-3 py-2">
-                    <span className={`text-[10px] w-5 h-5 rounded-full ${theme.primary} text-white flex items-center justify-center font-bold`}>{s.order}</span>
-                  </td>
-                  <td className="px-2 py-1.5">
-                    {appraisalEdit === s.id ? (
-                      <input autoFocus value={s.stage}
-                        onChange={e => setAppraisalStages(p => p.map(x => x.id === s.id ? { ...x, stage: e.target.value } : x))}
-                        className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`}
-                        placeholder="Stage name" />
-                    ) : (
-                      <span className={`font-bold ${theme.highlight}`}>{s.stage || '(empty)'}</span>
-                    )}
-                  </td>
-                  <td className="px-3 py-2">
-                    <SSAToggle on={s.enabled} onChange={() => setAppraisalStages(p => p.map(x => x.id === s.id ? { ...x, enabled: !x.enabled } : x))} theme={theme} />
-                  </td>
-                  <td className="px-2 py-1.5">
-                    <div className="flex items-center gap-1.5">
-                      {appraisalEdit === s.id ? (
-                        <button onClick={() => setAppraisalEdit(null)} className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${theme.primary} text-white`}>Done</button>
-                      ) : (
-                        <button onClick={() => setAppraisalEdit(s.id)} className={`p-1 rounded-lg ${theme.buttonHover}`}><Pencil size={11} className={theme.iconColor} /></button>
-                      )}
-                      <button onClick={() => {
-                        setAppraisalStages(p => {
-                          const filtered = p.filter(x => x.id !== s.id);
-                          return filtered.map((x, i) => ({ ...x, order: i + 1 }));
-                        });
-                      }} className="text-red-400 hover:text-red-600"><Trash2 size={12} /></button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <Pagination page={appraisalPage} total={filteredAppraisals.length} pageSize={PAGE_SIZE} onChange={setAppraisalPage} theme={theme} />
-      </SectionCard>
-
-      {/* ═══════════════════════════════════════════════
-          6. ONBOARDING CHECKLIST — Full Master Table
-          ═══════════════════════════════════════════════ */}
-      <SectionCard title="Staff Onboarding Checklist" subtitle="Required steps for new staff — add, edit, enable/disable, export/import" theme={theme}>
-        <TableToolbar
-          search={checklistSearch} onSearch={v => { setChecklistSearch(v); setChecklistPage(1); }}
-          count={filteredChecklist.length} label="checklist items"
-          onAdd={addChecklistItem}
-          onExport={() => alert('Export onboarding checklist as CSV')}
-          onImport={() => alert('Import onboarding checklist from CSV')}
-          theme={theme}
-        />
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className={theme.secondaryBg}>
-                {['Checklist Item', 'Enabled', 'Actions'].map(h => (
-                  <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor} uppercase text-[10px]`}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {pagedChecklist.length === 0 ? (
-                <tr><td colSpan={3} className={`text-center py-6 text-xs ${theme.iconColor}`}>No checklist items found</td></tr>
-              ) : pagedChecklist.map(c => (
-                <tr key={c.id} className={`border-t ${theme.border} ${!c.enabled ? 'opacity-50' : ''}`}>
-                  <td className="px-2 py-1.5">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle size={14} className="text-emerald-500 shrink-0" />
-                      {checklistEdit === c.id ? (
-                        <input autoFocus value={c.item}
-                          onChange={e => setOnboardingChecklist(p => p.map(x => x.id === c.id ? { ...x, item: e.target.value } : x))}
-                          className={`flex-1 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}
-                          placeholder="Checklist item" />
-                      ) : (
-                        <span className={`text-xs ${theme.highlight}`}>{c.item || '(empty)'}</span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-3 py-2">
-                    <SSAToggle on={c.enabled} onChange={() => setOnboardingChecklist(p => p.map(x => x.id === c.id ? { ...x, enabled: !x.enabled } : x))} theme={theme} />
-                  </td>
-                  <td className="px-2 py-1.5">
-                    <div className="flex items-center gap-1.5">
-                      {checklistEdit === c.id ? (
-                        <button onClick={() => setChecklistEdit(null)} className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${theme.primary} text-white`}>Done</button>
-                      ) : (
-                        <button onClick={() => setChecklistEdit(c.id)} className={`p-1 rounded-lg ${theme.buttonHover}`}><Pencil size={11} className={theme.iconColor} /></button>
-                      )}
-                      <button onClick={() => setOnboardingChecklist(p => p.filter(x => x.id !== c.id))} className="text-red-400 hover:text-red-600"><Trash2 size={12} /></button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <Pagination page={checklistPage} total={filteredChecklist.length} pageSize={PAGE_SIZE} onChange={setChecklistPage} theme={theme} />
-      </SectionCard>
-
-      {/* ═══════════════════════════════════════════════
-          NEW SECTIONS (preserved from original)
-          ═══════════════════════════════════════════════ */}
-
-      <SectionCard title="Bulk Employee Import" subtitle="Upload employee data in bulk via CSV" theme={theme}>
-        <div className="flex items-center mb-3">
-          <p className={`text-[10px] font-bold ${theme.iconColor}`}>Import multiple employees at once</p>
-          <InfoIcon tip="Upload employee data in bulk via CSV" />
-        </div>
+      <SectionCard title="Pay Cycle" subtitle="Payment schedule and processing" theme={theme}>
         <div className="space-y-3">
-          <div className={`p-6 rounded-xl border-2 border-dashed ${theme.border} flex flex-col items-center justify-center gap-2`}>
-            <Upload size={24} className={theme.iconColor} />
-            <p className={`text-xs font-bold ${theme.highlight}`}>Drag and drop CSV file here</p>
-            <p className={`text-[10px] ${theme.iconColor}`}>or click to browse</p>
-            <button className={`mt-2 px-4 py-2 rounded-xl text-xs font-bold ${theme.primary} text-white`}>
-              Import from CSV
-            </button>
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Cycle</p>
+            <SelectField options={['Monthly', 'Bi-weekly', 'Weekly']} value={payCycle} onChange={setPayCycle} theme={theme} />
           </div>
-          <div className={`flex items-center gap-2 p-2.5 rounded-xl ${theme.secondaryBg}`}>
-            <span className={`text-xs font-bold ${theme.iconColor} underline cursor-pointer hover:opacity-80`}>Download Template (.csv)</span>
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Pay Day</p>
+            <SelectField options={['1st of month', '5th of month', '10th of month', 'Last working day']} value={payDay} onChange={setPayDay} theme={theme} />
           </div>
         </div>
       </SectionCard>
@@ -850,9 +617,304 @@ export default function HRConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
+      <SectionCard title="Payroll Extras" subtitle="Additional payroll components beyond base salary" theme={theme}>
+        <div className="flex items-center mb-3">
+          <p className={`text-[10px] font-bold ${theme.iconColor}`}>Configure overtime, bonuses, advances, and arrears</p>
+          <InfoIcon tip="Additional payroll components beyond base salary" />
+        </div>
+        <div className="space-y-2">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Overtime calculation</p>
+            <SSAToggle on={overtimeEnabled} onChange={() => setOvertimeEnabled(!overtimeEnabled)} theme={theme} />
+          </div>
+          {overtimeEnabled && (
+            <div className="grid grid-cols-2 gap-3 pl-4">
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Rate</p>
+                <SelectField options={['1.5x', '2x']} value={overtimeRate} onChange={setOvertimeRate} theme={theme} />
+              </div>
+            </div>
+          )}
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Festival advance/bonus</p>
+            <SSAToggle on={festivalBonus} onChange={() => setFestivalBonus(!festivalBonus)} theme={theme} />
+          </div>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Salary advance/loan module</p>
+            <SSAToggle on={salaryAdvance} onChange={() => setSalaryAdvance(!salaryAdvance)} theme={theme} />
+          </div>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Arrears auto-calculation</p>
+            <SSAToggle on={arrearsAuto} onChange={() => setArrearsAuto(!arrearsAuto)} theme={theme} />
+          </div>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Export / Integration" subtitle="Generate bank-compatible salary payment files" theme={theme}>
+        <div className="flex items-center mb-3">
+          <p className={`text-[10px] font-bold ${theme.iconColor}`}>Export payroll data to bank and accounting systems</p>
+          <InfoIcon tip="Generate bank-compatible salary payment files" />
+        </div>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Bank batch file (NEFT/RTGS)</p>
+            <SSAToggle on={bankBatchFile} onChange={() => setBankBatchFile(!bankBatchFile)} theme={theme} />
+          </div>
+          {bankBatchFile && (
+            <div className="grid grid-cols-2 gap-3 pl-4">
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Format</p>
+                <SelectField options={['SBI', 'HDFC', 'ICICI', 'Generic']} value={bankFormat} onChange={setBankFormat} theme={theme} />
+              </div>
+            </div>
+          )}
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Tally export</p>
+            <SSAToggle on={tallyExport} onChange={() => setTallyExport(!tallyExport)} theme={theme} />
+          </div>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>QuickBooks sync</p>
+            <SSAToggle on={quickbooksSync} onChange={() => setQuickbooksSync(!quickbooksSync)} theme={theme} />
+          </div>
+        </div>
+      </SectionCard>
+      </div>)}
+
       {/* ═══════════════════════════════════════════════
-          7. TDS / INCOME TAX — with Full CRUD Tax Slabs
+          TAB: STAFF — Staff Attendance, HR Letters, Appraisal, Onboarding Checklist, Bulk Employee Import
           ═══════════════════════════════════════════════ */}
+      {activeTab === 'staff' && (<div className="space-y-4">
+      <SectionCard title="Staff Attendance Methods" subtitle="How staff check-in/out is recorded daily" theme={theme}>
+        <div className="space-y-2">
+          {Object.entries(staffAttendance).map(([method, enabled]) => (
+            <div key={method} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <div className="flex-1 mr-3">
+                <p className={`text-xs font-bold ${theme.highlight}`}>{method}</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>{
+                  ({
+                    'Biometric': 'Staff marks attendance via fingerprint or face recognition device at school entrance',
+                    'Mobile App': 'Staff checks in/out using the school mobile app with GPS verification',
+                    'RFID': 'Staff taps RFID card at entry point — auto-records time of arrival/departure',
+                    'Manual Register': 'Traditional sign-in register maintained by admin office',
+                    'Geo-fencing': 'Auto-marks attendance when staff\'s phone enters school campus geo-fence',
+                  } as Record<string, string>)[method]
+                }</p>
+              </div>
+              <SSAToggle on={enabled} onChange={() => setStaffAttendance(p => ({ ...p, [method]: !p[method] }))} theme={theme} />
+            </div>
+          ))}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="HR Letter Templates" subtitle="Add, edit, enable/disable, or remove letter templates" theme={theme}>
+        <TableToolbar
+          search={letterSearch} onSearch={v => { setLetterSearch(v); setLetterPage(1); }}
+          count={filteredLetters.length} label="templates"
+          onAdd={addLetterTemplate}
+          onExport={() => alert('Export letter templates as CSV')}
+          onImport={() => alert('Import letter templates from CSV')}
+          theme={theme}
+        />
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className={theme.secondaryBg}>
+                {['Template Name', 'Type', 'Enabled', 'Actions'].map(h => (
+                  <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor} uppercase text-[10px]`}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {pagedLetters.length === 0 ? (
+                <tr><td colSpan={4} className={`text-center py-6 text-xs ${theme.iconColor}`}>No letter templates found</td></tr>
+              ) : pagedLetters.map(l => (
+                <tr key={l.id} className={`border-t ${theme.border} ${!l.enabled ? 'opacity-50' : ''}`}>
+                  <td className="px-2 py-1.5">
+                    {letterEdit === l.id ? (
+                      <input autoFocus value={l.name}
+                        onChange={e => setHrLetters(p => p.map(x => x.id === l.id ? { ...x, name: e.target.value } : x))}
+                        className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`}
+                        placeholder="Template name" />
+                    ) : (
+                      <span className={`font-bold ${theme.highlight}`}>{l.name || '(empty)'}</span>
+                    )}
+                  </td>
+                  <td className="px-2 py-1.5">
+                    {letterEdit === l.id ? (
+                      <select value={l.letterType}
+                        onChange={e => setHrLetters(p => p.map(x => x.id === l.id ? { ...x, letterType: e.target.value } : x))}
+                        className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}>
+                        {['Onboarding', 'Employment', 'Exit', 'Payroll', 'Disciplinary'].map(t => <option key={t} value={t}>{t}</option>)}
+                      </select>
+                    ) : (
+                      <span className={`text-[10px] px-2 py-0.5 rounded-lg ${theme.secondaryBg} font-medium ${theme.iconColor}`}>{l.letterType}</span>
+                    )}
+                  </td>
+                  <td className="px-3 py-2">
+                    <SSAToggle on={l.enabled} onChange={() => setHrLetters(p => p.map(x => x.id === l.id ? { ...x, enabled: !x.enabled } : x))} theme={theme} />
+                  </td>
+                  <td className="px-2 py-1.5">
+                    <div className="flex items-center gap-1.5">
+                      {letterEdit === l.id ? (
+                        <button onClick={() => setLetterEdit(null)} className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${theme.primary} text-white`}>Done</button>
+                      ) : (
+                        <button onClick={() => setLetterEdit(l.id)} className={`p-1 rounded-lg ${theme.buttonHover}`}><Pencil size={11} className={theme.iconColor} /></button>
+                      )}
+                      <button onClick={() => setHrLetters(p => p.filter(x => x.id !== l.id))} className="text-red-400 hover:text-red-600"><Trash2 size={12} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <Pagination page={letterPage} total={filteredLetters.length} pageSize={PAGE_SIZE} onChange={setLetterPage} theme={theme} />
+      </SectionCard>
+
+      <SectionCard title="Performance Appraisal Stages" subtitle="Multi-level review — add, edit, enable/disable, export/import" theme={theme}>
+        <TableToolbar
+          search={appraisalSearch} onSearch={v => { setAppraisalSearch(v); setAppraisalPage(1); }}
+          count={filteredAppraisals.length} label="stages"
+          onAdd={addAppraisalStage}
+          onExport={() => alert('Export appraisal stages as CSV')}
+          onImport={() => alert('Import appraisal stages from CSV')}
+          theme={theme}
+        />
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className={theme.secondaryBg}>
+                {['#', 'Stage Name', 'Enabled', 'Actions'].map(h => (
+                  <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor} uppercase text-[10px]`}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {pagedAppraisals.length === 0 ? (
+                <tr><td colSpan={4} className={`text-center py-6 text-xs ${theme.iconColor}`}>No appraisal stages found</td></tr>
+              ) : pagedAppraisals.map(s => (
+                <tr key={s.id} className={`border-t ${theme.border} ${!s.enabled ? 'opacity-50' : ''}`}>
+                  <td className="px-3 py-2">
+                    <span className={`text-[10px] w-5 h-5 rounded-full ${theme.primary} text-white flex items-center justify-center font-bold`}>{s.order}</span>
+                  </td>
+                  <td className="px-2 py-1.5">
+                    {appraisalEdit === s.id ? (
+                      <input autoFocus value={s.stage}
+                        onChange={e => setAppraisalStages(p => p.map(x => x.id === s.id ? { ...x, stage: e.target.value } : x))}
+                        className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`}
+                        placeholder="Stage name" />
+                    ) : (
+                      <span className={`font-bold ${theme.highlight}`}>{s.stage || '(empty)'}</span>
+                    )}
+                  </td>
+                  <td className="px-3 py-2">
+                    <SSAToggle on={s.enabled} onChange={() => setAppraisalStages(p => p.map(x => x.id === s.id ? { ...x, enabled: !x.enabled } : x))} theme={theme} />
+                  </td>
+                  <td className="px-2 py-1.5">
+                    <div className="flex items-center gap-1.5">
+                      {appraisalEdit === s.id ? (
+                        <button onClick={() => setAppraisalEdit(null)} className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${theme.primary} text-white`}>Done</button>
+                      ) : (
+                        <button onClick={() => setAppraisalEdit(s.id)} className={`p-1 rounded-lg ${theme.buttonHover}`}><Pencil size={11} className={theme.iconColor} /></button>
+                      )}
+                      <button onClick={() => {
+                        setAppraisalStages(p => {
+                          const filtered = p.filter(x => x.id !== s.id);
+                          return filtered.map((x, i) => ({ ...x, order: i + 1 }));
+                        });
+                      }} className="text-red-400 hover:text-red-600"><Trash2 size={12} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <Pagination page={appraisalPage} total={filteredAppraisals.length} pageSize={PAGE_SIZE} onChange={setAppraisalPage} theme={theme} />
+      </SectionCard>
+
+      <SectionCard title="Staff Onboarding Checklist" subtitle="Required steps for new staff — add, edit, enable/disable, export/import" theme={theme}>
+        <TableToolbar
+          search={checklistSearch} onSearch={v => { setChecklistSearch(v); setChecklistPage(1); }}
+          count={filteredChecklist.length} label="checklist items"
+          onAdd={addChecklistItem}
+          onExport={() => alert('Export onboarding checklist as CSV')}
+          onImport={() => alert('Import onboarding checklist from CSV')}
+          theme={theme}
+        />
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className={theme.secondaryBg}>
+                {['Checklist Item', 'Enabled', 'Actions'].map(h => (
+                  <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor} uppercase text-[10px]`}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {pagedChecklist.length === 0 ? (
+                <tr><td colSpan={3} className={`text-center py-6 text-xs ${theme.iconColor}`}>No checklist items found</td></tr>
+              ) : pagedChecklist.map(c => (
+                <tr key={c.id} className={`border-t ${theme.border} ${!c.enabled ? 'opacity-50' : ''}`}>
+                  <td className="px-2 py-1.5">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle size={14} className="text-emerald-500 shrink-0" />
+                      {checklistEdit === c.id ? (
+                        <input autoFocus value={c.item}
+                          onChange={e => setOnboardingChecklist(p => p.map(x => x.id === c.id ? { ...x, item: e.target.value } : x))}
+                          className={`flex-1 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}
+                          placeholder="Checklist item" />
+                      ) : (
+                        <span className={`text-xs ${theme.highlight}`}>{c.item || '(empty)'}</span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-3 py-2">
+                    <SSAToggle on={c.enabled} onChange={() => setOnboardingChecklist(p => p.map(x => x.id === c.id ? { ...x, enabled: !x.enabled } : x))} theme={theme} />
+                  </td>
+                  <td className="px-2 py-1.5">
+                    <div className="flex items-center gap-1.5">
+                      {checklistEdit === c.id ? (
+                        <button onClick={() => setChecklistEdit(null)} className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${theme.primary} text-white`}>Done</button>
+                      ) : (
+                        <button onClick={() => setChecklistEdit(c.id)} className={`p-1 rounded-lg ${theme.buttonHover}`}><Pencil size={11} className={theme.iconColor} /></button>
+                      )}
+                      <button onClick={() => setOnboardingChecklist(p => p.filter(x => x.id !== c.id))} className="text-red-400 hover:text-red-600"><Trash2 size={12} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <Pagination page={checklistPage} total={filteredChecklist.length} pageSize={PAGE_SIZE} onChange={setChecklistPage} theme={theme} />
+      </SectionCard>
+
+      <SectionCard title="Bulk Employee Import" subtitle="Upload employee data in bulk via CSV" theme={theme}>
+        <div className="flex items-center mb-3">
+          <p className={`text-[10px] font-bold ${theme.iconColor}`}>Import multiple employees at once</p>
+          <InfoIcon tip="Upload employee data in bulk via CSV" />
+        </div>
+        <div className="space-y-3">
+          <div className={`p-6 rounded-xl border-2 border-dashed ${theme.border} flex flex-col items-center justify-center gap-2`}>
+            <Upload size={24} className={theme.iconColor} />
+            <p className={`text-xs font-bold ${theme.highlight}`}>Drag and drop CSV file here</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>or click to browse</p>
+            <button className={`mt-2 px-4 py-2 rounded-xl text-xs font-bold ${theme.primary} text-white`}>
+              Import from CSV
+            </button>
+          </div>
+          <div className={`flex items-center gap-2 p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <span className={`text-xs font-bold ${theme.iconColor} underline cursor-pointer hover:opacity-80`}>Download Template (.csv)</span>
+          </div>
+        </div>
+      </SectionCard>
+      </div>)}
+
+      {/* ═══════════════════════════════════════════════
+          TAB: COMPLIANCE — TDS/Income Tax, Statutory Compliance, Statutory Reports
+          ═══════════════════════════════════════════════ */}
+      {activeTab === 'compliance' && (<div className="space-y-4">
       <SectionCard title="TDS / Income Tax" subtitle="Tax deduction at source per Indian IT slabs" theme={theme}>
         <div className="flex items-center mb-3">
           <p className={`text-[10px] font-bold ${theme.iconColor}`}>Auto-calculate TDS and generate tax forms</p>
@@ -956,9 +1018,6 @@ export default function HRConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
-      {/* ═══════════════════════════════════════════════
-          STATUTORY COMPLIANCE (unchanged)
-          ═══════════════════════════════════════════════ */}
       <SectionCard title="Statutory Compliance" subtitle="Auto-calculate PF, ESI, PT per statutory rules" theme={theme}>
         <div className="flex items-center mb-3">
           <p className={`text-[10px] font-bold ${theme.iconColor}`}>Configure statutory deductions</p>
@@ -1022,77 +1081,6 @@ export default function HRConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
-      {/* ═══════════════════════════════════════════════
-          PAYROLL EXTRAS (unchanged)
-          ═══════════════════════════════════════════════ */}
-      <SectionCard title="Payroll Extras" subtitle="Additional payroll components beyond base salary" theme={theme}>
-        <div className="flex items-center mb-3">
-          <p className={`text-[10px] font-bold ${theme.iconColor}`}>Configure overtime, bonuses, advances, and arrears</p>
-          <InfoIcon tip="Additional payroll components beyond base salary" />
-        </div>
-        <div className="space-y-2">
-          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-            <p className={`text-xs font-bold ${theme.highlight}`}>Overtime calculation</p>
-            <SSAToggle on={overtimeEnabled} onChange={() => setOvertimeEnabled(!overtimeEnabled)} theme={theme} />
-          </div>
-          {overtimeEnabled && (
-            <div className="grid grid-cols-2 gap-3 pl-4">
-              <div>
-                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Rate</p>
-                <SelectField options={['1.5x', '2x']} value={overtimeRate} onChange={setOvertimeRate} theme={theme} />
-              </div>
-            </div>
-          )}
-          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-            <p className={`text-xs font-bold ${theme.highlight}`}>Festival advance/bonus</p>
-            <SSAToggle on={festivalBonus} onChange={() => setFestivalBonus(!festivalBonus)} theme={theme} />
-          </div>
-          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-            <p className={`text-xs font-bold ${theme.highlight}`}>Salary advance/loan module</p>
-            <SSAToggle on={salaryAdvance} onChange={() => setSalaryAdvance(!salaryAdvance)} theme={theme} />
-          </div>
-          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-            <p className={`text-xs font-bold ${theme.highlight}`}>Arrears auto-calculation</p>
-            <SSAToggle on={arrearsAuto} onChange={() => setArrearsAuto(!arrearsAuto)} theme={theme} />
-          </div>
-        </div>
-      </SectionCard>
-
-      {/* ═══════════════════════════════════════════════
-          EXPORT / INTEGRATION (unchanged)
-          ═══════════════════════════════════════════════ */}
-      <SectionCard title="Export / Integration" subtitle="Generate bank-compatible salary payment files" theme={theme}>
-        <div className="flex items-center mb-3">
-          <p className={`text-[10px] font-bold ${theme.iconColor}`}>Export payroll data to bank and accounting systems</p>
-          <InfoIcon tip="Generate bank-compatible salary payment files" />
-        </div>
-        <div className="space-y-3">
-          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-            <p className={`text-xs font-bold ${theme.highlight}`}>Bank batch file (NEFT/RTGS)</p>
-            <SSAToggle on={bankBatchFile} onChange={() => setBankBatchFile(!bankBatchFile)} theme={theme} />
-          </div>
-          {bankBatchFile && (
-            <div className="grid grid-cols-2 gap-3 pl-4">
-              <div>
-                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Format</p>
-                <SelectField options={['SBI', 'HDFC', 'ICICI', 'Generic']} value={bankFormat} onChange={setBankFormat} theme={theme} />
-              </div>
-            </div>
-          )}
-          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-            <p className={`text-xs font-bold ${theme.highlight}`}>Tally export</p>
-            <SSAToggle on={tallyExport} onChange={() => setTallyExport(!tallyExport)} theme={theme} />
-          </div>
-          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-            <p className={`text-xs font-bold ${theme.highlight}`}>QuickBooks sync</p>
-            <SSAToggle on={quickbooksSync} onChange={() => setQuickbooksSync(!quickbooksSync)} theme={theme} />
-          </div>
-        </div>
-      </SectionCard>
-
-      {/* ═══════════════════════════════════════════════
-          STATUTORY REPORTS (unchanged)
-          ═══════════════════════════════════════════════ */}
       <SectionCard title="Statutory Reports" subtitle="Auto-generate statutory filing reports" theme={theme}>
         <div className="flex items-center mb-3">
           <p className={`text-[10px] font-bold ${theme.iconColor}`}>Generate compliance reports for government filings</p>
@@ -1117,10 +1105,12 @@ export default function HRConfigModule({ theme }: { theme: Theme }) {
           </div>
         </div>
       </SectionCard>
+      </div>)}
 
       {/* ═══════════════════════════════════════════════
-          ROLE-BASED PERMISSIONS (unchanged)
+          TAB: SETTINGS — Role-Based Permissions, Bulk Import
           ═══════════════════════════════════════════════ */}
+      {activeTab === 'settings' && (<div className="space-y-4">
       <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
         <div className="space-y-4">
           <MasterPermissionGrid masterName="Departments" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
@@ -1128,15 +1118,13 @@ export default function HRConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
-      {/* ═══════════════════════════════════════════════
-          BULK IMPORT (unchanged)
-          ═══════════════════════════════════════════════ */}
       <SectionCard title="Bulk Import" subtitle="Import data from Excel templates" theme={theme}>
         <BulkImportWizard entityName="Staff" templateFields={['Employee ID', 'Name', 'Department', 'Designation', 'Date of Joining', 'Salary', 'Phone', 'Email']} sampleData={[['EMP001', 'Rajesh Sharma', 'Teaching - Secondary', 'PGT', '2024-04-01', '45000', '9876543210', 'rajesh@school.com']]} theme={theme} />
       </SectionCard>
+      </div>)}
 
       {/* ═══════════════════════════════════════════════
-          SAVE CONFIGURATION BUTTON
+          SAVE CONFIGURATION BUTTON (always visible)
           ═══════════════════════════════════════════════ */}
       <div className="flex items-center justify-end gap-3 pt-2">
         {saved && <span className="text-green-500 text-xs font-medium animate-pulse">Configuration saved!</span>}

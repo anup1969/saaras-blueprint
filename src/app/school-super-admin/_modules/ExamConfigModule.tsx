@@ -66,7 +66,9 @@ function Phase2Badge() {
   return <span className="ml-1.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-100 text-amber-700 whitespace-nowrap">Phase 2</span>;
 }
 
-export default function ExamConfigModule({ theme }: { theme: Theme }) {
+type TabId = 'grading' | 'scheduling' | 'marks' | 'reports' | 'settings';
+
+export default function ExamConfigModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
   const [gradingSystem, setGradingSystem] = useState('cbse');
   const [gradeBoundaries, setGradeBoundaries] = useState([
     { grade: 'A1', min: '91', max: '100', gp: '10', enabled: true },
@@ -196,10 +198,16 @@ export default function ExamConfigModule({ theme }: { theme: Theme }) {
   // ── Saved feedback ──
   const [saved, setSaved] = useState(false);
 
+  // ── Tab state ──
+  const [internalTab, setInternalTab] = useState<TabId>('grading');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
+
   return (
     <div className="space-y-4">
       <ModuleHeader title="Exams & Grading Configuration" subtitle="Grading system, grade boundaries, report cards, and exam schedules" theme={theme} />
 
+      {activeTab === 'grading' && (<div className="space-y-4">
       <SectionCard title="Grading System" subtitle="Select the grading methodology" theme={theme}>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
           {[
@@ -287,42 +295,10 @@ export default function ExamConfigModule({ theme }: { theme: Theme }) {
         })()}
         <Pagination page={gradePage} total={filteredGradeBoundaries.length} pageSize={PAGE_SIZE} onChange={setGradePage} theme={theme} />
       </SectionCard>
+      </div>)}
 
-      <div className="grid grid-cols-2 gap-4">
-        <SectionCard title="Report Card Template" subtitle="Select template for printing" theme={theme}>
-          <div className="space-y-2">
-            {['cbse-standard', 'icse-format', 'state-board', 'custom'].map(t => (
-              <button key={t} onClick={() => setReportTemplate(t)}
-                className={`w-full text-left p-2.5 rounded-xl border transition-all ${reportTemplate === t ? `border-2 ${theme.primary} text-white` : `${theme.secondaryBg} ${theme.border}`}`}>
-                <p className={`text-xs font-bold capitalize ${reportTemplate === t ? '' : theme.highlight}`}>{t.replace('-', ' ')}</p>
-              </button>
-            ))}
-          </div>
-        </SectionCard>
-
-        <SectionCard title="Rank Display Options" subtitle="Control what ranking information appears on student report cards" theme={theme}>
-          <div className="space-y-2">
-            {Object.entries(rankDisplay).map(([opt, enabled]) => (
-              <div key={opt} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <div className="flex-1 mr-3">
-                  <p className={`text-xs font-bold ${theme.highlight}`}>{opt}</p>
-                  <p className={`text-[10px] ${theme.iconColor}`}>{
-                    ({
-                      'Show class rank': 'Display student\'s rank among all students in their class (e.g., 5th out of 40)',
-                      'Show section rank': 'Display student\'s rank within their specific section (e.g., 3rd in Section A)',
-                      'Show percentile': 'Show the percentile score indicating performance relative to peers',
-                      'Show subject-wise rank': 'Show individual rank for each subject alongside the overall rank',
-                      'Show grade distribution graph': 'Include a visual bar chart showing how grades are distributed across the class',
-                    } as Record<string, string>)[opt]
-                  }</p>
-                </div>
-                <SSAToggle on={enabled} onChange={() => setRankDisplay(p => ({ ...p, [opt]: !p[opt] }))} theme={theme} />
-              </div>
-            ))}
-          </div>
-        </SectionCard>
-      </div>
-
+      {/* ══════════════ SCHEDULING TAB ══════════════ */}
+      {activeTab === 'scheduling' && (<div className="space-y-4">
       {/* ══════════════ EXAM SCHEDULE — MASTER TABLE ══════════════ */}
       <SectionCard title="Exam Schedule" subtitle="Click to edit exam details. Overlapping date ranges are flagged with a warning." theme={theme}>
         <TableToolbar search={scheduleSearch} onSearch={v => { setScheduleSearch(v); setSchedulePage(1); }} count={filteredSchedule.length}
@@ -472,56 +448,6 @@ export default function ExamConfigModule({ theme }: { theme: Theme }) {
         <Pagination page={examTypePage} total={filteredExamTypes.length} pageSize={PAGE_SIZE} onChange={setExamTypePage} theme={theme} />
       </SectionCard>
 
-      <SectionCard title="Report Card Template Fields" subtitle="Toggle which fields appear on the printed report card" theme={theme}>
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 mb-3">
-          {Object.entries(reportFields).map(([field, enabled]) => (
-            <div key={field} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <span className={`text-xs font-medium ${theme.highlight}`}>{field}</span>
-              <SSAToggle on={enabled} onChange={() => setReportFields(p => ({ ...p, [field]: !p[field] }))} theme={theme} />
-            </div>
-          ))}
-        </div>
-        <div className="flex items-center gap-4 mb-3">
-          <div className="flex-1">
-            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Grading Display on Report</p>
-            <SelectField options={['Marks', 'Grades', 'Both']} value={reportGradingMode} onChange={setReportGradingMode} theme={theme} />
-          </div>
-          <button onClick={() => setShowReportPreview(!showReportPreview)}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold ${theme.primary} text-white`}>
-            <Eye size={14} /> {showReportPreview ? 'Hide Preview' : 'Preview Template'}
-          </button>
-        </div>
-        {showReportPreview && (
-          <div className={`p-4 rounded-xl border-2 ${theme.border} ${theme.secondaryBg}`}>
-            <div className="text-center mb-3">
-              <p className={`text-sm font-bold ${theme.highlight}`}>Saaras International School</p>
-              <p className={`text-[10px] ${theme.iconColor}`}>Progress Report 2025-26</p>
-            </div>
-            <div className="grid grid-cols-3 gap-2 mb-3">
-              {reportFields['Student Photo'] && <div className={`w-12 h-14 rounded-lg ${theme.cardBg} border ${theme.border} flex items-center justify-center`}><UserCircle size={20} className={theme.iconColor} /></div>}
-              <div className="col-span-2 space-y-1">
-                <p className={`text-[10px] ${theme.highlight}`}><strong>Name:</strong> Aarav Sharma</p>
-                <p className={`text-[10px] ${theme.highlight}`}><strong>Class:</strong> 8-A &nbsp; <strong>Roll:</strong> 12</p>
-                {reportFields['Attendance %'] && <p className={`text-[10px] ${theme.highlight}`}><strong>Attendance:</strong> 94%</p>}
-              </div>
-            </div>
-            <div className={`text-[9px] ${theme.iconColor} border-t ${theme.border} pt-2 space-y-1`}>
-              <p>Maths: 85 {reportGradingMode !== 'Marks' && '(A2)'} | Science: 78 {reportGradingMode !== 'Marks' && '(B1)'} | English: 92 {reportGradingMode !== 'Marks' && '(A1)'}</p>
-              {reportFields['Co-Scholastic Grades'] && <p>Co-Scholastic: Art (A) | Music (B) | Sports (A)</p>}
-              {reportFields['Discipline Grade'] && <p>Discipline: A</p>}
-              {reportFields['Teacher Remarks'] && <p className="italic">Remarks: Excellent student with consistent performance.</p>}
-              {reportFields['Class Rank'] && <p>Class Rank: 5/40</p>}
-              {reportFields['Principal Signature'] && <p className="mt-2 text-right">_______________<br/>Principal</p>}
-              {reportFields['Parent Signature Line'] && <p className="mt-1 text-left">_______________<br/>Parent Signature</p>}
-            </div>
-          </div>
-        )}
-      </SectionCard>
-
-      {/* ═══════════════════════════════════════════════════════════════
-          NEW SECTIONS: Exam Operations Config
-          ═══════════════════════════════════════════════════════════════ */}
-
       <SectionCard title="Schedule Exam for All Batches" subtitle="One-click exam scheduling across multiple grades" theme={theme}>
         <div className="space-y-3">
           <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
@@ -650,7 +576,10 @@ export default function ExamConfigModule({ theme }: { theme: Theme }) {
           </div>
         </div>
       </SectionCard>
+      </div>)}
 
+      {/* ══════════════ MARKS TAB ══════════════ */}
+      {activeTab === 'marks' && (<div className="space-y-4">
       <SectionCard title="Mark Entry Controls" subtitle="Control when teachers can no longer edit marks" theme={theme}>
         <div className="flex items-center mb-3">
           <p className={`text-[10px] font-bold ${theme.iconColor}`}>Lock marks and manage grace marks</p>
@@ -692,6 +621,158 @@ export default function ExamConfigModule({ theme }: { theme: Theme }) {
             )}
           </div>
         </div>
+      </SectionCard>
+
+      <SectionCard title="Bulk Mark Entry" subtitle="Teachers can upload marks via Excel instead of manual entry" theme={theme}>
+        <div className="flex items-center mb-3">
+          <p className={`text-[10px] font-bold ${theme.iconColor}`}>Configure bulk mark upload via Excel</p>
+          <InfoIcon tip="Teachers can upload marks via Excel instead of manual entry" />
+        </div>
+        <div className="space-y-2">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Allow Excel upload</p>
+            <SSAToggle on={bulkExcelUpload} onChange={() => setBulkExcelUpload(!bulkExcelUpload)} theme={theme} />
+          </div>
+          {bulkExcelUpload && (
+            <>
+              <div className={`flex items-center gap-2 p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <Download size={14} className={theme.iconColor} />
+                <span className={`text-xs font-bold ${theme.iconColor} underline cursor-pointer hover:opacity-80`}>Download Excel Template</span>
+              </div>
+              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <p className={`text-xs font-bold ${theme.highlight}`}>Validate before import</p>
+                <SSAToggle on={validateBeforeImport} onChange={() => setValidateBeforeImport(!validateBeforeImport)} theme={theme} />
+              </div>
+            </>
+          )}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Question Bank Settings" subtitle="Manage question bank, taxonomy, and auto-paper generation" theme={theme}>
+        <div className="flex items-center mb-3">
+          <p className={`text-[10px] font-bold ${theme.iconColor}`}>Configure school-wide question bank</p>
+          <InfoIcon tip="Question bank allows teachers to build a repository of questions tagged by topic, difficulty, and Bloom's level" />
+        </div>
+        <div className="space-y-3">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Enable Question Bank</p>
+            <SSAToggle on={questionBankEnabled} onChange={() => setQuestionBankEnabled(!questionBankEnabled)} theme={theme} />
+          </div>
+          {questionBankEnabled && (
+            <>
+              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <p className={`text-xs font-bold ${theme.highlight}`}>Bloom&apos;s Taxonomy Tagging</p>
+                <SSAToggle on={bloomsTaxonomy} onChange={() => setBloomsTaxonomy(!bloomsTaxonomy)} theme={theme} />
+              </div>
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Difficulty Levels</p>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(difficultyLevels).map(([lvl, on]) => (
+                    <label key={lvl} className={`flex items-center gap-2 p-2 rounded-lg ${theme.secondaryBg} cursor-pointer`}>
+                      <input type="checkbox" checked={on} onChange={() => setDifficultyLevels(p => ({ ...p, [lvl]: !p[lvl] }))} className="accent-emerald-500 w-3.5 h-3.5" />
+                      <span className={`text-[10px] font-medium ${theme.highlight}`}>{lvl}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <p className={`text-xs font-bold ${theme.highlight}`}>Allow CSV import</p>
+                <SSAToggle on={csvImportQB} onChange={() => setCsvImportQB(!csvImportQB)} theme={theme} />
+              </div>
+              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <div className="flex items-center">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>Auto-generate paper from bank</p>
+                  <Phase2Badge />
+                </div>
+                <SSAToggle on={autoGeneratePaper} onChange={() => setAutoGeneratePaper(!autoGeneratePaper)} theme={theme} />
+              </div>
+            </>
+          )}
+        </div>
+      </SectionCard>
+      </div>)}
+
+      {/* ══════════════ REPORTS TAB ══════════════ */}
+      {activeTab === 'reports' && (<div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <SectionCard title="Report Card Template" subtitle="Select template for printing" theme={theme}>
+          <div className="space-y-2">
+            {['cbse-standard', 'icse-format', 'state-board', 'custom'].map(t => (
+              <button key={t} onClick={() => setReportTemplate(t)}
+                className={`w-full text-left p-2.5 rounded-xl border transition-all ${reportTemplate === t ? `border-2 ${theme.primary} text-white` : `${theme.secondaryBg} ${theme.border}`}`}>
+                <p className={`text-xs font-bold capitalize ${reportTemplate === t ? '' : theme.highlight}`}>{t.replace('-', ' ')}</p>
+              </button>
+            ))}
+          </div>
+        </SectionCard>
+
+        <SectionCard title="Rank Display Options" subtitle="Control what ranking information appears on student report cards" theme={theme}>
+          <div className="space-y-2">
+            {Object.entries(rankDisplay).map(([opt, enabled]) => (
+              <div key={opt} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <div className="flex-1 mr-3">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{opt}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{
+                    ({
+                      'Show class rank': 'Display student\'s rank among all students in their class (e.g., 5th out of 40)',
+                      'Show section rank': 'Display student\'s rank within their specific section (e.g., 3rd in Section A)',
+                      'Show percentile': 'Show the percentile score indicating performance relative to peers',
+                      'Show subject-wise rank': 'Show individual rank for each subject alongside the overall rank',
+                      'Show grade distribution graph': 'Include a visual bar chart showing how grades are distributed across the class',
+                    } as Record<string, string>)[opt]
+                  }</p>
+                </div>
+                <SSAToggle on={enabled} onChange={() => setRankDisplay(p => ({ ...p, [opt]: !p[opt] }))} theme={theme} />
+              </div>
+            ))}
+          </div>
+        </SectionCard>
+      </div>
+
+      <SectionCard title="Report Card Template Fields" subtitle="Toggle which fields appear on the printed report card" theme={theme}>
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 mb-3">
+          {Object.entries(reportFields).map(([field, enabled]) => (
+            <div key={field} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <span className={`text-xs font-medium ${theme.highlight}`}>{field}</span>
+              <SSAToggle on={enabled} onChange={() => setReportFields(p => ({ ...p, [field]: !p[field] }))} theme={theme} />
+            </div>
+          ))}
+        </div>
+        <div className="flex items-center gap-4 mb-3">
+          <div className="flex-1">
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Grading Display on Report</p>
+            <SelectField options={['Marks', 'Grades', 'Both']} value={reportGradingMode} onChange={setReportGradingMode} theme={theme} />
+          </div>
+          <button onClick={() => setShowReportPreview(!showReportPreview)}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold ${theme.primary} text-white`}>
+            <Eye size={14} /> {showReportPreview ? 'Hide Preview' : 'Preview Template'}
+          </button>
+        </div>
+        {showReportPreview && (
+          <div className={`p-4 rounded-xl border-2 ${theme.border} ${theme.secondaryBg}`}>
+            <div className="text-center mb-3">
+              <p className={`text-sm font-bold ${theme.highlight}`}>Saaras International School</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Progress Report 2025-26</p>
+            </div>
+            <div className="grid grid-cols-3 gap-2 mb-3">
+              {reportFields['Student Photo'] && <div className={`w-12 h-14 rounded-lg ${theme.cardBg} border ${theme.border} flex items-center justify-center`}><UserCircle size={20} className={theme.iconColor} /></div>}
+              <div className="col-span-2 space-y-1">
+                <p className={`text-[10px] ${theme.highlight}`}><strong>Name:</strong> Aarav Sharma</p>
+                <p className={`text-[10px] ${theme.highlight}`}><strong>Class:</strong> 8-A &nbsp; <strong>Roll:</strong> 12</p>
+                {reportFields['Attendance %'] && <p className={`text-[10px] ${theme.highlight}`}><strong>Attendance:</strong> 94%</p>}
+              </div>
+            </div>
+            <div className={`text-[9px] ${theme.iconColor} border-t ${theme.border} pt-2 space-y-1`}>
+              <p>Maths: 85 {reportGradingMode !== 'Marks' && '(A2)'} | Science: 78 {reportGradingMode !== 'Marks' && '(B1)'} | English: 92 {reportGradingMode !== 'Marks' && '(A1)'}</p>
+              {reportFields['Co-Scholastic Grades'] && <p>Co-Scholastic: Art (A) | Music (B) | Sports (A)</p>}
+              {reportFields['Discipline Grade'] && <p>Discipline: A</p>}
+              {reportFields['Teacher Remarks'] && <p className="italic">Remarks: Excellent student with consistent performance.</p>}
+              {reportFields['Class Rank'] && <p>Class Rank: 5/40</p>}
+              {reportFields['Principal Signature'] && <p className="mt-2 text-right">_______________<br/>Principal</p>}
+              {reportFields['Parent Signature Line'] && <p className="mt-1 text-left">_______________<br/>Parent Signature</p>}
+            </div>
+          </div>
+        )}
       </SectionCard>
 
       <SectionCard title="Result Publishing" subtitle="Control how exam results reach parents" theme={theme}>
@@ -765,79 +846,10 @@ export default function ExamConfigModule({ theme }: { theme: Theme }) {
           )}
         </div>
       </SectionCard>
+      </div>)}
 
-      <SectionCard title="Bulk Mark Entry" subtitle="Teachers can upload marks via Excel instead of manual entry" theme={theme}>
-        <div className="flex items-center mb-3">
-          <p className={`text-[10px] font-bold ${theme.iconColor}`}>Configure bulk mark upload via Excel</p>
-          <InfoIcon tip="Teachers can upload marks via Excel instead of manual entry" />
-        </div>
-        <div className="space-y-2">
-          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-            <p className={`text-xs font-bold ${theme.highlight}`}>Allow Excel upload</p>
-            <SSAToggle on={bulkExcelUpload} onChange={() => setBulkExcelUpload(!bulkExcelUpload)} theme={theme} />
-          </div>
-          {bulkExcelUpload && (
-            <>
-              <div className={`flex items-center gap-2 p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <Download size={14} className={theme.iconColor} />
-                <span className={`text-xs font-bold ${theme.iconColor} underline cursor-pointer hover:opacity-80`}>Download Excel Template</span>
-              </div>
-              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <p className={`text-xs font-bold ${theme.highlight}`}>Validate before import</p>
-                <SSAToggle on={validateBeforeImport} onChange={() => setValidateBeforeImport(!validateBeforeImport)} theme={theme} />
-              </div>
-            </>
-          )}
-        </div>
-      </SectionCard>
-
-      {/* ═══════════════════════════════════════════════════════════════
-          NEW SECTION: Question Bank Config
-          ═══════════════════════════════════════════════════════════════ */}
-
-      <SectionCard title="Question Bank Settings" subtitle="Manage question bank, taxonomy, and auto-paper generation" theme={theme}>
-        <div className="flex items-center mb-3">
-          <p className={`text-[10px] font-bold ${theme.iconColor}`}>Configure school-wide question bank</p>
-          <InfoIcon tip="Question bank allows teachers to build a repository of questions tagged by topic, difficulty, and Bloom's level" />
-        </div>
-        <div className="space-y-3">
-          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-            <p className={`text-xs font-bold ${theme.highlight}`}>Enable Question Bank</p>
-            <SSAToggle on={questionBankEnabled} onChange={() => setQuestionBankEnabled(!questionBankEnabled)} theme={theme} />
-          </div>
-          {questionBankEnabled && (
-            <>
-              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <p className={`text-xs font-bold ${theme.highlight}`}>Bloom&apos;s Taxonomy Tagging</p>
-                <SSAToggle on={bloomsTaxonomy} onChange={() => setBloomsTaxonomy(!bloomsTaxonomy)} theme={theme} />
-              </div>
-              <div>
-                <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Difficulty Levels</p>
-                <div className="flex flex-wrap gap-2">
-                  {Object.entries(difficultyLevels).map(([lvl, on]) => (
-                    <label key={lvl} className={`flex items-center gap-2 p-2 rounded-lg ${theme.secondaryBg} cursor-pointer`}>
-                      <input type="checkbox" checked={on} onChange={() => setDifficultyLevels(p => ({ ...p, [lvl]: !p[lvl] }))} className="accent-emerald-500 w-3.5 h-3.5" />
-                      <span className={`text-[10px] font-medium ${theme.highlight}`}>{lvl}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <p className={`text-xs font-bold ${theme.highlight}`}>Allow CSV import</p>
-                <SSAToggle on={csvImportQB} onChange={() => setCsvImportQB(!csvImportQB)} theme={theme} />
-              </div>
-              <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <div className="flex items-center">
-                  <p className={`text-xs font-bold ${theme.highlight}`}>Auto-generate paper from bank</p>
-                  <Phase2Badge />
-                </div>
-                <SSAToggle on={autoGeneratePaper} onChange={() => setAutoGeneratePaper(!autoGeneratePaper)} theme={theme} />
-              </div>
-            </>
-          )}
-        </div>
-      </SectionCard>
-
+      {/* ══════════════ SETTINGS TAB ══════════════ */}
+      {activeTab === 'settings' && (<div className="space-y-4">
       <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
         <div className="space-y-4">
           <MasterPermissionGrid masterName="Exam Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
@@ -848,6 +860,7 @@ export default function ExamConfigModule({ theme }: { theme: Theme }) {
       <SectionCard title="Bulk Import" subtitle="Import data from Excel templates" theme={theme}>
         <BulkImportWizard entityName="Exam Schedule" templateFields={['Exam Name', 'Class', 'Subject', 'Date', 'Time', 'Duration', 'Max Marks']} sampleData={[['Unit Test 1', 'Grade 9', 'Mathematics', '2026-06-15', '09:00 AM', '2 hrs', '100']]} theme={theme} />
       </SectionCard>
+      </div>)}
 
       {/* ── Save Configuration ── */}
       <div className="flex justify-end pt-2">

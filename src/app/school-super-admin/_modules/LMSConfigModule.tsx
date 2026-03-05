@@ -99,7 +99,9 @@ const defaultContentStats: ContentStatRow[] = [
 
 const LP_STATUSES: LearningPathRow['status'][] = ['Active', 'Draft'];
 
-export default function LMSConfigModule({ theme }: { theme: Theme }) {
+type TabId = 'content' | 'engagement' | 'settings';
+
+export default function LMSConfigModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
   // ─── LMS Settings ───
   const [enableLMS, setEnableLMS] = useState(true);
   const [allowUploads, setAllowUploads] = useState(true);
@@ -184,10 +186,16 @@ export default function LMSConfigModule({ theme }: { theme: Theme }) {
   // ─── Save ───
   const [saved, setSaved] = useState(false);
 
+  // ─── Tabs ───
+  const [internalTab, setInternalTab] = useState<TabId>('content');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
+
   return (
     <div className="space-y-4">
       <ModuleHeader title="LMS / E-Learning Configuration" subtitle="Learning management system, content library, and engagement tracking" theme={theme} />
 
+      {activeTab === 'content' && (<div className="space-y-4">
       {/* ─── LMS Settings ─── */}
       <SectionCard title="LMS Settings" subtitle="Core LMS module toggles and upload limits" theme={theme}>
         <div className="space-y-2">
@@ -429,6 +437,34 @@ export default function LMSConfigModule({ theme }: { theme: Theme }) {
         </div>
       </SectionCard>
 
+      {/* ─── AI Features ─── */}
+      <SectionCard title="AI Features" subtitle="AI-powered learning enhancements (future phases)" theme={theme}>
+        <div className="space-y-2">
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex items-center gap-2">
+              <div>
+                <p className={`text-xs font-bold ${theme.highlight}`}>AI Content Recommendations</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Suggest relevant content based on student performance</p>
+              </div>
+              <span className="px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 text-[9px] font-bold">Phase 2</span>
+            </div>
+            <SSAToggle on={aiRecommendations} onChange={() => setAiRecommendations(!aiRecommendations)} theme={theme} />
+          </div>
+          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex items-center gap-2">
+              <div>
+                <p className={`text-xs font-bold ${theme.highlight}`}>Adaptive Quiz Difficulty</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Automatically adjust quiz difficulty based on student responses</p>
+              </div>
+              <span className="px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 text-[9px] font-bold">Phase 2</span>
+            </div>
+            <SSAToggle on={adaptiveQuiz} onChange={() => setAdaptiveQuiz(!adaptiveQuiz)} theme={theme} />
+          </div>
+        </div>
+      </SectionCard>
+      </div>)}
+
+      {activeTab === 'engagement' && (<div className="space-y-4">
       {/* ─── Student Engagement ─── */}
       <SectionCard title="Student Engagement" subtitle="Track how students interact with LMS content" theme={theme}>
         <div className="space-y-2">
@@ -474,33 +510,9 @@ export default function LMSConfigModule({ theme }: { theme: Theme }) {
           </div>
         )}
       </SectionCard>
+      </div>)}
 
-      {/* ─── AI Features ─── */}
-      <SectionCard title="AI Features" subtitle="AI-powered learning enhancements (future phases)" theme={theme}>
-        <div className="space-y-2">
-          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-            <div className="flex items-center gap-2">
-              <div>
-                <p className={`text-xs font-bold ${theme.highlight}`}>AI Content Recommendations</p>
-                <p className={`text-[10px] ${theme.iconColor}`}>Suggest relevant content based on student performance</p>
-              </div>
-              <span className="px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 text-[9px] font-bold">Phase 2</span>
-            </div>
-            <SSAToggle on={aiRecommendations} onChange={() => setAiRecommendations(!aiRecommendations)} theme={theme} />
-          </div>
-          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-            <div className="flex items-center gap-2">
-              <div>
-                <p className={`text-xs font-bold ${theme.highlight}`}>Adaptive Quiz Difficulty</p>
-                <p className={`text-[10px] ${theme.iconColor}`}>Automatically adjust quiz difficulty based on student responses</p>
-              </div>
-              <span className="px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 text-[9px] font-bold">Phase 2</span>
-            </div>
-            <SSAToggle on={adaptiveQuiz} onChange={() => setAdaptiveQuiz(!adaptiveQuiz)} theme={theme} />
-          </div>
-        </div>
-      </SectionCard>
-
+      {activeTab === 'settings' && (<div className="space-y-4">
       <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
         <div className="space-y-4">
           <MasterPermissionGrid masterName="Course Categories" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
@@ -510,6 +522,7 @@ export default function LMSConfigModule({ theme }: { theme: Theme }) {
       <SectionCard title="Bulk Import" subtitle="Import data from Excel templates" theme={theme}>
         <BulkImportWizard entityName="Courses" templateFields={['Course Name', 'Category', 'Instructor', 'Duration', 'Target Class']} sampleData={[['Advanced Mathematics', 'STEM', 'Mr. Patel', '12 weeks', 'Grade 10']]} theme={theme} />
       </SectionCard>
+      </div>)}
 
       {/* ─── Save Configuration Button ─── */}
       <div className="flex justify-end">

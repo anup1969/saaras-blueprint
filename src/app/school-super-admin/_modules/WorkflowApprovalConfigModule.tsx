@@ -106,8 +106,10 @@ const availableApprovers = [
 
 const availableRoles = ['Principal', 'Vice Principal', 'HOD', 'Coordinator', 'Admin Officer', 'Accounts Head', 'Trustee', 'School Admin', 'Class Teacher', 'Teacher'];
 
+type TabId = 'builder' | 'rules';
+
 // ─── Main Module ────────────────────────────────────
-export default function WorkflowApprovalConfigModule({ theme }: { theme: Theme }) {
+export default function WorkflowApprovalConfigModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
   // ─── Workflow Engine Settings ─────────────────────
   const [engineEnabled, setEngineEnabled] = useState(true);
   const [escalationHours, setEscalationHours] = useState('48');
@@ -239,6 +241,10 @@ export default function WorkflowApprovalConfigModule({ theme }: { theme: Theme }
   const [modSearch, setModSearch] = useState('');
   const [modPage, setModPage] = useState(1);
 
+  const [internalTab, setInternalTab] = useState<TabId>('builder');
+  const activeTab = (externalTab as TabId) || internalTab;
+  const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
+
   const filteredModules = moduleIntegration.filter(m =>
     m.module.toLowerCase().includes(modSearch.toLowerCase())
   );
@@ -258,6 +264,7 @@ export default function WorkflowApprovalConfigModule({ theme }: { theme: Theme }
     <div className="space-y-4">
       <ModuleHeader title="Workflow & Approval Configuration" subtitle="Multi-level approval chains, escalation rules, SLA tracking, and module integration" theme={theme} />
 
+      {activeTab === 'builder' && (<div className="space-y-4">
       {/* ─── Row 1: Engine Settings + Approval Chain Templates ─── */}
       <div className="grid grid-cols-2 gap-4">
 
@@ -416,7 +423,9 @@ export default function WorkflowApprovalConfigModule({ theme }: { theme: Theme }
           <Pagination page={tplPage} total={filteredTemplates.length} pageSize={PAGE_SIZE} onChange={setTplPage} theme={theme} />
         </SectionCard>
       </div>
+      </div>)}
 
+      {activeTab === 'rules' && (<div className="space-y-4">
       {/* ─── Row 2: Approval Rules + Module Integration ─── */}
       <div className="grid grid-cols-2 gap-4">
 
@@ -521,6 +530,7 @@ export default function WorkflowApprovalConfigModule({ theme }: { theme: Theme }
           <Pagination page={modPage} total={filteredModules.length} pageSize={PAGE_SIZE} onChange={setModPage} theme={theme} />
         </SectionCard>
       </div>
+      </div>)}
 
       {/* ─── Save Button ─── */}
       <div className="flex justify-end pt-2">
