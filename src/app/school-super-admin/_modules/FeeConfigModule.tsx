@@ -85,6 +85,60 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
   const [newApproverName, setNewApproverName] = useState('');
   const [newApproverRole, setNewApproverRole] = useState('');
 
+  // ═══════ RBAC Concession Permissions ═══════
+  const [rbacPermissions, setRbacPermissions] = useState([
+    { role: 'Accountant', permissions: [
+      { concessionType: 'Sibling Discount', maxAmount: '1000', allowed: true },
+      { concessionType: 'Merit Scholarship', maxAmount: '0', allowed: false },
+      { concessionType: 'Staff Child', maxAmount: '0', allowed: false },
+      { concessionType: 'Economic Weaker (EWS)', maxAmount: '0', allowed: false },
+      { concessionType: 'Sports Quota', maxAmount: '500', allowed: true },
+      { concessionType: 'SC/ST Scholarship', maxAmount: '0', allowed: false },
+      { concessionType: 'Single Parent', maxAmount: '500', allowed: true },
+    ]},
+    { role: 'Principal', permissions: [
+      { concessionType: 'Sibling Discount', maxAmount: '10000', allowed: true },
+      { concessionType: 'Merit Scholarship', maxAmount: '50000', allowed: true },
+      { concessionType: 'Staff Child', maxAmount: '50000', allowed: true },
+      { concessionType: 'Economic Weaker (EWS)', maxAmount: '25000', allowed: true },
+      { concessionType: 'Sports Quota', maxAmount: '30000', allowed: true },
+      { concessionType: 'SC/ST Scholarship', maxAmount: '25000', allowed: true },
+      { concessionType: 'Single Parent', maxAmount: '20000', allowed: true },
+    ]},
+    { role: 'Vice Principal', permissions: [
+      { concessionType: 'Sibling Discount', maxAmount: '5000', allowed: true },
+      { concessionType: 'Merit Scholarship', maxAmount: '10000', allowed: true },
+      { concessionType: 'Staff Child', maxAmount: '0', allowed: false },
+      { concessionType: 'Economic Weaker (EWS)', maxAmount: '5000', allowed: true },
+      { concessionType: 'Sports Quota', maxAmount: '10000', allowed: true },
+      { concessionType: 'SC/ST Scholarship', maxAmount: '0', allowed: false },
+      { concessionType: 'Single Parent', maxAmount: '5000', allowed: true },
+    ]},
+    { role: 'Trust Secretary', permissions: [
+      { concessionType: 'Sibling Discount', maxAmount: '999999', allowed: true },
+      { concessionType: 'Merit Scholarship', maxAmount: '999999', allowed: true },
+      { concessionType: 'Staff Child', maxAmount: '999999', allowed: true },
+      { concessionType: 'Economic Weaker (EWS)', maxAmount: '999999', allowed: true },
+      { concessionType: 'Sports Quota', maxAmount: '999999', allowed: true },
+      { concessionType: 'SC/ST Scholarship', maxAmount: '999999', allowed: true },
+      { concessionType: 'Single Parent', maxAmount: '999999', allowed: true },
+    ]},
+  ]);
+  const [rbacExpanded, setRbacExpanded] = useState(false);
+  const [addingRole, setAddingRole] = useState(false);
+  const [newRoleName, setNewRoleName] = useState('');
+
+  // ═══════ Auto-Apply Concession Rules ═══════
+  const [autoRules, setAutoRules] = useState([
+    { id: 'R1', name: 'Sibling Auto-Discount', condition: 'sibling_count', operator: '>=', value: '2', concessionType: 'Sibling Discount', active: true },
+    { id: 'R2', name: 'EWS Auto-Apply', condition: 'category', operator: '==', value: 'EWS', concessionType: 'Economic Weaker (EWS)', active: true },
+    { id: 'R3', name: 'SC/ST Scholarship', condition: 'category', operator: 'in', value: 'SC,ST', concessionType: 'SC/ST Scholarship', active: true },
+    { id: 'R4', name: 'Staff Child Waiver', condition: 'parent_is_staff', operator: '==', value: 'true', concessionType: 'Staff Child', active: true },
+    { id: 'R5', name: 'Income-Based Discount', condition: 'annual_income', operator: '<=', value: '200000', concessionType: 'Single Parent', active: false },
+  ]);
+  const [addingRule, setAddingRule] = useState(false);
+  const [newRule, setNewRule] = useState({ name: '', condition: 'sibling_count', operator: '>=', value: '', concessionType: '' });
+
   // ═══════ Payments state ═══════
   const [paymentModesTable, setPaymentModesTable] = useState([
     { name: 'Cash', active: true, processingFee: '0', autoReceipt: true, reconciliation: 'Auto', isDefault: true, gateway: 'N/A', refundPolicy: 'Manual' },
@@ -548,6 +602,249 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
             </div>
           </SectionCard>
 
+          {/* RBAC-Based Concession Permissions */}
+          <SectionCard title="Role-Based Concession Permissions" subtitle="Define which roles can apply which concession types and up to what amount (Role x Type x Fee Head)" theme={theme}>
+            <div className="space-y-3">
+              <div className={`p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <p className={`text-[10px] ${theme.iconColor}`}>Each role has per-concession-type limits. If the concession exceeds the role's limit, it escalates to the next approver in the chain above.</p>
+              </div>
+
+              {/* Matrix Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className={theme.secondaryBg}>
+                      <th className={`text-left px-2 py-2 font-bold ${theme.iconColor} sticky left-0 ${theme.secondaryBg} z-10`}>Role</th>
+                      {concessions.filter(c => c.active).map(c => (
+                        <th key={c.type} className={`text-center px-2 py-2 font-bold ${theme.iconColor} min-w-[100px]`}>
+                          <div className="text-[9px] leading-tight">{c.type}</div>
+                          <div className="text-[8px] opacity-60 mt-0.5">{c.method === 'percentage' ? `${c.value}%` : `₹${Number(c.value).toLocaleString()}`}</div>
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rbacPermissions.map((roleRow, rIdx) => (
+                      <tr key={roleRow.role} className={`border-t ${theme.border}`}>
+                        <td className={`px-2 py-2 font-bold ${theme.highlight} sticky left-0 ${theme.cardBg} z-10`}>
+                          <div className="flex items-center gap-2">
+                            <span className={`w-6 h-6 rounded-full ${theme.primary} text-white flex items-center justify-center text-[8px] font-bold`}>
+                              {roleRow.role.charAt(0)}
+                            </span>
+                            <span className="text-[10px]">{roleRow.role}</span>
+                          </div>
+                        </td>
+                        {concessions.filter(c => c.active).map((c) => {
+                          const perm = roleRow.permissions.find(p => p.concessionType === c.type);
+                          const allowed = perm?.allowed ?? false;
+                          const maxAmt = perm?.maxAmount || '0';
+                          return (
+                            <td key={c.type} className="px-1 py-1.5 text-center">
+                              <div className="flex flex-col items-center gap-1">
+                                <button onClick={() => {
+                                  const n = [...rbacPermissions];
+                                  const permIdx = n[rIdx].permissions.findIndex(p => p.concessionType === c.type);
+                                  if (permIdx > -1) n[rIdx].permissions[permIdx] = { ...n[rIdx].permissions[permIdx], allowed: !allowed };
+                                  else n[rIdx].permissions.push({ concessionType: c.type, maxAmount: '0', allowed: true });
+                                  setRbacPermissions(n);
+                                }}
+                                  className={`w-5 h-5 rounded flex items-center justify-center text-[8px] font-bold transition-colors ${allowed ? 'bg-emerald-100 text-emerald-700 border border-emerald-300' : 'bg-red-50 text-red-400 border border-red-200'}`}>
+                                  {allowed ? '\u2713' : '\u2717'}
+                                </button>
+                                {allowed && (
+                                  <input type="text" value={maxAmt === '999999' ? '\u221E' : maxAmt}
+                                    onChange={e => {
+                                      const val = e.target.value === '\u221E' ? '999999' : e.target.value.replace(/[^\d]/g, '');
+                                      const n = [...rbacPermissions];
+                                      const permIdx = n[rIdx].permissions.findIndex(p => p.concessionType === c.type);
+                                      if (permIdx > -1) n[rIdx].permissions[permIdx] = { ...n[rIdx].permissions[permIdx], maxAmount: val };
+                                      setRbacPermissions(n);
+                                    }}
+                                    className={`w-16 px-1 py-0.5 rounded border ${theme.border} ${theme.inputBg} text-[9px] text-center ${theme.highlight} outline-none`}
+                                    placeholder="Max ₹" />
+                                )}
+                              </div>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Add Role */}
+              {addingRole ? (
+                <div className={`p-3 rounded-xl border ${theme.border} ${theme.secondaryBg}`}>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Add New Role</p>
+                  <div className="flex items-center gap-2">
+                    <InputField value={newRoleName} onChange={setNewRoleName} theme={theme} placeholder="Role name (e.g., Admin, HOD)" />
+                    <button onClick={() => {
+                      if (newRoleName.trim()) {
+                        setRbacPermissions(p => [...p, {
+                          role: newRoleName.trim(),
+                          permissions: concessions.map(c => ({ concessionType: c.type, maxAmount: '0', allowed: false }))
+                        }]);
+                        setNewRoleName(''); setAddingRole(false);
+                      }
+                    }} className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold ${theme.primary} text-white shrink-0`}>
+                      <Plus size={12} /> Add
+                    </button>
+                    <button onClick={() => { setAddingRole(false); setNewRoleName(''); }}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold ${theme.iconColor} ${theme.buttonHover} shrink-0`}>Cancel</button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setAddingRole(true)}
+                    className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
+                    <Plus size={12} /> Add Role
+                  </button>
+                  <button onClick={() => {
+                    setRbacPermissions(p => p.map(r => ({
+                      ...r, permissions: r.permissions.map(perm => ({ ...perm, allowed: true }))
+                    })));
+                  }}
+                    className="px-2.5 py-1.5 rounded-lg text-[9px] font-bold bg-emerald-100 text-emerald-700 hover:bg-emerald-200">Allow All</button>
+                  <button onClick={() => {
+                    setRbacPermissions(p => p.map(r => ({
+                      ...r, permissions: r.permissions.map(perm => ({ ...perm, allowed: false, maxAmount: '0' }))
+                    })));
+                  }}
+                    className="px-2.5 py-1.5 rounded-lg text-[9px] font-bold bg-red-50 text-red-600 hover:bg-red-100">Deny All</button>
+                </div>
+              )}
+
+              <div className={`p-2 rounded-lg bg-blue-50 border border-blue-200`}>
+                <p className="text-[9px] text-blue-700"><span className="font-bold">How it works:</span> When an Accountant applies a &quot;Sibling Discount&quot; of ₹3,000 but their limit is ₹1,000, the request auto-escalates to the next approver (e.g., Principal with ₹10,000 limit). If it exceeds all limits, it goes to Trust Secretary.</p>
+              </div>
+            </div>
+          </SectionCard>
+
+          {/* Auto-Apply Concession Rules */}
+          <SectionCard title="Auto-Apply Concession Rules" subtitle="Define conditions that automatically apply concessions during fee generation" theme={theme}>
+            <div className="space-y-3">
+              <div className={`p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <p className={`text-[10px] ${theme.iconColor}`}>Rules are evaluated during fee generation. When a student matches a condition, the linked concession is auto-applied. Manual override is still possible at Account Head.</p>
+              </div>
+
+              {/* Existing Rules */}
+              <div className="space-y-2">
+                {autoRules.map((rule, idx) => (
+                  <div key={rule.id} className={`flex items-center gap-3 p-3 rounded-xl border ${rule.active ? 'border-emerald-200 bg-emerald-50/50' : `${theme.border} ${theme.secondaryBg} opacity-60`}`}>
+                    <div className={`w-8 h-8 rounded-lg ${rule.active ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-400'} flex items-center justify-center text-[10px] font-bold shrink-0`}>
+                      {rule.id}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-xs font-bold ${rule.active ? theme.highlight : theme.iconColor}`}>{rule.name}</p>
+                      <p className={`text-[10px] ${theme.iconColor}`}>
+                        IF <span className="font-mono font-bold text-blue-600">{rule.condition.replace(/_/g, ' ')}</span>
+                        {' '}<span className="font-bold">{rule.operator}</span>{' '}
+                        <span className="font-mono font-bold text-purple-600">{rule.value}</span>
+                        {' \u2192 '}<span className="font-bold text-emerald-700">Apply &quot;{rule.concessionType}&quot;</span>
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <SSAToggle on={rule.active} onChange={() => {
+                        const n = [...autoRules]; n[idx] = { ...n[idx], active: !n[idx].active }; setAutoRules(n);
+                      }} theme={theme} />
+                      <button onClick={() => setAutoRules(p => p.filter((_, i) => i !== idx))}
+                        className="text-red-400 hover:text-red-600"><Trash2 size={12} /></button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Add New Rule */}
+              {addingRule ? (
+                <div className={`p-4 rounded-xl border-2 border-dashed ${theme.border} space-y-3`}>
+                  <p className={`text-xs font-bold ${theme.highlight}`}>New Auto-Apply Rule</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div>
+                      <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Rule Name</label>
+                      <input value={newRule.name} onChange={e => setNewRule(p => ({ ...p, name: e.target.value }))}
+                        placeholder="e.g., BPL Family Discount"
+                        className={`w-full px-2.5 py-2 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                    </div>
+                    <div>
+                      <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Apply Concession</label>
+                      <select value={newRule.concessionType} onChange={e => setNewRule(p => ({ ...p, concessionType: e.target.value }))}
+                        className={`w-full px-2.5 py-2 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`}>
+                        <option value="">Select concession type...</option>
+                        {concessions.filter(c => c.active).map(c => <option key={c.type} value={c.type}>{c.type}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Condition</label>
+                      <select value={newRule.condition} onChange={e => setNewRule(p => ({ ...p, condition: e.target.value }))}
+                        className={`w-full px-2.5 py-2 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`}>
+                        <option value="sibling_count">Sibling Count</option>
+                        <option value="category">Category (SC/ST/OBC/General)</option>
+                        <option value="annual_income">Annual Income (₹)</option>
+                        <option value="merit_rank">Merit Rank</option>
+                        <option value="parent_is_staff">Parent is Staff</option>
+                        <option value="distance_km">Distance from School (km)</option>
+                        <option value="single_parent">Single Parent</option>
+                        <option value="orphan">Orphan</option>
+                        <option value="disability">Disability</option>
+                        <option value="bpl_card">BPL Card Holder</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Operator</label>
+                      <select value={newRule.operator} onChange={e => setNewRule(p => ({ ...p, operator: e.target.value }))}
+                        className={`w-full px-2.5 py-2 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`}>
+                        <option value="==">Equals (==)</option>
+                        <option value="!=">Not Equals (!=)</option>
+                        <option value=">=">Greater or Equal (&gt;=)</option>
+                        <option value="<=">Less or Equal (&lt;=)</option>
+                        <option value=">">Greater Than (&gt;)</option>
+                        <option value="<">Less Than (&lt;)</option>
+                        <option value="in">In List (comma-separated)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Value</label>
+                      <input value={newRule.value} onChange={e => setNewRule(p => ({ ...p, value: e.target.value }))}
+                        placeholder="e.g., 2, SC, 200000"
+                        className={`w-full px-2.5 py-2 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => {
+                      if (newRule.name && newRule.concessionType && newRule.value) {
+                        setAutoRules(p => [...p, { ...newRule, id: `R${p.length + 1}`, active: true }]);
+                        setNewRule({ name: '', condition: 'sibling_count', operator: '>=', value: '', concessionType: '' });
+                        setAddingRule(false);
+                      }
+                    }} className={`flex items-center gap-1 px-4 py-2 rounded-lg text-xs font-bold ${theme.primary} text-white`}>
+                      <Plus size={12} /> Create Rule
+                    </button>
+                    <button onClick={() => { setAddingRule(false); setNewRule({ name: '', condition: 'sibling_count', operator: '>=', value: '', concessionType: '' }); }}
+                      className={`px-4 py-2 rounded-lg text-xs font-bold ${theme.iconColor} ${theme.buttonHover}`}>Cancel</button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setAddingRule(true)}
+                    className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
+                    <Plus size={12} /> Add Rule
+                  </button>
+                  <button onClick={() => setAutoRules(p => p.map(r => ({ ...r, active: true })))}
+                    className="px-2.5 py-1.5 rounded-lg text-[9px] font-bold bg-emerald-100 text-emerald-700 hover:bg-emerald-200">Activate All</button>
+                  <button onClick={() => setAutoRules(p => p.map(r => ({ ...r, active: false })))}
+                    className="px-2.5 py-1.5 rounded-lg text-[9px] font-bold bg-gray-100 text-gray-600 hover:bg-gray-200">Deactivate All</button>
+                </div>
+              )}
+
+              <div className={`p-2 rounded-lg bg-amber-50 border border-amber-200`}>
+                <p className="text-[9px] text-amber-700"><span className="font-bold">Note:</span> Rules run in order during fee generation. If multiple rules match, all applicable concessions apply (stacking). To prevent stacking, set &quot;Max 1 concession per student&quot; in Settings tab.</p>
+              </div>
+            </div>
+          </SectionCard>
+
           {/* Student-Level Fee Override — Custom discount per student per component */}
           <SectionCard title="Student-Level Fee Override" subtitle="Custom discount per student per fee component" theme={theme}>
             <div className="space-y-3">
@@ -728,7 +1025,7 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
           <div className={`flex items-center justify-between p-4 rounded-2xl ${theme.secondaryBg} border ${theme.border}`}>
             <div>
               <p className={`text-sm font-bold ${theme.highlight}`}>Save Concessions</p>
-              <p className={`text-[10px] ${theme.iconColor}`}>Save concession types, approval workflow, and overrides</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Save concession types, approval workflow, RBAC permissions, auto-rules, and overrides</p>
             </div>
             <button className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold ${theme.primary} text-white shadow-lg hover:shadow-xl transition-all`}>
               <Save size={16} /> Save Changes

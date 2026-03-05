@@ -612,6 +612,10 @@ function FeesView({ theme }: { theme: Theme }) {
   const [showRefundCheck, setShowRefundCheck] = useState(false);
   const [historyTab, setHistoryTab] = useState('All');
   const [chequeSection, setChequeSection] = useState(false);
+  const [amountReceived, setAmountReceived] = useState('');
+  const [paymentRemark, setPaymentRemark] = useState('');
+  const [showRemarkOnReceipt, setShowRemarkOnReceipt] = useState(false);
+  const [partialReason, setPartialReason] = useState('');
   const filteredHistory = historyTab === 'All' ? feeCollections : feeCollections.filter(f => f.status === historyTab);
 
   const studentResults = [
@@ -632,6 +636,9 @@ function FeesView({ theme }: { theme: Theme }) {
   const totalDue = feeHeads.filter(h => h.status === 'Due').reduce((s, h) => s + h.amount, 0);
   const concessionAmt = appliedConcession === 'sibling' ? Math.round(totalDue * 0.1) : appliedConcession === 'merit' ? Math.round(totalDue * 0.25) : appliedConcession === 'staff' ? totalDue : 0;
   const netPayable = totalDue - concessionAmt;
+  const receivedNum = amountReceived === '' ? netPayable : Number(amountReceived) || 0;
+  const isPartial = amountReceived !== '' && receivedNum < netPayable && receivedNum > 0;
+  const balanceDue = isPartial ? netPayable - receivedNum : 0;
 
   return (
     <div className="space-y-4">
@@ -885,8 +892,33 @@ function FeesView({ theme }: { theme: Theme }) {
                 <div className="mt-4 space-y-2">
                   <div>
                     <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Amount Received</label>
-                    <input type="text" defaultValue={netPayable.toString()} className={`w-full px-3 py-2.5 text-sm rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight} font-bold`} />
+                    <input type="number" value={amountReceived} onChange={e => setAmountReceived(e.target.value)}
+                      placeholder={netPayable.toString()}
+                      className={`w-full px-3 py-2.5 text-sm rounded-lg border ${isPartial ? 'border-amber-400 bg-amber-50' : theme.border} ${theme.secondaryBg} ${theme.highlight} font-bold`} />
                   </div>
+                  {isPartial && (
+                    <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-300 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-200 text-amber-800 font-bold">PARTIAL PAYMENT</span>
+                          <span className={`text-[10px] font-bold text-amber-700`}>Balance: {'\u20B9'}{balanceDue.toLocaleString()}</span>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-amber-800 block mb-1">Reason for Partial Payment</label>
+                        <select value={partialReason} onChange={e => setPartialReason(e.target.value)}
+                          className="w-full px-2.5 py-2 text-xs rounded-lg border border-amber-300 bg-white text-amber-900">
+                          <option value="">Select reason...</option>
+                          <option value="financial-difficulty">Financial Difficulty</option>
+                          <option value="fee-dispute">Fee Head Dispute / Query</option>
+                          <option value="installment">Paying in Installments</option>
+                          <option value="awaiting-concession">Awaiting Concession Approval</option>
+                          <option value="advance-partial">Advance Partial (rest later)</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
                   <div>
                     <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Payment Mode</label>
                     <select className={`w-full px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight}`}>
@@ -902,14 +934,28 @@ function FeesView({ theme }: { theme: Theme }) {
                     <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Reference / Txn ID</label>
                     <input type="text" placeholder="Optional for cash" className={`w-full px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight}`} />
                   </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className={`text-[10px] font-bold ${theme.iconColor}`}>Remark</label>
+                      <label className="flex items-center gap-1.5 cursor-pointer">
+                        <span className={`text-[9px] ${showRemarkOnReceipt ? 'text-emerald-600 font-bold' : theme.iconColor}`}>
+                          {showRemarkOnReceipt ? 'Shown on Receipt' : 'Internal Only'}
+                        </span>
+                        <button onClick={() => setShowRemarkOnReceipt(!showRemarkOnReceipt)}
+                          className={`w-8 h-4 rounded-full transition-colors ${showRemarkOnReceipt ? 'bg-emerald-500' : 'bg-gray-300'} relative`}>
+                          <span className={`absolute top-0.5 ${showRemarkOnReceipt ? 'right-0.5' : 'left-0.5'} w-3 h-3 rounded-full bg-white transition-all`} />
+                        </button>
+                      </label>
+                    </div>
+                    <textarea value={paymentRemark} onChange={e => setPaymentRemark(e.target.value)}
+                      placeholder="Add a remark (e.g., balance due note, special arrangement, late fee waived)..."
+                      rows={2}
+                      className={`w-full px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight} resize-none`} />
+                  </div>
                 </div>
 
-                <div className="mt-3 p-2 rounded-lg bg-amber-50 border border-amber-200">
-                  <p className="text-[9px] font-bold text-amber-800">Partial payment OK — balance carries forward</p>
-                </div>
-
-                <button onClick={() => setAcceptStep('confirm')} className={`w-full mt-4 flex items-center justify-center gap-2 px-4 py-3 ${theme.primary} text-white rounded-xl text-sm font-bold hover:opacity-90 transition-opacity`}>
-                  <Banknote size={16} /> Accept Payment &amp; Generate Receipt
+                <button onClick={() => setAcceptStep('confirm')} className={`w-full mt-4 flex items-center justify-center gap-2 px-4 py-3 ${isPartial ? 'bg-amber-500' : theme.primary} text-white rounded-xl text-sm font-bold hover:opacity-90 transition-opacity`}>
+                  <Banknote size={16} /> {isPartial ? 'Accept Partial Payment & Generate Receipt' : 'Accept Payment & Generate Receipt'}
                 </button>
               </div>
             </div>
@@ -926,8 +972,22 @@ function FeesView({ theme }: { theme: Theme }) {
             </div>
             <p className="text-lg font-bold text-emerald-800">Payment Recorded Successfully</p>
             <p className="text-sm text-emerald-700 mt-1">Receipt #: <span className="font-mono font-bold">R-2026-009</span></p>
-            <p className="text-xs text-emerald-600 mt-1">{student.name} &middot; Class {student.class} &middot; {'\u20B9'}{netPayable.toLocaleString()}</p>
+            <p className="text-xs text-emerald-600 mt-1">{student.name} &middot; Class {student.class} &middot; {'\u20B9'}{receivedNum.toLocaleString()}</p>
             {concessionAmt > 0 && <p className="text-[10px] text-emerald-600 mt-0.5">Concession: -{'\u20B9'}{concessionAmt.toLocaleString()}</p>}
+            {isPartial && (
+              <div className="mt-2 p-2 rounded-lg bg-amber-50 border border-amber-200 inline-block">
+                <p className="text-[10px] font-bold text-amber-800">Partial Payment — Balance Due: {'\u20B9'}{balanceDue.toLocaleString()}</p>
+                {partialReason && <p className="text-[9px] text-amber-700">Reason: {partialReason.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</p>}
+              </div>
+            )}
+            {paymentRemark && (
+              <div className={`mt-2 p-2 rounded-lg ${showRemarkOnReceipt ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50 border border-gray-200'} inline-block`}>
+                <p className={`text-[9px] font-bold ${showRemarkOnReceipt ? 'text-blue-700' : 'text-gray-500'}`}>
+                  {showRemarkOnReceipt ? 'Receipt Remark' : 'Internal Note (not on receipt)'}
+                </p>
+                <p className={`text-[10px] ${showRemarkOnReceipt ? 'text-blue-800' : 'text-gray-600'}`}>{paymentRemark}</p>
+              </div>
+            )}
           </div>
           <div className="flex gap-2 justify-center">
             <button className={`flex items-center gap-2 px-5 py-2.5 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.highlight}`}>
@@ -936,7 +996,7 @@ function FeesView({ theme }: { theme: Theme }) {
             <button className={`flex items-center gap-2 px-5 py-2.5 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.highlight}`}>
               <Download size={14} /> Download PDF
             </button>
-            <button onClick={() => { setAcceptStep('search'); setSelectedStudent(null); setAppliedConcession(''); setShowConcession(false); setShowAdjustment(false); setShowAdvanceToggle(false); setShowRefundCheck(false); }} className={`flex items-center gap-2 px-5 py-2.5 ${theme.primary} text-white rounded-xl text-xs font-bold`}>
+            <button onClick={() => { setAcceptStep('search'); setSelectedStudent(null); setAppliedConcession(''); setShowConcession(false); setShowAdjustment(false); setShowAdvanceToggle(false); setShowRefundCheck(false); setAmountReceived(''); setPaymentRemark(''); setShowRemarkOnReceipt(false); setPartialReason(''); }} className={`flex items-center gap-2 px-5 py-2.5 ${theme.primary} text-white rounded-xl text-xs font-bold`}>
               <Plus size={14} /> Accept Next Payment
             </button>
           </div>
