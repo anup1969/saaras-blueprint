@@ -603,342 +603,289 @@ function ConcessionsView({ theme }: { theme: Theme }) {
 
 // ─── UNIFIED FEES VIEW (Collection + Concessions + Refunds + Adjustments + Advance) ───
 function FeesView({ theme }: { theme: Theme }) {
-  const [feesTab, setFeesTab] = useState('Collection');
-  const [showAcceptFee, setShowAcceptFee] = useState(false);
   const [acceptStep, setAcceptStep] = useState<'search' | 'details' | 'confirm'>('search');
-  const [showAdjustmentForm, setShowAdjustmentForm] = useState(false);
-  const [showAdvanceForm, setShowAdvanceForm] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
+  const [showConcession, setShowConcession] = useState(false);
+  const [appliedConcession, setAppliedConcession] = useState('');
+  const [showAdjustment, setShowAdjustment] = useState(false);
+  const [showAdvanceToggle, setShowAdvanceToggle] = useState(false);
+  const [showRefundCheck, setShowRefundCheck] = useState(false);
+  const [historyTab, setHistoryTab] = useState('All');
+  const [chequeSection, setChequeSection] = useState(false);
+  const filteredHistory = historyTab === 'All' ? feeCollections : feeCollections.filter(f => f.status === historyTab);
+
+  const studentResults = [
+    { name: 'Riya Sharma', class: '5-A', admNo: 'ADM-2025-042', father: 'Mr. Rajesh Sharma', pending: '\u20B95,000', initials: 'RS', concession: '' },
+    { name: 'Ananya Reddy', class: '6-A', admNo: 'ADM-2024-118', father: 'Mr. Venkat Reddy', pending: '\u20B95,800', initials: 'AR', concession: 'Sibling Discount 10%' },
+    { name: 'Ravi Kumar', class: '7-B', admNo: 'ADM-2023-067', father: 'Mr. Suresh Kumar', pending: '\u20B96,500', initials: 'RK', concession: 'EWS / RTE 100%' },
+    { name: 'Aarav Patel', class: '10-A', admNo: 'ADM-2022-015', father: 'Mr. Rajesh Patel', pending: '\u20B90', initials: 'AP', concession: '' },
+  ];
+  const student = studentResults.find(s => s.admNo === selectedStudent) || studentResults[0];
+
+  const feeHeads = [
+    { head: 'Tuition Fee', amount: 3000, status: 'Due' as const },
+    { head: 'Activity Fee', amount: 500, status: 'Due' as const },
+    { head: 'Lab Fee', amount: 300, status: 'Due' as const },
+    { head: 'Transport', amount: 1200, status: 'Due' as const },
+    { head: 'Exam Fee', amount: 0, status: 'Paid' as const },
+  ];
+  const totalDue = feeHeads.filter(h => h.status === 'Due').reduce((s, h) => s + h.amount, 0);
+  const concessionAmt = appliedConcession === 'sibling' ? Math.round(totalDue * 0.1) : appliedConcession === 'merit' ? Math.round(totalDue * 0.25) : appliedConcession === 'staff' ? totalDue : 0;
+  const netPayable = totalDue - concessionAmt;
 
   return (
     <div className="space-y-4">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className={`text-lg font-bold ${theme.highlight}`}>Fees</h2>
-          <p className={`text-xs ${theme.iconColor}`}>Collection, concessions, refunds, adjustments &amp; advance payments</p>
+          <h2 className={`text-lg font-bold ${theme.highlight}`}>Fee Counter</h2>
+          <p className={`text-xs ${theme.iconColor}`}>Search student &rarr; fee structure &rarr; apply concession/adjustment &rarr; accept payment &rarr; receipt</p>
+        </div>
+        <div className="flex gap-2">
+          <button className={`flex items-center gap-2 px-3 py-2 ${theme.secondaryBg} rounded-xl text-xs font-medium ${theme.highlight}`}>
+            <Download size={12} /> Export
+          </button>
         </div>
       </div>
 
-      {/* Fee Tabs */}
-      <TabBar tabs={['Collection', 'Concessions', 'Refunds', 'Adjustments', 'Advance Payments']} active={feesTab} onChange={setFeesTab} theme={theme} />
+      {/* ── Step Indicator ── */}
+      <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-3 flex items-center gap-4`}>
+        {(['search', 'details', 'confirm'] as const).map((step, i) => (
+          <div key={step} className="flex items-center gap-2">
+            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold ${
+              acceptStep === step ? `${theme.primary} text-white` :
+              (['search', 'details', 'confirm'].indexOf(acceptStep) > i) ? 'bg-emerald-500 text-white' :
+              `${theme.secondaryBg} ${theme.iconColor}`
+            }`}>
+              {(['search', 'details', 'confirm'].indexOf(acceptStep) > i) ? <Check size={10} /> : i + 1}
+            </div>
+            <span className={`text-xs font-bold ${acceptStep === step ? theme.highlight : theme.iconColor}`}>
+              {step === 'search' ? 'Search Student' : step === 'details' ? 'Fee Details & Payment' : 'Receipt'}
+            </span>
+            {i < 2 && <ArrowRight size={12} className={theme.iconColor} />}
+          </div>
+        ))}
+      </div>
 
-      {/* ── Collection Tab ── */}
-      {feesTab === 'Collection' && (
-        <div className="space-y-4">
-          {/* Accept Fee Workflow */}
+      {/* ══════ STEP 1: SEARCH STUDENT ══════ */}
+      {acceptStep === 'search' && (
+        <div className="space-y-3">
+          <SearchBar placeholder="Search by student name, admission no, class, father name..." theme={theme} icon={Search} />
+
           <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-            <button onClick={() => { setShowAcceptFee(!showAcceptFee); setAcceptStep('search'); }} className="w-full flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className={`w-8 h-8 rounded-lg ${theme.primary} text-white flex items-center justify-center`}><Banknote size={16} /></div>
-                <div>
-                  <h3 className={`text-sm font-bold ${theme.highlight}`}>Accept Fee Payment</h3>
-                  <p className={`text-[10px] ${theme.iconColor}`}>Search student → View fee structure → Record payment → Generate receipt</p>
-                </div>
-              </div>
-              <ChevronDown size={16} className={`${theme.iconColor} transition-transform ${showAcceptFee ? 'rotate-180' : ''}`} />
-            </button>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-3 uppercase tracking-wide`}>Students</p>
+            <div className="space-y-1">
+              {studentResults.map(s => (
+                <button key={s.admNo} onClick={() => { setSelectedStudent(s.admNo); setAppliedConcession(s.concession ? (s.concession.startsWith('Sibling') ? 'sibling' : s.concession.startsWith('EWS') ? 'ews' : '') : ''); setAcceptStep('details'); }} className={`w-full flex items-center justify-between p-3 rounded-xl ${theme.buttonHover} transition-all`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-9 h-9 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold`}>{s.initials}</div>
+                    <div className="text-left">
+                      <p className={`text-xs font-bold ${theme.highlight}`}>{s.name}</p>
+                      <p className={`text-[10px] ${theme.iconColor}`}>{s.class} &middot; {s.admNo} &middot; F: {s.father}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className={`text-xs font-bold ${Number(s.pending.replace(/[^\d]/g, '')) > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
+                      {Number(s.pending.replace(/[^\d]/g, '')) > 0 ? `Pending: ${s.pending}` : 'All Paid'}
+                    </span>
+                    {s.concession && <p className={`text-[9px] ${theme.primaryText} font-bold`}>{s.concession}</p>}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
 
-            {showAcceptFee && (
-              <div className="mt-4 space-y-4">
-                {/* Step Indicator */}
-                <div className="flex items-center gap-4">
-                  {(['search', 'details', 'confirm'] as const).map((step, i) => (
-                    <div key={step} className="flex items-center gap-2">
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                        acceptStep === step ? `${theme.primary} text-white` :
-                        (['search', 'details', 'confirm'].indexOf(acceptStep) > i) ? 'bg-emerald-500 text-white' :
-                        `${theme.secondaryBg} ${theme.iconColor}`
-                      }`}>
-                        {(['search', 'details', 'confirm'].indexOf(acceptStep) > i) ? <Check size={10} /> : i + 1}
+          <p className="text-[10px] text-amber-600">Fee template: Component-based &middot; Billing: Monthly &middot; 7 active fee heads &mdash; configured by SSA</p>
+        </div>
+      )}
+
+      {/* ══════ STEP 2: FEE DETAILS + CONCESSION + ADJUSTMENT + PAYMENT ══════ */}
+      {acceptStep === 'details' && (
+        <div className="space-y-3">
+          {/* Student Info Bar */}
+          <div className={`p-3 rounded-xl ${theme.secondaryBg} flex items-center gap-3`}>
+            <div className={`w-10 h-10 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold`}>{student.initials}</div>
+            <div className="flex-1">
+              <p className={`text-sm font-bold ${theme.highlight}`}>{student.name}</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>{student.class} &middot; {student.admNo} &middot; Father: {student.father}</p>
+            </div>
+            <button onClick={() => { setAcceptStep('search'); setShowConcession(false); setShowAdjustment(false); setShowAdvanceToggle(false); setShowRefundCheck(false); }} className={`text-xs ${theme.primaryText} font-bold`}>Change Student</button>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+            {/* LEFT: Fee Structure */}
+            <div className="lg:col-span-2 space-y-3">
+              {/* Fee Head Breakdown */}
+              <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-2 uppercase tracking-wide`}>Fee Structure &mdash; February 2026</p>
+                <div className="space-y-1.5">
+                  {feeHeads.map(h => (
+                    <div key={h.head} className="flex items-center justify-between">
+                      <span className={`text-xs ${theme.highlight}`}>{h.head}</span>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs font-bold ${h.status === 'Due' ? theme.highlight : 'text-emerald-600'}`}>{'\u20B9'}{h.amount.toLocaleString()}</span>
+                        <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${h.status === 'Due' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>{h.status}</span>
                       </div>
-                      <span className={`text-[10px] font-bold ${acceptStep === step ? theme.highlight : theme.iconColor}`}>
-                        {step === 'search' ? 'Search Student' : step === 'details' ? 'Fee Details' : 'Confirm & Receipt'}
-                      </span>
-                      {i < 2 && <ArrowRight size={10} className={theme.iconColor} />}
                     </div>
                   ))}
+                  <div className={`flex items-center justify-between pt-2 mt-2 border-t ${theme.border}`}>
+                    <span className={`text-xs font-bold ${theme.highlight}`}>Gross Total Due</span>
+                    <span className={`text-sm font-bold ${theme.highlight}`}>{'\u20B9'}{totalDue.toLocaleString()}</span>
+                  </div>
                 </div>
+              </div>
 
-                {/* Step 1: Search */}
-                {acceptStep === 'search' && (
-                  <div className="space-y-3">
-                    <SearchBar placeholder="Search by student name, admission no, class..." theme={theme} icon={Search} />
-                    <div className={`${theme.secondaryBg} rounded-xl p-3`}>
-                      <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Quick Results</p>
+              {/* ── Concession Section ── */}
+              <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-3`}>
+                <button onClick={() => setShowConcession(!showConcession)} className="w-full flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Percent size={14} className={theme.primaryText} />
+                    <span className={`text-xs font-bold ${theme.highlight}`}>Concession / Scholarship</span>
+                    {appliedConcession && <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold">Applied: -{'\u20B9'}{concessionAmt.toLocaleString()}</span>}
+                  </div>
+                  <ChevronDown size={14} className={`${theme.iconColor} transition-transform ${showConcession ? 'rotate-180' : ''}`} />
+                </button>
+                {showConcession && (
+                  <div className="mt-3 space-y-2">
+                    {student.concession ? (
+                      <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-2 flex items-center gap-2">
+                        <Check size={14} className="text-emerald-600 shrink-0" />
+                        <span className="text-[10px] text-emerald-700 font-bold">Auto-applied: {student.concession}</span>
+                      </div>
+                    ) : (
+                      <p className={`text-[10px] ${theme.iconColor}`}>No auto-concession for this student. Apply manually if needed:</p>
+                    )}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                       {[
-                        { name: 'Riya Sharma', class: '5-A', admNo: 'ADM-2025-042', pending: '\u20B95,000' },
-                        { name: 'Ananya Reddy', class: '6-A', admNo: 'ADM-2024-118', pending: '\u20B95,800' },
-                      ].map(s => (
-                        <button key={s.admNo} onClick={() => setAcceptStep('details')} className={`w-full flex items-center justify-between p-2 rounded-lg ${theme.buttonHover} transition-all mb-1`}>
-                          <div className="flex items-center gap-2">
-                            <div className={`w-7 h-7 rounded-full ${theme.primary} text-white flex items-center justify-center text-[10px] font-bold`}>{s.name.charAt(0)}</div>
-                            <div className="text-left">
-                              <p className={`text-xs font-bold ${theme.highlight}`}>{s.name}</p>
-                              <p className={`text-[10px] ${theme.iconColor}`}>{s.class} &middot; {s.admNo}</p>
-                            </div>
-                          </div>
-                          <span className="text-xs font-bold text-amber-600">Pending: {s.pending}</span>
+                        { id: 'sibling', label: 'Sibling Discount', value: '10%' },
+                        { id: 'merit', label: 'Merit Scholarship', value: '25%' },
+                        { id: 'staff', label: 'Staff Child', value: '100%' },
+                        { id: '', label: 'None', value: '-' },
+                      ].map(c => (
+                        <button key={c.id} onClick={() => setAppliedConcession(c.id)} className={`p-2 rounded-lg text-center text-[10px] font-bold transition-all ${appliedConcession === c.id ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.iconColor} ${theme.buttonHover}`}`}>
+                          <p>{c.label}</p>
+                          <p className="text-[9px] mt-0.5 opacity-75">{c.value}</p>
                         </button>
                       ))}
                     </div>
+                    {concessionAmt > 0 && (
+                      <div className="flex items-center justify-between pt-2">
+                        <span className={`text-xs ${theme.iconColor}`}>Concession Amount</span>
+                        <span className="text-xs font-bold text-emerald-600">-{'\u20B9'}{concessionAmt.toLocaleString()}</span>
+                      </div>
+                    )}
                   </div>
                 )}
+              </div>
 
-                {/* Step 2: Fee Details */}
-                {acceptStep === 'details' && (
-                  <div className="space-y-3">
-                    {/* Student Info Bar */}
-                    <div className={`p-3 rounded-xl ${theme.secondaryBg} flex items-center gap-3`}>
-                      <div className={`w-9 h-9 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold`}>RS</div>
-                      <div className="flex-1">
-                        <p className={`text-xs font-bold ${theme.highlight}`}>Riya Sharma</p>
-                        <p className={`text-[10px] ${theme.iconColor}`}>Class 5-A &middot; ADM-2025-042 &middot; Father: Mr. Rajesh Sharma</p>
-                      </div>
-                      <button onClick={() => setAcceptStep('search')} className={`text-[10px] ${theme.primaryText} font-bold`}>Change</button>
+              {/* ── Adjustment Section ── */}
+              <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-3`}>
+                <button onClick={() => setShowAdjustment(!showAdjustment)} className="w-full flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Settings size={14} className={theme.primaryText} />
+                    <span className={`text-xs font-bold ${theme.highlight}`}>Fee Adjustment</span>
+                    <span className={`text-[9px] ${theme.iconColor}`}>(Waiver / Write-off / Transfer)</span>
+                  </div>
+                  <ChevronDown size={14} className={`${theme.iconColor} transition-transform ${showAdjustment ? 'rotate-180' : ''}`} />
+                </button>
+                {showAdjustment && (
+                  <div className="mt-3 space-y-2">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                      <select className={`px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight}`}>
+                        <option>Select type...</option>
+                        <option>Waiver</option>
+                        <option>Write-off</option>
+                        <option>Head Transfer</option>
+                        <option>Late Fee Waiver</option>
+                      </select>
+                      <input type="text" placeholder={'\u20B9 Amount'} className={`px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight}`} />
+                      <input type="text" placeholder="Reason..." className={`px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight}`} />
                     </div>
-
-                    {/* Fee Structure */}
-                    <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-3`}>
-                      <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Fee Structure &mdash; February 2026</p>
-                      <div className="space-y-1.5">
-                        {[
-                          { head: 'Tuition Fee', amount: '\u20B93,000', status: 'Due' },
-                          { head: 'Activity Fee', amount: '\u20B9500', status: 'Due' },
-                          { head: 'Lab Fee', amount: '\u20B9300', status: 'Due' },
-                          { head: 'Transport', amount: '\u20B91,200', status: 'Due' },
-                          { head: 'Exam Fee', amount: '\u20B90', status: 'Paid' },
-                        ].map(h => (
-                          <div key={h.head} className="flex items-center justify-between">
-                            <span className={`text-xs ${theme.highlight}`}>{h.head}</span>
-                            <div className="flex items-center gap-2">
-                              <span className={`text-xs font-bold ${h.status === 'Due' ? theme.highlight : 'text-emerald-600'}`}>{h.amount}</span>
-                              <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${h.status === 'Due' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>{h.status}</span>
-                            </div>
-                          </div>
-                        ))}
-                        <div className={`flex items-center justify-between pt-2 mt-2 border-t ${theme.border}`}>
-                          <span className={`text-xs font-bold ${theme.highlight}`}>Total Due</span>
-                          <span className={`text-sm font-bold ${theme.highlight}`}>{'\u20B9'}5,000</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Concession Applied (auto) */}
-                    <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-2 flex items-center gap-2">
-                      <Check size={14} className="text-emerald-600 shrink-0" />
-                      <span className="text-[10px] text-emerald-700">No concession applies to this student</span>
-                    </div>
-
-                    {/* Payment Entry */}
-                    <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-3`}>
-                      <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Payment Details</p>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <div>
-                          <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Amount Received</label>
-                          <input type="text" defaultValue="5000" className={`w-full px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight} font-bold`} />
-                        </div>
-                        <div>
-                          <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Payment Mode</label>
-                          <select className={`w-full px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight}`}>
-                            <option>Cash</option>
-                            <option>UPI</option>
-                            <option>Online / Card</option>
-                            <option>Cheque</option>
-                            <option>NEFT / RTGS</option>
-                            <option>DD</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Reference / Txn ID</label>
-                          <input type="text" placeholder="Optional for cash" className={`w-full px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight}`} />
-                        </div>
-                      </div>
-
-                      {/* Partial Payment Note */}
-                      <div className="mt-3 p-2 rounded-lg bg-amber-50 border border-amber-200 flex items-start gap-2">
-                        <AlertTriangle size={14} className="text-amber-600 mt-0.5 shrink-0" />
-                        <div>
-                          <p className="text-[10px] font-bold text-amber-800">Partial Payment Supported</p>
-                          <p className="text-[10px] text-amber-700">If the amount received is less than {'\u20B9'}5,000, the remaining balance will carry forward. Current balance: {'\u20B9'}0</p>
-                        </div>
-                      </div>
-                    </div>
-
                     <div className="flex gap-2 justify-end">
-                      <button onClick={() => setAcceptStep('search')} className={`px-4 py-2 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.iconColor}`}>Back</button>
-                      <button onClick={() => setAcceptStep('confirm')} className={`flex items-center gap-2 px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>
-                        <Check size={14} /> Confirm Payment
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Step 3: Confirm & Receipt */}
-                {acceptStep === 'confirm' && (
-                  <div className="space-y-3">
-                    <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-center">
-                      <div className="w-12 h-12 rounded-full bg-emerald-500 text-white flex items-center justify-center mx-auto mb-2">
-                        <Check size={24} />
-                      </div>
-                      <p className="text-sm font-bold text-emerald-800">Payment Recorded Successfully</p>
-                      <p className="text-xs text-emerald-700 mt-1">Receipt #: <span className="font-mono font-bold">R-2026-009</span></p>
-                      <p className="text-[10px] text-emerald-600 mt-0.5">Riya Sharma &middot; Class 5-A &middot; {'\u20B9'}5,000 &middot; Cash</p>
-                    </div>
-                    <div className="flex gap-2 justify-center">
-                      <button className={`flex items-center gap-2 px-4 py-2 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.highlight}`}>
-                        <Printer size={12} /> Print Receipt
-                      </button>
-                      <button className={`flex items-center gap-2 px-4 py-2 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.highlight}`}>
-                        <Download size={12} /> Download PDF
-                      </button>
-                      <button onClick={() => { setAcceptStep('search'); }} className={`flex items-center gap-2 px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>
-                        <Plus size={12} /> Accept Next Payment
-                      </button>
+                      <button className={`px-3 py-1.5 ${theme.primary} text-white rounded-lg text-[10px] font-bold`}>Apply Adjustment</button>
                     </div>
                   </div>
                 )}
               </div>
-            )}
-          </div>
 
-          {/* Existing CollectionsView content below */}
-          <CollectionsView theme={theme} />
-        </div>
-      )}
-
-      {/* ── Concessions Tab ── */}
-      {feesTab === 'Concessions' && <ConcessionsView theme={theme} />}
-
-      {/* ── Refunds Tab ── */}
-      {feesTab === 'Refunds' && <RefundsView theme={theme} />}
-
-      {/* ── Adjustments Tab (NEW) ── */}
-      {feesTab === 'Adjustments' && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <h3 className={`text-sm font-bold ${theme.highlight}`}>Fee Adjustments</h3>
-              <InfoTip text="Waiver, write-off, head transfer and late fee waiver adjustments" />
-            </div>
-            <button onClick={() => setShowAdjustmentForm(!showAdjustmentForm)} className={`flex items-center gap-2 px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>
-              <Plus size={14} /> New Adjustment
-            </button>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <StatCard icon={Percent} label="Total Adjustments" value={feeAdjustments.length.toString()} color="bg-blue-500" theme={theme} />
-            <StatCard icon={DollarSign} label="Total Adjusted" value={'\u20B94,000'} color="bg-amber-500" sub="This month" theme={theme} />
-            <StatCard icon={Check} label="Approved" value={feeAdjustments.filter(a => a.status === 'Approved').length.toString()} color="bg-emerald-500" theme={theme} />
-            <StatCard icon={Clock} label="Processed" value={feeAdjustments.filter(a => a.status === 'Processed').length.toString()} color="bg-purple-500" theme={theme} />
-          </div>
-
-          {/* New Adjustment Form */}
-          {showAdjustmentForm && (
-            <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-              <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Record Fee Adjustment</h3>
-              <div className="space-y-3">
-                <SearchBar placeholder="Search student by name, admission no..." theme={theme} icon={Search} />
-                <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
-                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Current Fee Status (sample)</p>
-                  <div className="flex items-center gap-4">
-                    <span className={`text-xs ${theme.highlight}`}>Total Due: <span className="font-bold">{'\u20B9'}7,700</span></span>
-                    <span className={`text-xs ${theme.iconColor}`}>Paid: <span className="font-bold text-emerald-600">{'\u20B9'}0</span></span>
-                    <span className={`text-xs ${theme.iconColor}`}>Pending: <span className="font-bold text-amber-600">{'\u20B9'}7,700</span></span>
+              {/* ── Advance Payment Toggle ── */}
+              <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-3`}>
+                <button onClick={() => setShowAdvanceToggle(!showAdvanceToggle)} className="w-full flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp size={14} className={theme.primaryText} />
+                    <span className={`text-xs font-bold ${theme.highlight}`}>Advance Payment</span>
+                    <span className={`text-[9px] ${theme.iconColor}`}>(Pay multiple terms)</span>
                   </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div>
-                    <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Adjustment Type</label>
-                    <select className={`w-full px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight}`}>
-                      <option>Waiver</option>
-                      <option>Write-off</option>
-                      <option>Head Transfer</option>
-                      <option>Late Fee Waiver</option>
+                  <ChevronDown size={14} className={`${theme.iconColor} transition-transform ${showAdvanceToggle ? 'rotate-180' : ''}`} />
+                </button>
+                {showAdvanceToggle && (
+                  <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <select className={`px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight}`}>
+                      <option>Current month only</option>
+                      <option>Q3 + Q4 (2 terms) — {'\u20B9'}{(netPayable * 2).toLocaleString()}</option>
+                      <option>Q3 + Q4 + Q1 Next Year (3 terms) — {'\u20B9'}{(netPayable * 3).toLocaleString()}</option>
+                      <option>Full Year (4 terms) — {'\u20B9'}{(netPayable * 4).toLocaleString()}</option>
                     </select>
+                    <p className={`text-[10px] ${theme.iconColor} flex items-center`}>Early payment discount can be configured in SSA Settings</p>
                   </div>
-                  <div>
-                    <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Amount</label>
-                    <input type="text" placeholder={'\u20B9 0'} className={`w-full px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight}`} />
+                )}
+              </div>
+
+              {/* ── Refund Check ── */}
+              <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-3`}>
+                <button onClick={() => setShowRefundCheck(!showRefundCheck)} className="w-full flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Undo2 size={14} className={theme.primaryText} />
+                    <span className={`text-xs font-bold ${theme.highlight}`}>Refund</span>
+                    <span className={`text-[9px] ${theme.iconColor}`}>(If overpaid or withdrawal)</span>
                   </div>
-                  <div>
-                    <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Authorized By</label>
-                    <select className={`w-full px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight}`}>
-                      <option>Accounts Head</option>
-                      <option>Principal</option>
-                      <option>School Admin</option>
-                      <option>Trust</option>
-                    </select>
+                  <ChevronDown size={14} className={`${theme.iconColor} transition-transform ${showRefundCheck ? 'rotate-180' : ''}`} />
+                </button>
+                {showRefundCheck && (
+                  <div className="mt-3 space-y-2">
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
+                      <p className="text-[10px] text-blue-700">This student has <span className="font-bold">no overpayment</span> and no pending refund requests.</p>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                      <select className={`px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight}`}>
+                        <option>Select reason...</option>
+                        <option>Overpayment</option>
+                        <option>Withdrawal / TC</option>
+                        <option>Duplicate Payment</option>
+                      </select>
+                      <input type="text" placeholder={'\u20B9 Refund amount'} className={`px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight}`} />
+                      <select className={`px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight}`}>
+                        <option>Refund mode...</option>
+                        <option>Bank Transfer</option>
+                        <option>Cash</option>
+                        <option>Adjust next term</option>
+                      </select>
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                      <button className={`px-3 py-1.5 bg-amber-500 text-white rounded-lg text-[10px] font-bold`}>Submit Refund Request</button>
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Reason</label>
-                  <input type="text" placeholder="Enter reason for adjustment..." className={`w-full px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight}`} />
-                </div>
-                <div className="flex gap-2 justify-end pt-1">
-                  <button onClick={() => setShowAdjustmentForm(false)} className={`px-4 py-2 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.iconColor}`}>Cancel</button>
-                  <button onClick={() => setShowAdjustmentForm(false)} className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>Submit Adjustment</button>
-                </div>
+                )}
               </div>
             </div>
-          )}
 
-          {/* Adjustment History */}
-          <DataTable
-            headers={['ID', 'Student', 'Class', 'Type', 'Fee Head', 'Amount', 'Reason', 'Authorized', 'Date', 'Status']}
-            rows={feeAdjustments.map(a => [
-              <span key="id" className={`text-xs font-mono ${theme.iconColor}`}>{a.id}</span>,
-              <span key="n" className={`text-xs font-bold ${theme.highlight}`}>{a.student}</span>,
-              <span key="c" className={`text-xs ${theme.iconColor}`}>{a.class}</span>,
-              <span key="t" className={`text-xs font-bold ${theme.primaryText}`}>{a.type}</span>,
-              <span key="h" className={`text-xs ${theme.highlight}`}>{a.head}</span>,
-              <span key="a" className={`text-xs font-bold ${theme.highlight}`}>{a.amount}</span>,
-              <span key="r" className={`text-xs ${theme.iconColor} max-w-[160px] truncate`} title={a.reason}>{a.reason}</span>,
-              <span key="ab" className={`text-xs ${theme.iconColor}`}>{a.authorizedBy}</span>,
-              <span key="d" className={`text-xs ${theme.iconColor}`}>{a.date}</span>,
-              <StatusBadge key="s" status={a.status === 'Processed' ? 'Paid' : a.status} theme={theme} />,
-            ])}
-            theme={theme}
-          />
-        </div>
-      )}
-
-      {/* ── Advance Payments Tab (NEW) ── */}
-      {feesTab === 'Advance Payments' && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <h3 className={`text-sm font-bold ${theme.highlight}`}>Advance Fee Payments</h3>
-              <InfoTip text="Students who pay multiple terms or full year in advance" />
-            </div>
-            <button onClick={() => setShowAdvanceForm(!showAdvanceForm)} className={`flex items-center gap-2 px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>
-              <Plus size={14} /> Record Advance Payment
-            </button>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <StatCard icon={Banknote} label="Advance Receipts" value={advancePayments.length.toString()} color="bg-blue-500" theme={theme} />
-            <StatCard icon={DollarSign} label="Total Advance" value={'\u20B966,000'} color="bg-emerald-500" sub="This month" theme={theme} />
-            <StatCard icon={Users} label="Students" value={advancePayments.length.toString()} color="bg-purple-500" theme={theme} />
-            <StatCard icon={Calendar} label="Avg Terms Prepaid" value="2.5" color="bg-amber-500" theme={theme} />
-          </div>
-
-          {/* Record Advance Form */}
-          {showAdvanceForm && (
-            <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-              <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Record Advance Fee Payment</h3>
-              <div className="space-y-3">
-                <SearchBar placeholder="Search student by name, admission no..." theme={theme} icon={Search} />
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div>
-                    <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Terms to Prepay</label>
-                    <select className={`w-full px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight}`}>
-                      <option>Q3 + Q4 (2 terms)</option>
-                      <option>Q3 + Q4 + Q1 Next Year (3 terms)</option>
-                      <option>Full Year Q1-Q4 (4 terms)</option>
-                    </select>
+            {/* RIGHT: Payment Summary + Action */}
+            <div className="space-y-3">
+              <div className={`${theme.cardBg} rounded-xl border-2 ${theme.border} p-4 sticky top-4`}>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-3 uppercase tracking-wide`}>Payment Summary</p>
+                <div className="space-y-2">
+                  <div className="flex justify-between"><span className={`text-xs ${theme.iconColor}`}>Gross Due</span><span className={`text-xs font-bold ${theme.highlight}`}>{'\u20B9'}{totalDue.toLocaleString()}</span></div>
+                  {concessionAmt > 0 && <div className="flex justify-between"><span className="text-xs text-emerald-600">Concession</span><span className="text-xs font-bold text-emerald-600">-{'\u20B9'}{concessionAmt.toLocaleString()}</span></div>}
+                  <div className={`flex justify-between pt-2 mt-2 border-t ${theme.border}`}>
+                    <span className={`text-sm font-bold ${theme.highlight}`}>Net Payable</span>
+                    <span className={`text-lg font-bold ${theme.primaryText}`}>{'\u20B9'}{netPayable.toLocaleString()}</span>
                   </div>
+                </div>
+
+                <div className="mt-4 space-y-2">
                   <div>
-                    <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Total Amount</label>
-                    <input type="text" placeholder={'\u20B9 0'} className={`w-full px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight} font-bold`} />
+                    <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Amount Received</label>
+                    <input type="text" defaultValue={netPayable.toString()} className={`w-full px-3 py-2.5 text-sm rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight} font-bold`} />
                   </div>
                   <div>
                     <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Payment Mode</label>
@@ -951,32 +898,107 @@ function FeesView({ theme }: { theme: Theme }) {
                       <option>DD</option>
                     </select>
                   </div>
+                  <div>
+                    <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Reference / Txn ID</label>
+                    <input type="text" placeholder="Optional for cash" className={`w-full px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight}`} />
+                  </div>
                 </div>
-                <div className="flex gap-2 justify-end pt-1">
-                  <button onClick={() => setShowAdvanceForm(false)} className={`px-4 py-2 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.iconColor}`}>Cancel</button>
-                  <button onClick={() => setShowAdvanceForm(false)} className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>Record &amp; Generate Receipt</button>
+
+                <div className="mt-3 p-2 rounded-lg bg-amber-50 border border-amber-200">
+                  <p className="text-[9px] font-bold text-amber-800">Partial payment OK — balance carries forward</p>
                 </div>
+
+                <button onClick={() => setAcceptStep('confirm')} className={`w-full mt-4 flex items-center justify-center gap-2 px-4 py-3 ${theme.primary} text-white rounded-xl text-sm font-bold hover:opacity-90 transition-opacity`}>
+                  <Banknote size={16} /> Accept Payment &amp; Generate Receipt
+                </button>
               </div>
             </div>
-          )}
-
-          {/* Advance Payments Table */}
-          <DataTable
-            headers={['ID', 'Student', 'Class', 'Terms Paid', 'Amount', 'Date', 'Mode', 'Receipt']}
-            rows={advancePayments.map(a => [
-              <span key="id" className={`text-xs font-mono ${theme.iconColor}`}>{a.id}</span>,
-              <span key="n" className={`text-xs font-bold ${theme.highlight}`}>{a.student}</span>,
-              <span key="c" className={`text-xs ${theme.iconColor}`}>{a.class}</span>,
-              <span key="t" className={`text-xs font-bold ${theme.primaryText}`}>{a.termsPaid}</span>,
-              <span key="a" className={`text-xs font-bold ${theme.highlight}`}>{a.amount}</span>,
-              <span key="d" className={`text-xs ${theme.iconColor}`}>{a.date}</span>,
-              <span key="m" className={`text-xs ${theme.iconColor}`}>{a.mode}</span>,
-              <span key="r" className={`text-xs font-mono ${theme.primaryText} font-bold`}>{a.receipt}</span>,
-            ])}
-            theme={theme}
-          />
+          </div>
         </div>
       )}
+
+      {/* ══════ STEP 3: CONFIRM & RECEIPT ══════ */}
+      {acceptStep === 'confirm' && (
+        <div className="space-y-4">
+          <div className="p-6 rounded-2xl bg-emerald-50 border border-emerald-200 text-center">
+            <div className="w-14 h-14 rounded-full bg-emerald-500 text-white flex items-center justify-center mx-auto mb-3">
+              <Check size={28} />
+            </div>
+            <p className="text-lg font-bold text-emerald-800">Payment Recorded Successfully</p>
+            <p className="text-sm text-emerald-700 mt-1">Receipt #: <span className="font-mono font-bold">R-2026-009</span></p>
+            <p className="text-xs text-emerald-600 mt-1">{student.name} &middot; Class {student.class} &middot; {'\u20B9'}{netPayable.toLocaleString()}</p>
+            {concessionAmt > 0 && <p className="text-[10px] text-emerald-600 mt-0.5">Concession: -{'\u20B9'}{concessionAmt.toLocaleString()}</p>}
+          </div>
+          <div className="flex gap-2 justify-center">
+            <button className={`flex items-center gap-2 px-5 py-2.5 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.highlight}`}>
+              <Printer size={14} /> Print Receipt
+            </button>
+            <button className={`flex items-center gap-2 px-5 py-2.5 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.highlight}`}>
+              <Download size={14} /> Download PDF
+            </button>
+            <button onClick={() => { setAcceptStep('search'); setSelectedStudent(null); setAppliedConcession(''); setShowConcession(false); setShowAdjustment(false); setShowAdvanceToggle(false); setShowRefundCheck(false); }} className={`flex items-center gap-2 px-5 py-2.5 ${theme.primary} text-white rounded-xl text-xs font-bold`}>
+              <Plus size={14} /> Accept Next Payment
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ══════ COLLECTION HISTORY (always visible below) ══════ */}
+      <div className={`pt-4 border-t ${theme.border}`}>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className={`text-sm font-bold ${theme.highlight}`}>Collection History</h3>
+          <TabBar tabs={['All', 'Paid', 'Pending', 'Overdue']} active={historyTab} onChange={setHistoryTab} theme={theme} />
+        </div>
+        <DataTable
+          headers={['Student', 'Class', 'Amount', 'Mode', 'Date', 'Receipt', 'Status']}
+          rows={filteredHistory.map(f => [
+            <span key="n" className={`text-xs font-bold ${theme.highlight}`}>{f.student}</span>,
+            <span key="c" className={`text-xs ${theme.iconColor}`}>{f.class}</span>,
+            <span key="a" className={`text-xs font-bold ${theme.highlight}`}>{f.amount}</span>,
+            <span key="m" className={`text-xs ${theme.iconColor}`}>{f.mode}</span>,
+            <span key="d" className={`text-xs ${theme.iconColor}`}>{f.date}</span>,
+            f.receipt !== '-' ? <button key="r" className={`text-xs ${theme.primaryText} font-bold`}>{f.receipt}</button> : <span key="r" className={`text-xs ${theme.iconColor}`}>-</span>,
+            <StatusBadge key="s" status={f.status} theme={theme} />,
+          ])}
+          theme={theme}
+        />
+      </div>
+
+      {/* ══════ CHEQUE REGISTER (collapsible) ══════ */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <button onClick={() => setChequeSection(!chequeSection)} className="w-full flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>Post-Dated Cheque Register</h3>
+            <InfoTip text="Track post-dated cheques and auto-handle bounced payments" />
+          </div>
+          <ChevronDown size={16} className={`${theme.iconColor} transition-transform ${chequeSection ? 'rotate-180' : ''}`} />
+        </button>
+        {chequeSection && (
+          <div className="mt-3 space-y-3">
+            <div className="flex items-center justify-between">
+              <p className={`text-xs ${theme.iconColor}`}>{chequeRegister.length} cheques tracked</p>
+              <button className={`flex items-center gap-2 px-3 py-1.5 ${theme.primary} text-white rounded-lg text-xs font-bold`}>
+                <Plus size={12} /> Add Cheque
+              </button>
+            </div>
+            <DataTable
+              headers={['Student', 'Cheque #', 'Bank', 'Amount', 'Date', 'Status']}
+              rows={chequeRegister.map(c => [
+                <span key="n" className={`text-xs font-bold ${theme.highlight}`}>{c.student}</span>,
+                <span key="ch" className={`text-xs font-mono ${theme.iconColor}`}>{c.chequeNo}</span>,
+                <span key="b" className={`text-xs ${theme.iconColor}`}>{c.bank}</span>,
+                <span key="a" className={`text-xs font-bold ${theme.highlight}`}>{c.amount}</span>,
+                <span key="d" className={`text-xs ${theme.iconColor}`}>{c.date}</span>,
+                <span key="s" className="flex items-center gap-1">
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${c.status === 'Cleared' ? 'bg-emerald-100 text-emerald-700' : c.status === 'Bounced' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>{c.status}</span>
+                  {c.status === 'Bounced' && <span className="text-[9px] text-red-600 font-medium">Auto-penalty: {'\u20B9'}500 &middot; Parent notified &#x2705;</span>}
+                </span>,
+              ])}
+              theme={theme}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
