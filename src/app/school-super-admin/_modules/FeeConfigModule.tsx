@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Lock, Unlock, Plus, X, Info, Eye, Search, Download, Upload, Filter, Save, FileText, Calendar, Trash2, Settings2, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Lock, Unlock, Plus, X, Info, Eye, Search, Download, Upload, Filter, Save, FileText, Calendar, Trash2, Settings2, ArrowRight, ShieldCheck, Receipt, CheckCircle, CreditCard } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import { BulkImportWizard } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
@@ -135,6 +135,30 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
   const [addingPaymentMode, setAddingPaymentMode] = useState(false);
   const [newPaymentModeName, setNewPaymentModeName] = useState('');
 
+  // ═══════ Fee Collection state ═══════
+  const [collectionSearch, setCollectionSearch] = useState('');
+  const [selectedStudent, setSelectedStudent] = useState<{ name: string; id: string; cls: string; rollNo: string; pending: string } | null>(null);
+  const [collectionMode, setCollectionMode] = useState('Cash');
+  const [chequeNo, setChequeNo] = useState('');
+  const [chequeBank, setChequeBank] = useState('');
+  const [chequeDate, setChequeDate] = useState('');
+  const [collectingComponents, setCollectingComponents] = useState<Record<string, boolean>>({});
+  const [collectionDone, setCollectionDone] = useState(false);
+
+  // ═══════ Student Override state (enhanced) ═══════
+  const [overrideSearch, setOverrideSearch] = useState('');
+  const [overrideStudents, setOverrideStudents] = useState([
+    { name: 'Aarav Patel', id: 'STU-001', cls: 'Grade 5', overrides: [
+      { component: 'Tuition Fee', standard: '3600', custom: '2800', reason: 'Single parent waiver' },
+    ]},
+    { name: 'Priya Shah', id: 'STU-002', cls: 'Grade 8', overrides: [
+      { component: 'Tuition Fee', standard: '4500', custom: '3500', reason: 'Staff child discount' },
+      { component: 'Lab Fee', standard: '1800', custom: '0', reason: 'Staff child — full waiver' },
+    ]},
+  ]);
+  const [editingOverrideStudent, setEditingOverrideStudent] = useState<string | null>(null);
+  const [addingOverride, setAddingOverride] = useState(false);
+
   // ═══════ Rules & Reminders state ═══════
   const [blockRules, setBlockRules] = useState<Record<string, boolean>>({
     'Block report card if fees overdue > 60 days': true,
@@ -199,6 +223,23 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
     ? terms.filter(t => t.name.toLowerCase().includes(termSearch.toLowerCase()))
     : terms;
   const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  const mockStudents = [
+    { name: 'Aarav Patel', id: 'STU-001', cls: 'Grade 5', rollNo: '15', pending: '32,400' },
+    { name: 'Priya Shah', id: 'STU-002', cls: 'Grade 8', rollNo: '22', pending: '45,000' },
+    { name: 'Rahul Sharma', id: 'STU-003', cls: 'Grade 3', rollNo: '08', pending: '28,000' },
+    { name: 'Sneha Patel', id: 'STU-004', cls: 'Grade 10', rollNo: '31', pending: '55,000' },
+    { name: 'Amit Kumar', id: 'STU-005', cls: 'Grade 6', rollNo: '12', pending: '40,000' },
+    { name: 'Meera Joshi', id: 'STU-006', cls: 'Grade 9', rollNo: '05', pending: '52,000' },
+    { name: 'Vikram Singh', id: 'STU-007', cls: 'Grade 7', rollNo: '19', pending: '42,000' },
+    { name: 'Ananya Reddy', id: 'STU-008', cls: 'Grade 4', rollNo: '27', pending: '35,000' },
+  ];
+  const filteredStudents = collectionSearch.length >= 2
+    ? mockStudents.filter(s => s.name.toLowerCase().includes(collectionSearch.toLowerCase()) || s.id.toLowerCase().includes(collectionSearch.toLowerCase()))
+    : [];
+  const filteredOverrideStudents = overrideSearch.length >= 2
+    ? mockStudents.filter(s => s.name.toLowerCase().includes(overrideSearch.toLowerCase()) || s.id.toLowerCase().includes(overrideSearch.toLowerCase()))
+    : [];
 
   return (
     <div className="space-y-4">
@@ -478,55 +519,177 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
             </div>
           </SectionCard>
 
-          {/* Student-Level Fee Override */}
-          <SectionCard title="Student-Level Fee Override" subtitle="Allow per-student custom fee amounts" theme={theme}>
-            <div className="flex items-center mb-3">
-              <p className={`text-[10px] font-bold ${theme.iconColor}`}>Override fee amounts for individual students</p>
-              <InfoIcon tip="Enable custom fee amounts per student for special cases" />
-            </div>
+          {/* Student-Level Fee Override — Custom discount per student per component */}
+          <SectionCard title="Student-Level Fee Override" subtitle="Custom discount per student per fee component" theme={theme}>
             <div className="space-y-3">
               <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <p className={`text-xs font-bold ${theme.highlight}`}>Enable Student-Level Override</p>
+                <div>
+                  <p className={`text-xs font-bold ${theme.highlight}`}>Enable Student-Level Override</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>Allow custom fee amounts for individual students per component</p>
+                </div>
                 <SSAToggle on={feeOverrideEnabled} onChange={() => setFeeOverrideEnabled(!feeOverrideEnabled)} theme={theme} />
               </div>
+
               {feeOverrideEnabled && (
                 <>
-                  <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                    <p className={`text-xs font-bold ${theme.highlight}`}>Allow per-student custom amount</p>
-                    <SSAToggle on={perStudentCustom} onChange={() => setPerStudentCustom(!perStudentCustom)} theme={theme} />
-                  </div>
                   <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
                     <p className={`text-xs font-bold ${theme.highlight}`}>Approval required for override</p>
                     <SSAToggle on={overrideApproval} onChange={() => setOverrideApproval(!overrideApproval)} theme={theme} />
                   </div>
+
+                  {/* Existing Override Students */}
                   <div>
-                    <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Example Overrides</p>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-xs">
-                        <thead><tr className={theme.secondaryBg}>
-                          {['Student', 'Class', 'Standard Fee', 'Custom Fee', 'Reason'].map(h => (
-                            <th key={h} className={`text-left px-2 py-2 font-bold ${theme.iconColor}`}>{h}</th>
-                          ))}
-                        </tr></thead>
-                        <tbody>
-                          <tr className={`border-t ${theme.border}`}>
-                            <td className={`px-2 py-1.5 font-bold ${theme.highlight}`}>Aarav Patel</td>
-                            <td className={`px-2 py-1.5 ${theme.highlight}`}>Grade 5</td>
-                            <td className={`px-2 py-1.5 ${theme.iconColor}`}>{'\u20B9'}3,600/mo</td>
-                            <td className="px-2 py-1.5 text-emerald-600 font-bold">{'\u20B9'}2,800/mo</td>
-                            <td className={`px-2 py-1.5 ${theme.iconColor}`}>Single parent waiver</td>
-                          </tr>
-                          <tr className={`border-t ${theme.border}`}>
-                            <td className={`px-2 py-1.5 font-bold ${theme.highlight}`}>Priya Shah</td>
-                            <td className={`px-2 py-1.5 ${theme.highlight}`}>Grade 8</td>
-                            <td className={`px-2 py-1.5 ${theme.iconColor}`}>{'\u20B9'}4,500/mo</td>
-                            <td className="px-2 py-1.5 text-emerald-600 font-bold">{'\u20B9'}3,500/mo</td>
-                            <td className={`px-2 py-1.5 ${theme.iconColor}`}>Staff child discount</td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
+                    <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Students with Custom Overrides ({overrideStudents.length})</p>
+                    {overrideStudents.map((student, sIdx) => (
+                      <div key={student.id} className={`mb-2 rounded-xl border ${theme.border} overflow-hidden`}>
+                        <button className={`w-full flex items-center gap-3 p-3 ${theme.secondaryBg} text-left`}
+                          onClick={() => setEditingOverrideStudent(editingOverrideStudent === student.id ? null : student.id)}>
+                          <div className={`w-8 h-8 rounded-full ${theme.primary} text-white flex items-center justify-center text-[10px] font-bold shrink-0`}>
+                            {student.name.split(' ').map(w => w[0]).join('')}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-xs font-bold ${theme.highlight}`}>{student.name}</p>
+                            <p className={`text-[10px] ${theme.iconColor}`}>{student.id} {'\u00B7'} {student.cls} {'\u00B7'} {student.overrides.length} component(s) overridden</p>
+                          </div>
+                          <span className="text-xs font-bold text-emerald-600 shrink-0">
+                            {'\u20B9'}{student.overrides.reduce((sum, o) => sum + Math.max(0, Number(o.standard) - Number(o.custom)), 0).toLocaleString('en-IN')} saved
+                          </span>
+                          <ArrowRight size={14} className={`${theme.iconColor} transition-transform shrink-0 ${editingOverrideStudent === student.id ? 'rotate-90' : ''}`} />
+                        </button>
+
+                        {editingOverrideStudent === student.id && (
+                          <div className="p-3">
+                            <div className="overflow-x-auto">
+                              <table className="w-full text-xs">
+                                <thead><tr className={theme.secondaryBg}>
+                                  <th className={`text-left px-2 py-1.5 font-bold ${theme.iconColor}`}>Component</th>
+                                  <th className={`text-center px-2 py-1.5 font-bold ${theme.iconColor}`}>Standard ({'\u20B9'})</th>
+                                  <th className={`text-center px-2 py-1.5 font-bold ${theme.iconColor}`}>Custom ({'\u20B9'})</th>
+                                  <th className={`text-center px-2 py-1.5 font-bold ${theme.iconColor}`}>Discount</th>
+                                  <th className={`text-left px-2 py-1.5 font-bold ${theme.iconColor}`}>Reason</th>
+                                  <th className="w-8"></th>
+                                </tr></thead>
+                                <tbody>
+                                  {student.overrides.map((o, oIdx) => {
+                                    const disc = Number(o.standard) - Number(o.custom);
+                                    const usedComponents = student.overrides.map(x => x.component);
+                                    const availableForThis = activeHeads.filter(h => h === o.component || !usedComponents.includes(h));
+                                    return (
+                                      <tr key={oIdx} className={`border-t ${theme.border}`}>
+                                        <td className="px-2 py-1.5">
+                                          <select value={o.component} onChange={e => {
+                                            const comp = e.target.value;
+                                            const stdAmt = gradeAmounts[student.cls]?.[comp] || '0';
+                                            const n = [...overrideStudents];
+                                            n[sIdx] = { ...n[sIdx], overrides: n[sIdx].overrides.map((x, i) => i === oIdx ? { ...x, component: comp, standard: stdAmt } : x) };
+                                            setOverrideStudents(n);
+                                          }} className={`px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight}`}>
+                                            {availableForThis.map(h => <option key={h} value={h}>{h}</option>)}
+                                          </select>
+                                        </td>
+                                        <td className={`px-2 py-1.5 text-center ${theme.iconColor} line-through`}>{'\u20B9'}{Number(o.standard).toLocaleString('en-IN')}</td>
+                                        <td className="px-2 py-1.5 text-center">
+                                          <input value={o.custom} onChange={e => {
+                                            const n = [...overrideStudents];
+                                            n[sIdx] = { ...n[sIdx], overrides: n[sIdx].overrides.map((x, i) => i === oIdx ? { ...x, custom: e.target.value } : x) };
+                                            setOverrideStudents(n);
+                                          }}
+                                            className={`w-20 px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center font-bold text-emerald-600 outline-none`} />
+                                        </td>
+                                        <td className="px-2 py-1.5 text-center">
+                                          <span className={`text-[10px] font-bold ${disc > 0 ? 'text-emerald-600' : theme.iconColor}`}>
+                                            {disc > 0 ? `-\u20B9${disc.toLocaleString('en-IN')}` : '-'}
+                                          </span>
+                                        </td>
+                                        <td className="px-2 py-1.5">
+                                          <input value={o.reason} onChange={e => {
+                                            const n = [...overrideStudents];
+                                            n[sIdx] = { ...n[sIdx], overrides: n[sIdx].overrides.map((x, i) => i === oIdx ? { ...x, reason: e.target.value } : x) };
+                                            setOverrideStudents(n);
+                                          }}
+                                            placeholder="Reason..."
+                                            className={`w-full px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight} outline-none`} />
+                                        </td>
+                                        <td className="px-2 py-1.5">
+                                          <button onClick={() => {
+                                            const n = [...overrideStudents];
+                                            n[sIdx] = { ...n[sIdx], overrides: n[sIdx].overrides.filter((_, i) => i !== oIdx) };
+                                            if (n[sIdx].overrides.length === 0) { setOverrideStudents(n.filter((_, i) => i !== sIdx)); setEditingOverrideStudent(null); }
+                                            else setOverrideStudents(n);
+                                          }} className="text-red-400 hover:text-red-600"><Trash2 size={11} /></button>
+                                        </td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </table>
+                            </div>
+                            {/* Add component override */}
+                            {activeHeads.filter(h => !student.overrides.map(o => o.component).includes(h)).length > 0 && (
+                              <button onClick={() => {
+                                const used = student.overrides.map(o => o.component);
+                                const avail = activeHeads.filter(h => !used.includes(h));
+                                if (avail.length > 0) {
+                                  const comp = avail[0];
+                                  const stdAmt = gradeAmounts[student.cls]?.[comp] || '0';
+                                  const n = [...overrideStudents];
+                                  n[sIdx] = { ...n[sIdx], overrides: [...n[sIdx].overrides, { component: comp, standard: stdAmt, custom: stdAmt, reason: '' }] };
+                                  setOverrideStudents(n);
+                                }
+                              }}
+                                className={`mt-2 flex items-center gap-1 text-[10px] font-bold ${theme.primaryText} px-2 py-1.5 rounded-lg ${theme.buttonHover}`}>
+                                <Plus size={10} /> Add Component Override
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
+
+                  {/* Add New Student Override */}
+                  {addingOverride ? (
+                    <div className={`p-3 rounded-xl border ${theme.border} ${theme.secondaryBg}`}>
+                      <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Search Student to Add Override</p>
+                      <div className="relative">
+                        <Search size={14} className={`absolute left-3 top-1/2 -translate-y-1/2 ${theme.iconColor}`} />
+                        <input value={overrideSearch} onChange={e => setOverrideSearch(e.target.value)}
+                          placeholder="Type student name or ID..."
+                          className={`w-full pl-9 pr-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}
+                          autoFocus />
+                        {filteredOverrideStudents.filter(s => !overrideStudents.find(os => os.id === s.id)).length > 0 && (
+                          <div className={`absolute top-full left-0 right-0 mt-1 ${theme.cardBg} border ${theme.border} rounded-xl shadow-lg z-30 max-h-40 overflow-y-auto`}>
+                            {filteredOverrideStudents.filter(s => !overrideStudents.find(os => os.id === s.id)).map(s => (
+                              <button key={s.id} onClick={() => {
+                                const firstComp = activeHeads[0];
+                                const stdAmt = gradeAmounts[s.cls]?.[firstComp] || '0';
+                                setOverrideStudents(p => [...p, { name: s.name, id: s.id, cls: s.cls, overrides: [{ component: firstComp, standard: stdAmt, custom: stdAmt, reason: '' }] }]);
+                                setEditingOverrideStudent(s.id);
+                                setAddingOverride(false);
+                                setOverrideSearch('');
+                              }}
+                                className={`w-full flex items-center gap-3 px-3 py-2 text-left ${theme.buttonHover}`}>
+                                <div className={`w-7 h-7 rounded-full ${theme.primary} text-white flex items-center justify-center text-[9px] font-bold`}>
+                                  {s.name.split(' ').map(w => w[0]).join('')}
+                                </div>
+                                <div>
+                                  <p className={`text-xs font-bold ${theme.highlight}`}>{s.name}</p>
+                                  <p className={`text-[10px] ${theme.iconColor}`}>{s.id} {'\u00B7'} {s.cls}</p>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <button onClick={() => { setAddingOverride(false); setOverrideSearch(''); }}
+                        className={`mt-2 text-[10px] font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-1.5 rounded-lg`}>Cancel</button>
+                    </div>
+                  ) : (
+                    <button onClick={() => setAddingOverride(true)}
+                      className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
+                      <Plus size={12} /> Add Student Override
+                    </button>
+                  )}
                 </>
               )}
             </div>
@@ -554,6 +717,161 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
             <Settings2 size={14} className={theme.iconColor} />
             <p className={`text-xs ${theme.iconColor}`}>Payment configuration (modes, gateways, links, QR, retry, international) has moved to <button onClick={() => { setActiveTab('settings'); setSettingsTab('payment-config'); }} className={`font-bold ${theme.primaryText} hover:underline`}>Settings &rarr; Payment Config</button></p>
           </div>
+
+          {/* Fee Collection Point */}
+          <SectionCard title="Fee Collection" subtitle="Search student, select pending fees, and collect payment" theme={theme}>
+            <div className="space-y-4">
+              {/* Student Search */}
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1.5`}>Search Student</p>
+                <div className="relative">
+                  <Search size={14} className={`absolute left-3 top-1/2 -translate-y-1/2 ${theme.iconColor}`} />
+                  <input value={collectionSearch} onChange={e => { setCollectionSearch(e.target.value); setSelectedStudent(null); setCollectionDone(false); }}
+                    placeholder="Type student name or ID (min 2 chars)..."
+                    className={`w-full pl-9 pr-3 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none focus:ring-2 focus:ring-blue-300`} />
+                  {filteredStudents.length > 0 && !selectedStudent && (
+                    <div className={`absolute top-full left-0 right-0 mt-1 ${theme.cardBg} border ${theme.border} rounded-xl shadow-lg z-30 max-h-48 overflow-y-auto`}>
+                      {filteredStudents.map(s => (
+                        <button key={s.id} onClick={() => {
+                          setSelectedStudent(s);
+                          setCollectionSearch(s.name);
+                          const comps: Record<string, boolean> = {};
+                          activeHeads.forEach(h => { comps[h] = true; });
+                          setCollectingComponents(comps);
+                          setCollectionDone(false);
+                        }}
+                          className={`w-full flex items-center gap-3 px-3 py-2.5 text-left ${theme.buttonHover} transition-colors`}>
+                          <div className={`w-8 h-8 rounded-full ${theme.primary} text-white flex items-center justify-center text-[10px] font-bold`}>
+                            {s.name.split(' ').map(w => w[0]).join('')}
+                          </div>
+                          <div className="flex-1">
+                            <p className={`text-xs font-bold ${theme.highlight}`}>{s.name}</p>
+                            <p className={`text-[10px] ${theme.iconColor}`}>{s.id} {'\u00B7'} {s.cls} {'\u00B7'} Roll #{s.rollNo}</p>
+                          </div>
+                          <span className="text-[10px] font-bold text-amber-600">{'\u20B9'}{s.pending} pending</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Selected Student — Fee Breakdown */}
+              {selectedStudent && !collectionDone && (
+                <>
+                  <div className={`p-3 rounded-xl ${theme.secondaryBg} flex items-center gap-3`}>
+                    <div className={`w-10 h-10 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold`}>
+                      {selectedStudent.name.split(' ').map(w => w[0]).join('')}
+                    </div>
+                    <div className="flex-1">
+                      <p className={`text-xs font-bold ${theme.highlight}`}>{selectedStudent.name}</p>
+                      <p className={`text-[10px] ${theme.iconColor}`}>{selectedStudent.id} {'\u00B7'} {selectedStudent.cls} {'\u00B7'} Roll #{selectedStudent.rollNo}</p>
+                    </div>
+                    <button onClick={() => { setSelectedStudent(null); setCollectionSearch(''); }}
+                      className={`text-xs ${theme.iconColor} hover:text-red-500`}><X size={14} /></button>
+                  </div>
+
+                  {/* Component-wise Pending Fees */}
+                  <div>
+                    <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Select Components to Pay</p>
+                    <div className="space-y-1.5">
+                      {activeHeads.map(h => {
+                        const amt = gradeAmounts[selectedStudent.cls]?.[h] || '0';
+                        return (
+                          <label key={h} className={`flex items-center gap-3 p-2.5 rounded-xl ${theme.secondaryBg} cursor-pointer`}>
+                            <input type="checkbox" checked={collectingComponents[h] || false}
+                              onChange={() => setCollectingComponents(p => ({ ...p, [h]: !p[h] }))}
+                              className="accent-emerald-500 w-4 h-4" />
+                            <span className={`text-xs font-bold ${theme.highlight} flex-1`}>{h}</span>
+                            <span className={`text-[10px] ${theme.iconColor}`}>{feeFrequency[h] || 'Yearly'}</span>
+                            <span className={`text-xs font-bold ${theme.highlight}`}>{'\u20B9'}{Number(amt).toLocaleString('en-IN')}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                    <div className={`flex items-center justify-between mt-3 p-3 rounded-xl border-2 ${theme.border} ${theme.cardBg}`}>
+                      <p className={`text-xs font-bold ${theme.highlight}`}>Total Payable</p>
+                      <p className={`text-sm font-bold ${theme.primaryText}`}>{'\u20B9'}{activeHeads.filter(h => collectingComponents[h]).reduce((sum, h) => sum + Number(gradeAmounts[selectedStudent.cls]?.[h] || 0), 0).toLocaleString('en-IN')}</p>
+                    </div>
+                  </div>
+
+                  {/* Payment Mode */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className={`text-[10px] font-bold ${theme.iconColor} mb-1.5`}>Payment Mode</p>
+                      <SelectField options={paymentModesTable.filter(m => m.active).map(m => m.name)} value={collectionMode} onChange={setCollectionMode} theme={theme} />
+                    </div>
+                  </div>
+
+                  {/* Cheque Details */}
+                  {collectionMode === 'Cheque' && (
+                    <div className={`p-3 rounded-xl border ${theme.border} ${theme.secondaryBg}`}>
+                      <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}><CreditCard size={12} className="inline mr-1" />Cheque Details</p>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div>
+                          <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Cheque No.</p>
+                          <InputField value={chequeNo} onChange={setChequeNo} theme={theme} placeholder="e.g. CHQ-001238" />
+                        </div>
+                        <div>
+                          <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Bank Name</p>
+                          <InputField value={chequeBank} onChange={setChequeBank} theme={theme} placeholder="e.g. SBI" />
+                        </div>
+                        <div>
+                          <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Cheque Date</p>
+                          <input type="date" value={chequeDate} onChange={e => setChequeDate(e.target.value)}
+                            className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* DD/NEFT Details */}
+                  {collectionMode === 'DD/NEFT' && (
+                    <div className={`p-3 rounded-xl border ${theme.border} ${theme.secondaryBg}`}>
+                      <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>DD/NEFT Details</p>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Reference No.</p>
+                          <InputField value={chequeNo} onChange={setChequeNo} theme={theme} placeholder="e.g. NEFT-REF-12345" />
+                        </div>
+                        <div>
+                          <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Bank Name</p>
+                          <InputField value={chequeBank} onChange={setChequeBank} theme={theme} placeholder="e.g. HDFC" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Collect Button */}
+                  <button onClick={() => setCollectionDone(true)}
+                    className={`w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-bold ${theme.primary} text-white shadow-lg hover:shadow-xl transition-all`}>
+                    <Receipt size={16} /> Collect {'\u20B9'}{activeHeads.filter(h => collectingComponents[h]).reduce((sum, h) => sum + Number(gradeAmounts[selectedStudent.cls]?.[h] || 0), 0).toLocaleString('en-IN')} & Generate Receipt
+                  </button>
+                </>
+              )}
+
+              {/* Success State */}
+              {collectionDone && selectedStudent && (
+                <div className="text-center py-6">
+                  <CheckCircle size={40} className="text-emerald-500 mx-auto mb-3" />
+                  <p className={`text-sm font-bold ${theme.highlight} mb-1`}>Payment Collected Successfully!</p>
+                  <p className={`text-xs ${theme.iconColor} mb-3`}>Receipt #RCT-2026-03-{String(Math.floor(Math.random() * 9000 + 1000))} generated for {selectedStudent.name}</p>
+                  <div className="flex items-center justify-center gap-3">
+                    <button className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold ${theme.primary} text-white`}>
+                      <Eye size={12} /> View Receipt
+                    </button>
+                    <button className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-700">
+                      <Download size={12} /> Download PDF
+                    </button>
+                    <button onClick={() => { setSelectedStudent(null); setCollectionSearch(''); setCollectionDone(false); setChequeNo(''); setChequeBank(''); setChequeDate(''); setCollectionMode('Cash'); }}
+                      className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold ${theme.iconColor} ${theme.buttonHover}`}>
+                      <Plus size={12} /> Collect Another
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </SectionCard>
 
           {/* Billing Cycle & Due Date + Late Fee — core payment behavior */}
           <div className="grid grid-cols-2 gap-4">
