@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Lock, Plus, X, Info, Eye, Search, Download, Upload, Filter, Save, FileText, Calendar, Trash2, Settings2, ArrowRight } from 'lucide-react';
+import { Lock, Unlock, Plus, X, Info, Eye, Search, Download, Upload, Filter, Save, FileText, Calendar, Trash2, Settings2, ArrowRight, ShieldCheck } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import { BulkImportWizard } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
@@ -19,6 +19,13 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
   const [internalTab, setInternalTab] = useState<TabId>('structure');
   const activeTab = (externalTab as TabId) || internalTab;
   const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
+
+  // ═══════ Fee Structure Lock / OTP ═══════
+  const [structureLocked, setStructureLocked] = useState(true);
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otpValue, setOtpValue] = useState('');
+  const [otpError, setOtpError] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
 
   // ═══════ Fee Structure state ═══════
   const [feeTemplate, setFeeTemplate] = useState('component-based');
@@ -203,10 +210,98 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
       {activeTab === 'structure' && (
         <div className="space-y-4">
           {/* Critical Lock Banner */}
-          <div className="bg-rose-50 border border-rose-200 rounded-2xl p-3 flex items-center gap-3">
-            <Lock size={14} className="text-rose-500 shrink-0" />
-            <p className="text-xs text-rose-700"><strong>Fee Structure Changes</strong> is a locked field. Editing fee heads or amounts will require OTP verification from the registered Trustee.</p>
-          </div>
+          {structureLocked ? (
+            <div className="bg-rose-50 border border-rose-200 rounded-2xl p-3 flex items-center gap-3">
+              <Lock size={14} className="text-rose-500 shrink-0" />
+              <div className="flex-1">
+                <p className="text-xs text-rose-700"><strong>Fee Structure is Locked.</strong> Editing fee heads or amounts requires OTP verification from the registered Trustee.</p>
+              </div>
+              <button onClick={() => { setShowOtpModal(true); setOtpSent(false); setOtpValue(''); setOtpError(''); }}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 text-white hover:bg-rose-700 transition-all shrink-0">
+                <Unlock size={12} /> Unlock with OTP
+              </button>
+            </div>
+          ) : (
+            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 flex items-center gap-3">
+              <ShieldCheck size={14} className="text-emerald-500 shrink-0" />
+              <div className="flex-1">
+                <p className="text-xs text-emerald-700"><strong>Fee Structure Unlocked.</strong> You can now edit fee heads and amounts. Remember to save your changes.</p>
+              </div>
+              <button onClick={() => setStructureLocked(true)}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700 transition-all shrink-0">
+                <Lock size={12} /> Re-Lock
+              </button>
+            </div>
+          )}
+
+          {/* OTP Verification Modal */}
+          {showOtpModal && (
+            <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center" onClick={() => setShowOtpModal(false)}>
+              <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-6 w-96 shadow-2xl`} onClick={e => e.stopPropagation()}>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center">
+                    <Lock size={18} className="text-rose-600" />
+                  </div>
+                  <div>
+                    <h3 className={`text-sm font-bold ${theme.highlight}`}>OTP Verification Required</h3>
+                    <p className={`text-[10px] ${theme.iconColor}`}>Enter the OTP sent to the registered Trustee</p>
+                  </div>
+                </div>
+
+                {!otpSent ? (
+                  <div className="space-y-3">
+                    <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+                      <p className={`text-[10px] ${theme.iconColor} mb-1`}>OTP will be sent to:</p>
+                      <p className={`text-xs font-bold ${theme.highlight}`}>Mr. Amit Patel (Trust Secretary)</p>
+                      <p className={`text-[10px] ${theme.iconColor}`}>+91 98765 •••••  |  amit.p••••@gmail.com</p>
+                    </div>
+                    <button onClick={() => setOtpSent(true)}
+                      className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold ${theme.primary} text-white`}>
+                      Send OTP
+                    </button>
+                    <button onClick={() => setShowOtpModal(false)}
+                      className={`w-full px-4 py-2 rounded-xl text-xs font-bold ${theme.iconColor} ${theme.buttonHover}`}>
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className={`p-3 rounded-xl bg-blue-50 border border-blue-200`}>
+                      <p className="text-[10px] text-blue-700">OTP sent to Mr. Amit Patel. Valid for 5 minutes.</p>
+                    </div>
+                    <div>
+                      <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Enter 6-digit OTP</p>
+                      <input type="text" value={otpValue} onChange={e => { setOtpValue(e.target.value.replace(/\D/g, '').slice(0, 6)); setOtpError(''); }}
+                        placeholder="• • • • • •"
+                        maxLength={6}
+                        className={`w-full px-4 py-3 rounded-xl border-2 ${otpError ? 'border-red-400' : theme.border} ${theme.inputBg} text-center text-xl font-bold tracking-[0.5em] ${theme.highlight} outline-none focus:ring-2 focus:ring-blue-300`}
+                        autoFocus />
+                      {otpError && <p className="text-[10px] text-red-500 font-bold mt-1">{otpError}</p>}
+                    </div>
+                    <button onClick={() => {
+                      if (otpValue.length !== 6) { setOtpError('Please enter a 6-digit OTP'); return; }
+                      setStructureLocked(false);
+                      setShowOtpModal(false);
+                      setOtpValue('');
+                    }}
+                      className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold ${theme.primary} text-white`}>
+                      <Unlock size={14} /> Verify & Unlock
+                    </button>
+                    <div className="flex items-center justify-between">
+                      <button onClick={() => { setOtpSent(false); setOtpValue(''); setOtpError(''); }}
+                        className={`text-[10px] font-bold ${theme.primaryText} hover:underline`}>
+                        Resend OTP
+                      </button>
+                      <button onClick={() => setShowOtpModal(false)}
+                        className={`text-[10px] font-bold ${theme.iconColor} hover:underline`}>
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Note: Fee Template moved to Settings > Templates */}
           <div className={`flex items-center gap-2 p-3 rounded-xl ${theme.secondaryBg} border ${theme.border}`}>
@@ -216,9 +311,15 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
 
           {/* Grade-wise Fee Amounts */}
           <div className="relative">
-            <span className="absolute -top-1 right-3 z-10 flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-100 border border-rose-300 text-[9px] font-bold text-rose-700">
-              <Lock size={9} /> LOCKED
-            </span>
+            {structureLocked ? (
+              <span className="absolute -top-1 right-3 z-10 flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-100 border border-rose-300 text-[9px] font-bold text-rose-700">
+                <Lock size={9} /> LOCKED
+              </span>
+            ) : (
+              <span className="absolute -top-1 right-3 z-10 flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 border border-emerald-300 text-[9px] font-bold text-emerald-700">
+                <Unlock size={9} /> UNLOCKED
+              </span>
+            )}
             <SectionCard title="Grade-wise Fee Amounts" subtitle="Set amounts per grade for each active fee head (values in INR)" theme={theme}>
               {feeTemplate === 'term-wise' && (
                 <div className="flex items-center gap-2 mb-3">
@@ -252,8 +353,9 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
                             <div className="flex items-center gap-0.5">
                               <span className={`text-[10px] ${theme.iconColor}`}>{'\u20B9'}</span>
                               <input type="text" value={gradeAmounts[cg]?.['Annual Fee'] || ''}
-                                onChange={e => setGradeAmounts(p => ({ ...p, [cg]: { ...p[cg], 'Annual Fee': e.target.value } }))}
-                                className={`w-20 px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none focus:ring-1 focus:ring-slate-300`} />
+                                onChange={e => !structureLocked && setGradeAmounts(p => ({ ...p, [cg]: { ...p[cg], 'Annual Fee': e.target.value } }))}
+                                readOnly={structureLocked}
+                                className={`w-20 px-1.5 py-1 rounded-lg border ${theme.border} ${structureLocked ? 'bg-slate-100 cursor-not-allowed opacity-60' : theme.inputBg} text-xs text-center ${theme.highlight} outline-none focus:ring-1 focus:ring-slate-300`} />
                             </div>
                           </td>
                         ) : activeHeads.map(h => {
@@ -265,8 +367,9 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
                                 <div className="flex items-center gap-0.5">
                                   <span className={`text-[10px] ${theme.iconColor}`}>{'\u20B9'}</span>
                                   <input type="text" value={val}
-                                    onChange={e => setGradeAmounts(p => ({ ...p, [cg]: { ...p[cg], [h]: e.target.value } }))}
-                                    className={`w-16 px-1.5 py-1 rounded-lg border ${isInvalid ? 'border-red-400 bg-red-50' : `${theme.border} ${theme.inputBg}`} text-xs text-center ${theme.highlight} outline-none focus:ring-1 ${isInvalid ? 'focus:ring-red-300' : 'focus:ring-slate-300'}`} />
+                                    onChange={e => !structureLocked && setGradeAmounts(p => ({ ...p, [cg]: { ...p[cg], [h]: e.target.value } }))}
+                                    readOnly={structureLocked}
+                                    className={`w-16 px-1.5 py-1 rounded-lg border ${isInvalid ? 'border-red-400 bg-red-50' : `${theme.border} ${structureLocked ? 'bg-slate-100 cursor-not-allowed opacity-60' : theme.inputBg}`} text-xs text-center ${theme.highlight} outline-none focus:ring-1 ${isInvalid ? 'focus:ring-red-300' : 'focus:ring-slate-300'}`} />
                                 </div>
                                 {isInvalid && <span className="text-[7px] text-red-500 font-bold">Invalid</span>}
                               </div>
@@ -1159,18 +1262,30 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
             <div className="space-y-4">
               {/* Fee Template — moved from Structure tab */}
               <div className="relative">
-                <span className="absolute -top-1 right-3 z-10 flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-100 border border-rose-300 text-[9px] font-bold text-rose-700">
-                  <Lock size={9} /> LOCKED
-                </span>
+                {structureLocked ? (
+                  <span className="absolute -top-1 right-3 z-10 flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-100 border border-rose-300 text-[9px] font-bold text-rose-700">
+                    <Lock size={9} /> LOCKED
+                  </span>
+                ) : (
+                  <span className="absolute -top-1 right-3 z-10 flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 border border-emerald-300 text-[9px] font-bold text-emerald-700">
+                    <Unlock size={9} /> UNLOCKED
+                  </span>
+                )}
                 <SectionCard title="Fee Template" subtitle="Choose how fees are structured for your school" theme={theme}>
+                  {structureLocked && (
+                    <div className="bg-rose-50 border border-rose-200 rounded-xl p-2.5 mb-3 flex items-center gap-2">
+                      <Lock size={12} className="text-rose-500 shrink-0" />
+                      <p className="text-[10px] text-rose-700 flex-1">Locked. Go to <button onClick={() => { setActiveTab('structure'); }} className="font-bold underline">Fee Structure</button> tab to unlock with OTP.</p>
+                    </div>
+                  )}
                   <div className="grid grid-cols-3 gap-3">
                     {[
                       { id: 'simple-annual', name: 'Simple Annual', desc: 'One lump-sum fee per year per class' },
                       { id: 'component-based', name: 'Component-Based', desc: 'Multiple fee heads with individual amounts' },
                       { id: 'term-wise', name: 'Term-Wise', desc: 'Split by terms (Term 1, Term 2, etc.)' },
                     ].map(t => (
-                      <button key={t.id} onClick={() => setFeeTemplate(t.id)}
-                        className={`p-3 rounded-xl text-left border-2 transition-all ${feeTemplate === t.id ? `${theme.primary} text-white border-transparent` : `${theme.secondaryBg} ${theme.border} ${theme.highlight}`}`}>
+                      <button key={t.id} onClick={() => !structureLocked && setFeeTemplate(t.id)} disabled={structureLocked}
+                        className={`p-3 rounded-xl text-left border-2 transition-all ${structureLocked ? 'opacity-60 cursor-not-allowed' : ''} ${feeTemplate === t.id ? `${theme.primary} text-white border-transparent` : `${theme.secondaryBg} ${theme.border} ${theme.highlight}`}`}>
                         <p className="text-xs font-bold">{t.name}</p>
                         <p className={`text-[10px] mt-1 ${feeTemplate === t.id ? 'text-white/80' : theme.iconColor}`}>{t.desc}</p>
                       </button>
