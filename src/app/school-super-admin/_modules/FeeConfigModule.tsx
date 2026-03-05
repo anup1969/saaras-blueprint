@@ -15,15 +15,6 @@ function MobileBadge() {
 
 type TabId = 'structure' | 'concessions' | 'payments' | 'rules' | 'reports' | 'settings';
 
-const tabs: { id: TabId; label: string }[] = [
-  { id: 'structure', label: 'Fee Structure' },
-  { id: 'concessions', label: 'Concessions' },
-  { id: 'payments', label: 'Payments' },
-  { id: 'rules', label: 'Rules & Reminders' },
-  { id: 'reports', label: 'Reports' },
-  { id: 'settings', label: 'Settings' },
-];
-
 export default function FeeConfigModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
   const [internalTab, setInternalTab] = useState<TabId>('structure');
   const activeTab = (externalTab as TabId) || internalTab;
@@ -205,18 +196,6 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
   return (
     <div className="space-y-4">
       <ModuleHeader title="Fee Management" subtitle="Configure fee structure, payments, concessions, rules, reports, and permissions" theme={theme} />
-
-      {/* ═══════ Tab Bar ═══════ */}
-      <div className={`flex items-center gap-1 p-1 rounded-xl ${theme.secondaryBg} overflow-x-auto`}>
-        {tabs.map(tab => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${
-              activeTab === tab.id ? `${theme.primary} text-white shadow-sm` : `${theme.iconColor} hover:${theme.highlight} ${theme.buttonHover}`
-            }`}>
-            {tab.label}
-          </button>
-        ))}
-      </div>
 
       {/* ══════════════════════════════════════════════════════════════
           TAB 1: Fee Structure

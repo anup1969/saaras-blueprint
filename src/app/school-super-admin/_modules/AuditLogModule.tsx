@@ -10,18 +10,36 @@ export default function AuditLogModule({ theme }: { theme: Theme }) {
   const [userFilter, setUserFilter] = useState('All Users');
   const [moduleFilter, setModuleFilter] = useState('All Modules');
   const [searchQuery, setSearchQuery] = useState('');
+  const [ipFilter, setIpFilter] = useState('');
   const [logs] = useState([
-    { date: '18 Feb 2026 14:30', action: 'Updated', module: 'Fees', details: 'Changed Class 9-10 Tuition Fee: 5000 to 5500', user: 'Piush Thakker' },
-    { date: '18 Feb 2026 11:15', action: 'Created', module: 'Transport', details: 'Added Route D: 10 stops, 45 capacity', user: 'Rajesh Kumar' },
-    { date: '17 Feb 2026 16:45', action: 'Updated', module: 'Leave', details: 'Modified approval chain: Added VP as Level 2', user: 'Piush Thakker' },
-    { date: '17 Feb 2026 10:20', action: 'Uploaded', module: 'Exams', details: 'Report card template: CBSE standard v2', user: 'Priya Sharma' },
-    { date: '16 Feb 2026 09:00', action: 'Updated', module: 'Chat', details: 'DM permission: Parent to Teacher set to ON', user: 'Piush Thakker' },
-    { date: '15 Feb 2026 15:30', action: 'Created', module: 'HR', details: 'New department: Sports', user: 'Rajesh Kumar' },
-    { date: '15 Feb 2026 11:00', action: 'Updated', module: 'Attendance', details: 'Grace period changed: 10 min to 15 min', user: 'System' },
-    { date: '14 Feb 2026 14:00', action: 'Deleted', module: 'Transport', details: 'Removed Route X (no students assigned)', user: 'Piush Thakker' },
+    { date: '05 Mar 2026 10:30', action: 'Updated', module: 'Fees', details: 'Fee Template changed to Component-Based', user: 'Piush Thakker', ip: '103.45.67.89' },
+    { date: '05 Mar 2026 09:15', action: 'Created', module: 'Fees', details: 'Added Term Master: Term 1, Term 2, Term 3', user: 'Piush Thakker', ip: '103.45.67.89' },
+    { date: '04 Mar 2026 16:00', action: 'Updated', module: 'Roles', details: 'Changed role permissions: Teacher → can view reports', user: 'Piush Thakker', ip: '103.45.67.89' },
+    { date: '04 Mar 2026 14:30', action: 'Updated', module: 'Communication', details: 'Enabled WhatsApp notifications for fee reminders', user: 'Rajesh Kumar', ip: '192.168.1.100' },
+    { date: '03 Mar 2026 11:15', action: 'Created', module: 'Transport', details: 'Added Route D: 10 stops, 45 capacity', user: 'Rajesh Kumar', ip: '192.168.1.100' },
+    { date: '03 Mar 2026 09:45', action: 'Updated', module: 'Attendance', details: 'Grace period changed: 10 min to 15 min', user: 'System', ip: '10.0.0.1' },
+    { date: '02 Mar 2026 16:45', action: 'Updated', module: 'Leave', details: 'Modified approval chain: Added VP as Level 2', user: 'Piush Thakker', ip: '103.45.67.89' },
+    { date: '02 Mar 2026 10:20', action: 'Uploaded', module: 'Exams', details: 'Report card template: CBSE standard v2', user: 'Priya Sharma', ip: '45.67.89.12' },
+    { date: '01 Mar 2026 15:30', action: 'Created', module: 'HR', details: 'New department: Sports', user: 'Rajesh Kumar', ip: '192.168.1.100' },
+    { date: '01 Mar 2026 14:00', action: 'Deleted', module: 'Transport', details: 'Removed Route X (no students assigned)', user: 'Piush Thakker', ip: '103.45.67.89' },
+    { date: '28 Feb 2026 11:00', action: 'Updated', module: 'Timetable', details: 'Bell schedule: Period 5 moved to 11:45-12:30', user: 'Priya Sharma', ip: '45.67.89.12' },
+    { date: '28 Feb 2026 09:00', action: 'Updated', module: 'Chat', details: 'DM permission: Parent to Teacher set to ON', user: 'Piush Thakker', ip: '103.45.67.89' },
+    { date: '27 Feb 2026 15:00', action: 'Created', module: 'Library', details: 'Added 120 books via bulk import', user: 'Rajesh Kumar', ip: '192.168.1.100' },
+    { date: '27 Feb 2026 10:30', action: 'Updated', module: 'Enquiry', details: 'Enquiry pipeline stage added: Document Verification', user: 'Piush Thakker', ip: '103.45.67.89' },
+    { date: '26 Feb 2026 14:00', action: 'Updated', module: 'Visitor', details: 'Visitor check-out made mandatory', user: 'Rajesh Kumar', ip: '192.168.1.100' },
+    { date: '26 Feb 2026 09:30', action: 'Updated', module: 'Canteen', details: 'Menu updated for March 2026', user: 'System', ip: '10.0.0.1' },
   ]);
 
-  const filteredLogs = logs;
+  const allModules = ['All Modules', 'Fees', 'Transport', 'Leave', 'Exams', 'Chat', 'Attendance', 'HR', 'Roles', 'Communication', 'Timetable', 'Library', 'Enquiry', 'Visitor', 'Canteen', 'Inventory', 'Hostel', 'LMS', 'Health', 'Branding'];
+  const allUsers = ['All Users', ...Array.from(new Set(logs.map(l => l.user)))];
+
+  const filteredLogs = logs.filter(log => {
+    if (userFilter !== 'All Users' && log.user !== userFilter) return false;
+    if (moduleFilter !== 'All Modules' && log.module !== moduleFilter) return false;
+    if (searchQuery && !log.details.toLowerCase().includes(searchQuery.toLowerCase()) && !log.action.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    if (ipFilter && !log.ip.includes(ipFilter)) return false;
+    return true;
+  });
   const totalRecords = 247;
 
   // Security Monitoring state
@@ -68,7 +86,7 @@ export default function AuditLogModule({ theme }: { theme: Theme }) {
 
       {/* Filter Bar */}
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <div className="grid grid-cols-4 gap-3 mb-3">
+        <div className="grid grid-cols-5 gap-3 mb-3">
           <div>
             <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Date Range</p>
             <div className="flex gap-1">
@@ -78,15 +96,19 @@ export default function AuditLogModule({ theme }: { theme: Theme }) {
           </div>
           <div>
             <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>User</p>
-            <SelectField options={['All Users', 'Piush Thakker', 'Rajesh Kumar', 'Priya Sharma', 'System']} value={userFilter} onChange={setUserFilter} theme={theme} />
+            <SelectField options={allUsers} value={userFilter} onChange={setUserFilter} theme={theme} />
           </div>
           <div>
             <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Module</p>
-            <SelectField options={['All Modules', 'Fees', 'Transport', 'Leave', 'Exams', 'Chat', 'Attendance', 'HR', 'Roles']} value={moduleFilter} onChange={setModuleFilter} theme={theme} />
+            <SelectField options={allModules} value={moduleFilter} onChange={setModuleFilter} theme={theme} />
           </div>
           <div>
-            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Search</p>
-            <InputField value={searchQuery} onChange={setSearchQuery} theme={theme} placeholder="Search audit logs..." />
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Search Text</p>
+            <InputField value={searchQuery} onChange={setSearchQuery} theme={theme} placeholder="Search details..." />
+          </div>
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>IP Address</p>
+            <InputField value={ipFilter} onChange={setIpFilter} theme={theme} placeholder="Filter by IP..." />
           </div>
         </div>
       </div>
@@ -96,16 +118,24 @@ export default function AuditLogModule({ theme }: { theme: Theme }) {
         <p className={`text-xs ${theme.iconColor}`}>
           Showing <span className={`font-bold ${theme.highlight}`}>{filteredLogs.length}</span> of <span className={`font-bold ${theme.highlight}`}>{totalRecords}</span> records
         </p>
-        <button className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold ${theme.secondaryBg} ${theme.highlight} border ${theme.border} hover:opacity-80 transition-all`}>
-          <Download size={12} /> Export CSV
-        </button>
+        <div className="flex items-center gap-2">
+          <button className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold ${theme.secondaryBg} ${theme.highlight} border ${theme.border} hover:opacity-80 transition-all`}>
+            <Download size={12} /> Export CSV
+          </button>
+          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-red-100 text-red-700 hover:bg-red-200 transition-colors">
+            <Download size={12} /> PDF
+          </button>
+          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-colors">
+            <Download size={12} /> Excel
+          </button>
+        </div>
       </div>
 
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} overflow-hidden`}>
         <table className="w-full text-xs">
           <thead className={theme.secondaryBg}>
             <tr>
-              {['Date / Time', 'Action', 'Module', 'Details', 'User'].map(h => (
+              {['Date / Time', 'Action', 'Module', 'Details', 'User', 'IP Address'].map(h => (
                 <th key={h} className={`text-left px-4 py-3 font-bold ${theme.iconColor} uppercase text-[10px]`}>{h}</th>
               ))}
             </tr>
@@ -124,6 +154,7 @@ export default function AuditLogModule({ theme }: { theme: Theme }) {
                 <td className={`px-4 py-3 font-bold ${theme.highlight}`}>{log.module}</td>
                 <td className={`px-4 py-3 ${theme.highlight}`}>{log.details}</td>
                 <td className={`px-4 py-3 ${theme.iconColor} text-[10px]`}>{log.user}</td>
+                <td className={`px-4 py-3 ${theme.iconColor} text-[10px] font-mono`}>{log.ip}</td>
               </tr>
             ))}
           </tbody>
