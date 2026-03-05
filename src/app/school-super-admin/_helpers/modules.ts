@@ -17,7 +17,6 @@ export const modules = [
     { id: 'fee-config:structure', label: 'Fee Structure' },
     { id: 'fee-config:concessions', label: 'Concessions' },
     { id: 'fee-config:payments', label: 'Payments' },
-    { id: 'fee-config:rules', label: 'Rules & Reminders' },
     { id: 'fee-config:reports', label: 'Reports' },
     { id: 'fee-config:settings', label: 'Settings' },
   ] },

@@ -13,7 +13,7 @@ function MobileBadge() {
   return <span className="ml-1.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-green-100 text-green-700 whitespace-nowrap">{'\uD83D\uDCF1'} Mobile</span>;
 }
 
-type TabId = 'structure' | 'concessions' | 'payments' | 'rules' | 'reports' | 'settings';
+type TabId = 'structure' | 'concessions' | 'payments' | 'reports' | 'settings';
 
 export default function FeeConfigModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
   const [internalTab, setInternalTab] = useState<TabId>('structure');
@@ -159,22 +159,6 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
   const [editingOverrideStudent, setEditingOverrideStudent] = useState<string | null>(null);
   const [addingOverride, setAddingOverride] = useState(false);
 
-  // ═══════ Rules & Reminders state ═══════
-  const [blockRules, setBlockRules] = useState<Record<string, boolean>>({
-    'Block report card if fees overdue > 60 days': true,
-    'Block TC generation if outstanding > 0': true,
-    'Block exam hall ticket if current term unpaid': false,
-    'Send auto-reminder before blocking': true,
-  });
-  const [reminderConfig, setReminderConfig] = useState([
-    { timing: '7 days before due', enabled: true, push: true, sms: true, email: false, call: false },
-    { timing: '3 days before due', enabled: true, push: true, sms: false, email: false, call: false },
-    { timing: '1 day before due', enabled: true, push: true, sms: true, email: false, call: false },
-    { timing: '1 day after due', enabled: true, push: true, sms: true, email: true, call: false },
-    { timing: '7 days after due', enabled: true, push: true, sms: true, email: false, call: false },
-    { timing: '15 days after due', enabled: true, push: true, sms: true, email: false, call: true },
-    { timing: '30 days after due', enabled: true, push: true, sms: true, email: true, call: true },
-  ]);
   const [feeEstShowAdmission, setFeeEstShowAdmission] = useState(false);
   const [feeEstTransport, setFeeEstTransport] = useState(true);
   const [feeEstOptional, setFeeEstOptional] = useState(false);
@@ -195,16 +179,14 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
   const [reportGroupBy, setReportGroupBy] = useState('none');
 
   // ═══════ Settings sub-tab state ═══════
-  type SettingsSubTab = 'masters' | 'templates' | 'rules-config' | 'payment-config' | 'import';
+  type SettingsSubTab = 'masters' | 'templates' | 'estimation' | 'payment-config' | 'import';
   const [settingsTab, setSettingsTab] = useState<SettingsSubTab>('masters');
 
-  // Term Master
-  const [terms, setTerms] = useState([
-    { name: 'Term 1', startMonth: 'April', endMonth: 'July', active: true },
-    { name: 'Term 2', startMonth: 'August', endMonth: 'November', active: true },
-    { name: 'Term 3', startMonth: 'December', endMonth: 'March', active: true },
-  ]);
-  const [termSearch, setTermSearch] = useState('');
+  // Terms — synced from Academic Config module (read-only here)
+  const academicTerms = [
+    { name: 'Term 1', start: 'April 2025', end: 'September 2025', active: true },
+    { name: 'Term 2', start: 'October 2025', end: 'March 2026', active: true },
+  ];
 
   // Receipt template selection
   const [selectedReceiptTemplate, setSelectedReceiptTemplate] = useState('standard');
@@ -219,11 +201,6 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
   const filteredConcessions = concessionSearch
     ? concessions.filter(c => c.type.toLowerCase().includes(concessionSearch.toLowerCase()))
     : concessions;
-  const filteredTerms = termSearch
-    ? terms.filter(t => t.name.toLowerCase().includes(termSearch.toLowerCase()))
-    : terms;
-  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-
   const mockStudents = [
     { name: 'Aarav Patel', id: 'STU-001', cls: 'Grade 5', rollNo: '15', pending: '32,400' },
     { name: 'Priya Shah', id: 'STU-002', cls: 'Grade 8', rollNo: '22', pending: '45,000' },
@@ -243,7 +220,7 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
 
   return (
     <div className="space-y-4">
-      <ModuleHeader title="Fee Management" subtitle="Configure fee structure, payments, concessions, rules, reports, and permissions" theme={theme} />
+      <ModuleHeader title="Fee Management" subtitle="Configure fee structure, payments, concessions, reports, and settings" theme={theme} />
 
       {/* ══════════════════════════════════════════════════════════════
           TAB 1: Fee Structure
@@ -365,7 +342,7 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
               {feeTemplate === 'term-wise' && (
                 <div className="flex items-center gap-2 mb-3">
                   <p className={`text-[10px] font-bold ${theme.iconColor}`}>Term:</p>
-                  {terms.filter(t => t.active).map(t => (
+                  {academicTerms.filter(t => t.active).map(t => (
                     <button key={t.name} onClick={() => setSelectedTerm(t.name)}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${selectedTerm === t.name ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.highlight} ${theme.border} border`}`}>
                       {t.name}
@@ -993,25 +970,6 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
       )}
 
       {/* ══════════════════════════════════════════════════════════════
-          TAB 4: Rules & Reminders — Config moved to Settings > Rules & Config
-          ══════════════════════════════════════════════════════════════ */}
-      {activeTab === 'rules' && (
-        <div className="space-y-4">
-          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-8 text-center`}>
-            <Settings2 size={32} className={`${theme.iconColor} mx-auto mb-3`} />
-            <h3 className={`text-sm font-bold ${theme.highlight} mb-2`}>Rules & Reminders moved to Settings</h3>
-            <p className={`text-xs ${theme.iconColor} mb-4 max-w-md mx-auto`}>
-              Fee Defaulter Blocking Rules, Reminder Schedule, and Fee Estimation Calculator are now in the Settings tab under &ldquo;Rules &amp; Config&rdquo; for centralized configuration.
-            </p>
-            <button onClick={() => { setActiveTab('settings'); setSettingsTab('rules-config'); }}
-              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold ${theme.primary} text-white shadow-lg hover:shadow-xl transition-all`}>
-              Go to Settings <ArrowRight size={16} />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ══════════════════════════════════════════════════════════════
           TAB 5: Reports — Enhanced with Search, Filter, Group By, Export
           ══════════════════════════════════════════════════════════════ */}
       {activeTab === 'reports' && (
@@ -1215,7 +1173,7 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
             {([
               { id: 'masters' as SettingsSubTab, label: 'Masters' },
               { id: 'templates' as SettingsSubTab, label: 'Templates' },
-              { id: 'rules-config' as SettingsSubTab, label: 'Rules & Config' },
+              { id: 'estimation' as SettingsSubTab, label: 'Fee Estimation' },
               { id: 'payment-config' as SettingsSubTab, label: 'Payment Config' },
               { id: 'import' as SettingsSubTab, label: 'Import' },
             ]).map(st => (
@@ -1504,73 +1462,38 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
                 </div>
               </SectionCard>
 
-              {/* Term Master — NEW */}
-              <SectionCard title="Term Master" subtitle="Create, edit, delete academic terms for fee scheduling" theme={theme}>
-                <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg} mb-3`}>
-                  <div className="flex items-center gap-3">
-                    <div className="relative">
-                      <Search size={14} className={`absolute left-2.5 top-1/2 -translate-y-1/2 ${theme.iconColor}`} />
-                      <input value={termSearch} onChange={e => setTermSearch(e.target.value)}
-                        placeholder="Search terms..."
-                        className={`pl-8 pr-3 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none w-44`} />
-                    </div>
-                    <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${theme.accentBg} ${theme.iconColor}`}>
-                      {terms.filter(t => t.active).length} active / {terms.length} total
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-colors">
-                      <Download size={12} /> Export
-                    </button>
-                    <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors">
-                      <Upload size={12} /> Import
-                    </button>
-                  </div>
+              {/* Term Master — Synced from Academic Config */}
+              <SectionCard title="Term Master" subtitle="Terms are synced from Academic Config — edit terms there to update fee scheduling" theme={theme}>
+                <div className={`flex items-center gap-2 p-3 rounded-xl bg-blue-50 border border-blue-200 mb-3`}>
+                  <Calendar size={14} className="text-blue-500 shrink-0" />
+                  <p className="text-xs text-blue-700">
+                    <strong>Synced from Academic Config.</strong> Term definitions (names, dates) are managed centrally in the Academic Configuration module. Changes there automatically reflect in fee scheduling.
+                  </p>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
                     <thead><tr className={theme.secondaryBg}>
-                      {['Term Name', 'Start Month', 'End Month', 'Active', ''].map(h => (
+                      {['Term Name', 'Start', 'End', 'Status'].map(h => (
                         <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
                       ))}
                     </tr></thead>
                     <tbody>
-                      {filteredTerms.map((term, idx) => (
+                      {academicTerms.map((term, idx) => (
                         <tr key={idx} className={`border-t ${theme.border}`}>
-                          <td className="px-3 py-1.5">
-                            <input value={term.name} onChange={e => setTerms(p => p.map((t, i) => i === idx ? { ...t, name: e.target.value } : t))}
-                              className={`w-full px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} />
-                          </td>
-                          <td className="px-3 py-1.5">
-                            <select value={term.startMonth} onChange={e => setTerms(p => p.map((t, i) => i === idx ? { ...t, startMonth: e.target.value } : t))}
-                              className={`px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] font-bold ${theme.highlight}`}>
-                              {months.map(m => <option key={m} value={m}>{m}</option>)}
-                            </select>
-                          </td>
-                          <td className="px-3 py-1.5">
-                            <select value={term.endMonth} onChange={e => setTerms(p => p.map((t, i) => i === idx ? { ...t, endMonth: e.target.value } : t))}
-                              className={`px-1.5 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-[10px] font-bold ${theme.highlight}`}>
-                              {months.map(m => <option key={m} value={m}>{m}</option>)}
-                            </select>
-                          </td>
-                          <td className="px-3 py-1.5">
-                            <SSAToggle on={term.active} onChange={() => setTerms(p => p.map((t, i) => i === idx ? { ...t, active: !t.active } : t))} theme={theme} label={term.name} />
-                          </td>
-                          <td className="px-3 py-1.5">
-                            <button onClick={() => setTerms(p => p.filter((_, i) => i !== idx))} className="text-red-400 hover:text-red-600"><Trash2 size={12} /></button>
+                          <td className={`px-3 py-2 text-xs font-bold ${theme.highlight}`}>{term.name}</td>
+                          <td className={`px-3 py-2 text-xs ${theme.iconColor}`}>{term.start}</td>
+                          <td className={`px-3 py-2 text-xs ${theme.iconColor}`}>{term.end}</td>
+                          <td className="px-3 py-2">
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${term.active ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
+                              {term.active ? 'Active' : 'Inactive'}
+                            </span>
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
-                <div className="flex items-center justify-between mt-3">
-                  <button onClick={() => setTerms(p => [...p, { name: `Term ${p.length + 1}`, startMonth: 'April', endMonth: 'July', active: true }])}
-                    className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
-                    <Plus size={12} /> Add Term
-                  </button>
-                  <p className={`text-[10px] ${theme.iconColor}`}>{filteredTerms.length} of {terms.length} terms</p>
-                </div>
+                <p className={`text-[10px] ${theme.iconColor} mt-2`}>{academicTerms.length} terms synced from Academic Config</p>
               </SectionCard>
             </div>
           )}
@@ -1666,66 +1589,10 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
             </div>
           )}
 
-          {/* ═══ Settings > Rules & Config ═══ */}
-          {settingsTab === 'rules-config' && (
+          {/* ═══ Settings > Fee Estimation ═══ */}
+          {settingsTab === 'estimation' && (
             <div className="space-y-4">
-              {/* Blocking Rules — moved from Rules tab */}
-              <SectionCard title="Fee Defaulter Blocking Rules" subtitle="Restrict access to services when fees are overdue" theme={theme}>
-                <div className="space-y-2">
-                  {Object.entries(blockRules).map(([rule, enabled]) => (
-                    <div key={rule} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                      <div className="flex-1 mr-3">
-                        <p className={`text-xs font-bold ${theme.highlight}`}>{rule}</p>
-                        <p className={`text-[10px] ${theme.iconColor}`}>{
-                          ({
-                            'Block report card if fees overdue > 60 days': 'Report card download/view is blocked if any fee is unpaid for more than 60 days',
-                            'Block TC generation if outstanding > 0': 'Transfer Certificate cannot be generated until all outstanding dues are cleared',
-                            'Block exam hall ticket if current term unpaid': 'Student cannot receive hall ticket for exams if current term fees are unpaid',
-                            'Send auto-reminder before blocking': 'System sends an automatic warning to parents before any blocking action takes effect',
-                          } as Record<string, string>)[rule]
-                        }</p>
-                      </div>
-                      <SSAToggle on={enabled} onChange={() => setBlockRules(p => ({ ...p, [rule]: !p[rule] }))} theme={theme} label={rule} />
-                    </div>
-                  ))}
-                </div>
-              </SectionCard>
-
-              {/* Reminder Schedule — moved from Rules tab, enhanced with per-channel toggles */}
-              <SectionCard title="Fee Reminder Schedule" subtitle="Automated reminders with per-channel enable/disable" theme={theme}>
-                <div className="space-y-1.5">
-                  <div className={`grid grid-cols-[1fr_auto_auto_auto_auto_auto] gap-0 text-[10px] font-bold ${theme.iconColor} px-2.5 py-1.5`}>
-                    <span>Timing</span>
-                    <span className="w-14 text-center">Enabled</span>
-                    <span className="w-14 text-center">Push</span>
-                    <span className="w-14 text-center">SMS</span>
-                    <span className="w-14 text-center">Email</span>
-                    <span className="w-14 text-center">Call</span>
-                  </div>
-                  {reminderConfig.map((r, i) => (
-                    <div key={i} className={`grid grid-cols-[1fr_auto_auto_auto_auto_auto] gap-0 items-center p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                      <span className={`text-xs font-bold ${theme.highlight}`}>{r.timing}</span>
-                      <div className="w-14 flex justify-center">
-                        <SSAToggle on={r.enabled} onChange={() => setReminderConfig(p => p.map((x, j) => j === i ? { ...x, enabled: !x.enabled } : x))} theme={theme} />
-                      </div>
-                      <div className="w-14 flex justify-center">
-                        <SSAToggle on={r.push} onChange={() => setReminderConfig(p => p.map((x, j) => j === i ? { ...x, push: !x.push } : x))} theme={theme} />
-                      </div>
-                      <div className="w-14 flex justify-center">
-                        <SSAToggle on={r.sms} onChange={() => setReminderConfig(p => p.map((x, j) => j === i ? { ...x, sms: !x.sms } : x))} theme={theme} />
-                      </div>
-                      <div className="w-14 flex justify-center">
-                        <SSAToggle on={r.email} onChange={() => setReminderConfig(p => p.map((x, j) => j === i ? { ...x, email: !x.email } : x))} theme={theme} />
-                      </div>
-                      <div className="w-14 flex justify-center">
-                        <SSAToggle on={r.call} onChange={() => setReminderConfig(p => p.map((x, j) => j === i ? { ...x, call: !x.call } : x))} theme={theme} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </SectionCard>
-
-              {/* Fee Estimation Calculator — moved from Rules tab */}
+              {/* Fee Estimation Calculator */}
               <SectionCard title="Fee Estimation Calculator" subtitle="Parents see estimated annual fee during enquiry/admission" theme={theme}>
                 <div className="space-y-2">
                   <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
