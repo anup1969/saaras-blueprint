@@ -1,0 +1,1 @@
+import{R as e}from"./index-DnCCvGy7.js";import{u as m}from"./close-provider-jtdUDZ3H.js";import{Y as f,V as i}from"./render-C57vWSTB.js";import{L as l}from"./button-B-xebL10.js";function n(r,o){let t=m();return e.createElement(l,{ref:o,...i({onClick:t},r)})}let R=f(n);export{R as y};
