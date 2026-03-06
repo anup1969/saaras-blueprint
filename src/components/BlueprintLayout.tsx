@@ -9,7 +9,7 @@ import {
   Home, ChevronLeft, Menu, LogOut, MessageSquare, Bell,
   FileText, CheckCircle, Calendar, AlertTriangle, ClipboardCheck,
   Palette, Maximize2, Minimize2, MessageCircle, X, Send, Search, Heart, ToggleLeft, ToggleRight, Settings,
-  Handshake, ShieldAlert, Lock as LockIcon
+  Handshake, ShieldAlert, Lock as LockIcon, LayoutGrid
 } from 'lucide-react';
 import { themes, VIVID_VARIANTS, type Theme } from '@/lib/themes';
 import { getLoggedInUser, logoutUser, canAccessDashboard, type TeamMember } from '@/lib/auth';
@@ -41,6 +41,7 @@ const regularNavItems = [
   { href: '/reseller', label: 'Reseller', icon: Handshake },
   { href: '/chat', label: 'Chat', icon: MessageSquare },
   { href: '/auth', label: 'Auth / Login', icon: Shield },
+  { href: '/matdash', label: 'UI Template Library', icon: LayoutGrid },
 ];
 
 // Preschool nav items — dual labels, no Student, add 3 new roles
@@ -66,6 +67,7 @@ const preschoolNavItems = [
   { href: '/reseller', label: 'Reseller', icon: Handshake },
   { href: '/chat', label: 'Chat', icon: MessageSquare },
   { href: '/auth', label: 'Auth / Login', icon: Shield },
+  { href: '/matdash', label: 'UI Template Library', icon: LayoutGrid },
 ];
 
 // Color swatch options for the Vivid accent picker
