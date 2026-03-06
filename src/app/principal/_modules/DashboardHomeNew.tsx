@@ -11,23 +11,22 @@ import {
   Radio, Cake, Heart, Moon, Sun, Image, LayoutGrid, X, Eye, EyeOff,
   Phone, Stethoscope, ChevronDown, ChevronUp, Shield, MessageSquare,
   HelpCircle, Smartphone, TrendingUp, TrendingDown, ArrowUpRight,
+  ListTodo, RefreshCw, Circle, Check,
 } from 'lucide-react';
-import TaskTrackerPanel from '@/components/TaskTrackerPanel';
-import RecurringTasksCard from '@/components/RecurringTasksCard';
 import OnboardingTour from '@/components/OnboardingTour';
 import DrillDownPanel from './DrillDownPanel';
 import { DraggableDashboard, DashletSection } from '@/components/DraggableDashboard';
 
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 
-// ─── MatDash colors ──────────────────────────────────────
+// ─── Theme colors ──────────────────────────────────────
 const PRIMARY = '#5D87FF';
 const SECONDARY = '#49BEFF';
 const SUCCESS = '#2EA95C';
 const WARNING = '#FFAE1F';
 const ERROR = '#FA896B';
 
-// ─── CardBox (MatDash pattern: shadow-md, p-6, rounded-xl) ──
+// ─── CardBox (shadow-md, p-6, rounded-xl) ──
 function Card({ children, className = '', style }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
   return (
     <div className={`bg-white rounded-xl shadow-md p-6 ${className}`} style={style}>
@@ -56,10 +55,12 @@ export default function DashboardHomeNew({ theme, onProfileClick, isPreschool }:
   const [showTour, setShowTour] = useState(false);
   const [dataMasked, setDataMasked] = useState(false);
   const [showMobilePreview, setShowMobilePreview] = useState(false);
+  const [taskFilter, setTaskFilter] = useState<'all' | 'my' | 'delegated'>('all');
+  const [recurringDone, setRecurringDone] = useState<Record<number, boolean>>({ 0: true, 2: true });
 
   // ─── ApexCharts configs ─────────────────────────────────
 
-  // Attendance semi-donut (MatDash YourPerformance pattern)
+  // Attendance semi-donut
   const attendanceSemiDonut = (present: number, total: number, colors: string[]): ApexCharts.ApexOptions => ({
     chart: { type: 'donut', height: 180, fontFamily: 'inherit' },
     series: [present, total - present],
@@ -85,7 +86,7 @@ export default function DashboardHomeNew({ theme, onProfileClick, isPreschool }:
     tooltip: { enabled: true, theme: 'dark' },
   });
 
-  // Revenue area chart (MatDash RevenueForcast pattern)
+  // Fee collection area chart
   const feeChartOpts: ApexCharts.ApexOptions = {
     chart: { type: 'area', height: 310, toolbar: { show: false }, fontFamily: 'inherit', foreColor: '#adb0bb' },
     series: [
@@ -104,7 +105,7 @@ export default function DashboardHomeNew({ theme, onProfileClick, isPreschool }:
     tooltip: { theme: 'dark', y: { formatter: (v: number) => `₹${v.toFixed(1)}L` } },
   };
 
-  // Sparkline (MatDash Customer/UsersBox pattern)
+  // Sparkline
   const sparkline = (data: number[], color: string, h = 70): ApexCharts.ApexOptions => ({
     chart: { type: 'area', height: h, sparkline: { enabled: true }, fontFamily: 'inherit' },
     colors: [color],
@@ -131,7 +132,7 @@ export default function DashboardHomeNew({ theme, onProfileClick, isPreschool }:
     <div className="flex gap-4">
       <DraggableDashboard dashboardId="principal" theme={theme} className={`${showMobilePreview ? 'flex-1 min-w-0' : 'w-full'} space-y-7 transition-all`}>
 
-      {/* ═══════ WELCOME BOX (MatDash Dashboard1 WelcomeBox) ═══════ */}
+      {/* ═══════ WELCOME BOX ═══════ */}
       <DashletSection id="welcome" label="Welcome">
       <div className="grid grid-cols-12 gap-7">
         {/* Welcome Card — purple bg */}
@@ -259,7 +260,7 @@ export default function DashboardHomeNew({ theme, onProfileClick, isPreschool }:
       </div>
       </DashletSection>
 
-      {/* ═══════ COLOR BOXES — Stat Cards (MatDash Dashboard3 ColorBoxes) ═══════ */}
+      {/* ═══════ COLOR BOXES — Stat Cards ═══════ */}
       <DashletSection id="stats-actions" label="Stats & Actions">
       <Card className="!p-5">
         <div className="flex gap-7 overflow-x-auto">
@@ -287,7 +288,7 @@ export default function DashboardHomeNew({ theme, onProfileClick, isPreschool }:
       </Card>
       </DashletSection>
 
-      {/* ═══════ ATTENDANCE ROW — Semi Donut + Sparklines (MatDash pattern) ═══════ */}
+      {/* ═══════ ATTENDANCE ROW — Semi Donut + Sparklines ═══════ */}
       <DashletSection id="attendance" label="Attendance">
       <div className="grid grid-cols-12 gap-7">
         {/* Student Attendance — YourPerformance style */}
@@ -1023,12 +1024,146 @@ export default function DashboardHomeNew({ theme, onProfileClick, isPreschool }:
           </Card>
         </div>
 
+        {/* ── Task Tracker (inline) ── */}
         <div className="lg:col-span-6 col-span-12">
-          <TaskTrackerPanel theme={theme} role="principal" />
+          <Card className="h-full">
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex gap-3 items-center">
+                <span className="h-12 w-12 flex items-center justify-center rounded-xl" style={{ background: `${PRIMARY}1A` }}>
+                  <ListTodo size={22} style={{ color: PRIMARY }} />
+                </span>
+                <div>
+                  <h5 className="text-lg font-semibold text-[#2A3547]">Task Tracker</h5>
+                  <p className="text-xs text-[#98A4AE]">6 active tasks</p>
+                </div>
+              </div>
+              <span className="text-xs px-2.5 py-1 rounded-full font-semibold" style={{ background: `${WARNING}20`, color: WARNING }}>3 high</span>
+            </div>
+            {/* Filter tabs */}
+            <div className="flex gap-1 mb-4 p-1 rounded-xl bg-[#F2F6FA]">
+              {([['all', 'All'], ['my', 'My Tasks'], ['delegated', 'Delegated']] as const).map(([key, label]) => (
+                <button key={key} onClick={() => setTaskFilter(key)}
+                  className={`flex-1 text-xs font-semibold py-2 rounded-lg transition-all ${taskFilter === key ? 'bg-white text-[#2A3547] shadow-sm' : 'text-[#98A4AE] hover:text-[#2A3547]'}`}>
+                  {label}
+                </button>
+              ))}
+            </div>
+            {/* Task list */}
+            <div className="space-y-2">
+              {[
+                { title: 'Review mid-term exam papers', priority: 'high' as const, assignee: 'Self', due: '2d', status: 'pending', delegated: false },
+                { title: 'Approve staff leave requests (3)', priority: 'high' as const, assignee: 'Self', due: 'Today', status: 'pending', delegated: false },
+                { title: 'Submit SQAAF self-assessment', priority: 'high' as const, assignee: 'Self', due: '5d', status: 'pending', delegated: false },
+                { title: 'Prepare Annual Day speech', priority: 'medium' as const, assignee: 'Self', due: '8d', status: 'pending', delegated: false },
+                { title: 'Review fee defaulter list', priority: 'high' as const, assignee: 'VP', due: '1d', status: 'in progress', delegated: true },
+                { title: 'Meeting with PTA committee', priority: 'medium' as const, assignee: 'Self', due: '3d', status: 'pending', delegated: false },
+              ].filter(t => taskFilter === 'all' ? true : taskFilter === 'delegated' ? t.delegated : !t.delegated)
+              .map((task, i) => {
+                const dotColor = task.priority === 'high' ? ERROR : task.priority === 'medium' ? WARNING : PRIMARY;
+                const statusColor = task.status === 'in progress' ? PRIMARY : '#98A4AE';
+                const statusBg = task.status === 'in progress' ? `${PRIMARY}20` : '#F2F6FA';
+                return (
+                  <div key={i} className="p-3 rounded-xl bg-[#F2F6FA] flex items-start gap-3">
+                    <span className="h-2 w-2 rounded-full mt-1.5 shrink-0" style={{ background: dotColor }} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-[#2A3547] truncate">{task.title}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs text-[#98A4AE]">{task.assignee}</span>
+                        <span className="text-xs text-[#98A4AE]">&middot;</span>
+                        <span className="text-xs text-[#98A4AE]">Due: {task.due}</span>
+                      </div>
+                    </div>
+                    <span className="text-[10px] px-2.5 py-1 rounded-full font-semibold shrink-0 capitalize" style={{ background: statusBg, color: statusColor }}>
+                      {task.status}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
         </div>
 
+        {/* ── Recurring Tasks (inline) ── */}
         <div className="col-span-12">
-          <RecurringTasksCard theme={theme} role="principal" isPreschool={isPreschool} />
+          {(() => {
+            const recurringTasks = [
+              { title: 'Check washroom cleanliness', assignee: 'Housekeeping Head', frequency: 'Twice Daily', priority: 'high' as const, streak: [1,1,1,0,1,1,1,1,0,1,1,1,1,1] },
+              { title: 'Verify fire safety equipment', assignee: 'Security Head', frequency: 'Monthly', priority: 'high' as const, streak: [1,2,2,2,2,2,2,2,2,2,2,2,2,1] },
+              { title: 'Clean school premises', assignee: 'Housekeeping Head', frequency: 'Weekly', priority: 'medium' as const, streak: [1,2,2,2,2,2,1,2,2,2,2,2,1,2] },
+              { title: 'Campus security walkthrough', assignee: 'Security Guard', frequency: 'Daily', priority: 'medium' as const, streak: [1,1,1,1,0,1,1,1,1,1,0,1,1,1] },
+              { title: 'Drinking water quality check', assignee: 'Lab Assistant', frequency: 'Weekly', priority: 'high' as const, streak: [1,2,2,2,2,2,1,2,2,2,2,2,1,2] },
+            ];
+            const doneCount = Object.values(recurringDone).filter(Boolean).length;
+            const totalCount = recurringTasks.length;
+            const pct = Math.round((doneCount / totalCount) * 100);
+            return (
+              <Card>
+                <div className="flex justify-between items-center mb-4">
+                  <div className="flex gap-3 items-center">
+                    <span className="h-12 w-12 flex items-center justify-center rounded-xl" style={{ background: `${SUCCESS}1A` }}>
+                      <RefreshCw size={22} style={{ color: SUCCESS }} />
+                    </span>
+                    <div>
+                      <h5 className="text-lg font-semibold text-[#2A3547]">Recurring Tasks</h5>
+                      <p className="text-xs text-[#98A4AE]">Routine compliance tracking</p>
+                    </div>
+                  </div>
+                  <span className="text-xs px-2.5 py-1 rounded-full font-semibold" style={{ background: `${SUCCESS}20`, color: SUCCESS }}>{doneCount}/{totalCount} done today</span>
+                </div>
+                {/* Progress bar */}
+                <div className="mb-5">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs text-[#98A4AE]">Today&apos;s completion</span>
+                    <span className="text-xs font-bold" style={{ color: SUCCESS }}>{pct}%</span>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-gray-100">
+                    <div className="h-2 rounded-full transition-all" style={{ width: `${pct}%`, background: SUCCESS }} />
+                  </div>
+                </div>
+                {/* Task rows */}
+                <div className="space-y-3">
+                  {recurringTasks.map((task, idx) => {
+                    const isDone = !!recurringDone[idx];
+                    const streakDone = task.streak.filter(s => s === 1).length;
+                    const streakApplicable = task.streak.filter(s => s !== 2).length;
+                    const streakPct = streakApplicable > 0 ? Math.round((streakDone / streakApplicable) * 100) : 0;
+                    const priorityColor = task.priority === 'high' ? ERROR : WARNING;
+                    return (
+                      <div key={idx} className="p-4 rounded-xl bg-[#F2F6FA]">
+                        <div className="flex items-start gap-3">
+                          {/* Completion toggle */}
+                          <button onClick={() => setRecurringDone(prev => ({ ...prev, [idx]: !prev[idx] }))}
+                            className="mt-0.5 h-5 w-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all"
+                            style={{ borderColor: isDone ? SUCCESS : '#D1D5DB', background: isDone ? SUCCESS : 'transparent' }}>
+                            {isDone && <Check size={12} className="text-white" />}
+                          </button>
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-sm font-semibold truncate ${isDone ? 'line-through text-[#98A4AE]' : 'text-[#2A3547]'}`}>{task.title}</p>
+                            <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                              <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold" style={{ background: `${PRIMARY}20`, color: PRIMARY }}>{task.assignee}</span>
+                              <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold" style={{ background: `${SECONDARY}20`, color: SECONDARY }}>{task.frequency}</span>
+                              <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold" style={{ background: `${priorityColor}20`, color: priorityColor }}>{task.priority}</span>
+                            </div>
+                            {/* 14-day streak */}
+                            <div className="flex items-center gap-1 mt-2.5">
+                              <div className="flex gap-0.5">
+                                {task.streak.map((s, si) => (
+                                  <div key={si} className="h-3.5 w-3.5 rounded-sm"
+                                    style={{ background: s === 1 ? SUCCESS : s === 0 ? ERROR : '#E5E7EB' }}
+                                    title={s === 1 ? 'Done' : s === 0 ? 'Missed' : 'N/A'} />
+                                ))}
+                              </div>
+                              <span className="text-xs font-bold ml-2" style={{ color: streakPct >= 80 ? SUCCESS : streakPct >= 50 ? WARNING : ERROR }}>{streakPct}%</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Card>
+            );
+          })()}
         </div>
       </div>
       </DashletSection>

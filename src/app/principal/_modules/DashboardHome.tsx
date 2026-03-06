@@ -30,7 +30,7 @@ export default function DashboardHome({ theme, onProfileClick, isPreschool }: { 
             }`}
           >
             <Palette size={14} />
-            New UI (MatDash)
+            Modern UI
           </button>
         </div>
       </div>
