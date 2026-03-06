@@ -118,9 +118,11 @@ export const modules = [
   ] },
   { id: 'enquiry-config', label: 'Enquiry & Admission', icon: UserPlus, children: [
     { id: 'enquiry-config:settings', label: 'Settings' },
+    { id: 'enquiry-config:pipeline', label: 'Pipeline' },
+    { id: 'enquiry-config:intake', label: 'Intake' },
     { id: 'enquiry-config:sources', label: 'Sources' },
     { id: 'enquiry-config:process', label: 'Process' },
-    { id: 'enquiry-config:notifications', label: 'Notifications' },
+    { id: 'enquiry-config:reports', label: 'Reports' },
   ] },
   { id: 'data-migration', label: 'Data Migration', icon: Upload },
   { id: 'critical-locks', label: 'Critical Locks', icon: Lock },

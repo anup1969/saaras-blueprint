@@ -227,23 +227,7 @@ export default function AcademicConfigModule({ theme, activeTab: externalTab, on
   ]);
   const [allowStreamChoice, setAllowStreamChoice] = useState(true);
 
-  // ─── Class Capacity & Waitlist ───
-  const [enableWaitlist, setEnableWaitlist] = useState(true);
-  const [waitlistAutoPromote, setWaitlistAutoPromote] = useState('Automatic');
-  const [classCapacity, setClassCapacity] = useState([
-    { grade: 'Grade 1', sections: 3, maxPerSection: 40, total: 120, current: 115, waitlisted: 4 },
-    { grade: 'Grade 2', sections: 3, maxPerSection: 40, total: 120, current: 118, waitlisted: 2 },
-    { grade: 'Grade 3', sections: 2, maxPerSection: 40, total: 80, current: 78, waitlisted: 0 },
-    { grade: 'Grade 4', sections: 2, maxPerSection: 40, total: 80, current: 75, waitlisted: 1 },
-    { grade: 'Grade 5', sections: 2, maxPerSection: 40, total: 80, current: 80, waitlisted: 3 },
-    { grade: 'Grade 6', sections: 3, maxPerSection: 40, total: 120, current: 112, waitlisted: 0 },
-    { grade: 'Grade 7', sections: 3, maxPerSection: 40, total: 120, current: 119, waitlisted: 5 },
-    { grade: 'Grade 8', sections: 2, maxPerSection: 40, total: 80, current: 76, waitlisted: 0 },
-    { grade: 'Grade 9', sections: 3, maxPerSection: 40, total: 120, current: 110, waitlisted: 1 },
-    { grade: 'Grade 10', sections: 3, maxPerSection: 40, total: 120, current: 117, waitlisted: 2 },
-    { grade: 'Grade 11', sections: 2, maxPerSection: 40, total: 80, current: 72, waitlisted: 0 },
-    { grade: 'Grade 12', sections: 2, maxPerSection: 40, total: 80, current: 68, waitlisted: 0 },
-  ]);
+  // ─── Class Capacity moved to Enquiry & Admission module ───
 
   // ─── Year Rollover Wizard ───
   const [rolloverChecks, setRolloverChecks] = useState<Record<string, boolean>>({
@@ -385,11 +369,7 @@ export default function AcademicConfigModule({ theme, activeTab: externalTab, on
   const [demoSearch, setDemoSearch] = useState({ religion: '', category: '', language: '' });
   const [demoPage, setDemoPage] = useState({ religion: 1, category: 1, language: 1 });
   const [demoEdit, setDemoEdit] = useState<{ type: string; key: string; value: string } | null>(null);
-  // Class Capacity table
-  const [capSearch, setCapSearch] = useState('');
-  const [capPage, setCapPage] = useState(1);
-  const [capEditIdx, setCapEditIdx] = useState<number | null>(null);
-  const [capEditRow, setCapEditRow] = useState({ grade: '', sections: 0, maxPerSection: 0, total: 0, current: 0, waitlisted: 0 });
+  // Class Capacity — moved to Enquiry & Admission module
   // Subject-Teacher Mapping table
   const [stmSearch, setStmSearch] = useState('');
   const [stmPage, setStmPage] = useState(1);
@@ -1636,110 +1616,10 @@ export default function AcademicConfigModule({ theme, activeTab: externalTab, on
       </div>)}
 
       {activeTab === 'rules' && (<div className="space-y-4">
-      <SectionCard title="Class Capacity & Waitlist" subtitle="Maximum strength per section and waitlist management" theme={theme}>
-        <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg} mb-3`}>
-          <div>
-            <p className={`text-xs font-bold ${theme.highlight}`}>Enable Waitlist Management</p>
-            <p className={`text-[10px] ${theme.iconColor}`}>When a class is full, new applicants are added to a waitlist</p>
-          </div>
-          <SSAToggle on={enableWaitlist} onChange={() => setEnableWaitlist(!enableWaitlist)} theme={theme} />
+      <SectionCard title="Class Capacity & Waitlist" subtitle="Moved to Enquiry & Admission module" theme={theme}>
+        <div className={`p-3 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+          <p className={`text-xs ${theme.iconColor}`}>Class capacity and waitlist management has moved to <span className={`font-bold ${theme.primaryText}`}>Enquiry & Admission → Intake</span> tab in the sidebar, where it integrates with admission pipeline, eligibility rules, and document requirements.</p>
         </div>
-        {enableWaitlist && (
-          <div className={`flex items-center gap-3 p-2.5 rounded-xl ${theme.secondaryBg} mb-3`}>
-            <span className={`text-xs font-bold ${theme.highlight}`}>Waitlist Auto-Promote</span>
-            <SelectField options={['Automatic', 'Manual Approval', 'Disabled']} value={waitlistAutoPromote} onChange={setWaitlistAutoPromote} theme={theme} />
-          </div>
-        )}
-        <TableToolbar label="Class Capacity" count={classCapacity.length} search={capSearch}
-          onSearch={v => { setCapSearch(v); setCapPage(1); }} onExport={() => {}} onImport={() => {}} theme={theme} />
-        {(() => {
-          const filtered = classCapacity.map((c, i) => ({ ...c, _i: i })).filter(c => c.grade.toLowerCase().includes(capSearch.toLowerCase()));
-          const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-          const safePage = Math.min(capPage, totalPages);
-          const paged = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
-          return (
-            <>
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead><tr className={theme.secondaryBg}>
-                    {['Grade', 'Sections', 'Max / Section', 'Total Capacity', 'Current', 'Waitlisted', 'Actions'].map(h => (
-                      <th key={h} className={`text-left px-2 py-2 font-bold ${theme.iconColor}`}>{h}</th>
-                    ))}
-                  </tr></thead>
-                  <tbody>
-                    {paged.map((c) => {
-                      const i = c._i;
-                      const isEditing = capEditIdx === i;
-                      return (
-                        <tr key={i} className={`border-t ${theme.border}`}>
-                          {isEditing ? (
-                            <>
-                              <td className="px-2 py-1.5">
-                                <input value={capEditRow.grade} onChange={e => setCapEditRow(p => ({ ...p, grade: e.target.value }))}
-                                  className={`w-20 px-1 py-0.5 rounded border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} />
-                              </td>
-                              <td className="px-2 py-1.5">
-                                <input type="number" value={capEditRow.sections} onChange={e => setCapEditRow(p => ({ ...p, sections: parseInt(e.target.value) || 0 }))}
-                                  className={`w-12 px-1 py-0.5 rounded border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none`} />
-                              </td>
-                              <td className="px-2 py-1.5">
-                                <input type="number" value={capEditRow.maxPerSection} onChange={e => setCapEditRow(p => ({ ...p, maxPerSection: parseInt(e.target.value) || 0 }))}
-                                  className={`w-12 px-1 py-0.5 rounded border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none`} />
-                              </td>
-                              <td className={`px-2 py-1.5 ${theme.highlight}`}>{capEditRow.sections * capEditRow.maxPerSection}</td>
-                              <td className="px-2 py-1.5">
-                                <input type="number" value={capEditRow.current} onChange={e => setCapEditRow(p => ({ ...p, current: parseInt(e.target.value) || 0 }))}
-                                  className={`w-12 px-1 py-0.5 rounded border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none`} />
-                              </td>
-                              <td className="px-2 py-1.5">
-                                <input type="number" value={capEditRow.waitlisted} onChange={e => setCapEditRow(p => ({ ...p, waitlisted: parseInt(e.target.value) || 0 }))}
-                                  className={`w-12 px-1 py-0.5 rounded border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none`} />
-                              </td>
-                              <td className="px-2 py-1.5">
-                                <button onClick={() => {
-                                  const n = [...classCapacity];
-                                  n[i] = { ...capEditRow, total: capEditRow.sections * capEditRow.maxPerSection };
-                                  setClassCapacity(n); setCapEditIdx(null);
-                                }} className="text-emerald-500 hover:text-emerald-700 mr-1"><Check size={12} /></button>
-                                <button onClick={() => setCapEditIdx(null)} className="text-gray-400 hover:text-gray-600"><X size={12} /></button>
-                              </td>
-                            </>
-                          ) : (
-                            <>
-                              <td className={`px-2 py-1.5 font-bold ${theme.highlight}`}>{c.grade}</td>
-                              <td className={`px-2 py-1.5 ${theme.iconColor}`}>{c.sections}</td>
-                              <td className={`px-2 py-1.5 ${theme.iconColor}`}>{c.maxPerSection}</td>
-                              <td className={`px-2 py-1.5 ${theme.highlight}`}>{c.total}</td>
-                              <td className={`px-2 py-1.5 ${c.current >= c.total ? 'text-red-600 font-bold' : theme.iconColor}`}>{c.current}</td>
-                              <td className="px-2 py-1.5">
-                                {c.waitlisted > 0 ? (
-                                  <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold">{c.waitlisted}</span>
-                                ) : (
-                                  <span className={`text-[10px] ${theme.iconColor}`}>--</span>
-                                )}
-                              </td>
-                              <td className="px-2 py-1.5 flex items-center gap-1">
-                                <button onClick={() => { setCapEditIdx(i); setCapEditRow({ ...c }); }}
-                                  className={`${theme.iconColor} hover:text-blue-500`}><Pencil size={12} /></button>
-                                <button onClick={() => setClassCapacity(p => p.filter((_, j) => j !== i))}
-                                  className="text-red-400 hover:text-red-600"><Trash2 size={12} /></button>
-                              </td>
-                            </>
-                          )}
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-              <PaginationBar page={safePage} totalPages={totalPages} onPage={setCapPage} theme={theme} />
-            </>
-          );
-        })()}
-        <button onClick={() => setClassCapacity(p => [...p, { grade: 'New Grade', sections: 1, maxPerSection: 40, total: 40, current: 0, waitlisted: 0 }])}
-          className={`flex items-center gap-1.5 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl border ${theme.border} mt-2`}>
-          <Plus size={12} /> Add Class Row
-        </button>
       </SectionCard>
 
       {/* ─── C) Year Rollover Wizard ─── */}
