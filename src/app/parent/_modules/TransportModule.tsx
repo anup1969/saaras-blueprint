@@ -4,7 +4,7 @@ import React from 'react';
 import { type Theme } from '@/lib/themes';
 import {
   Bus, Phone, User,
-  MapPin, Navigation, Map, CircleDot,
+  MapPin, Navigation, Map, CircleDot, Clock, Baby, Sun,
 } from 'lucide-react';
 import type { ChildProfile } from '../_components/types';
 import { transportData } from '../_components/data';
@@ -136,6 +136,33 @@ export default function TransportModule({ theme, child }: { theme: Theme; child:
             <button className={`flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-xl ${theme.secondaryBg} ${theme.iconColor} text-xs font-bold`}>
               <Phone size={12} /> Call Conductor
             </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Daycare & Extended Hours */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3 flex items-center gap-2`}><Sun size={14} className="text-amber-500" /> Daycare &amp; Extended Hours</h3>
+        <p className="text-[10px] text-amber-600 mb-2">Extended hours: 06:30-19:00 -- configured by SSA</p>
+        <div className="grid grid-cols-4 gap-3">
+          <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex items-center gap-2 mb-1"><Clock size={12} className="text-blue-500" /><span className={`text-[10px] font-bold ${theme.iconColor}`}>Extended Hours</span></div>
+            <p className={`text-sm font-bold ${theme.highlight}`}>06:30 AM - 07:00 PM</p>
+          </div>
+          <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex items-center gap-2 mb-1"><Baby size={12} className="text-pink-500" /><span className={`text-[10px] font-bold ${theme.iconColor}`}>Daycare</span></div>
+            <p className={`text-sm font-bold ${theme.highlight}`}>Pre-Primary</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>Available</p>
+          </div>
+          <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex items-center gap-2 mb-1"><Clock size={12} className="text-emerald-500" /><span className={`text-[10px] font-bold ${theme.iconColor}`}>After-School Care</span></div>
+            <p className={`text-sm font-bold ${theme.highlight}`}>Mon-Fri</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>2:30 PM - 5:30 PM</p>
+          </div>
+          <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+            <div className="flex items-center gap-2 mb-1"><Phone size={12} className="text-purple-500" /><span className={`text-[10px] font-bold ${theme.iconColor}`}>Contact</span></div>
+            <p className={`text-sm font-bold ${theme.highlight}`}>Ext. Hours Coordinator</p>
+            <p className={`text-[10px] ${theme.primaryText} font-bold`}>+91 98765 43210</p>
           </div>
         </div>
       </div>

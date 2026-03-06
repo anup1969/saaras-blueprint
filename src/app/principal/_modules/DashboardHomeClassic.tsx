@@ -228,6 +228,47 @@ export default function DashboardHomeClassic({ theme, onProfileClick, isPreschoo
         </button>
       </div>
 
+      {/* SSA-Configured Attendance Defaulter Thresholds */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <div className="flex items-center gap-2 mb-3">
+          <AlertTriangle size={14} className="text-amber-500" />
+          <h3 className={`text-xs font-bold ${theme.highlight}`}>SSA-Configured Attendance Thresholds</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className={`border-b ${theme.border}`}>
+                <th className={`text-left py-1.5 px-2 ${theme.iconColor} font-bold`}>Grade Group</th>
+                <th className="text-center py-1.5 px-2 text-amber-600 font-bold">Warning</th>
+                <th className="text-center py-1.5 px-2 text-orange-600 font-bold">Defaulter</th>
+                <th className="text-center py-1.5 px-2 text-red-600 font-bold">Critical</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { group: 'Class 1–5', warning: '<80%', defaulter: '<75%', critical: '<70%' },
+                { group: 'Class 6–8', warning: '<78%', defaulter: '<73%', critical: '<68%' },
+                { group: 'Class 9–10', warning: '<80%', defaulter: '<75%', critical: '<70%' },
+                { group: 'Class 11–12', warning: '<80%', defaulter: '<75%', critical: '<70%' },
+              ].map((r, i) => (
+                <tr key={i} className={`border-b ${theme.border}`}>
+                  <td className={`py-1.5 px-2 font-medium ${theme.highlight}`}>{r.group}</td>
+                  <td className="py-1.5 px-2 text-center"><span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold">{r.warning}</span></td>
+                  <td className="py-1.5 px-2 text-center"><span className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[10px] font-bold">{r.defaulter}</span></td>
+                  <td className="py-1.5 px-2 text-center"><span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-bold">{r.critical}</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="flex items-center gap-4 mt-3 pt-2 border-t border-dashed border-gray-200">
+          <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-amber-400 inline-block" /><span className={`text-xs font-bold ${theme.highlight}`}>Warning: 23</span></span>
+          <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-orange-500 inline-block" /><span className={`text-xs font-bold ${theme.highlight}`}>Defaulter: 8</span></span>
+          <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-red-500 inline-block" /><span className={`text-xs font-bold ${theme.highlight}`}>Critical: 3</span></span>
+        </div>
+        <p className={`text-[10px] ${theme.iconColor} mt-2 italic`}>Thresholds configured in SSA → Attendance Config</p>
+      </div>
+
       {/* Drill-Down Analytics Panel */}
       {drillDown && (
         <DrillDownPanel type={drillDown} theme={theme} onClose={() => setDrillDown(null)} />
@@ -728,6 +769,33 @@ export default function DashboardHomeClassic({ theme, onProfileClick, isPreschoo
           </div>
         </div>
       )}
+
+      {/* Attendance Notification Rules (from SSA Config) */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <div className="flex items-center gap-2 mb-3">
+          <Bell size={14} className="text-indigo-500" />
+          <h3 className={`text-xs font-bold ${theme.highlight}`}>Attendance Notification Rules</h3>
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold">6 Active</span>
+        </div>
+        <div className="space-y-1.5">
+          {[
+            { rule: 'Daily absence alert to parents', channel: 'SMS + App' },
+            { rule: 'Late arrival notification', channel: 'App only' },
+            { rule: '3-day consecutive absence → Counselor alert', channel: 'App + Email' },
+            { rule: 'Weekly attendance summary to parents', channel: 'SMS + App' },
+            { rule: 'Defaulter status change → Principal alert', channel: 'App + Email' },
+            { rule: 'Monthly attendance report to management', channel: 'Email' },
+          ].map((n, i) => (
+            <div key={i} className={`flex items-center gap-2 px-3 py-2 rounded-xl ${theme.secondaryBg}`}>
+              <CheckCircle size={12} className="text-emerald-500 shrink-0" />
+              <span className={`text-xs ${theme.highlight} flex-1`}>{n.rule}</span>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full ${theme.secondaryBg} border ${theme.border} ${theme.iconColor} font-medium`}>{n.channel}</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold">Active</span>
+            </div>
+          ))}
+        </div>
+        <p className={`text-[10px] ${theme.iconColor} mt-3 italic`}>Rules configured in SSA → Attendance Config → Auto-Notification</p>
+      </div>
       </DashletSection>
 
       <DashletSection id="grievances" label="Grievances">

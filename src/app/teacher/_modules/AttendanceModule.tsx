@@ -58,7 +58,7 @@ export default function AttendanceModule({ theme }: { theme: Theme }) {
   const [selectedClass, setSelectedClass] = useState('10-A');
   const [attendanceDate, setAttendanceDate] = useState('2026-02-12');
   const [attendanceData, setAttendanceData] = useState(
-    studentsOf10A.map(s => ({ ...s, status: (s.present ? 'P' : 'A') as 'P' | 'A' | 'L' }))
+    studentsOf10A.map(s => ({ ...s, status: (s.present ? 'P' : 'A') as 'P' | 'A' | 'L' | 'HD' | 'ML' | 'OD' | 'EX' }))
   );
   const [tab, setTab] = useState('Mark Attendance');
   const [markingMode, setMarkingMode] = useState<'Day-wise' | 'Subject-wise'>('Day-wise');
@@ -69,6 +69,10 @@ export default function AttendanceModule({ theme }: { theme: Theme }) {
   const presentCount = attendanceData.filter(s => s.status === 'P').length;
   const absentCount = attendanceData.filter(s => s.status === 'A').length;
   const lateCount = attendanceData.filter(s => s.status === 'L').length;
+  const hdCount = attendanceData.filter(s => s.status === 'HD').length;
+  const mlCount = attendanceData.filter(s => s.status === 'ML').length;
+  const odCount = attendanceData.filter(s => s.status === 'OD').length;
+  const exCount = attendanceData.filter(s => s.status === 'EX').length;
 
   return (
     <div className="space-y-4">
@@ -77,7 +81,7 @@ export default function AttendanceModule({ theme }: { theme: Theme }) {
         <button className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}><Download size={14} /> Export Report</button>
       </div>
       <TabBar tabs={['Mark Attendance', 'Corrections', 'Calendar View', 'Reports']} active={tab} onChange={setTab} theme={theme} />
-      <p className="text-[10px] text-amber-600 mb-2">Attendance method: Mobile App (Teacher) | Frequency: Daily -- configured by SSA</p>
+      <p className="text-[10px] text-amber-600 mb-2">Attendance types: P, A, L, HD, ML, OD, EX -- configured by SSA | Method: Mobile App | Frequency: Daily</p>
 
       {/* ── MOBILE APP PREVIEW ── */}
       <MobilePreviewToggle
@@ -92,22 +96,38 @@ export default function AttendanceModule({ theme }: { theme: Theme }) {
             </div>
 
             {/* Quick summary bar */}
-            <div className="flex items-center justify-between px-2 py-2 bg-white rounded-xl shadow-sm border border-gray-100">
+            <div className="flex items-center justify-between px-2 py-2 bg-white rounded-xl shadow-sm border border-gray-100 flex-wrap gap-1">
               <div className="text-center">
-                <p className="text-[10px] text-gray-400">Total</p>
-                <p className="text-sm font-bold text-gray-800">{attendanceData.length}</p>
+                <p className="text-[8px] text-gray-400">Total</p>
+                <p className="text-xs font-bold text-gray-800">{attendanceData.length}</p>
               </div>
               <div className="text-center">
-                <p className="text-[10px] text-gray-400">Present</p>
-                <p className="text-sm font-bold text-emerald-600">{presentCount}</p>
+                <p className="text-[8px] text-gray-400">P</p>
+                <p className="text-xs font-bold text-emerald-600">{presentCount}</p>
               </div>
               <div className="text-center">
-                <p className="text-[10px] text-gray-400">Absent</p>
-                <p className="text-sm font-bold text-red-600">{absentCount}</p>
+                <p className="text-[8px] text-gray-400">A</p>
+                <p className="text-xs font-bold text-red-600">{absentCount}</p>
               </div>
               <div className="text-center">
-                <p className="text-[10px] text-gray-400">Late</p>
-                <p className="text-sm font-bold text-amber-600">{lateCount}</p>
+                <p className="text-[8px] text-gray-400">L</p>
+                <p className="text-xs font-bold text-amber-600">{lateCount}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-[8px] text-gray-400">HD</p>
+                <p className="text-xs font-bold text-blue-600">{hdCount}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-[8px] text-gray-400">ML</p>
+                <p className="text-xs font-bold text-purple-600">{mlCount}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-[8px] text-gray-400">OD</p>
+                <p className="text-xs font-bold text-cyan-600">{odCount}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-[8px] text-gray-400">EX</p>
+                <p className="text-xs font-bold text-teal-600">{exCount}</p>
               </div>
             </div>
 
@@ -137,27 +157,43 @@ export default function AttendanceModule({ theme }: { theme: Theme }) {
             {/* Tap-to-mark grid */}
             <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
               {/* Header row */}
-              <div className="grid grid-cols-[28px_1fr_36px_36px_36px] gap-0 bg-gray-100 px-2 py-1.5">
-                <span className="text-[8px] font-bold text-gray-500 text-center">#</span>
-                <span className="text-[8px] font-bold text-gray-500">NAME</span>
-                <span className="text-[8px] font-bold text-emerald-600 text-center">P</span>
-                <span className="text-[8px] font-bold text-red-600 text-center">A</span>
-                <span className="text-[8px] font-bold text-amber-600 text-center">L</span>
+              <div className="grid grid-cols-[28px_1fr_repeat(7,28px)] gap-0 bg-gray-100 px-2 py-1.5">
+                <span className="text-[7px] font-bold text-gray-500 text-center">#</span>
+                <span className="text-[7px] font-bold text-gray-500">NAME</span>
+                <span className="text-[7px] font-bold text-emerald-600 text-center">P</span>
+                <span className="text-[7px] font-bold text-red-600 text-center">A</span>
+                <span className="text-[7px] font-bold text-amber-600 text-center">L</span>
+                <span className="text-[7px] font-bold text-blue-600 text-center">HD</span>
+                <span className="text-[7px] font-bold text-purple-600 text-center">ML</span>
+                <span className="text-[7px] font-bold text-cyan-600 text-center">OD</span>
+                <span className="text-[7px] font-bold text-teal-600 text-center">EX</span>
               </div>
               {/* Student rows */}
               {attendanceData.slice(0, 8).map((s) => (
-                <div key={s.roll} className="grid grid-cols-[28px_1fr_36px_36px_36px] gap-0 px-2 py-1 border-t border-gray-50 items-center">
+                <div key={s.roll} className="grid grid-cols-[28px_1fr_repeat(7,28px)] gap-0 px-2 py-1 border-t border-gray-50 items-center">
                   <span className="text-[9px] text-gray-400 text-center">{s.roll}</span>
-                  <span className="text-[10px] font-medium text-gray-800 truncate pr-1">{s.name.split(' ')[0]}</span>
-                  <button className={`w-7 h-7 rounded-lg text-[10px] font-bold flex items-center justify-center ${
+                  <span className="text-[9px] font-medium text-gray-800 truncate pr-1">{s.name.split(' ')[0]}</span>
+                  <button className={`w-6 h-6 rounded-lg text-[8px] font-bold flex items-center justify-center ${
                     s.status === 'P' ? 'bg-emerald-500 text-white shadow-sm' : 'bg-gray-100 text-gray-400'
                   }`}>P</button>
-                  <button className={`w-7 h-7 rounded-lg text-[10px] font-bold flex items-center justify-center ${
+                  <button className={`w-6 h-6 rounded-lg text-[8px] font-bold flex items-center justify-center ${
                     s.status === 'A' ? 'bg-red-500 text-white shadow-sm' : 'bg-gray-100 text-gray-400'
                   }`}>A</button>
-                  <button className={`w-7 h-7 rounded-lg text-[10px] font-bold flex items-center justify-center ${
+                  <button className={`w-6 h-6 rounded-lg text-[8px] font-bold flex items-center justify-center ${
                     s.status === 'L' ? 'bg-amber-500 text-white shadow-sm' : 'bg-gray-100 text-gray-400'
                   }`}>L</button>
+                  <button className={`w-6 h-6 rounded-lg text-[8px] font-bold flex items-center justify-center ${
+                    s.status === 'HD' ? 'bg-blue-500 text-white shadow-sm' : 'bg-gray-100 text-gray-400'
+                  }`}>HD</button>
+                  <button className={`w-6 h-6 rounded-lg text-[8px] font-bold flex items-center justify-center ${
+                    s.status === 'ML' ? 'bg-purple-500 text-white shadow-sm' : 'bg-gray-100 text-gray-400'
+                  }`}>ML</button>
+                  <button className={`w-6 h-6 rounded-lg text-[8px] font-bold flex items-center justify-center ${
+                    s.status === 'OD' ? 'bg-cyan-500 text-white shadow-sm' : 'bg-gray-100 text-gray-400'
+                  }`}>OD</button>
+                  <button className={`w-6 h-6 rounded-lg text-[8px] font-bold flex items-center justify-center ${
+                    s.status === 'EX' ? 'bg-teal-500 text-white shadow-sm' : 'bg-gray-100 text-gray-400'
+                  }`}>EX</button>
                 </div>
               ))}
               {attendanceData.length > 8 && (
@@ -238,6 +274,12 @@ export default function AttendanceModule({ theme }: { theme: Theme }) {
             <StatCard icon={XCircle} label="Absent" value={absentCount} color="bg-red-500" theme={theme} />
             <StatCard icon={Clock} label="Late" value={lateCount} color="bg-amber-500" theme={theme} />
           </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard icon={Clock} label="Half-Day" value={hdCount} color="bg-blue-500" theme={theme} />
+            <StatCard icon={AlertTriangle} label="Medical Leave" value={mlCount} color="bg-purple-500" theme={theme} />
+            <StatCard icon={Users} label="On Duty" value={odCount} color="bg-cyan-500" theme={theme} />
+            <StatCard icon={CheckCircle} label="Excused" value={exCount} color="bg-teal-500" theme={theme} />
+          </div>
 
           <div className={`${theme.cardBg} rounded-2xl border ${theme.border} overflow-hidden`}>
             <div className={`flex items-center justify-between p-3 ${theme.secondaryBg}`}>
@@ -273,34 +315,41 @@ export default function AttendanceModule({ theme }: { theme: Theme }) {
                     <td className={`px-4 py-2 text-xs font-bold ${theme.highlight}`}>{s.name}</td>
                     <td className="px-4 py-2">
                       <div className="flex items-center justify-center gap-1">
-                        {(['P', 'L', 'A'] as const).map(status => (
-                          <button
-                            key={status}
-                            onClick={() => {
-                              setAttendanceData(prev => prev.map((st, idx) =>
-                                idx === i ? { ...st, status } : st
-                              ));
-                              if (status === 'P') {
-                                setAttendanceReasons(prev => { const n = { ...prev }; delete n[s.roll]; return n; });
-                              }
-                            }}
-                            className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
-                              s.status === status
-                                ? status === 'P'
-                                  ? 'bg-emerald-500 text-white'
-                                  : status === 'L'
-                                    ? 'bg-amber-500 text-white'
-                                    : 'bg-red-500 text-white'
-                                : `${theme.secondaryBg} ${theme.iconColor}`
-                            }`}
-                          >
-                            {status}
-                          </button>
-                        ))}
+                        {(['P', 'L', 'HD', 'A', 'ML', 'OD', 'EX'] as const).map(status => {
+                          const colorMap: Record<string, string> = {
+                            P: 'bg-emerald-500 text-white',
+                            A: 'bg-red-500 text-white',
+                            L: 'bg-amber-500 text-white',
+                            HD: 'bg-blue-500 text-white',
+                            ML: 'bg-purple-500 text-white',
+                            OD: 'bg-cyan-500 text-white',
+                            EX: 'bg-teal-500 text-white',
+                          };
+                          return (
+                            <button
+                              key={status}
+                              onClick={() => {
+                                setAttendanceData(prev => prev.map((st, idx) =>
+                                  idx === i ? { ...st, status } : st
+                                ));
+                                if (status === 'P') {
+                                  setAttendanceReasons(prev => { const n = { ...prev }; delete n[s.roll]; return n; });
+                                }
+                              }}
+                              className={`w-8 h-8 rounded-lg text-[10px] font-bold transition-all ${
+                                s.status === status
+                                  ? colorMap[status]
+                                  : `${theme.secondaryBg} ${theme.iconColor}`
+                              }`}
+                            >
+                              {status}
+                            </button>
+                          );
+                        })}
                       </div>
                     </td>
                     <td className="px-4 py-2">
-                      {(s.status === 'L' || s.status === 'A') ? (
+                      {s.status !== 'P' ? (
                         <select
                           value={attendanceReasons[s.roll] || ''}
                           onChange={e => setAttendanceReasons(prev => ({ ...prev, [s.roll]: e.target.value }))}
@@ -311,6 +360,12 @@ export default function AttendanceModule({ theme }: { theme: Theme }) {
                           <option value="Family Emergency">Family Emergency</option>
                           <option value="Transport Issue">Transport Issue</option>
                           <option value="Unexcused">Unexcused</option>
+                          <option value="On Duty - School Event">On Duty - School Event</option>
+                          <option value="On Duty - Sports/Competition">On Duty - Sports/Competition</option>
+                          <option value="Medical - Doctor Certificate">Medical - Doctor Certificate</option>
+                          <option value="Medical - Sick at School">Medical - Sick at School</option>
+                          <option value="Excused - Pre-approved Leave">Excused - Pre-approved Leave</option>
+                          <option value="Excused - Religious/Cultural">Excused - Religious/Cultural</option>
                           <option value="Other">Other</option>
                         </select>
                       ) : (
@@ -323,7 +378,7 @@ export default function AttendanceModule({ theme }: { theme: Theme }) {
             </table>
             <div className={`p-3 flex items-center justify-between border-t ${theme.border}`}>
               <p className={`text-xs ${theme.iconColor}`}>
-                Present: {presentCount} | Absent: {absentCount} | Late: {lateCount} | Total: {attendanceData.length}
+                P: {presentCount} | A: {absentCount} | L: {lateCount} | HD: {hdCount} | ML: {mlCount} | OD: {odCount} | EX: {exCount} | Total: {attendanceData.length}
               </p>
               <button className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}>
                 <Send size={14} /> Submit Attendance
@@ -374,6 +429,10 @@ export default function AttendanceModule({ theme }: { theme: Theme }) {
                     <option>P (Present)</option>
                     <option>A (Absent)</option>
                     <option>L (Late)</option>
+                    <option>HD (Half-Day)</option>
+                    <option>ML (Medical Leave)</option>
+                    <option>OD (On Duty)</option>
+                    <option>EX (Excused)</option>
                   </select>
                 </div>
               </div>

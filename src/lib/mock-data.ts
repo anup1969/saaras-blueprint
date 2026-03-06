@@ -29,12 +29,38 @@ export const mockStaff = [
   { id: 'EMP006', name: 'Arun Verma', dept: 'Teaching', role: 'HOD Science', status: 'Active', phone: '98765 11006' },
 ];
 
+// 12 fee heads as configured in SSA
+export const feeHeads = [
+  { key: 'tuition', label: 'Tuition Fee', type: 'monthly', appliesTo: 'all' },
+  { key: 'admission', label: 'Admission Fee', type: 'one-time', appliesTo: 'all', note: 'New admissions only' },
+  { key: 'annual', label: 'Annual Charges', type: 'annual', appliesTo: 'all' },
+  { key: 'transport', label: 'Transport Fee', type: 'monthly', appliesTo: 'all' },
+  { key: 'activity', label: 'Activity Fee', type: 'monthly', appliesTo: 'all' },
+  { key: 'lab', label: 'Lab Fee', type: 'monthly', appliesTo: '6+', note: 'Grades 6+ only' },
+  { key: 'library', label: 'Library Fee', type: 'monthly', appliesTo: 'all' },
+  { key: 'sports', label: 'Sports Fee', type: 'monthly', appliesTo: 'all' },
+  { key: 'technology', label: 'Smart Class / IT Fee', type: 'monthly', appliesTo: 'all' },
+  { key: 'exam', label: 'Exam Fee', type: 'quarterly', appliesTo: 'all' },
+  { key: 'development', label: 'Development Fee', type: 'annual', appliesTo: 'all' },
+  { key: 'caution', label: 'Caution Deposit', type: 'one-time', appliesTo: 'all', note: 'Refundable' },
+];
+
 export const feeStructure = [
-  { cls: 'Nursery-KG', tuition: 3000, transport: 1500, activity: 500, total: 5000 },
-  { cls: '1st-5th', tuition: 3500, transport: 1500, activity: 800, total: 5800 },
-  { cls: '6th-8th', tuition: 4000, transport: 1500, activity: 1000, total: 6500 },
-  { cls: '9th-10th', tuition: 5000, transport: 1500, activity: 1200, total: 7700 },
-  { cls: '11th-12th', tuition: 6000, transport: 1500, activity: 1500, total: 9000 },
+  { cls: 'Nursery-KG', tuition: 2000, admission: 5000, annual: 3000, transport: 1000, activity: 300, lab: 0, library: 200, sports: 200, technology: 300, exam: 400, development: 500, caution: 2000, total: 5000 },
+  { cls: '1st-5th', tuition: 2500, admission: 6000, annual: 3500, transport: 1000, activity: 400, lab: 0, library: 200, sports: 300, technology: 400, exam: 500, development: 500, caution: 2500, total: 5900 },
+  { cls: '6th-8th', tuition: 3200, admission: 8000, annual: 4000, transport: 1200, activity: 500, lab: 500, library: 300, sports: 300, technology: 500, exam: 600, development: 600, caution: 3000, total: 7800 },
+  { cls: '9th-10th', tuition: 4000, admission: 10000, annual: 5000, transport: 1200, activity: 600, lab: 600, library: 300, sports: 400, technology: 600, exam: 800, development: 800, caution: 3500, total: 9500 },
+  { cls: '11th-12th', tuition: 5000, admission: 12000, annual: 6000, transport: 1500, activity: 800, lab: 800, library: 400, sports: 500, technology: 800, exam: 1000, development: 1000, caution: 4000, total: 12000 },
+];
+
+export const paymentModes = [
+  { key: 'cash', label: 'Cash', enabled: true },
+  { key: 'cheque', label: 'Cheque', enabled: true },
+  { key: 'upi', label: 'UPI', enabled: true },
+  { key: 'net_banking', label: 'Net Banking', enabled: true },
+  { key: 'credit_card', label: 'Credit Card', enabled: false },
+  { key: 'debit_card', label: 'Debit Card', enabled: true },
+  { key: 'dd_neft', label: 'DD / NEFT', enabled: true },
 ];
 
 export const mockRoutes = [
