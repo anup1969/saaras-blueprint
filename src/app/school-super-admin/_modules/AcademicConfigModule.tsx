@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, X, Upload, Download, Copy, CheckSquare, Square, Filter, BookOpen, FileSpreadsheet, ArrowRight, Search, Pencil, Trash2, Check, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, X, Upload, Download, Copy, CheckSquare, Square, BookOpen, ArrowRight, Search, Pencil, Trash2, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import { MasterPermissionGrid, BulkImportWizard } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
@@ -139,6 +139,36 @@ export default function AcademicConfigModule({ theme, activeTab: externalTab, on
     { startDate: '2026-05-01', endDate: '2026-06-15', name: 'Summer Vacation', type: 'School' },
   ]);
   const [academicYear, setAcademicYear] = useState({ start: '2025-04-01', end: '2026-03-31' });
+
+  // Department Master
+  const [departments, setDepartments] = useState([
+    { name: 'Pre-Primary', grades: ['Nursery', 'Jr. KG', 'Sr. KG'], color: 'bg-pink-100 text-pink-700' },
+    { name: 'Primary', grades: ['Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5'], color: 'bg-blue-100 text-blue-700' },
+    { name: 'Secondary', grades: ['Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'], color: 'bg-emerald-100 text-emerald-700' },
+    { name: 'Higher Secondary', grades: ['Grade 11', 'Grade 12'], color: 'bg-purple-100 text-purple-700' },
+  ]);
+  const [addingDepartment, setAddingDepartment] = useState(false);
+  const [newDeptName, setNewDeptName] = useState('');
+  const [editingDeptIdx, setEditingDeptIdx] = useState<number | null>(null);
+
+  // Uniform vs Separate Academic Year per department
+  const [separateAcademicYear, setSeparateAcademicYear] = useState(false);
+  const [deptAcademicYears, setDeptAcademicYears] = useState<Record<string, { start: string; end: string }>>({
+    'Pre-Primary': { start: '2025-06-01', end: '2026-04-30' },
+    'Primary': { start: '2025-04-01', end: '2026-03-31' },
+    'Secondary': { start: '2025-04-01', end: '2026-03-31' },
+    'Higher Secondary': { start: '2025-06-15', end: '2026-05-31' },
+  });
+
+  // Separate terms per department
+  const [separateTerms, setSeparateTerms] = useState(false);
+  const [deptTerms, setDeptTerms] = useState<Record<string, { name: string; start: string; end: string }[]>>({
+    'Pre-Primary': [{ name: 'Term 1', start: '2025-06-01', end: '2025-10-31' }, { name: 'Term 2', start: '2025-11-01', end: '2026-04-30' }],
+    'Primary': [{ name: 'Term 1', start: '2025-04-01', end: '2025-09-30' }, { name: 'Term 2', start: '2025-10-01', end: '2026-03-31' }],
+    'Secondary': [{ name: 'Term 1', start: '2025-04-01', end: '2025-09-30' }, { name: 'Term 2', start: '2025-10-01', end: '2026-03-31' }],
+    'Higher Secondary': [{ name: 'Sem 1', start: '2025-06-15', end: '2025-11-30' }, { name: 'Sem 2', start: '2025-12-01', end: '2026-05-31' }],
+  });
+
   const [terms, setTerms] = useState([
     { name: 'Term 1', start: '2025-04-01', end: '2025-09-30' },
     { name: 'Term 2', start: '2025-10-01', end: '2026-03-31' },
@@ -334,9 +364,6 @@ export default function AcademicConfigModule({ theme, activeTab: externalTab, on
   const [stmEditIdx, setStmEditIdx] = useState<number | null>(null);
   const [stmEditRow, setStmEditRow] = useState({ grade: '', section: '', subject: '', teacher: '', periods: '' });
 
-  // ─── Gap #67: Term-wise Scoping ───
-  const [activeTerm, setActiveTerm] = useState('Full Year');
-
   const [internalTab, setInternalTab] = useState<TabId>('structure');
   const activeTab = (externalTab as TabId) || internalTab;
   const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
@@ -345,45 +372,141 @@ export default function AcademicConfigModule({ theme, activeTab: externalTab, on
     <div className="space-y-4">
       <ModuleHeader title="Academic Configuration" subtitle="Subjects, sections, houses, holidays, and academic calendar" theme={theme} />
 
-      {/* ─── Gap #67: Term-wise Scoping + Gap #25/#27: Import/Export quick buttons ─── */}
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-2">
-          <Filter size={14} className={theme.iconColor} />
-          <span className={`text-xs font-bold ${theme.highlight}`}>Academic Term:</span>
-          {['Term 1', 'Term 2', 'Full Year'].map(t => (
-            <button key={t} onClick={() => setActiveTerm(t)}
-              className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
-                activeTerm === t ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.highlight} hover:ring-1 hover:ring-slate-300`
-              }`}>
-              {t}
-            </button>
-          ))}
-        </div>
-        <div className="flex items-center gap-2">
-          <button className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border ${theme.border} ${theme.buttonHover} text-xs font-bold ${theme.highlight}`}>
-            <Upload size={12} className={theme.iconColor} /> Import from CSV
-          </button>
-          <button className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border ${theme.border} ${theme.buttonHover} text-xs font-bold ${theme.highlight}`}>
-            <FileSpreadsheet size={12} className={theme.iconColor} /> Export as Excel
-          </button>
-        </div>
-      </div>
-
       {activeTab === 'structure' && (<div className="space-y-4">
-      <SectionCard title="Academic Year" subtitle="Set start and end dates" theme={theme}>
-        <div className="grid grid-cols-2 gap-4 mb-3">
-          <div>
-            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Start Date</p>
-            <InputField value={academicYear.start} onChange={v => setAcademicYear(p => ({ ...p, start: v }))} theme={theme} type="date" />
-          </div>
-          <div>
-            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>End Date</p>
-            <InputField value={academicYear.end} onChange={v => setAcademicYear(p => ({ ...p, end: v }))} theme={theme} type="date" />
-          </div>
+      {/* Department Master */}
+      <SectionCard title="Department Master" subtitle="Create departments and assign grades — departments define organizational structure" theme={theme}>
+        <div className="space-y-3">
+          {departments.map((dept, i) => (
+            <div key={dept.name} className={`p-3 rounded-xl border ${theme.border} ${theme.secondaryBg}`}>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold ${dept.color}`}>{dept.name}</span>
+                  <span className={`text-[9px] ${theme.iconColor}`}>{dept.grades.length} grade(s)</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => setEditingDeptIdx(editingDeptIdx === i ? null : i)}
+                    className={`text-[9px] px-2 py-1 rounded-lg ${theme.buttonHover} ${theme.iconColor} border ${theme.border}`}>
+                    {editingDeptIdx === i ? 'Done' : 'Edit Grades'}
+                  </button>
+                  <button onClick={() => setDepartments(p => p.filter((_, j) => j !== i))}
+                    className="text-[9px] px-2 py-1 rounded-lg text-red-500 hover:bg-red-50 border border-red-200">
+                    <Trash2 size={10} />
+                  </button>
+                </div>
+              </div>
+              {editingDeptIdx === i ? (
+                <div className="space-y-2">
+                  <div>
+                    <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Department Name</p>
+                    <input value={dept.name} onChange={e => { const n = [...departments]; n[i] = { ...n[i], name: e.target.value }; setDepartments(n); }}
+                      className={`w-48 px-2.5 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} />
+                  </div>
+                  <div>
+                    <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Assigned Grades (click to toggle)</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {allGrades.map(g => {
+                        const isAssigned = dept.grades.includes(g);
+                        const usedElsewhere = departments.some((d, j) => j !== i && d.grades.includes(g));
+                        return (
+                          <button key={g} onClick={() => {
+                            if (usedElsewhere && !isAssigned) return;
+                            const n = [...departments];
+                            n[i] = { ...n[i], grades: isAssigned ? n[i].grades.filter(x => x !== g) : [...n[i].grades, g] };
+                            setDepartments(n);
+                          }}
+                            className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                              isAssigned ? `${theme.primary} text-white` :
+                              usedElsewhere ? 'bg-gray-100 text-gray-300 cursor-not-allowed' :
+                              `${theme.secondaryBg} ${theme.highlight} ${theme.buttonHover}`
+                            }`}>
+                            {g}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-1">
+                  {dept.grades.map(g => (
+                    <span key={g} className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${dept.color}`}>{g}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+          {addingDepartment ? (
+            <div className={`p-3 rounded-xl border-2 border-dashed ${theme.border}`}>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>New Department Name</p>
+              <div className="flex items-center gap-2">
+                <input value={newDeptName} onChange={e => setNewDeptName(e.target.value)} placeholder="e.g., Diploma, ITI Wing"
+                  className={`px-2.5 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none w-48`} />
+                <button onClick={() => {
+                  if (newDeptName.trim()) {
+                    const colors = ['bg-amber-100 text-amber-700', 'bg-cyan-100 text-cyan-700', 'bg-rose-100 text-rose-700', 'bg-teal-100 text-teal-700'];
+                    setDepartments(p => [...p, { name: newDeptName.trim(), grades: [], color: colors[p.length % colors.length] }]);
+                    setNewDeptName(''); setAddingDepartment(false);
+                    setEditingDeptIdx(departments.length);
+                  }
+                }} className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold ${theme.primary} text-white`}>
+                  <Plus size={12} /> Add
+                </button>
+                <button onClick={() => { setAddingDepartment(false); setNewDeptName(''); }}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold ${theme.iconColor} ${theme.buttonHover}`}>Cancel</button>
+              </div>
+            </div>
+          ) : (
+            <button onClick={() => setAddingDepartment(true)}
+              className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
+              <Plus size={12} /> Add Department
+            </button>
+          )}
         </div>
-        {/* Gap #4: Copy from Previous Year */}
+      </SectionCard>
+
+      <SectionCard title="Academic Year" subtitle="Set start and end dates — uniform or per-department" theme={theme}>
+        {/* Toggle: Uniform vs Separate */}
+        <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg} mb-3`}>
+          <div>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Separate Academic Year per Department</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>Different departments can have different start/end dates</p>
+          </div>
+          <SSAToggle on={separateAcademicYear} onChange={() => setSeparateAcademicYear(!separateAcademicYear)} theme={theme} />
+        </div>
+
+        {!separateAcademicYear ? (
+          <>
+            <div className="grid grid-cols-2 gap-4 mb-3">
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Start Date</p>
+                <InputField value={academicYear.start} onChange={v => setAcademicYear(p => ({ ...p, start: v }))} theme={theme} type="date" />
+              </div>
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>End Date</p>
+                <InputField value={academicYear.end} onChange={v => setAcademicYear(p => ({ ...p, end: v }))} theme={theme} type="date" />
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="space-y-2">
+            {departments.map(dept => (
+              <div key={dept.name} className={`flex items-center gap-3 p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold ${dept.color} shrink-0 w-32 text-center`}>{dept.name}</span>
+                <div className="flex items-center gap-2 flex-1">
+                  <input type="date" value={deptAcademicYears[dept.name]?.start || ''} onChange={e => setDeptAcademicYears(p => ({ ...p, [dept.name]: { ...p[dept.name], start: e.target.value } }))}
+                    className={`px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                  <span className={`text-[10px] ${theme.iconColor}`}>to</span>
+                  <input type="date" value={deptAcademicYears[dept.name]?.end || ''} onChange={e => setDeptAcademicYears(p => ({ ...p, [dept.name]: { ...p[dept.name], end: e.target.value } }))}
+                    className={`px-2 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Copy from Previous Year */}
         <button onClick={() => setShowCopyModal(!showCopyModal)}
-          className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border ${theme.border} ${theme.buttonHover} text-xs font-bold ${theme.highlight}`}>
+          className={`mt-3 flex items-center gap-1.5 px-3 py-2 rounded-xl border ${theme.border} ${theme.buttonHover} text-xs font-bold ${theme.highlight}`}>
           <Copy size={12} /> Copy from Previous Year
         </button>
         {showCopyModal && (
@@ -407,6 +530,83 @@ export default function AcademicConfigModule({ theme, activeTab: externalTab, on
             <button className={`flex items-center gap-1.5 px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}>
               <Copy size={12} /> Start Copy
             </button>
+          </div>
+        )}
+      </SectionCard>
+
+      {/* Terms / Semesters — moved from Calendar tab */}
+      <SectionCard title="Terms / Semesters" subtitle="Define academic terms — uniform or per-department" theme={theme}>
+        {/* Toggle: Separate terms per department */}
+        <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg} mb-3`}>
+          <div>
+            <p className={`text-xs font-bold ${theme.highlight}`}>Separate Terms per Department</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>Each department can have its own term structure (e.g., semesters vs trimesters)</p>
+          </div>
+          <SSAToggle on={separateTerms} onChange={() => setSeparateTerms(!separateTerms)} theme={theme} />
+        </div>
+
+        {!separateTerms ? (
+          <>
+            <div className="space-y-2">
+              {terms.map((t, i) => {
+                const isEnabled = termEnabled[i] !== false;
+                return (
+                  <div key={i} className={`flex items-center gap-2 p-2.5 rounded-xl ${theme.secondaryBg} ${!isEnabled ? 'opacity-50' : ''}`}>
+                    <input value={t.name} onChange={e => { const n = [...terms]; n[i] = { ...n[i], name: e.target.value }; setTerms(n); }}
+                      className={`w-24 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} />
+                    <input type="date" value={t.start} onChange={e => { const n = [...terms]; n[i] = { ...n[i], start: e.target.value }; setTerms(n); }}
+                      className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                    <span className={`text-[10px] ${theme.iconColor}`}>to</span>
+                    <input type="date" value={t.end} onChange={e => { const n = [...terms]; n[i] = { ...n[i], end: e.target.value }; setTerms(n); }}
+                      className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                    <SSAToggle on={isEnabled} onChange={() => setTermEnabled(p => ({ ...p, [i]: !isEnabled }))} theme={theme} />
+                    <button onClick={() => setTerms(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><Trash2 size={12} /></button>
+                  </div>
+                );
+              })}
+            </div>
+            <button onClick={() => setTerms(p => [...p, { name: `Term ${p.length + 1}`, start: '', end: '' }])}
+              className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl mt-2`}>
+              <Plus size={12} /> Add Term
+            </button>
+          </>
+        ) : (
+          <div className="space-y-3">
+            {departments.map(dept => (
+              <div key={dept.name} className={`p-3 rounded-xl border ${theme.border}`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold ${dept.color}`}>{dept.name}</span>
+                  <span className={`text-[9px] ${theme.iconColor}`}>{(deptTerms[dept.name] || []).length} term(s)</span>
+                </div>
+                <div className="space-y-1.5">
+                  {(deptTerms[dept.name] || []).map((t, i) => (
+                    <div key={i} className={`flex items-center gap-2 p-2 rounded-lg ${theme.secondaryBg}`}>
+                      <input value={t.name} onChange={e => {
+                        setDeptTerms(p => ({ ...p, [dept.name]: p[dept.name].map((x, j) => j === i ? { ...x, name: e.target.value } : x) }));
+                      }}
+                        className={`w-20 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} />
+                      <input type="date" value={t.start} onChange={e => {
+                        setDeptTerms(p => ({ ...p, [dept.name]: p[dept.name].map((x, j) => j === i ? { ...x, start: e.target.value } : x) }));
+                      }}
+                        className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                      <span className={`text-[10px] ${theme.iconColor}`}>to</span>
+                      <input type="date" value={t.end} onChange={e => {
+                        setDeptTerms(p => ({ ...p, [dept.name]: p[dept.name].map((x, j) => j === i ? { ...x, end: e.target.value } : x) }));
+                      }}
+                        className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
+                      <button onClick={() => setDeptTerms(p => ({ ...p, [dept.name]: p[dept.name].filter((_, j) => j !== i) }))}
+                        className="text-red-400 hover:text-red-600"><Trash2 size={12} /></button>
+                    </div>
+                  ))}
+                  <button onClick={() => setDeptTerms(p => ({
+                    ...p, [dept.name]: [...(p[dept.name] || []), { name: `Term ${(p[dept.name] || []).length + 1}`, start: '', end: '' }]
+                  }))}
+                    className={`flex items-center gap-1 text-[10px] font-bold ${theme.iconColor} ${theme.buttonHover} px-2 py-1.5 rounded-lg`}>
+                    <Plus size={10} /> Add Term
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </SectionCard>
@@ -800,43 +1000,10 @@ export default function AcademicConfigModule({ theme, activeTab: externalTab, on
       </SectionCard>
 
       <div className="grid grid-cols-2 gap-4">
-        <SectionCard title="Terms / Semesters" subtitle="Define academic terms within the year" theme={theme}>
-          <TableToolbar label="Terms" count={terms.length} search={termSearch}
-            onSearch={v => { setTermSearch(v); setTermPage(1); }} onExport={() => {}} onImport={() => {}} theme={theme} />
-          {(() => {
-            const filtered = terms.map((t, i) => ({ ...t, _i: i })).filter(t => t.name.toLowerCase().includes(termSearch.toLowerCase()));
-            const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-            const safePage = Math.min(termPage, totalPages);
-            const paged = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
-            return (
-              <>
-                <div className="space-y-2">
-                  {paged.map((t) => {
-                    const i = t._i;
-                    const isEnabled = termEnabled[i] !== false;
-                    return (
-                      <div key={i} className={`flex items-center gap-2 p-2.5 rounded-xl ${theme.secondaryBg} ${!isEnabled ? 'opacity-50' : ''}`}>
-                        <input value={t.name} onChange={e => { const n = [...terms]; n[i] = { ...n[i], name: e.target.value }; setTerms(n); }}
-                          className={`w-20 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} />
-                        <input type="date" value={t.start} onChange={e => { const n = [...terms]; n[i] = { ...n[i], start: e.target.value }; setTerms(n); }}
-                          className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
-                        <span className={`text-[10px] ${theme.iconColor}`}>to</span>
-                        <input type="date" value={t.end} onChange={e => { const n = [...terms]; n[i] = { ...n[i], end: e.target.value }; setTerms(n); }}
-                          className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`} />
-                        <SSAToggle on={isEnabled} onChange={() => setTermEnabled(p => ({ ...p, [i]: !isEnabled }))} theme={theme} />
-                        <button onClick={() => setTerms(p => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><Trash2 size={12} /></button>
-                      </div>
-                    );
-                  })}
-                </div>
-                <PaginationBar page={safePage} totalPages={totalPages} onPage={setTermPage} theme={theme} />
-              </>
-            );
-          })()}
-          <button onClick={() => setTerms(p => [...p, { name: `Term ${p.length + 1}`, start: '', end: '' }])}
-            className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl mt-2`}>
-            <Plus size={12} /> Add Term
-          </button>
+        <SectionCard title="Terms / Semesters" subtitle="Term dates are now configured in the Structure tab" theme={theme}>
+          <div className={`p-3 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+            <p className={`text-xs ${theme.iconColor}`}>Term configuration has moved to <button onClick={() => setActiveTab('structure')} className={`font-bold ${theme.primaryText} hover:underline`}>Structure tab</button> for better organization with academic year and department settings.</p>
+          </div>
         </SectionCard>
 
         <SectionCard title="Academic Year History" subtitle="Past academic years and rollover status" theme={theme}>

@@ -161,6 +161,24 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
   const [emiInterest, setEmiInterest] = useState('0');
   const [emiMaxMonths, setEmiMaxMonths] = useState('12');
   const [emiAutoDebit, setEmiAutoDebit] = useState(false);
+  // NACH Configuration
+  const [nachDebitMode, setNachDebitMode] = useState<'blanket' | 'per-department'>('blanket');
+  const [nachBlanketDate, setNachBlanketDate] = useState('10');
+  const [nachDeptDates, setNachDeptDates] = useState<Record<string, string>>({
+    'Pre-Primary': '5', 'Primary': '10', 'Secondary': '10', 'Higher Secondary': '15',
+  });
+  const [nachBankName, setNachBankName] = useState('State Bank of India');
+  const [nachAccountNo, setNachAccountNo] = useState('');
+  const [nachIfsc, setNachIfsc] = useState('');
+  const [nachAccountType, setNachAccountType] = useState('Current');
+  const [nachSponsorBank, setNachSponsorBank] = useState('');
+  const [nachUtilityCode, setNachUtilityCode] = useState('');
+  const [nachMaxAmount, setNachMaxAmount] = useState('50000');
+  const [nachFrequency, setNachFrequency] = useState('Monthly');
+  const [nachMandateValidity, setNachMandateValidity] = useState('12');
+  const [nachEMandate, setNachEMandate] = useState(true);
+  const [nachAutoReminder, setNachAutoReminder] = useState(true);
+  const [nachReminderDays, setNachReminderDays] = useState('3');
   const [postDatedCheque, setPostDatedCheque] = useState(false);
   const [autoPenaltyBounce, setAutoPenaltyBounce] = useState(false);
   const [bouncePenalty, setBouncePenalty] = useState('500');
@@ -1249,7 +1267,7 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
           </div>
 
           {/* EMI / Installment Plans */}
-          <SectionCard title="EMI / Installment Plans" subtitle="Parents can pay fees in EMIs with optional interest" theme={theme}>
+          <SectionCard title="EMI / Installment Plans" subtitle="Parents can pay fees in EMIs with optional interest and auto-debit" theme={theme}>
             <div className="space-y-3">
               <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
                 <p className={`text-xs font-bold ${theme.highlight}`}>Enable EMI Plans</p>
@@ -1257,7 +1275,7 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
               </div>
               {emiEnabled && (
                 <>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-3 gap-3">
                     <div>
                       <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Interest rate (%)</p>
                       <InputField value={emiInterest} onChange={setEmiInterest} theme={theme} type="number" />
@@ -1266,11 +1284,165 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
                       <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Max EMI months</p>
                       <InputField value={emiMaxMonths} onChange={setEmiMaxMonths} theme={theme} type="number" />
                     </div>
+                    <div>
+                      <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Min down-payment (%)</p>
+                      <InputField value="20" onChange={() => {}} theme={theme} type="number" />
+                    </div>
                   </div>
+
+                  {/* Auto-debit via NACH */}
                   <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                    <p className={`text-xs font-bold ${theme.highlight}`}>Auto-debit via NACH</p>
+                    <div>
+                      <p className={`text-xs font-bold ${theme.highlight}`}>Auto-debit via NACH</p>
+                      <p className={`text-[10px] ${theme.iconColor}`}>National Automated Clearing House — recurring debit mandates</p>
+                    </div>
                     <SSAToggle on={emiAutoDebit} onChange={() => setEmiAutoDebit(!emiAutoDebit)} theme={theme} />
                   </div>
+
+                  {emiAutoDebit && (
+                    <div className={`p-4 rounded-xl border-2 ${theme.border} space-y-4`}>
+                      {/* Debit Date Configuration */}
+                      <div>
+                        <p className={`text-xs font-bold ${theme.highlight} mb-2`}>Debit Date Configuration</p>
+                        <div className="flex items-center gap-3 mb-3">
+                          <button onClick={() => setNachDebitMode('blanket')}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${nachDebitMode === 'blanket' ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.highlight} border ${theme.border}`}`}>
+                            Blanket Date (All Students)
+                          </button>
+                          <button onClick={() => setNachDebitMode('per-department')}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${nachDebitMode === 'per-department' ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.highlight} border ${theme.border}`}`}>
+                            Per Department
+                          </button>
+                        </div>
+
+                        {nachDebitMode === 'blanket' ? (
+                          <div className="flex items-center gap-3">
+                            <p className={`text-[10px] font-bold ${theme.iconColor}`}>Debit on day:</p>
+                            <select value={nachBlanketDate} onChange={e => setNachBlanketDate(e.target.value)}
+                              className={`px-3 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`}>
+                              {Array.from({ length: 28 }, (_, i) => i + 1).map(d => <option key={d} value={d.toString()}>{d}{d === 1 ? 'st' : d === 2 ? 'nd' : d === 3 ? 'rd' : 'th'} of every month</option>)}
+                            </select>
+                          </div>
+                        ) : (
+                          <div className="space-y-1.5">
+                            {Object.entries(nachDeptDates).map(([dept, day]) => (
+                              <div key={dept} className={`flex items-center gap-3 p-2 rounded-lg ${theme.secondaryBg}`}>
+                                <span className={`text-xs font-bold ${theme.highlight} w-36`}>{dept}</span>
+                                <select value={day} onChange={e => setNachDeptDates(p => ({ ...p, [dept]: e.target.value }))}
+                                  className={`px-2.5 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`}>
+                                  {Array.from({ length: 28 }, (_, i) => i + 1).map(d => <option key={d} value={d.toString()}>{d}{d === 1 ? 'st' : d === 2 ? 'nd' : d === 3 ? 'rd' : 'th'} of every month</option>)}
+                                </select>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* School Bank Account (for mandate) */}
+                      <div>
+                        <p className={`text-xs font-bold ${theme.highlight} mb-2`}>School Bank Account (Mandate Destination)</p>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Bank Name</p>
+                            <InputField value={nachBankName} onChange={setNachBankName} theme={theme} placeholder="e.g., State Bank of India" />
+                          </div>
+                          <div>
+                            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Account Number</p>
+                            <InputField value={nachAccountNo} onChange={setNachAccountNo} theme={theme} placeholder="Enter account number" />
+                          </div>
+                          <div>
+                            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>IFSC Code</p>
+                            <InputField value={nachIfsc} onChange={setNachIfsc} theme={theme} placeholder="e.g., SBIN0001234" />
+                          </div>
+                          <div>
+                            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Account Type</p>
+                            <select value={nachAccountType} onChange={e => setNachAccountType(e.target.value)}
+                              className={`w-full px-2.5 py-2 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`}>
+                              <option>Current</option>
+                              <option>Savings</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* NACH Mandate Configuration */}
+                      <div>
+                        <p className={`text-xs font-bold ${theme.highlight} mb-2`}>NACH Mandate Configuration</p>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Sponsor Bank</p>
+                            <InputField value={nachSponsorBank} onChange={setNachSponsorBank} theme={theme} placeholder="Bank facilitating NACH" />
+                            <p className={`text-[9px] ${theme.iconColor} mt-0.5`}>The bank through which NACH mandates are routed</p>
+                          </div>
+                          <div>
+                            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Utility Code (NACH)</p>
+                            <InputField value={nachUtilityCode} onChange={setNachUtilityCode} theme={theme} placeholder="e.g., NACH00000000123456" />
+                            <p className={`text-[9px] ${theme.iconColor} mt-0.5`}>Issued by NPCI for the school as a biller</p>
+                          </div>
+                          <div>
+                            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Max Mandate Amount ({'\u20B9'})</p>
+                            <InputField value={nachMaxAmount} onChange={setNachMaxAmount} theme={theme} type="number" />
+                            <p className={`text-[9px] ${theme.iconColor} mt-0.5`}>Max amount per debit cycle (recommended: highest annual fee)</p>
+                          </div>
+                          <div>
+                            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Debit Frequency</p>
+                            <select value={nachFrequency} onChange={e => setNachFrequency(e.target.value)}
+                              className={`w-full px-2.5 py-2 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`}>
+                              <option>Monthly</option>
+                              <option>Quarterly</option>
+                              <option>Half-Yearly</option>
+                              <option>As Presented</option>
+                            </select>
+                          </div>
+                          <div>
+                            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Mandate Validity (months)</p>
+                            <InputField value={nachMandateValidity} onChange={setNachMandateValidity} theme={theme} type="number" />
+                            <p className={`text-[9px] ${theme.iconColor} mt-0.5`}>How long the mandate stays active (typically 12 months = 1 academic year)</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* eMandate & Notifications */}
+                      <div>
+                        <p className={`text-xs font-bold ${theme.highlight} mb-2`}>eMandate & Notifications</p>
+                        <div className="space-y-2">
+                          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                            <div>
+                              <p className={`text-xs font-bold ${theme.highlight}`}>Enable eMandate (Aadhaar / Netbanking)</p>
+                              <p className={`text-[10px] ${theme.iconColor}`}>Parents can sign mandates digitally via Aadhaar OTP or net banking</p>
+                            </div>
+                            <SSAToggle on={nachEMandate} onChange={() => setNachEMandate(!nachEMandate)} theme={theme} />
+                          </div>
+                          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                            <div>
+                              <p className={`text-xs font-bold ${theme.highlight}`}>Auto-reminder before debit</p>
+                              <p className={`text-[10px] ${theme.iconColor}`}>Notify parents via SMS/WhatsApp before each auto-debit</p>
+                            </div>
+                            <SSAToggle on={nachAutoReminder} onChange={() => setNachAutoReminder(!nachAutoReminder)} theme={theme} />
+                          </div>
+                          {nachAutoReminder && (
+                            <div className="flex items-center gap-3 pl-4">
+                              <p className={`text-[10px] font-bold ${theme.iconColor}`}>Remind</p>
+                              <select value={nachReminderDays} onChange={e => setNachReminderDays(e.target.value)}
+                                className={`px-2.5 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight}`}>
+                                <option value="1">1 day</option>
+                                <option value="2">2 days</option>
+                                <option value="3">3 days</option>
+                                <option value="5">5 days</option>
+                                <option value="7">7 days</option>
+                              </select>
+                              <p className={`text-[10px] ${theme.iconColor}`}>before debit date</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Info box */}
+                      <div className="p-2.5 rounded-lg bg-blue-50 border border-blue-200">
+                        <p className="text-[9px] text-blue-700"><span className="font-bold">NACH Setup Checklist:</span> (1) Register with NPCI as biller via sponsor bank (2) Obtain Utility Code (3) Configure school bank account above (4) Send eMandate links to parents (5) After mandate activation, auto-debits will process on the configured dates.</p>
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
             </div>
