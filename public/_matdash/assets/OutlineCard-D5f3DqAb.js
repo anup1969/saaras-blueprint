@@ -1,0 +1,1 @@
+import{r as t,C as e,j as a}from"./index-BoNr0JGX.js";import{C as d}from"./card-vkvqasdW.js";const n=({children:r,className:o})=>{const{isCardShadow:s}=t.useContext(e);return a.jsx(d,{className:`card ${o}  border border-ld `,children:r})};export{n as O};
