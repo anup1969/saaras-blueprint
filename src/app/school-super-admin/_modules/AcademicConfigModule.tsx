@@ -202,6 +202,8 @@ export default function AcademicConfigModule({ theme, activeTab: externalTab, on
     'Every Saturday (2nd & 4th)': true,
     'Every Saturday (all)': false,
   });
+  const [recurringHolidayScope, setRecurringHolidayScope] = useState<'uniform' | 'per-department' | 'per-grade'>('uniform');
+  const [deptRecurringHolidays, setDeptRecurringHolidays] = useState<Record<string, Record<string, boolean>>>({});
   const [religions, setReligions] = useState<Record<string, boolean>>({
     'Hindu': true, 'Muslim': true, 'Christian': true, 'Sikh': true,
     'Buddhist': true, 'Jain': true, 'Parsi': true, 'Other': true,
@@ -1145,16 +1147,97 @@ export default function AcademicConfigModule({ theme, activeTab: externalTab, on
         </div>
       </SectionCard>
 
-      <SectionCard title="Recurring Holidays" subtitle="Weekly off-days and working day summary" theme={theme}>
-        <div className="space-y-2 mb-3">
-          {Object.entries(recurringHolidays).map(([day, enabled]) => (
-            <div key={day} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <span className={`text-xs font-bold ${theme.highlight}`}>{day}</span>
-              <SSAToggle on={enabled} onChange={() => setRecurringHolidays(p => ({ ...p, [day]: !p[day] }))} theme={theme} />
-            </div>
+      <SectionCard title="Recurring Holidays" subtitle="Weekly off-days — uniform or per department/grade" theme={theme}>
+        {/* Scope toggle */}
+        <div className={`flex items-center gap-2 p-2.5 rounded-xl ${theme.secondaryBg} mb-3`}>
+          <span className={`text-[10px] font-bold ${theme.iconColor}`}>Weekly off scope:</span>
+          {(['uniform', 'per-department', 'per-grade'] as const).map(scope => (
+            <button key={scope} onClick={() => setRecurringHolidayScope(scope)}
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
+                recurringHolidayScope === scope ? `${theme.primary} text-white` : `${theme.cardBg} border ${theme.border} ${theme.highlight} ${theme.buttonHover}`
+              }`}>
+              {scope === 'uniform' ? 'Uniform (All)' : scope === 'per-department' ? 'Per Department' : 'Per Grade'}
+            </button>
           ))}
         </div>
-        <div className={`p-3 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+
+        {recurringHolidayScope === 'uniform' && (
+          <>
+            <div className="space-y-2 mb-3">
+              {Object.entries(recurringHolidays).map(([day, enabled]) => (
+                <div key={day} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                  <span className={`text-xs font-bold ${theme.highlight}`}>{day}</span>
+                  <SSAToggle on={enabled} onChange={() => setRecurringHolidays(p => ({ ...p, [day]: !p[day] }))} theme={theme} />
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {recurringHolidayScope === 'per-department' && (
+          <div className="space-y-3">
+            {departments.map(dept => (
+              <div key={dept.name} className={`p-3 rounded-xl border ${theme.border}`}>
+                <p className={`text-[10px] font-bold mb-2`}><span className={`px-2 py-0.5 rounded-lg ${dept.color}`}>{dept.name}</span></p>
+                <div className="space-y-1.5">
+                  {Object.keys(recurringHolidays).map(day => {
+                    const isOn = deptRecurringHolidays[dept.name]?.[day] ?? recurringHolidays[day];
+                    return (
+                      <div key={day} className={`flex items-center justify-between p-2 rounded-lg ${theme.secondaryBg}`}>
+                        <span className={`text-[10px] font-bold ${theme.highlight}`}>{day}</span>
+                        <SSAToggle on={isOn} onChange={() => setDeptRecurringHolidays(p => ({
+                          ...p, [dept.name]: { ...(p[dept.name] || {}), [day]: !isOn }
+                        }))} theme={theme} />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {recurringHolidayScope === 'per-grade' && (
+          <div className="space-y-2">
+            <p className={`text-[10px] ${theme.iconColor} mb-2`}>Configure weekly offs for each grade. Inherits from department setting if not customized.</p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead><tr className={theme.secondaryBg}>
+                  <th className={`text-left px-2 py-2 font-bold ${theme.iconColor} sticky left-0 ${theme.secondaryBg}`}>Grade</th>
+                  {Object.keys(recurringHolidays).map(day => (
+                    <th key={day} className={`text-center px-2 py-2 font-bold ${theme.iconColor} text-[9px]`}>{day.replace('Every ', '')}</th>
+                  ))}
+                </tr></thead>
+                <tbody>
+                  {allGrades.map(grade => {
+                    const dept = departments.find(d => d.grades.includes(grade));
+                    return (
+                      <tr key={grade} className={`border-t ${theme.border}`}>
+                        <td className={`px-2 py-1.5 font-bold ${theme.highlight} sticky left-0 ${theme.cardBg} text-[10px] whitespace-nowrap`}>
+                          {grade}
+                          {dept && <span className={`ml-1 text-[8px] ${dept.color} px-1 py-0.5 rounded`}>{dept.name.substring(0, 3)}</span>}
+                        </td>
+                        {Object.keys(recurringHolidays).map(day => {
+                          const isOn = deptRecurringHolidays[`grade:${grade}`]?.[day] ?? deptRecurringHolidays[dept?.name || '']?.[day] ?? recurringHolidays[day];
+                          return (
+                            <td key={day} className="px-2 py-1.5 text-center">
+                              <SSAToggle on={isOn} onChange={() => setDeptRecurringHolidays(p => ({
+                                ...p, [`grade:${grade}`]: { ...(p[`grade:${grade}`] || {}), [day]: !isOn }
+                              }))} theme={theme} />
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Working Days Calculator */}
+        <div className={`p-3 rounded-xl ${theme.accentBg} border ${theme.border} mt-3`}>
           <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Working Days Calculator</p>
           <div className="flex gap-4">
             <span className={`text-xs ${theme.highlight}`}>Total days: <strong>365</strong></span>
@@ -1164,30 +1247,6 @@ export default function AcademicConfigModule({ theme, activeTab: externalTab, on
         </div>
       </SectionCard>
 
-      <div className="grid grid-cols-2 gap-4">
-        <SectionCard title="Terms / Semesters" subtitle="Term dates are now configured in the Structure tab" theme={theme}>
-          <div className={`p-3 rounded-xl ${theme.accentBg} border ${theme.border}`}>
-            <p className={`text-xs ${theme.iconColor}`}>Term configuration has moved to <button onClick={() => setActiveTab('structure')} className={`font-bold ${theme.primaryText} hover:underline`}>Structure tab</button> for better organization with academic year and department settings.</p>
-          </div>
-        </SectionCard>
-
-        <SectionCard title="Academic Year History" subtitle="Past academic years and rollover status" theme={theme}>
-          <div className="space-y-1.5">
-            {academicHistory.map((y, i) => (
-              <div key={i} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <span className={`text-xs font-bold ${theme.highlight}`}>{y.year}</span>
-                <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold ${
-                  y.status === 'Current' ? 'bg-emerald-100 text-emerald-700' : y.status === 'Completed' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500'
-                }`}>{y.status}</span>
-                <span className={`text-xs ${theme.iconColor}`}>{y.students} students</span>
-              </div>
-            ))}
-          </div>
-          <div className={`mt-3 p-2.5 rounded-xl bg-emerald-50 border border-emerald-200`}>
-            <p className="text-[10px] font-bold text-emerald-700">Year Rollover: Ready for 2026-27</p>
-          </div>
-        </SectionCard>
-      </div>
       </div>)}
 
       {activeTab === 'rules' && (<div className="space-y-4">
@@ -1676,36 +1735,29 @@ export default function AcademicConfigModule({ theme, activeTab: externalTab, on
       </div>)}
 
       {activeTab === 'rules' && (<div className="space-y-4">
-      <SectionCard title="GPA & Credit System (Higher Secondary)" subtitle="Credit-based grading configuration for Class 11-12" theme={theme}>
-        <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg} mb-3`}>
-          <div>
-            <p className={`text-xs font-bold ${theme.highlight}`}>Enable Credit-Based Grading</p>
-            <p className={`text-[10px] ${theme.iconColor}`}>Assigns credit points and weightage per subject for GPA calculation</p>
+      <SectionCard title="GPA & Credit System (Higher Secondary)" subtitle="Credit-based grading configuration" theme={theme}>
+        <div className="relative">
+          <div className="absolute -top-1 right-0 z-10">
+            <span className="px-3 py-1 rounded-full bg-purple-100 border border-purple-300 text-[10px] font-bold text-purple-700">PHASE 2</span>
           </div>
-          <SSAToggle on={enableCreditGrading} onChange={() => setEnableCreditGrading(!enableCreditGrading)} theme={theme} />
+          <div className="opacity-40 pointer-events-none">
+            <p className={`text-xs ${theme.iconColor}`}>Credit-based grading, GPA calculation, and weighted subject scoring for Class 11-12 will be available in Phase 2.</p>
+            <div className={`mt-2 grid grid-cols-3 gap-2`}>
+              <div className={`p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <p className={`text-[10px] font-bold ${theme.iconColor}`}>GPA Scale</p>
+                <p className={`text-xs font-bold ${theme.highlight}`}>10-point</p>
+              </div>
+              <div className={`p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <p className={`text-[10px] font-bold ${theme.iconColor}`}>Credit Hours</p>
+                <p className={`text-xs font-bold ${theme.highlight}`}>Per subject</p>
+              </div>
+              <div className={`p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                <p className={`text-[10px] font-bold ${theme.iconColor}`}>Weighted GPA</p>
+                <p className={`text-xs font-bold ${theme.highlight}`}>Configurable</p>
+              </div>
+            </div>
+          </div>
         </div>
-        {enableCreditGrading && (
-          <div className="overflow-x-auto">
-            <p className={`text-[10px] font-bold ${theme.iconColor} mb-2 uppercase tracking-wide`}>Class 11 — Science Stream</p>
-            <table className="w-full text-xs">
-              <thead><tr className={theme.secondaryBg}>
-                {['Subject', 'Credits', 'Weightage', 'Max Marks'].map(h => (
-                  <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
-                ))}
-              </tr></thead>
-              <tbody>
-                {creditData.map((c, i) => (
-                  <tr key={i} className={`border-t ${theme.border}`}>
-                    <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{c.subject}</td>
-                    <td className={`px-3 py-2 ${theme.iconColor}`}>{c.credits}</td>
-                    <td className={`px-3 py-2 ${theme.iconColor}`}>{c.weightage}</td>
-                    <td className={`px-3 py-2 ${theme.iconColor}`}>{c.maxMarks}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
       </SectionCard>
       </div>)}
 
@@ -1755,10 +1807,9 @@ export default function AcademicConfigModule({ theme, activeTab: externalTab, on
       </div>)}
 
       {activeTab === 'settings' && (<div className="space-y-4">
-      <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
-        <div className="space-y-4">
-          <MasterPermissionGrid masterName="Subjects" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
-          <MasterPermissionGrid masterName="Classes & Sections" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+      <SectionCard title="Role-Based Permissions" subtitle="Moved to Roles & Permission module" theme={theme}>
+        <div className={`p-3 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+          <p className={`text-xs ${theme.iconColor}`}>Role-based permissions for Academic Config have moved to the <span className={`font-bold ${theme.primaryText}`}>Roles & Permission Management</span> module in the sidebar. All module-level RBAC is centralized there.</p>
         </div>
       </SectionCard>
 
