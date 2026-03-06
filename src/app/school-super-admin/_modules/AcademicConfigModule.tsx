@@ -371,6 +371,7 @@ export default function AcademicConfigModule({ theme, activeTab: externalTab, on
   // Holiday scope (uniform / per-department / per-grade)
   const [holidayScope, setHolidayScope] = useState<'uniform' | 'per-department' | 'per-grade'>('uniform');
   const [deptHolidays, setDeptHolidays] = useState<Record<string, { startDate: string; endDate: string; name: string; type: string }[]>>({});
+  const [gradeHolidays, setGradeHolidays] = useState<Record<string, { startDate: string; endDate: string; name: string; type: string }[]>>({});
   // Terms master
   const [termSearch, setTermSearch] = useState('');
   const [termPage, setTermPage] = useState(1);
@@ -1089,7 +1090,43 @@ export default function AcademicConfigModule({ theme, activeTab: externalTab, on
         )}
         {holidayScope === 'per-grade' && (
           <div className={`p-3 rounded-xl bg-purple-50 border border-purple-200 mb-3`}>
-            <p className="text-[10px] text-purple-700"><span className="font-bold">Per-Grade Mode:</span> Common holidays (below) apply to all. You can add grade-specific holidays (e.g., preschool sports day, Grade 12 board prep leave) using the &quot;type&quot; column — select &quot;School-specific&quot; and note the grade in the holiday name.</p>
+            <p className="text-[10px] text-purple-700 mb-2"><span className="font-bold">Per-Grade Mode:</span> Common holidays (below) apply to all. Each grade can have additional holidays (e.g., preschool sports day, Grade 12 board prep leave).</p>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {allGrades.map(grade => {
+                const dept = departments.find(d => d.grades.includes(grade));
+                return (
+                  <div key={grade} className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg ${theme.secondaryBg} border ${theme.border}`}>
+                    <span className={`text-[10px] font-bold ${theme.highlight}`}>{grade}</span>
+                    {dept && <span className={`text-[8px] ${dept.color} px-1 py-0.5 rounded`}>{dept.name.substring(0, 3)}</span>}
+                    <span className={`text-[9px] ${theme.iconColor}`}>{(gradeHolidays[grade] || []).length} extra</span>
+                    <button onClick={() => setGradeHolidays(p => ({ ...p, [grade]: [...(p[grade] || []), { startDate: '', endDate: '', name: '', type: 'School-specific' }] }))}
+                      className={`text-[10px] ${theme.iconColor} hover:text-green-600`}><Plus size={10} /></button>
+                  </div>
+                );
+              })}
+            </div>
+            {Object.entries(gradeHolidays).some(([, h]) => h.length > 0) && (
+              <div className="space-y-1 mt-2">
+                {Object.entries(gradeHolidays).map(([grade, hols]) => hols.map((h, i) => (
+                  <div key={`${grade}-${i}`} className={`flex items-center gap-2 p-2 rounded-lg ${theme.cardBg} border ${theme.border}`}>
+                    <span className={`text-[9px] font-bold ${theme.iconColor} w-20 shrink-0`}>{grade}</span>
+                    <input type="date" value={h.startDate} onChange={e => setGradeHolidays(p => ({ ...p, [grade]: p[grade].map((x, j) => j === i ? { ...x, startDate: e.target.value } : x) }))}
+                      className={`w-[110px] px-1.5 py-0.5 rounded border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight} outline-none`} />
+                    <span className={`text-[9px] ${theme.iconColor}`}>to</span>
+                    <input type="date" value={h.endDate} onChange={e => setGradeHolidays(p => ({ ...p, [grade]: p[grade].map((x, j) => j === i ? { ...x, endDate: e.target.value } : x) }))}
+                      className={`w-[110px] px-1.5 py-0.5 rounded border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight} outline-none`} />
+                    <input value={h.name} onChange={e => setGradeHolidays(p => ({ ...p, [grade]: p[grade].map((x, j) => j === i ? { ...x, name: e.target.value } : x) }))}
+                      placeholder="Holiday name" className={`flex-1 px-1.5 py-0.5 rounded border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight} outline-none`} />
+                    <select value={h.type} onChange={e => setGradeHolidays(p => ({ ...p, [grade]: p[grade].map((x, j) => j === i ? { ...x, type: e.target.value } : x) }))}
+                      className={`px-1.5 py-0.5 rounded border ${theme.border} ${theme.inputBg} text-[9px] font-bold ${theme.highlight}`}>
+                      <option value="School-specific">School-specific</option><option value="Weather/Emergency">Weather/Emergency</option><option value="Other">Other</option>
+                    </select>
+                    <button onClick={() => setGradeHolidays(p => ({ ...p, [grade]: p[grade].filter((_, j) => j !== i) }))}
+                      className="text-red-400 hover:text-red-600"><Trash2 size={10} /></button>
+                  </div>
+                )))}
+              </div>
+            )}
           </div>
         )}
         <TableToolbar label="Holidays" count={holidays.length} search={holidaySearch}
