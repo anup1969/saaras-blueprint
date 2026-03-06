@@ -72,9 +72,28 @@ type TabId = 'structure' | 'subjects' | 'calendar' | 'rules' | 'settings';
 
 export default function AcademicConfigModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
   const [preschoolEnabled, setPreschoolEnabled] = useState(true);
-  const allGrades = preschoolEnabled
-    ? ['Nursery', 'Jr. KG', 'Sr. KG', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12']
-    : ['Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'];
+  const [gradeMaster, setGradeMaster] = useState([
+    { name: 'Nursery', hasStreams: false, preschool: true },
+    { name: 'Jr. KG', hasStreams: false, preschool: true },
+    { name: 'Sr. KG', hasStreams: false, preschool: true },
+    { name: 'Grade 1', hasStreams: false, preschool: false },
+    { name: 'Grade 2', hasStreams: false, preschool: false },
+    { name: 'Grade 3', hasStreams: false, preschool: false },
+    { name: 'Grade 4', hasStreams: false, preschool: false },
+    { name: 'Grade 5', hasStreams: false, preschool: false },
+    { name: 'Grade 6', hasStreams: false, preschool: false },
+    { name: 'Grade 7', hasStreams: false, preschool: false },
+    { name: 'Grade 8', hasStreams: false, preschool: false },
+    { name: 'Grade 9', hasStreams: false, preschool: false },
+    { name: 'Grade 10', hasStreams: false, preschool: false },
+    { name: 'Grade 11', hasStreams: true, preschool: false },
+    { name: 'Grade 12', hasStreams: true, preschool: false },
+  ]);
+  const [addingGrade, setAddingGrade] = useState(false);
+  const [newGradeName, setNewGradeName] = useState('');
+  const allGrades = gradeMaster
+    .filter(g => !g.preschool || preschoolEnabled)
+    .map(g => g.name);
   const [subjects, setSubjects] = useState<Record<string, string[]>>({
     'Nursery': ['English', 'Hindi', 'EVS', 'Art', 'Music', 'Physical Ed.'],
     'Jr. KG': ['English', 'Hindi', 'Mathematics', 'EVS', 'Art', 'Music', 'Physical Ed.'],
@@ -311,6 +330,13 @@ export default function AcademicConfigModule({ theme, activeTab: externalTab, on
     { name: 'Humanities', core: 'Sociology, Psychology, English', optional: 'History, Political Science, Economics', maxSeats: '30' },
   ]);
 
+  const sectionGrades = gradeMaster
+    .filter(g => !g.preschool || preschoolEnabled)
+    .flatMap(g => g.hasStreams && streamConfig.length > 0
+      ? streamConfig.map(s => `${g.name} (${s.name})`)
+      : [g.name]
+    );
+
   // ─── Gap #83: Promotion Rules ───
   const [promotionRules, setPromotionRules] = useState({
     minAttendance: '75',
@@ -340,6 +366,9 @@ export default function AcademicConfigModule({ theme, activeTab: externalTab, on
   const [holidayEnabled, setHolidayEnabled] = useState<Record<number, boolean>>(() => {
     const m: Record<number, boolean> = {}; for (let i = 0; i < 20; i++) m[i] = true; return m;
   });
+  // Holiday scope (uniform / per-department / per-grade)
+  const [holidayScope, setHolidayScope] = useState<'uniform' | 'per-department' | 'per-grade'>('uniform');
+  const [deptHolidays, setDeptHolidays] = useState<Record<string, { startDate: string; endDate: string; name: string; type: string }[]>>({});
   // Terms master
   const [termSearch, setTermSearch] = useState('');
   const [termPage, setTermPage] = useState(1);
@@ -610,6 +639,87 @@ export default function AcademicConfigModule({ theme, activeTab: externalTab, on
           </div>
         )}
       </SectionCard>
+
+      {/* Grade Master */}
+      <SectionCard title="Grade Master" subtitle="Create, rename, and manage grades — link streams to higher secondary grades" theme={theme}>
+        <div className="space-y-3">
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead><tr className={theme.secondaryBg}>
+                {['#', 'Grade Name', 'Department', 'Streams', 'Actions'].map(h => (
+                  <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
+                ))}
+              </tr></thead>
+              <tbody>
+                {gradeMaster.filter(g => !g.preschool || preschoolEnabled).map((g, idx) => {
+                  const dept = departments.find(d => d.grades.includes(g.name));
+                  return (
+                    <tr key={g.name} className={`border-t ${theme.border}`}>
+                      <td className={`px-3 py-2 ${theme.iconColor}`}>{idx + 1}</td>
+                      <td className="px-3 py-2">
+                        <input value={g.name} onChange={e => {
+                          const oldName = g.name;
+                          const newName = e.target.value;
+                          setGradeMaster(p => p.map(x => x.name === oldName ? { ...x, name: newName } : x));
+                          setDepartments(p => p.map(d => ({ ...d, grades: d.grades.map(gr => gr === oldName ? newName : gr) })));
+                        }}
+                          className={`w-32 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`} />
+                      </td>
+                      <td className="px-3 py-2">
+                        {dept ? <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${dept.color}`}>{dept.name}</span> : <span className={`text-[9px] ${theme.iconColor}`}>Unassigned</span>}
+                      </td>
+                      <td className="px-3 py-2">
+                        <div className="flex items-center gap-2">
+                          <SSAToggle on={g.hasStreams} onChange={() => setGradeMaster(p => p.map(x => x.name === g.name ? { ...x, hasStreams: !x.hasStreams } : x))} theme={theme} />
+                          {g.hasStreams && (
+                            <span className={`text-[9px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 font-bold`}>
+                              {streamConfig.map(s => s.name).join(', ')}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-3 py-2">
+                        <button onClick={() => {
+                          setGradeMaster(p => p.filter(x => x.name !== g.name));
+                          setDepartments(p => p.map(d => ({ ...d, grades: d.grades.filter(gr => gr !== g.name) })));
+                        }} className="text-red-400 hover:text-red-600"><Trash2 size={12} /></button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {addingGrade ? (
+            <div className={`p-3 rounded-xl border-2 border-dashed ${theme.border}`}>
+              <div className="flex items-center gap-2">
+                <input value={newGradeName} onChange={e => setNewGradeName(e.target.value)} placeholder="e.g., Grade 13, Diploma Year 1"
+                  className={`px-2.5 py-1.5 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none w-48`} />
+                <button onClick={() => {
+                  if (newGradeName.trim()) {
+                    setGradeMaster(p => [...p, { name: newGradeName.trim(), hasStreams: false, preschool: false }]);
+                    setNewGradeName(''); setAddingGrade(false);
+                  }
+                }} className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold ${theme.primary} text-white`}>
+                  <Plus size={12} /> Add
+                </button>
+                <button onClick={() => { setAddingGrade(false); setNewGradeName(''); }}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold ${theme.iconColor} ${theme.buttonHover}`}>Cancel</button>
+              </div>
+            </div>
+          ) : (
+            <button onClick={() => setAddingGrade(true)}
+              className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
+              <Plus size={12} /> Add Grade
+            </button>
+          )}
+
+          <div className={`p-2 rounded-lg bg-blue-50 border border-blue-200`}>
+            <p className="text-[9px] text-blue-700"><span className="font-bold">Stream-enabled grades</span> (toggle ON) will auto-split in Section Configuration below. E.g., &quot;Grade 11&quot; becomes &quot;Grade 11 (Science)&quot;, &quot;Grade 11 (Commerce)&quot;, &quot;Grade 11 (Arts)&quot;.</p>
+          </div>
+        </div>
+      </SectionCard>
       </div>)}
 
       {activeTab === 'subjects' && (<div className="space-y-4">
@@ -780,7 +890,7 @@ export default function AcademicConfigModule({ theme, activeTab: externalTab, on
         {/* Per-grade section assignment */}
         <p className={`text-[10px] font-bold ${theme.iconColor} mb-2 uppercase tracking-wide`}>Assign sections per grade (toggle which sections are active)</p>
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
-          {allGrades.map(grade => {
+          {sectionGrades.map(grade => {
             const gradeSecs = sections[grade] || [];
             return (
               <div key={grade} className={`p-2.5 rounded-xl ${theme.secondaryBg}`}>
@@ -925,6 +1035,61 @@ export default function AcademicConfigModule({ theme, activeTab: externalTab, on
 
       {activeTab === 'calendar' && (<div className="space-y-4">
       <SectionCard title="Holiday Calendar" subtitle="School holidays, vacations & observances — supports single-day holidays and multi-day vacation ranges" theme={theme}>
+        {/* Holiday Scope Toggle */}
+        <div className={`flex items-center gap-2 p-2.5 rounded-xl ${theme.secondaryBg} mb-3`}>
+          <span className={`text-[10px] font-bold ${theme.iconColor}`}>Holiday scope:</span>
+          {(['uniform', 'per-department', 'per-grade'] as const).map(scope => (
+            <button key={scope} onClick={() => setHolidayScope(scope)}
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
+                holidayScope === scope ? `${theme.primary} text-white` : `${theme.cardBg} border ${theme.border} ${theme.highlight} ${theme.buttonHover}`
+              }`}>
+              {scope === 'uniform' ? 'Uniform (All)' : scope === 'per-department' ? 'Per Department' : 'Per Grade'}
+            </button>
+          ))}
+        </div>
+        {holidayScope === 'uniform' && <p className={`text-[10px] ${theme.iconColor} mb-2`}>These holidays apply to ALL departments and grades.</p>}
+        {holidayScope === 'per-department' && (
+          <div className={`p-3 rounded-xl bg-blue-50 border border-blue-200 mb-3`}>
+            <p className="text-[10px] text-blue-700 mb-2"><span className="font-bold">Per-Department Mode:</span> Common holidays (below) apply to all. Each department can have additional holidays.</p>
+            <div className="space-y-2">
+              {departments.map(dept => (
+                <div key={dept.name} className="flex items-center justify-between">
+                  <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold ${dept.color}`}>{dept.name}</span>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-[9px] ${theme.iconColor}`}>{(deptHolidays[dept.name] || []).length} extra holidays</span>
+                    <button onClick={() => setDeptHolidays(p => ({ ...p, [dept.name]: [...(p[dept.name] || []), { startDate: '', endDate: '', name: '', type: 'School-specific' }] }))}
+                      className={`flex items-center gap-1 text-[9px] font-bold ${theme.primaryText} ${theme.buttonHover} px-2 py-1 rounded-lg`}>
+                      <Plus size={10} /> Add
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {Object.entries(deptHolidays).some(([, h]) => h.length > 0) && (
+              <div className="mt-2 space-y-1">
+                {Object.entries(deptHolidays).map(([dept, hols]) => hols.map((h, i) => (
+                  <div key={`${dept}-${i}`} className={`flex items-center gap-2 p-1.5 rounded-lg ${theme.secondaryBg}`}>
+                    <span className={`text-[9px] font-bold ${theme.iconColor} w-28 shrink-0`}>{dept}:</span>
+                    <input type="date" value={h.startDate} onChange={e => setDeptHolidays(p => ({ ...p, [dept]: p[dept].map((x, j) => j === i ? { ...x, startDate: e.target.value } : x) }))}
+                      className={`w-[100px] px-1 py-0.5 rounded border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight} outline-none`} />
+                    <span className={`text-[9px] ${theme.iconColor}`}>to</span>
+                    <input type="date" value={h.endDate} onChange={e => setDeptHolidays(p => ({ ...p, [dept]: p[dept].map((x, j) => j === i ? { ...x, endDate: e.target.value } : x) }))}
+                      className={`w-[100px] px-1 py-0.5 rounded border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight} outline-none`} />
+                    <input value={h.name} onChange={e => setDeptHolidays(p => ({ ...p, [dept]: p[dept].map((x, j) => j === i ? { ...x, name: e.target.value } : x) }))}
+                      placeholder="Holiday name" className={`flex-1 px-1.5 py-0.5 rounded border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight} outline-none`} />
+                    <button onClick={() => setDeptHolidays(p => ({ ...p, [dept]: p[dept].filter((_, j) => j !== i) }))}
+                      className="text-red-400 hover:text-red-600"><Trash2 size={10} /></button>
+                  </div>
+                )))}
+              </div>
+            )}
+          </div>
+        )}
+        {holidayScope === 'per-grade' && (
+          <div className={`p-3 rounded-xl bg-purple-50 border border-purple-200 mb-3`}>
+            <p className="text-[10px] text-purple-700"><span className="font-bold">Per-Grade Mode:</span> Common holidays (below) apply to all. You can add grade-specific holidays (e.g., preschool sports day, Grade 12 board prep leave) using the &quot;type&quot; column — select &quot;School-specific&quot; and note the grade in the holiday name.</p>
+          </div>
+        )}
         <TableToolbar label="Holidays" count={holidays.length} search={holidaySearch}
           onSearch={v => { setHolidaySearch(v); setHolidayPage(1); }} onExport={() => {}} onImport={() => {}} theme={theme} />
         {(() => {
@@ -1253,42 +1418,32 @@ export default function AcademicConfigModule({ theme, activeTab: externalTab, on
       </SectionCard>
 
       {/* ─── Gap #12/#23: Max Strength + Admission Status per Grade ─── */}
-      <SectionCard title="Grade Strength & Admission Status" subtitle="Maximum strength per section, current fill, and admission open/closed toggle" theme={theme}>
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead><tr className={theme.secondaryBg}>
-              {['Grade', 'Max Strength', 'Current', 'Available', 'Admission Status'].map(h => (
-                <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor}`}>{h}</th>
+      <SectionCard title="Grade Strength & Admission Status" subtitle="Assign this report to dashboard(s) — not an SSA-level config" theme={theme}>
+        <div className="space-y-3">
+          <div className={`p-2.5 rounded-xl bg-amber-50 border border-amber-200`}>
+            <p className="text-[10px] text-amber-700"><span className="font-bold">Note:</span> This is a report, not a configuration. SSA can assign which dashboard(s) display this report.</p>
+          </div>
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Show &quot;Grade Strength &amp; Admission Status&quot; on:</p>
+            <div className="space-y-1.5">
+              {[
+                { role: 'Principal', default: true },
+                { role: 'School Admin', default: false },
+                { role: 'Trustee', default: false },
+                { role: 'Vice Principal', default: false },
+                { role: 'HR Manager', default: false },
+              ].map(r => (
+                <div key={r.role} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-xs font-bold ${theme.highlight}`}>{r.role}</span>
+                    {r.default && <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold">DEFAULT</span>}
+                  </div>
+                  <SSAToggle on={r.default} onChange={() => {}} theme={theme} />
+                </div>
               ))}
-            </tr></thead>
-            <tbody>
-              {Object.entries(gradeAdmission).map(([grade, data]) => {
-                const available = Math.max(0, parseInt(data.maxStrength || '0') - data.current);
-                return (
-                  <tr key={grade} className={`border-t ${theme.border}`}>
-                    <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{grade}</td>
-                    <td className="px-3 py-2">
-                      <input type="number" value={data.maxStrength}
-                        onChange={e => setGradeAdmission(p => ({ ...p, [grade]: { ...p[grade], maxStrength: e.target.value } }))}
-                        className={`w-16 px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs text-center ${theme.highlight} outline-none`} />
-                    </td>
-                    <td className={`px-3 py-2 ${data.current >= parseInt(data.maxStrength || '0') ? 'text-red-600 font-bold' : theme.iconColor}`}>{data.current}</td>
-                    <td className={`px-3 py-2 ${available === 0 ? 'text-red-600 font-bold' : 'text-emerald-600 font-bold'}`}>{available}</td>
-                    <td className="px-3 py-2">
-                      <button onClick={() => setGradeAdmission(p => ({ ...p, [grade]: { ...p[grade], admissionOpen: !p[grade].admissionOpen } }))}
-                        className={`px-2.5 py-1 rounded-full text-[10px] font-bold transition-colors ${
-                          data.admissionOpen ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
-                        }`}>
-                        {data.admissionOpen ? 'Open' : 'Closed'}
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+            </div>
+          </div>
         </div>
-        <p className={`text-[10px] ${theme.iconColor} mt-2 italic`}>Note: When a grade reaches max strength and admission is closed, new applicants are automatically added to the waitlist.</p>
       </SectionCard>
       </div>)}
 
@@ -1492,27 +1647,9 @@ export default function AcademicConfigModule({ theme, activeTab: externalTab, on
       </SectionCard>
 
       {/* ─── C) Year Rollover Wizard ─── */}
-      <SectionCard title="Year Rollover Wizard" subtitle="Copy academic structure from one year to the next" theme={theme}>
-        <div className={`p-4 rounded-xl ${theme.accentBg} border ${theme.border} mb-3`}>
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <p className={`text-xs font-bold ${theme.highlight}`}>Copy 2025-26 Structure to 2026-27</p>
-              <p className={`text-[10px] ${theme.iconColor}`}>Select which structures to carry forward</p>
-            </div>
-            <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">Ready for rollover</span>
-          </div>
-          <div className="space-y-2 mb-3">
-            {Object.entries(rolloverChecks).map(([item, checked]) => (
-              <button key={item} onClick={() => setRolloverChecks(p => ({ ...p, [item]: !p[item] }))}
-                className={`flex items-center gap-2 w-full text-left p-2 rounded-lg ${theme.secondaryBg} transition-all`}>
-                {checked ? <CheckSquare size={14} className="text-emerald-500" /> : <Square size={14} className={theme.iconColor} />}
-                <span className={`text-xs font-medium ${theme.highlight}`}>{item}</span>
-              </button>
-            ))}
-          </div>
-          <button className={`flex items-center gap-1.5 px-4 py-2 rounded-xl ${theme.primary} text-white text-xs font-bold`}>
-            <Copy size={12} /> Start Rollover
-          </button>
+      <SectionCard title="Year Rollover Wizard" subtitle="Moved to Year-End Operations module" theme={theme}>
+        <div className={`p-3 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+          <p className={`text-xs ${theme.iconColor}`}>Year rollover has moved to <span className={`font-bold ${theme.primaryText}`}>Year-End Operations</span> module in the sidebar for better organization with promotion, archival, and finalization.</p>
         </div>
       </SectionCard>
       </div>)}
@@ -1610,39 +1747,9 @@ export default function AcademicConfigModule({ theme, activeTab: externalTab, on
       </div>)}
 
       {activeTab === 'rules' && (<div className="space-y-4">
-      <SectionCard title="Promotion Rules" subtitle="Configure minimum criteria for student promotion to the next grade" theme={theme}>
-        <div className="grid grid-cols-2 gap-4 mb-3">
-          <div>
-            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Minimum Attendance %</p>
-            <InputField value={promotionRules.minAttendance} onChange={v => setPromotionRules(p => ({ ...p, minAttendance: v }))} theme={theme} type="number" />
-          </div>
-          <div>
-            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Minimum Marks %</p>
-            <InputField value={promotionRules.minMarks} onChange={v => setPromotionRules(p => ({ ...p, minMarks: v }))} theme={theme} type="number" />
-          </div>
-        </div>
-        <div className="space-y-2">
-          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-            <div>
-              <p className={`text-xs font-bold ${theme.highlight}`}>All subjects must pass</p>
-              <p className={`text-[10px] ${theme.iconColor}`}>Student must score above minimum in every subject to be promoted</p>
-            </div>
-            <SSAToggle on={promotionRules.allSubjectsPass} onChange={() => setPromotionRules(p => ({ ...p, allSubjectsPass: !p.allSubjectsPass }))} theme={theme} />
-          </div>
-          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-            <div>
-              <p className={`text-xs font-bold ${theme.highlight}`}>Auto-promote if criteria met</p>
-              <p className={`text-[10px] ${theme.iconColor}`}>Automatically promote students who meet all criteria without manual approval</p>
-            </div>
-            <SSAToggle on={promotionRules.autoPromote} onChange={() => setPromotionRules(p => ({ ...p, autoPromote: !p.autoPromote }))} theme={theme} />
-          </div>
-        </div>
-        <div className={`mt-3 p-2.5 rounded-xl ${theme.accentBg} border ${theme.border}`}>
-          <p className={`text-[10px] ${theme.iconColor}`}>
-            <strong>Current Rules:</strong> Min {promotionRules.minAttendance}% attendance, Min {promotionRules.minMarks}% marks
-            {promotionRules.allSubjectsPass ? ', all subjects must pass' : ''}
-            {promotionRules.autoPromote ? ', auto-promotion enabled' : ', manual approval required'}
-          </p>
+      <SectionCard title="Promotion Rules" subtitle="Moved to Year-End Operations module" theme={theme}>
+        <div className={`p-3 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+          <p className={`text-xs ${theme.iconColor}`}>Promotion rules have moved to <span className={`font-bold ${theme.primaryText}`}>Year-End Operations &rarr; Rollover</span> tab where they are applied alongside the academic year transition.</p>
         </div>
       </SectionCard>
       </div>)}
