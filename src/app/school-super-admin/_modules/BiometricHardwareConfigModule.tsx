@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Plus, Wifi, WifiOff, X, Search, Download, Upload, ChevronLeft, ChevronRight, Save, Pencil, Check, Trash2, Wrench } from 'lucide-react';
+import { Plus, Wifi, WifiOff, X, Search, Download, Upload, ChevronLeft, ChevronRight, Save, Pencil, Check, Trash2, Wrench, Info, Shield, Lock } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
 
@@ -164,6 +164,25 @@ export default function BiometricHardwareConfigModule({ theme, activeTab: extern
   const [firmwareAutoUpdate, setFirmwareAutoUpdate] = useState(true);
   const [offlineSync, setOfflineSync] = useState(true);
   const [deviceAccessRole, setDeviceAccessRole] = useState('Admin Only');
+
+  // ─── Biometric Data & Compliance Settings ─────────
+  const [dataRetentionPeriod, setDataRetentionPeriod] = useState('1 year');
+  const [customRetentionDays, setCustomRetentionDays] = useState('365');
+  const [accessControlRoles, setAccessControlRoles] = useState<Record<string, { view: boolean; export: boolean; delete: boolean }>>({
+    'Super Admin': { view: true, export: true, delete: true },
+    'Principal': { view: true, export: true, delete: false },
+    'HR Manager': { view: true, export: false, delete: false },
+    'IT Admin': { view: true, export: true, delete: true },
+  });
+  const [changeAuthRoles, setChangeAuthRoles] = useState<string[]>(['Super Admin', 'IT Admin']);
+  const [backupFrequency, setBackupFrequency] = useState('Daily');
+  const [backupLocation, setBackupLocation] = useState('Both');
+  const [dpdpCompliance, setDpdpCompliance] = useState(true);
+  const [consentManagement, setConsentManagement] = useState(true);
+  const [dataEncryption, setDataEncryption] = useState(true);
+  const [auditTrail, setAuditTrail] = useState(true);
+  const [showDpdpInfo, setShowDpdpInfo] = useState(false);
+  const allAuthRoles = ['Super Admin', 'Principal', 'HR Manager', 'IT Admin', 'School Admin'];
 
   const [internalTab, setInternalTab] = useState<TabId>('devices');
   const activeTab = (externalTab as TabId) || internalTab;
@@ -491,6 +510,165 @@ export default function BiometricHardwareConfigModule({ theme, activeTab: extern
               <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Device Access Control</p>
               <SelectField options={['Admin Only', 'Admin + Principal', 'All Staff', 'IT Department']} value={deviceAccessRole} onChange={setDeviceAccessRole} theme={theme} />
             </div>
+          </div>
+        </div>
+      </SectionCard>
+
+      {/* ─── Biometric Data & Compliance Settings ────────── */}
+      <SectionCard title="Biometric Data Settings" subtitle="Data retention, access control, compliance, and security settings for biometric data" theme={theme}>
+        <div className="space-y-4">
+          {/* Row 1: Data Retention + Backup */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Data Retention Period</p>
+              <SelectField options={['30 days', '90 days', '180 days', '1 year', '2 years', 'Custom']} value={dataRetentionPeriod} onChange={setDataRetentionPeriod} theme={theme} />
+              {dataRetentionPeriod === 'Custom' && (
+                <div className="mt-2">
+                  <p className={`text-[10px] ${theme.iconColor} mb-0.5`}>Custom Retention (days)</p>
+                  <InputField value={customRetentionDays} onChange={setCustomRetentionDays} theme={theme} type="number" placeholder="e.g. 365" />
+                </div>
+              )}
+            </div>
+            <div className="space-y-3">
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Backup Frequency</p>
+                <SelectField options={['Daily', 'Weekly', 'Monthly']} value={backupFrequency} onChange={setBackupFrequency} theme={theme} />
+              </div>
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Backup Location</p>
+                <SelectField options={['Local', 'Cloud', 'Both']} value={backupLocation} onChange={setBackupLocation} theme={theme} />
+              </div>
+            </div>
+          </div>
+
+          {/* Access Control List */}
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-2 uppercase tracking-wider flex items-center gap-1.5`}>
+              <Shield size={12} /> Access Control List — Who Can Access Biometric Data
+            </p>
+            <div className={`rounded-xl border ${theme.border} overflow-hidden`}>
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className={theme.secondaryBg}>
+                    <th className={`text-left px-3 py-2 font-bold ${theme.iconColor} text-[10px] uppercase`}>Role</th>
+                    <th className={`text-center px-3 py-2 font-bold ${theme.iconColor} text-[10px] uppercase`}>View</th>
+                    <th className={`text-center px-3 py-2 font-bold ${theme.iconColor} text-[10px] uppercase`}>Export</th>
+                    <th className={`text-center px-3 py-2 font-bold ${theme.iconColor} text-[10px] uppercase`}>Delete</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(accessControlRoles).map(([role, perms]) => (
+                    <tr key={role} className={`border-t ${theme.border}`}>
+                      <td className={`px-3 py-2 font-bold ${theme.highlight}`}>{role}</td>
+                      {(['view', 'export', 'delete'] as const).map(perm => (
+                        <td key={perm} className="px-3 py-2 text-center">
+                          <button
+                            onClick={() => setAccessControlRoles(p => ({ ...p, [role]: { ...p[role], [perm]: !p[role][perm] } }))}
+                            className={`w-5 h-5 rounded-md border-2 inline-flex items-center justify-center transition-all ${
+                              perms[perm]
+                                ? `${theme.primary} border-transparent text-white`
+                                : `border-gray-300 ${theme.cardBg}`
+                            }`}>
+                            {perms[perm] && <Check size={11} />}
+                          </button>
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Change Authorization */}
+          <div>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-2 uppercase tracking-wider flex items-center gap-1.5`}>
+              <Lock size={12} /> Change Authorization — Who Can Modify Biometric Settings
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {allAuthRoles.map(role => {
+                const selected = changeAuthRoles.includes(role);
+                return (
+                  <button key={role}
+                    onClick={() => setChangeAuthRoles(p => selected ? p.filter(r => r !== role) : [...p, role])}
+                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
+                      selected ? `${theme.primary} text-white` : `${theme.cardBg} border ${theme.border} ${theme.highlight} ${theme.buttonHover}`
+                    }`}>
+                    {role}
+                  </button>
+                );
+              })}
+            </div>
+            <p className={`text-[9px] ${theme.iconColor} mt-1`}>Selected roles can add/remove devices, change retention policies, and modify compliance settings.</p>
+          </div>
+
+          {/* Compliance & Security Toggles */}
+          <div className="grid grid-cols-2 gap-3">
+            {/* DPDP Act 2023 */}
+            <div className={`p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>DPDP Act 2023 Compliance</p>
+                  <button onClick={() => setShowDpdpInfo(!showDpdpInfo)} className={`${theme.iconColor} hover:text-blue-500`}>
+                    <Info size={12} />
+                  </button>
+                </div>
+                <SSAToggle on={dpdpCompliance} onChange={() => setDpdpCompliance(!dpdpCompliance)} theme={theme} />
+              </div>
+              <p className={`text-[10px] ${theme.iconColor} mt-0.5`}>Enforce India's Digital Personal Data Protection Act</p>
+              {showDpdpInfo && (
+                <div className={`mt-2 p-2.5 rounded-lg bg-blue-50 border border-blue-200 text-[10px] text-blue-700 leading-relaxed`}>
+                  <p className="font-bold mb-1">Digital Personal Data Protection Act, 2023</p>
+                  <p>India's comprehensive data protection law governing collection, storage, and processing of personal data including biometrics. Requires: explicit consent, purpose limitation, data minimization, retention limits, breach notification within 72 hours, and right to erasure. Non-compliance penalties up to Rs 250 crore.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Consent Management */}
+            <div className={`p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <div className="flex items-center justify-between">
+                <p className={`text-xs font-bold ${theme.highlight}`}>Consent Management</p>
+                <SSAToggle on={consentManagement} onChange={() => setConsentManagement(!consentManagement)} theme={theme} />
+              </div>
+              <p className={`text-[10px] ${theme.iconColor} mt-0.5`}>Require explicit consent before collecting biometric data</p>
+            </div>
+
+            {/* Data Encryption */}
+            <div className={`p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <div className="flex items-center justify-between">
+                <p className={`text-xs font-bold ${theme.highlight}`}>Data Encryption</p>
+                <SSAToggle on={dataEncryption} onChange={() => setDataEncryption(!dataEncryption)} theme={theme} />
+              </div>
+              <p className={`text-[10px] ${theme.iconColor} mt-0.5`}>Encrypt all biometric data at rest and in transit</p>
+              {dataEncryption && (
+                <div className={`mt-1.5 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[9px] font-bold`}>
+                  <Shield size={9} /> AES-256 Encryption Active
+                </div>
+              )}
+            </div>
+
+            {/* Audit Trail */}
+            <div className={`p-2.5 rounded-xl ${theme.secondaryBg}`}>
+              <div className="flex items-center justify-between">
+                <p className={`text-xs font-bold ${theme.highlight}`}>Audit Trail</p>
+                <SSAToggle on={auditTrail} onChange={() => setAuditTrail(!auditTrail)} theme={theme} />
+              </div>
+              <p className={`text-[10px] ${theme.iconColor} mt-0.5`}>Log all biometric data access, exports, and deletions</p>
+              {auditTrail && (
+                <div className={`mt-1.5 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[9px] font-bold`}>
+                  <Check size={9} /> All access events are logged
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Save Biometric Settings */}
+          <div className="flex justify-end pt-1">
+            <button
+              onClick={() => alert('Biometric data settings saved!')}
+              className={`flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold text-white ${theme.primary} hover:opacity-90 transition-all shadow-sm`}>
+              <Save size={14} /> Save Biometric Settings
+            </button>
           </div>
         </div>
       </SectionCard>

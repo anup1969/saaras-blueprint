@@ -1,22 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Lock, Search, X, Plus, Download, Upload, ChevronLeft, ChevronRight, Save, Calendar, User, Check } from 'lucide-react';
+import { Lock, Search, X, Save, Calendar, User, Check, ArrowRight } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
-import { MasterPermissionGrid } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
 
 // ─── Types ─────────────────────────────────────────
-type ThresholdRow = {
-  id: number;
-  gradeRange: string;
-  warning: string;
-  defaulter: string;
-  critical: string;
-  action: string;
-  enabled: boolean;
-};
-
 type CorrectionEntry = {
   date: string;
   day: string;
@@ -24,59 +13,7 @@ type CorrectionEntry = {
   reason: string;
 };
 
-const PAGE_SIZE = 5;
 const ATTENDANCE_STATUSES = ['Present', 'Absent', 'Late', 'Half-Day', 'Leave'] as const;
-
-// ─── Sub-component: Table Toolbar ─────────────────
-function TableToolbar({
-  search, onSearch, count, label, onAdd, onExport, onImport, theme,
-}: {
-  search: string; onSearch: (v: string) => void; count: number; label: string;
-  onAdd: () => void; onExport: () => void; onImport: () => void; theme: Theme;
-}) {
-  return (
-    <div className="flex items-center gap-2 mb-3 flex-wrap">
-      <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border ${theme.border} ${theme.inputBg} flex-1 min-w-[160px]`}>
-        <Search size={13} className={theme.iconColor} />
-        <input value={search} onChange={e => onSearch(e.target.value)} placeholder={`Search ${label}...`}
-          className={`flex-1 bg-transparent text-xs ${theme.highlight} outline-none placeholder-gray-400`} />
-        {search && <button onClick={() => onSearch('')}><X size={12} className="text-gray-400 hover:text-red-400" /></button>}
-      </div>
-      <span className={`text-[10px] font-bold px-2 py-1 rounded-lg ${theme.secondaryBg} ${theme.iconColor} shrink-0`}>{count} records</span>
-      <button onClick={onAdd}
-        className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-white ${theme.primary} hover:opacity-90 shrink-0`}>
-        <Plus size={12} /> Add
-      </button>
-      <button onClick={onExport}
-        className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold border ${theme.border} ${theme.iconColor} ${theme.buttonHover} shrink-0`}>
-        <Download size={12} /> Export
-      </button>
-      <button onClick={onImport}
-        className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold border ${theme.border} ${theme.iconColor} ${theme.buttonHover} shrink-0`}>
-        <Upload size={12} /> Import
-      </button>
-    </div>
-  );
-}
-
-// ─── Sub-component: Pagination ─────────────────────
-function Pagination({ page, total, pageSize, onChange, theme }: { page: number; total: number; pageSize: number; onChange: (p: number) => void; theme: Theme }) {
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  if (totalPages <= 1) return null;
-  return (
-    <div className="flex items-center justify-end gap-2 mt-2">
-      <button disabled={page === 1} onClick={() => onChange(page - 1)}
-        className={`p-1 rounded-lg border ${theme.border} disabled:opacity-30 ${theme.buttonHover}`}>
-        <ChevronLeft size={13} className={theme.iconColor} />
-      </button>
-      <span className={`text-[10px] ${theme.iconColor}`}>Page {page} / {totalPages}</span>
-      <button disabled={page === totalPages} onClick={() => onChange(page + 1)}
-        className={`p-1 rounded-lg border ${theme.border} disabled:opacity-30 ${theme.buttonHover}`}>
-        <ChevronRight size={13} className={theme.iconColor} />
-      </button>
-    </div>
-  );
-}
 
 // ─── Status badge color helper ─────────────────────
 function statusBadge(status: string) {
@@ -115,32 +52,42 @@ export default function AttendanceConfigModule({ theme, activeTab: externalTab, 
   });
   const [allowCustomAttendanceTypes, setAllowCustomAttendanceTypes] = useState(false);
 
-  // ─── Defaulter Thresholds (interactive) ───
+  // ─── Defaulter Thresholds (3-way toggle) ───
   const [enableSubjectDefaulter, setEnableSubjectDefaulter] = useState(true);
-  const [thresholdRows, setThresholdRows] = useState<ThresholdRow[]>([
-    { id: 1, gradeRange: 'Class 1-5', warning: '80', defaulter: '75', critical: '65', action: 'Notify class teacher', enabled: true },
-    { id: 2, gradeRange: 'Class 6-8', warning: '78', defaulter: '72', critical: '60', action: 'SMS + App notification to parents', enabled: true },
-    { id: 3, gradeRange: 'Class 9-10', warning: '75', defaulter: '70', critical: '55', action: 'Flag for Principal review', enabled: true },
-    { id: 4, gradeRange: 'Class 11-12', warning: '75', defaulter: '65', critical: '50', action: 'Detain risk + Board notification', enabled: true },
-  ]);
-  const [thresholdSearch, setThresholdSearch] = useState('');
-  const [thresholdPage, setThresholdPage] = useState(1);
+  type ThresholdScope = 'uniform' | 'per-department' | 'per-grade';
+  const [thresholdScope, setThresholdScope] = useState<ThresholdScope>('uniform');
 
-  const filteredThresholds = thresholdRows.filter(t =>
-    t.gradeRange.toLowerCase().includes(thresholdSearch.toLowerCase()) ||
-    t.action.toLowerCase().includes(thresholdSearch.toLowerCase())
-  );
-  const pagedThresholds = filteredThresholds.slice((thresholdPage - 1) * PAGE_SIZE, thresholdPage * PAGE_SIZE);
+  // Uniform: single threshold set
+  const [uniformThreshold, setUniformThreshold] = useState({ warning: '80', defaulter: '75', critical: '65', action: 'Notify class teacher + SMS to parents' });
 
-  function updateThreshold(id: number, field: keyof ThresholdRow, value: string | boolean) {
-    setThresholdRows(p => p.map(t => t.id === id ? { ...t, [field]: value } : t));
-  }
-  function deleteThreshold(id: number) {
-    setThresholdRows(p => p.filter(t => t.id !== id));
-  }
-  function addThreshold() {
-    setThresholdRows(p => [...p, { id: Date.now(), gradeRange: '', warning: '80', defaulter: '75', critical: '65', action: '', enabled: true }]);
-  }
+  // Department data (matches Academic Config)
+  const departments = [
+    { name: 'Pre-Primary', grades: ['Nursery', 'Jr. KG', 'Sr. KG'], color: 'bg-pink-100 text-pink-700' },
+    { name: 'Primary', grades: ['Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5'], color: 'bg-blue-100 text-blue-700' },
+    { name: 'Secondary', grades: ['Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'], color: 'bg-emerald-100 text-emerald-700' },
+    { name: 'Higher Secondary', grades: ['Grade 11', 'Grade 12'], color: 'bg-purple-100 text-purple-700' },
+  ];
+  const allGrades = departments.flatMap(d => d.grades);
+
+  // Per-Department thresholds
+  const [deptThresholds, setDeptThresholds] = useState<Record<string, { warning: string; defaulter: string; critical: string; action: string }>>({
+    'Pre-Primary': { warning: '85', defaulter: '80', critical: '70', action: 'Notify class teacher' },
+    'Primary': { warning: '80', defaulter: '75', critical: '65', action: 'SMS + App notification to parents' },
+    'Secondary': { warning: '78', defaulter: '72', critical: '60', action: 'Flag for Principal review' },
+    'Higher Secondary': { warning: '75', defaulter: '65', critical: '50', action: 'Detain risk + Board notification' },
+  });
+
+  // Per-Grade thresholds
+  const [gradeThresholds, setGradeThresholds] = useState<Record<string, { warning: string; defaulter: string; critical: string; action: string }>>(() => {
+    const init: Record<string, { warning: string; defaulter: string; critical: string; action: string }> = {};
+    allGrades.forEach(g => { init[g] = { warning: '80', defaulter: '75', critical: '65', action: 'Notify class teacher' }; });
+    // Override some defaults for realism
+    init['Grade 9'] = { warning: '75', defaulter: '70', critical: '55', action: 'Flag for Principal review' };
+    init['Grade 10'] = { warning: '75', defaulter: '70', critical: '55', action: 'Flag for Principal review' };
+    init['Grade 11'] = { warning: '75', defaulter: '65', critical: '50', action: 'Detain risk + Board notification' };
+    init['Grade 12'] = { warning: '75', defaulter: '65', critical: '50', action: 'Detain risk + Board notification' };
+    return init;
+  });
 
   // ─── Correction Policy ───
   const [allowCorrections, setAllowCorrections] = useState(true);
@@ -342,8 +289,8 @@ export default function AttendanceConfigModule({ theme, activeTab: externalTab, 
         </div>
       </SectionCard>
 
-      {/* ─── A) Defaulter Thresholds (Interactive Table) ─── */}
-      <SectionCard title="Defaulter Thresholds" subtitle="Configure attendance percentage thresholds and automatic actions per grade range" theme={theme}>
+      {/* ─── A) Defaulter Thresholds (3-way toggle) ─── */}
+      <SectionCard title="Defaulter Thresholds" subtitle="Configure attendance percentage thresholds and automatic actions" theme={theme}>
         <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg} mb-3`}>
           <div>
             <p className={`text-xs font-bold ${theme.highlight}`}>Enable Subject-wise Defaulter Tracking</p>
@@ -352,70 +299,160 @@ export default function AttendanceConfigModule({ theme, activeTab: externalTab, 
           <SSAToggle on={enableSubjectDefaulter} onChange={() => setEnableSubjectDefaulter(!enableSubjectDefaulter)} theme={theme} />
         </div>
 
-        <TableToolbar
-          search={thresholdSearch} onSearch={v => { setThresholdSearch(v); setThresholdPage(1); }}
-          count={filteredThresholds.length} label="thresholds"
-          onAdd={addThreshold}
-          onExport={() => alert('Export thresholds as CSV')}
-          onImport={() => alert('Import thresholds from CSV')}
-          theme={theme}
-        />
+        {/* 3-way toggle */}
+        <div className="flex items-center gap-2 mb-3">
+          <p className={`text-[10px] font-bold ${theme.iconColor} mr-1`}>Apply thresholds:</p>
+          {(['uniform', 'per-department', 'per-grade'] as const).map(scope => (
+            <button key={scope} onClick={() => setThresholdScope(scope)}
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
+                thresholdScope === scope ? `${theme.primary} text-white` : `${theme.cardBg} border ${theme.border} ${theme.highlight} ${theme.buttonHover}`
+              }`}>
+              {scope === 'uniform' ? 'Uniform (All)' : scope === 'per-department' ? 'Per Department' : 'Per Grade'}
+            </button>
+          ))}
+        </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className={theme.secondaryBg}>
-                {['Grade/Range', 'Warning (%)', 'Defaulter (%)', 'Critical (%)', 'Action', 'Enabled', ''].map(h => (
-                  <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor} whitespace-nowrap text-[10px] uppercase`}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {pagedThresholds.length === 0 ? (
-                <tr><td colSpan={7} className={`text-center py-6 text-xs ${theme.iconColor}`}>No thresholds found</td></tr>
-              ) : pagedThresholds.map(t => (
-                <tr key={t.id} className={`border-t ${theme.border} ${!t.enabled ? 'opacity-50' : ''}`}>
-                  <td className="px-2 py-1.5">
-                    <input value={t.gradeRange}
-                      onChange={e => updateThreshold(t.id, 'gradeRange', e.target.value)}
-                      className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`}
-                      placeholder="e.g. Class 1-5" />
-                  </td>
-                  <td className="px-2 py-1.5">
-                    <input value={t.warning} type="number"
-                      onChange={e => updateThreshold(t.id, 'warning', e.target.value)}
-                      className={`w-16 px-2 py-1 rounded-lg border ${theme.border} bg-amber-50 text-xs text-center text-amber-700 font-bold outline-none`} />
-                  </td>
-                  <td className="px-2 py-1.5">
-                    <input value={t.defaulter} type="number"
-                      onChange={e => updateThreshold(t.id, 'defaulter', e.target.value)}
-                      className={`w-16 px-2 py-1 rounded-lg border ${theme.border} bg-orange-50 text-xs text-center text-orange-700 font-bold outline-none`} />
-                  </td>
-                  <td className="px-2 py-1.5">
-                    <input value={t.critical} type="number"
-                      onChange={e => updateThreshold(t.id, 'critical', e.target.value)}
-                      className={`w-16 px-2 py-1 rounded-lg border ${theme.border} bg-red-50 text-xs text-center text-red-700 font-bold outline-none`} />
-                  </td>
-                  <td className="px-2 py-1.5">
-                    <input value={t.action}
-                      onChange={e => updateThreshold(t.id, 'action', e.target.value)}
+        {/* ── Uniform Mode ── */}
+        {thresholdScope === 'uniform' && (
+          <div>
+            <p className={`text-[10px] ${theme.iconColor} mb-2`}>One set of thresholds applies to all departments and grades.</p>
+            <div className={`rounded-xl border ${theme.border} overflow-hidden`}>
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className={theme.secondaryBg}>
+                    {['Warning (%)', 'Defaulter (%)', 'Critical (%)', 'Action on Breach'].map(h => (
+                      <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor} whitespace-nowrap text-[10px] uppercase`}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className={`border-t ${theme.border}`}>
+                    <td className="px-2 py-2">
+                      <input value={uniformThreshold.warning} type="number"
+                        onChange={e => setUniformThreshold(p => ({ ...p, warning: e.target.value }))}
+                        className={`w-16 px-2 py-1 rounded-lg border ${theme.border} bg-amber-50 text-xs text-center text-amber-700 font-bold outline-none`} />
+                    </td>
+                    <td className="px-2 py-2">
+                      <input value={uniformThreshold.defaulter} type="number"
+                        onChange={e => setUniformThreshold(p => ({ ...p, defaulter: e.target.value }))}
+                        className={`w-16 px-2 py-1 rounded-lg border ${theme.border} bg-orange-50 text-xs text-center text-orange-700 font-bold outline-none`} />
+                    </td>
+                    <td className="px-2 py-2">
+                      <input value={uniformThreshold.critical} type="number"
+                        onChange={e => setUniformThreshold(p => ({ ...p, critical: e.target.value }))}
+                        className={`w-16 px-2 py-1 rounded-lg border ${theme.border} bg-red-50 text-xs text-center text-red-700 font-bold outline-none`} />
+                    </td>
+                    <td className="px-2 py-2">
+                      <input value={uniformThreshold.action}
+                        onChange={e => setUniformThreshold(p => ({ ...p, action: e.target.value }))}
+                        className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}
+                        placeholder="Action on breach" />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* ── Per-Department Mode ── */}
+        {thresholdScope === 'per-department' && (
+          <div>
+            <p className={`text-[10px] ${theme.iconColor} mb-3`}>Each department has its own threshold settings (as configured in Academic Config).</p>
+            <div className="grid grid-cols-2 gap-3">
+              {departments.map(dept => (
+                <div key={dept.name} className={`p-3 rounded-xl border ${theme.border} ${theme.secondaryBg}`}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold ${dept.color}`}>{dept.name}</span>
+                    <span className={`text-[9px] ${theme.iconColor}`}>({dept.grades.length} grades)</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 mb-2">
+                    <div>
+                      <p className={`text-[9px] ${theme.iconColor} mb-0.5`}>Warning %</p>
+                      <input value={deptThresholds[dept.name]?.warning || ''} type="number"
+                        onChange={e => setDeptThresholds(p => ({ ...p, [dept.name]: { ...p[dept.name], warning: e.target.value } }))}
+                        className={`w-full px-2 py-1 rounded-lg border ${theme.border} bg-amber-50 text-xs text-center text-amber-700 font-bold outline-none`} />
+                    </div>
+                    <div>
+                      <p className={`text-[9px] ${theme.iconColor} mb-0.5`}>Defaulter %</p>
+                      <input value={deptThresholds[dept.name]?.defaulter || ''} type="number"
+                        onChange={e => setDeptThresholds(p => ({ ...p, [dept.name]: { ...p[dept.name], defaulter: e.target.value } }))}
+                        className={`w-full px-2 py-1 rounded-lg border ${theme.border} bg-orange-50 text-xs text-center text-orange-700 font-bold outline-none`} />
+                    </div>
+                    <div>
+                      <p className={`text-[9px] ${theme.iconColor} mb-0.5`}>Critical %</p>
+                      <input value={deptThresholds[dept.name]?.critical || ''} type="number"
+                        onChange={e => setDeptThresholds(p => ({ ...p, [dept.name]: { ...p[dept.name], critical: e.target.value } }))}
+                        className={`w-full px-2 py-1 rounded-lg border ${theme.border} bg-red-50 text-xs text-center text-red-700 font-bold outline-none`} />
+                    </div>
+                  </div>
+                  <div>
+                    <p className={`text-[9px] ${theme.iconColor} mb-0.5`}>Action</p>
+                    <input value={deptThresholds[dept.name]?.action || ''}
+                      onChange={e => setDeptThresholds(p => ({ ...p, [dept.name]: { ...p[dept.name], action: e.target.value } }))}
                       className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}
                       placeholder="Action on breach" />
-                  </td>
-                  <td className="px-3 py-2">
-                    <SSAToggle on={t.enabled} onChange={() => updateThreshold(t.id, 'enabled', !t.enabled)} theme={theme} />
-                  </td>
-                  <td className="px-2 py-1.5">
-                    <button onClick={() => deleteThreshold(t.id)} className="text-red-400 hover:text-red-600">
-                      <X size={12} />
-                    </button>
-                  </td>
-                </tr>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
-        </div>
-        <Pagination page={thresholdPage} total={filteredThresholds.length} pageSize={PAGE_SIZE} onChange={setThresholdPage} theme={theme} />
+            </div>
+          </div>
+        )}
+
+        {/* ── Per-Grade Mode ── */}
+        {thresholdScope === 'per-grade' && (
+          <div>
+            <p className={`text-[10px] ${theme.iconColor} mb-2`}>Individual threshold per grade, from Nursery through Grade 12.</p>
+            <div className={`rounded-xl border ${theme.border} overflow-hidden`}>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className={theme.secondaryBg}>
+                      {['Grade', 'Dept', 'Warning (%)', 'Defaulter (%)', 'Critical (%)', 'Action'].map(h => (
+                        <th key={h} className={`text-left px-3 py-2 font-bold ${theme.iconColor} whitespace-nowrap text-[10px] uppercase`}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {allGrades.map(grade => {
+                      const dept = departments.find(d => d.grades.includes(grade));
+                      const t = gradeThresholds[grade];
+                      return (
+                        <tr key={grade} className={`border-t ${theme.border}`}>
+                          <td className={`px-3 py-1.5 font-bold ${theme.highlight} whitespace-nowrap`}>{grade}</td>
+                          <td className="px-2 py-1.5">
+                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${dept?.color || ''}`}>{dept?.name}</span>
+                          </td>
+                          <td className="px-2 py-1.5">
+                            <input value={t?.warning || ''} type="number"
+                              onChange={e => setGradeThresholds(p => ({ ...p, [grade]: { ...p[grade], warning: e.target.value } }))}
+                              className={`w-14 px-2 py-1 rounded-lg border ${theme.border} bg-amber-50 text-xs text-center text-amber-700 font-bold outline-none`} />
+                          </td>
+                          <td className="px-2 py-1.5">
+                            <input value={t?.defaulter || ''} type="number"
+                              onChange={e => setGradeThresholds(p => ({ ...p, [grade]: { ...p[grade], defaulter: e.target.value } }))}
+                              className={`w-14 px-2 py-1 rounded-lg border ${theme.border} bg-orange-50 text-xs text-center text-orange-700 font-bold outline-none`} />
+                          </td>
+                          <td className="px-2 py-1.5">
+                            <input value={t?.critical || ''} type="number"
+                              onChange={e => setGradeThresholds(p => ({ ...p, [grade]: { ...p[grade], critical: e.target.value } }))}
+                              className={`w-14 px-2 py-1 rounded-lg border ${theme.border} bg-red-50 text-xs text-center text-red-700 font-bold outline-none`} />
+                          </td>
+                          <td className="px-2 py-1.5">
+                            <input value={t?.action || ''}
+                              onChange={e => setGradeThresholds(p => ({ ...p, [grade]: { ...p[grade], action: e.target.value } }))}
+                              className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}
+                              placeholder="Action" />
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
       </SectionCard>
 
       {/* ─── B) Correction Policy ─── */}
@@ -600,9 +637,12 @@ export default function AttendanceConfigModule({ theme, activeTab: externalTab, 
       </div>)}
 
       {activeTab === 'settings' && (<div className="space-y-4">
-      <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
-        <div className="space-y-4">
-          <MasterPermissionGrid masterName="Attendance Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+      <SectionCard title="Role-Based Permissions" subtitle="Managed centrally in Roles & Permission module" theme={theme}>
+        <div className={`flex items-center gap-3 p-3 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+          <div className="flex-1">
+            <p className={`text-xs ${theme.iconColor}`}>Role & permission settings for Attendance are configured in <span className={`font-bold ${theme.primaryText}`}>Roles & Permission Management</span></p>
+          </div>
+          <ArrowRight size={16} className={theme.iconColor} />
         </div>
       </SectionCard>
 

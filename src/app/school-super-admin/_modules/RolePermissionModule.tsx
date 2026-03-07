@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { Plus, X, Edit, Lock, Trash2, Eye, CheckCircle, AlertTriangle, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Search, LogIn, ShieldAlert, Save, Download, Upload } from 'lucide-react';
-import { MasterPermissionGrid } from '@/components/shared';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
 import type { Theme } from '../_helpers/types';
 
@@ -75,6 +74,21 @@ const MODULE_PERMISSIONS: Record<string, string[]> = {
 const ALL_MODULE_NAMES = Object.keys(MODULE_PERMISSIONS);
 const SCOPE_OPTIONS = ['Own Class', 'Own Department', 'Own Branch', 'Full School', 'Custom'];
 
+// ── Module-wise permission tab categories ──
+const PERM_COLUMNS = ['View', 'Create', 'Edit', 'Delete', 'Export', 'Approve'] as const;
+const PERM_ROLES = ['Super Admin', 'Principal', 'Vice Principal', 'School Admin', 'Teacher', 'Accountant', 'HR Manager', 'Transport Head', 'Receptionist', 'Parent', 'Student'] as const;
+
+type ModuleCategory = { label: string; modules: string[] };
+const MODULE_CATEGORIES: ModuleCategory[] = [
+  { label: 'Academic', modules: ['Academic Config', 'Exam', 'Homework', 'LMS', 'Timetable'] },
+  { label: 'Student Mgmt', modules: ['Attendance', 'Enquiry & Admission', 'Student Portal'] },
+  { label: 'Staff & HR', modules: ['HR Config', 'Leave', 'Biometric'] },
+  { label: 'Finance', modules: ['Fee Management', 'Subscription'] },
+  { label: 'Communication', modules: ['Communication', 'Parent Portal', 'Chat'] },
+  { label: 'Operations', modules: ['Transport', 'Visitor', 'Certificate', 'Library', 'Canteen', 'Hostel', 'Inventory'] },
+  { label: 'System', modules: ['Audit Log', 'Backup', 'Data Migration', 'Data Privacy', 'API Integration'] },
+];
+
 type TabId = 'matrix' | 'roles' | 'users' | 'settings';
 
 export default function RolePermissionModule({ theme, activeTab: externalTab, onTabChange }: { theme: Theme; activeTab?: string; onTabChange?: (tab: string) => void }) {
@@ -128,6 +142,40 @@ export default function RolePermissionModule({ theme, activeTab: externalTab, on
   const [internalTab, setInternalTab] = useState<TabId>('matrix');
   const activeTab = (externalTab as TabId) || internalTab;
   const setActiveTab = (tab: TabId) => { if (onTabChange) onTabChange(tab); else setInternalTab(tab); };
+
+  // Module-wise permission tabs
+  const [activeModuleCat, setActiveModuleCat] = useState(0);
+  const buildModulePerms = () => {
+    const p: Record<string, Record<string, Record<string, boolean>>> = {};
+    PERM_ROLES.forEach(role => {
+      p[role] = {};
+      MODULE_CATEGORIES.forEach(cat => {
+        cat.modules.forEach(mod => {
+          p[role][mod] = {};
+          PERM_COLUMNS.forEach(col => {
+            if (role === 'Super Admin' || role === 'Principal') p[role][mod][col] = true;
+            else if (role === 'Vice Principal') p[role][mod][col] = col !== 'Delete';
+            else if (role === 'School Admin') p[role][mod][col] = col !== 'Approve';
+            else if (role === 'Teacher') p[role][mod][col] = col === 'View' || col === 'Create' || col === 'Edit';
+            else if (role === 'Accountant') p[role][mod][col] = (cat.label === 'Finance') ? col !== 'Approve' : col === 'View' || col === 'Export';
+            else if (role === 'HR Manager') p[role][mod][col] = (cat.label === 'Staff & HR') ? true : col === 'View';
+            else if (role === 'Transport Head') p[role][mod][col] = (cat.label === 'Operations' && mod === 'Transport') ? true : col === 'View';
+            else if (role === 'Receptionist') p[role][mod][col] = (mod === 'Visitor' || mod === 'Enquiry & Admission') ? col === 'View' || col === 'Create' : col === 'View';
+            else if (role === 'Parent') p[role][mod][col] = col === 'View';
+            else if (role === 'Student') p[role][mod][col] = col === 'View';
+          });
+        });
+      });
+    });
+    return p;
+  };
+  const [modulePerms, setModulePerms] = useState(buildModulePerms);
+  const toggleModulePerm = (role: string, mod: string, col: string) => {
+    setModulePerms(prev => ({
+      ...prev,
+      [role]: { ...prev[role], [mod]: { ...prev[role][mod], [col]: !prev[role]?.[mod]?.[col] } },
+    }));
+  };
 
   const [editingRole, setEditingRole] = useState<string | null>(null);
   const [editingRoleBackup, setEditingRoleBackup] = useState<Record<string, Record<string, boolean>> | null>(null);
@@ -474,167 +522,100 @@ export default function RolePermissionModule({ theme, activeTab: externalTab, on
 
       {/* ────── TAB: matrix ────── */}
       {activeTab === 'matrix' && <div className="space-y-4">
-        {editingRole && (
-          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Edit size={14} className="text-blue-500" />
-              <p className="text-xs text-blue-700"><strong>Editing:</strong> {editingRole} -- modify permissions below, then save or cancel.</p>
-            </div>
-            <div className="flex gap-2">
-              <button onClick={() => {
-                if (editingRoleBackup) setMatrix(prev => ({ ...prev, [editingRole]: editingRoleBackup }));
-                setEditingRole(null); setEditingRoleBackup(null);
-              }} className="px-3 py-1.5 rounded-xl text-xs font-bold bg-gray-200 text-gray-700">Cancel</button>
-              <button onClick={() => { setEditingRole(null); setEditingRoleBackup(null); }}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500 text-white">Save Changes</button>
-            </div>
-          </div>
-        )}
 
-        <SectionCard title="Permission Matrix" subtitle="Click a module to expand its specific permissions per role. Click 'Edit' on any role to modify." theme={theme}>
-          {/* M16: Export permission matrix button */}
-          <div className="flex justify-end mb-2">
+        {/* Module Category Tabs */}
+        <SectionCard title="Module-wise Permission Matrix" subtitle="Select a module category, then configure View / Create / Edit / Delete / Export / Approve permissions per role" theme={theme}>
+          {/* Export button */}
+          <div className="flex justify-end mb-3">
             <button onClick={() => alert('Export full permission matrix (all roles x permissions) to CSV')}
               className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500 text-white hover:bg-emerald-600">
-              <Download size={13} /> Export Permission Matrix
+              <Download size={13} /> Export Matrix
             </button>
           </div>
-          <div className="space-y-1">
-            {ALL_MODULE_NAMES.map(mod => {
-              const isExpanded = !!expandedModules[mod];
-              const perms = MODULE_PERMISSIONS[mod];
-              return (
-                <div key={mod} className={`rounded-xl border ${theme.border} overflow-hidden`}>
-                  <button onClick={() => setExpandedModules(prev => ({ ...prev, [mod]: !prev[mod] }))}
-                    className={`w-full flex items-center justify-between px-3 py-2 ${isExpanded ? theme.primary + ' text-white' : theme.secondaryBg} transition-all`}>
-                    <div className="flex items-center gap-2">
-                      {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-                      <span className={`text-xs font-bold ${isExpanded ? '' : theme.highlight}`}>{mod}</span>
-                      <span className={`text-[9px] ${isExpanded ? 'text-white/70' : theme.iconColor}`}>({perms.length} permissions)</span>
+
+          {/* Category tab bar */}
+          <div className="flex flex-wrap gap-1.5 mb-4">
+            {MODULE_CATEGORIES.map((cat, idx) => (
+              <button key={cat.label} onClick={() => setActiveModuleCat(idx)}
+                className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all ${
+                  activeModuleCat === idx
+                    ? `${theme.primary} text-white shadow-sm`
+                    : `${theme.secondaryBg} ${theme.highlight} ${theme.buttonHover} border ${theme.border}`
+                }`}>
+                {cat.label}
+                <span className={`ml-1.5 text-[9px] ${activeModuleCat === idx ? 'text-white/70' : theme.iconColor}`}>
+                  ({cat.modules.length})
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {/* Active category modules */}
+          {(() => {
+            const cat = MODULE_CATEGORIES[activeModuleCat];
+            return (
+              <div className="space-y-5">
+                {cat.modules.map(mod => (
+                  <div key={mod} className={`rounded-xl border ${theme.border} overflow-hidden`}>
+                    {/* Module header */}
+                    <div className={`px-3 py-2 ${theme.primary} text-white flex items-center justify-between`}>
+                      <span className="text-xs font-bold">{mod}</span>
+                      <span className="text-[9px] text-white/70">{PERM_ROLES.length} roles</span>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <span className={`text-[9px] ${isExpanded ? 'text-white/70' : theme.iconColor}`}>
-                        {allRoles.filter(r => !disabledRoles.includes(r) && perms.some(p => matrix[r]?.[mod]?.[p])).length} roles active
-                      </span>
-                    </div>
-                  </button>
-                  {isExpanded && (
+
+                    {/* Permission grid table */}
                     <div className="overflow-x-auto">
                       <table className="w-full text-[10px]">
                         <thead>
                           <tr className={theme.secondaryBg}>
-                            <th className={`text-left px-2 py-2 font-bold ${theme.iconColor} sticky left-0 ${theme.secondaryBg} min-w-[140px]`}>Role</th>
-                            {perms.map(p => (
-                              <th key={p} className={`text-center px-1 py-2 font-bold ${theme.iconColor} whitespace-nowrap text-[8px]`}>{p}</th>
+                            <th className={`text-left px-3 py-2 font-bold ${theme.iconColor} sticky left-0 ${theme.secondaryBg} min-w-[140px] z-10`}>Role</th>
+                            {PERM_COLUMNS.map(col => (
+                              <th key={col} className={`text-center px-2 py-2 font-bold ${theme.iconColor} text-[9px] min-w-[60px]`}>{col}</th>
                             ))}
-                            <th className={`text-center px-2 py-2 font-bold ${theme.iconColor} text-[8px]`}>Actions</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {allRoles.filter(r => !disabledRoles.includes(r)).map(role => {
-                            const isEditing = editingRole === role;
-                            const inherited = customRolesMeta[role]?.inheritedPerms?.[mod] || {};
-                            return (
-                              <tr key={role} className={`border-t ${theme.border} ${isEditing ? 'bg-blue-50/50 ring-1 ring-blue-200' : ''}`}>
-                                <td className={`px-2 py-1.5 font-bold ${theme.highlight} sticky left-0 ${isEditing ? 'bg-blue-50' : theme.cardBg} whitespace-nowrap`}>
-                                  {role}
-                                  {customRolesMeta[role]?.parent && <span className={`ml-1 text-[8px] ${theme.iconColor}`}>({customRolesMeta[role].parent})</span>}
-                                </td>
-                                {perms.map(perm => {
-                                  const isInherited = inherited[perm];
-                                  const isOn = matrix[role]?.[mod]?.[perm];
-                                  return (
-                                    <td key={perm} className="px-0 py-1 text-center">
-                                      <button onClick={() => togglePerm(role, mod, perm)}
-                                        className={`w-5 h-5 rounded text-[8px] font-bold inline-flex items-center justify-center transition-all ${
-                                          isOn ? (isInherited ? 'bg-emerald-300 text-white opacity-70' : 'bg-emerald-500 text-white') : `${theme.secondaryBg} ${theme.iconColor}`
-                                        }`}
-                                        title={isInherited ? 'Inherited from parent' : ''}>
-                                        {isOn ? '\u2713' : ''}
-                                      </button>
-                                    </td>
-                                  );
-                                })}
-                                <td className="px-1 py-1 text-center">
-                                  <div className="flex items-center justify-center gap-1">
-                                    {!isEditing ? (
-                                      <button onClick={() => { setEditingRole(role); setEditingRoleBackup(matrix[role] ? JSON.parse(JSON.stringify(matrix[role])) : {}); }}
-                                        className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${theme.iconColor} hover:underline`}>Edit</button>
-                                    ) : (
-                                      <span className="text-[8px] text-blue-500 font-bold">Editing</span>
-                                    )}
-                                    {customRoles.includes(role) ? (
-                                      <button onClick={() => setConfirmModal({
-                                        title: `Delete "${role}"?`,
-                                        message: 'This custom role and all its permissions will be permanently removed. Users assigned to this role will need reassignment.',
-                                        onConfirm: () => { setCustomRoles(p => p.filter(x => x !== role)); setMatrix(p => { const n = { ...p }; delete n[role]; return n; }); }
-                                      })} className="text-red-400 hover:text-red-600"><Trash2 size={10} /></button>
-                                    ) : (
-                                      <button onClick={() => setConfirmModal({
-                                        title: `Disable "${role}"?`,
-                                        message: 'This system role will be hidden from role assignment dropdowns. It can be re-enabled later. Existing users with this role will keep it.',
-                                        onConfirm: () => setDisabledRoles(p => [...p, role])
-                                      })} className={`text-[8px] ${theme.iconColor} hover:text-amber-600`} title="Disable role">
-                                        <Lock size={9} />
-                                      </button>
-                                    )}
-                                  </div>
-                                </td>
-                              </tr>
-                            );
-                          })}
+                          {PERM_ROLES.map(role => (
+                            <tr key={role} className={`border-t ${theme.border} hover:${theme.secondaryBg}`}>
+                              <td className={`px-3 py-2 font-bold ${theme.highlight} sticky left-0 ${theme.cardBg} z-10 whitespace-nowrap`}>
+                                <div className="flex items-center gap-2">
+                                  <span className={`w-5 h-5 rounded-full ${theme.primary} text-white flex items-center justify-center text-[7px] font-bold shrink-0`}>
+                                    {role.charAt(0)}
+                                  </span>
+                                  <span className="text-[10px]">{role}</span>
+                                </div>
+                              </td>
+                              {PERM_COLUMNS.map(col => {
+                                const isOn = modulePerms[role]?.[mod]?.[col] ?? false;
+                                return (
+                                  <td key={col} className="px-0 py-1.5 text-center">
+                                    <button onClick={() => toggleModulePerm(role, mod, col)}
+                                      className={`w-5 h-5 rounded text-[8px] font-bold inline-flex items-center justify-center transition-all ${
+                                        isOn ? 'bg-emerald-500 text-white' : `${theme.secondaryBg} ${theme.iconColor}`
+                                      }`}>
+                                      {isOn ? '\u2713' : ''}
+                                    </button>
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          ))}
                         </tbody>
                       </table>
                     </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-          {disabledRoles.length > 0 && (
-            <div className="mt-3">
-              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Disabled Roles (hidden from assignment)</p>
-              <div className="flex flex-wrap gap-1.5">
-                {disabledRoles.map(r => (
-                  <span key={r} className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-gray-100 text-gray-500 text-[10px] font-medium">
-                    <Lock size={8} /> {r}
-                    <button onClick={() => setDisabledRoles(p => p.filter(x => x !== r))} className="text-emerald-500 hover:text-emerald-700 ml-1" title="Re-enable">
-                      <CheckCircle size={9} />
-                    </button>
-                  </span>
+                  </div>
                 ))}
-              </div>
-            </div>
-          )}
-        </SectionCard>
 
-        {/* Master-Level CRUD Permissions */}
-        <SectionCard title="Master-Level Permissions" subtitle="CRUD permissions for each module's configurable entities (Fee Heads, Subjects, Routes, etc.)" theme={theme}>
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-2.5 flex items-center gap-2 mb-4">
-            <ShieldAlert size={13} className="text-blue-500 shrink-0" />
-            <p className="text-[10px] text-blue-700">Control who can <strong>View, Create, Edit, Delete, Import, and Export</strong> each master table across all modules.</p>
-          </div>
-          <div className="space-y-6">
-            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>Fee Management</p><div className="space-y-3"><MasterPermissionGrid masterName="Fee Heads" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /><MasterPermissionGrid masterName="Concession Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div></div>
-            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>Academic Config</p><div className="space-y-3"><MasterPermissionGrid masterName="Subjects" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /><MasterPermissionGrid masterName="Classes & Sections" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div></div>
-            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>HR & Payroll</p><div className="space-y-3"><MasterPermissionGrid masterName="Departments" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /><MasterPermissionGrid masterName="Designations" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div></div>
-            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>Transport</p><div className="space-y-3"><MasterPermissionGrid masterName="Routes" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /><MasterPermissionGrid masterName="Vehicles" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div></div>
-            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>Attendance</p><MasterPermissionGrid masterName="Attendance Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div>
-            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>Exams & Grading</p><div className="space-y-3"><MasterPermissionGrid masterName="Exam Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /><MasterPermissionGrid masterName="Grade Scales" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div></div>
-            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>Communication</p><MasterPermissionGrid masterName="Communication Templates" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div>
-            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>Timetable & Bell</p><div className="space-y-3"><MasterPermissionGrid masterName="Periods" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /><MasterPermissionGrid masterName="Room Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div></div>
-            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>Leave Policy</p><MasterPermissionGrid masterName="Leave Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div>
-            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>Visitor Rules</p><MasterPermissionGrid masterName="Visitor Categories" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div>
-            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>Certificates</p><MasterPermissionGrid masterName="Certificate Templates" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div>
-            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>Library</p><MasterPermissionGrid masterName="Book Categories" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div>
-            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>Canteen / Meal</p><div className="space-y-3"><MasterPermissionGrid masterName="Menu Items" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /><MasterPermissionGrid masterName="Meal Plans" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div></div>
-            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>Hostel</p><div className="space-y-3"><MasterPermissionGrid masterName="Hostel Blocks" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /><MasterPermissionGrid masterName="Hostel Room Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div></div>
-            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>Inventory & Assets</p><div className="space-y-3"><MasterPermissionGrid masterName="Asset Categories" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /><MasterPermissionGrid masterName="Vendor List" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div></div>
-            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>Homework & Assignment</p><MasterPermissionGrid masterName="Assignment Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div>
-            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>Enquiry & Admission</p><div className="space-y-3"><MasterPermissionGrid masterName="Enquiry Sources" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /><MasterPermissionGrid masterName="Admission Stages" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div></div>
-            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>LMS / E-Learning</p><MasterPermissionGrid masterName="Course Categories" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div>
-            <div><p className={`text-xs font-bold ${theme.highlight} mb-2`}>Remark Bank</p><MasterPermissionGrid masterName="Remark Categories" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} /></div>
-          </div>
+                {/* Save button per tab */}
+                <div className="flex justify-end pt-1">
+                  <button onClick={() => showSaveBanner(`${cat.label} permissions saved successfully`)}
+                    className={`flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs font-bold text-white ${theme.primary} hover:opacity-90 transition-all shadow-sm`}>
+                    <Save size={13} /> Save {cat.label} Permissions
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
         </SectionCard>
 
       </div>}

@@ -85,48 +85,7 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
   const [newApproverName, setNewApproverName] = useState('');
   const [newApproverRole, setNewApproverRole] = useState('');
 
-  // ═══════ RBAC Concession Permissions ═══════
-  const [rbacPermissions, setRbacPermissions] = useState([
-    { role: 'Accountant', permissions: [
-      { concessionType: 'Sibling Discount', maxAmount: '1000', allowed: true },
-      { concessionType: 'Merit Scholarship', maxAmount: '0', allowed: false },
-      { concessionType: 'Staff Child', maxAmount: '0', allowed: false },
-      { concessionType: 'Economic Weaker (EWS)', maxAmount: '0', allowed: false },
-      { concessionType: 'Sports Quota', maxAmount: '500', allowed: true },
-      { concessionType: 'SC/ST Scholarship', maxAmount: '0', allowed: false },
-      { concessionType: 'Single Parent', maxAmount: '500', allowed: true },
-    ]},
-    { role: 'Principal', permissions: [
-      { concessionType: 'Sibling Discount', maxAmount: '10000', allowed: true },
-      { concessionType: 'Merit Scholarship', maxAmount: '50000', allowed: true },
-      { concessionType: 'Staff Child', maxAmount: '50000', allowed: true },
-      { concessionType: 'Economic Weaker (EWS)', maxAmount: '25000', allowed: true },
-      { concessionType: 'Sports Quota', maxAmount: '30000', allowed: true },
-      { concessionType: 'SC/ST Scholarship', maxAmount: '25000', allowed: true },
-      { concessionType: 'Single Parent', maxAmount: '20000', allowed: true },
-    ]},
-    { role: 'Vice Principal', permissions: [
-      { concessionType: 'Sibling Discount', maxAmount: '5000', allowed: true },
-      { concessionType: 'Merit Scholarship', maxAmount: '10000', allowed: true },
-      { concessionType: 'Staff Child', maxAmount: '0', allowed: false },
-      { concessionType: 'Economic Weaker (EWS)', maxAmount: '5000', allowed: true },
-      { concessionType: 'Sports Quota', maxAmount: '10000', allowed: true },
-      { concessionType: 'SC/ST Scholarship', maxAmount: '0', allowed: false },
-      { concessionType: 'Single Parent', maxAmount: '5000', allowed: true },
-    ]},
-    { role: 'Trust Secretary', permissions: [
-      { concessionType: 'Sibling Discount', maxAmount: '999999', allowed: true },
-      { concessionType: 'Merit Scholarship', maxAmount: '999999', allowed: true },
-      { concessionType: 'Staff Child', maxAmount: '999999', allowed: true },
-      { concessionType: 'Economic Weaker (EWS)', maxAmount: '999999', allowed: true },
-      { concessionType: 'Sports Quota', maxAmount: '999999', allowed: true },
-      { concessionType: 'SC/ST Scholarship', maxAmount: '999999', allowed: true },
-      { concessionType: 'Single Parent', maxAmount: '999999', allowed: true },
-    ]},
-  ]);
-  const [rbacExpanded, setRbacExpanded] = useState(false);
-  const [addingRole, setAddingRole] = useState(false);
-  const [newRoleName, setNewRoleName] = useState('');
+  // ═══════ RBAC Concession Permissions — moved to Roles & Permission module ═══════
 
   // ═══════ Auto-Apply Concession Rules ═══════
   const [autoRules, setAutoRules] = useState([
@@ -620,122 +579,13 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
             </div>
           </SectionCard>
 
-          {/* RBAC-Based Concession Permissions */}
-          <SectionCard title="Role-Based Concession Permissions" subtitle="Define which roles can apply which concession types and up to what amount (Role x Type x Fee Head)" theme={theme}>
-            <div className="space-y-3">
-              <div className={`p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <p className={`text-[10px] ${theme.iconColor}`}>Each role has per-concession-type limits. If the concession exceeds the role's limit, it escalates to the next approver in the chain above.</p>
+          {/* RBAC — Redirect to central module */}
+          <SectionCard title="Role-Based Concession Permissions" subtitle="Managed centrally in Roles & Permission module" theme={theme}>
+            <div className={`flex items-center gap-3 p-3 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+              <div className="flex-1">
+                <p className={`text-xs ${theme.iconColor}`}>Role & permission settings for Fee Concessions (including per-role amount limits and escalation rules) are configured in <span className={`font-bold ${theme.primaryText}`}>Roles & Permission Management</span></p>
               </div>
-
-              {/* Matrix Table */}
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className={theme.secondaryBg}>
-                      <th className={`text-left px-2 py-2 font-bold ${theme.iconColor} sticky left-0 ${theme.secondaryBg} z-10`}>Role</th>
-                      {concessions.filter(c => c.active).map(c => (
-                        <th key={c.type} className={`text-center px-2 py-2 font-bold ${theme.iconColor} min-w-[100px]`}>
-                          <div className="text-[9px] leading-tight">{c.type}</div>
-                          <div className="text-[8px] opacity-60 mt-0.5">{c.method === 'percentage' ? `${c.value}%` : `₹${Number(c.value).toLocaleString()}`}</div>
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rbacPermissions.map((roleRow, rIdx) => (
-                      <tr key={roleRow.role} className={`border-t ${theme.border}`}>
-                        <td className={`px-2 py-2 font-bold ${theme.highlight} sticky left-0 ${theme.cardBg} z-10`}>
-                          <div className="flex items-center gap-2">
-                            <span className={`w-6 h-6 rounded-full ${theme.primary} text-white flex items-center justify-center text-[8px] font-bold`}>
-                              {roleRow.role.charAt(0)}
-                            </span>
-                            <span className="text-[10px]">{roleRow.role}</span>
-                          </div>
-                        </td>
-                        {concessions.filter(c => c.active).map((c) => {
-                          const perm = roleRow.permissions.find(p => p.concessionType === c.type);
-                          const allowed = perm?.allowed ?? false;
-                          const maxAmt = perm?.maxAmount || '0';
-                          return (
-                            <td key={c.type} className="px-1 py-1.5 text-center">
-                              <div className="flex flex-col items-center gap-1">
-                                <button onClick={() => {
-                                  const n = [...rbacPermissions];
-                                  const permIdx = n[rIdx].permissions.findIndex(p => p.concessionType === c.type);
-                                  if (permIdx > -1) n[rIdx].permissions[permIdx] = { ...n[rIdx].permissions[permIdx], allowed: !allowed };
-                                  else n[rIdx].permissions.push({ concessionType: c.type, maxAmount: '0', allowed: true });
-                                  setRbacPermissions(n);
-                                }}
-                                  className={`w-5 h-5 rounded flex items-center justify-center text-[8px] font-bold transition-colors ${allowed ? 'bg-emerald-100 text-emerald-700 border border-emerald-300' : 'bg-red-50 text-red-400 border border-red-200'}`}>
-                                  {allowed ? '\u2713' : '\u2717'}
-                                </button>
-                                {allowed && (
-                                  <input type="text" value={maxAmt === '999999' ? '\u221E' : maxAmt}
-                                    onChange={e => {
-                                      const val = e.target.value === '\u221E' ? '999999' : e.target.value.replace(/[^\d]/g, '');
-                                      const n = [...rbacPermissions];
-                                      const permIdx = n[rIdx].permissions.findIndex(p => p.concessionType === c.type);
-                                      if (permIdx > -1) n[rIdx].permissions[permIdx] = { ...n[rIdx].permissions[permIdx], maxAmount: val };
-                                      setRbacPermissions(n);
-                                    }}
-                                    className={`w-16 px-1 py-0.5 rounded border ${theme.border} ${theme.inputBg} text-[9px] text-center ${theme.highlight} outline-none`}
-                                    placeholder="Max ₹" />
-                                )}
-                              </div>
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Add Role */}
-              {addingRole ? (
-                <div className={`p-3 rounded-xl border ${theme.border} ${theme.secondaryBg}`}>
-                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Add New Role</p>
-                  <div className="flex items-center gap-2">
-                    <InputField value={newRoleName} onChange={setNewRoleName} theme={theme} placeholder="Role name (e.g., Admin, HOD)" />
-                    <button onClick={() => {
-                      if (newRoleName.trim()) {
-                        setRbacPermissions(p => [...p, {
-                          role: newRoleName.trim(),
-                          permissions: concessions.map(c => ({ concessionType: c.type, maxAmount: '0', allowed: false }))
-                        }]);
-                        setNewRoleName(''); setAddingRole(false);
-                      }
-                    }} className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold ${theme.primary} text-white shrink-0`}>
-                      <Plus size={12} /> Add
-                    </button>
-                    <button onClick={() => { setAddingRole(false); setNewRoleName(''); }}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold ${theme.iconColor} ${theme.buttonHover} shrink-0`}>Cancel</button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <button onClick={() => setAddingRole(true)}
-                    className={`flex items-center gap-1 text-xs font-bold ${theme.iconColor} ${theme.buttonHover} px-3 py-2 rounded-xl`}>
-                    <Plus size={12} /> Add Role
-                  </button>
-                  <button onClick={() => {
-                    setRbacPermissions(p => p.map(r => ({
-                      ...r, permissions: r.permissions.map(perm => ({ ...perm, allowed: true }))
-                    })));
-                  }}
-                    className="px-2.5 py-1.5 rounded-lg text-[9px] font-bold bg-emerald-100 text-emerald-700 hover:bg-emerald-200">Allow All</button>
-                  <button onClick={() => {
-                    setRbacPermissions(p => p.map(r => ({
-                      ...r, permissions: r.permissions.map(perm => ({ ...perm, allowed: false, maxAmount: '0' }))
-                    })));
-                  }}
-                    className="px-2.5 py-1.5 rounded-lg text-[9px] font-bold bg-red-50 text-red-600 hover:bg-red-100">Deny All</button>
-                </div>
-              )}
-
-              <div className={`p-2 rounded-lg bg-blue-50 border border-blue-200`}>
-                <p className="text-[9px] text-blue-700"><span className="font-bold">How it works:</span> When an Accountant applies a &quot;Sibling Discount&quot; of ₹3,000 but their limit is ₹1,000, the request auto-escalates to the next approver (e.g., Principal with ₹10,000 limit). If it exceeds all limits, it goes to Trust Secretary.</p>
-              </div>
+              <ArrowRight size={16} className={theme.iconColor} />
             </div>
           </SectionCard>
 
@@ -1043,7 +893,7 @@ export default function FeeConfigModule({ theme, activeTab: externalTab, onTabCh
           <div className={`flex items-center justify-between p-4 rounded-2xl ${theme.secondaryBg} border ${theme.border}`}>
             <div>
               <p className={`text-sm font-bold ${theme.highlight}`}>Save Concessions</p>
-              <p className={`text-[10px] ${theme.iconColor}`}>Save concession types, approval workflow, RBAC permissions, auto-rules, and overrides</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>Save concession types, approval workflow, auto-rules, and overrides</p>
             </div>
             <button className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold ${theme.primary} text-white shadow-lg hover:shadow-xl transition-all`}>
               <Save size={16} /> Save Changes

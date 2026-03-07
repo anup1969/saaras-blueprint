@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Plus, X, CheckCircle, AlertTriangle, Search, Download, Upload, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Save } from 'lucide-react';
+import { Plus, X, CheckCircle, AlertTriangle, Search, Download, Upload, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Save, ArrowRight } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
-import { MasterPermissionGrid, BulkImportWizard } from '@/components/shared';
+import { BulkImportWizard } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
 
 const PAGE_SIZE = 5;
@@ -139,17 +139,7 @@ export default function TransportConfigModule({ theme, activeTab: externalTab, o
   });
   const [commuteTagging, setCommuteTagging] = useState(true);
   const [defaultCommuteMode, setDefaultCommuteMode] = useState('School Bus');
-  const [hasTransportManager, setHasTransportManager] = useState(true);
-  const [tmPermissions, setTmPermissions] = useState<Record<string, boolean>>({
-    'View all routes & stops': true, 'Add/edit routes & stops': true, 'Delete routes': false,
-    'View vehicle fleet': true, 'Add/edit vehicles': true, 'Delete vehicles': false,
-    'View driver details': true, 'Add/edit drivers': true, 'Delete drivers': false,
-    'Assign students to routes': true, 'Change student route/stop': true,
-    'View transport fees': true, 'Modify transport fees': false, 'Accept/record fee payments': true,
-    'View GPS tracking': true, 'Configure safety alerts': false,
-    'Send notifications to parents': true, 'View attendance reports': true,
-    'Export transport data': true, 'Manage pickup policies': false,
-  });
+  // Transport Manager permissions moved to Roles & Permission module
 
   // ── Routes: search, pagination, expand ──
   const [routeSearch, setRouteSearch] = useState('');
@@ -680,37 +670,23 @@ export default function TransportConfigModule({ theme, activeTab: externalTab, o
         </div>
       </SectionCard>
 
-      <SectionCard title="Transport Manager Permissions" subtitle="Define what the Transport Manager role can access and modify" theme={theme}>
-        <div className="space-y-3">
-          <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-            <div className="flex-1 mr-3">
-              <p className={`text-xs font-bold ${theme.highlight}`}>Transport Manager Role</p>
-              <p className={`text-[10px] ${theme.iconColor}`}>Enable a dedicated Transport Manager role with configurable permissions</p>
-            </div>
-            <SSAToggle on={hasTransportManager} onChange={() => setHasTransportManager(!hasTransportManager)} theme={theme} />
+      <SectionCard title="Transport Manager Permissions" subtitle="Managed centrally in Roles & Permission module" theme={theme}>
+        <div className={`flex items-center gap-3 p-3 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+          <div className="flex-1">
+            <p className={`text-xs ${theme.iconColor}`}>Role & permission settings for Transport (including Transport Manager role) are configured in <span className={`font-bold ${theme.primaryText}`}>Roles & Permission Management</span></p>
           </div>
-          {hasTransportManager && (
-            <div>
-              <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>CRUD Permissions — toggle what the Transport Manager can do</p>
-              <div className="grid grid-cols-2 gap-1.5">
-                {Object.entries(tmPermissions).map(([perm, enabled]) => (
-                  <div key={perm} className={`flex items-center justify-between p-2 rounded-xl ${theme.secondaryBg}`}>
-                    <span className={`text-[11px] ${theme.highlight}`}>{perm}</span>
-                    <SSAToggle on={enabled} onChange={() => setTmPermissions(p => ({ ...p, [perm]: !p[perm] }))} theme={theme} />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          <ArrowRight size={16} className={theme.iconColor} />
         </div>
       </SectionCard>
       </div>)}
 
       {activeTab === 'settings' && (<div className="space-y-4">
-      <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
-        <div className="space-y-4">
-          <MasterPermissionGrid masterName="Routes" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
-          <MasterPermissionGrid masterName="Vehicles" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+      <SectionCard title="Role-Based Permissions" subtitle="Managed centrally in Roles & Permission module" theme={theme}>
+        <div className={`flex items-center gap-3 p-3 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+          <div className="flex-1">
+            <p className={`text-xs ${theme.iconColor}`}>Role & permission settings for Transport are configured in <span className={`font-bold ${theme.primaryText}`}>Roles & Permission Management</span></p>
+          </div>
+          <ArrowRight size={16} className={theme.iconColor} />
         </div>
       </SectionCard>
 

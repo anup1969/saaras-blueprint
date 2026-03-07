@@ -1,8 +1,8 @@
 'use client';
 import React, { useState } from 'react';
-import { Info, Save } from 'lucide-react';
+import { Info, Save, ArrowRight } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
-import { MasterPermissionGrid, BulkImportWizard } from '@/components/shared';
+import { BulkImportWizard } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
 
 function InfoIcon({ tip }: { tip: string }) {
@@ -252,9 +252,12 @@ export default function HomeworkConfigModule({ theme, activeTab: externalTab, on
       </div>)}
 
       {activeTab === 'settings' && (<div className="space-y-4">
-      <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
-        <div className="space-y-4">
-          <MasterPermissionGrid masterName="Assignment Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+      <SectionCard title="Role-Based Permissions" subtitle="Managed centrally in Roles & Permission module" theme={theme}>
+        <div className={`flex items-center gap-3 p-3 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+          <div className="flex-1">
+            <p className={`text-xs ${theme.iconColor}`}>Role & permission settings for Homework are configured in <span className={`font-bold ${theme.primaryText}`}>Roles & Permission Management</span></p>
+          </div>
+          <ArrowRight size={16} className={theme.iconColor} />
         </div>
       </SectionCard>
 

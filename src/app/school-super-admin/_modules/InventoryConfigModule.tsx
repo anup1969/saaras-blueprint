@@ -1,8 +1,8 @@
 'use client';
 import React, { useState } from 'react';
-import { X, Plus, Search, Trash2, Download, Upload, Save, Eye, AlertTriangle, Edit } from 'lucide-react';
+import { X, Plus, Search, Trash2, Download, Upload, Save, Eye, AlertTriangle, Edit, ArrowRight } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
-import { MasterPermissionGrid, BulkImportWizard } from '@/components/shared';
+import { BulkImportWizard } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
@@ -398,11 +398,12 @@ export default function InventoryConfigModule({ theme, activeTab: externalTab, o
       {/* ── TAB: settings ─────────────────────────────────────────────────────── */}
       {activeTab === 'settings' && (<div className="space-y-4">
       {/* ── Permissions ──────────────────────────────────────────────────────── */}
-      <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
-        <div className="space-y-4">
-          <MasterPermissionGrid masterName="Asset Register" roles={['Super Admin', 'Principal', 'School Admin', 'Store Keeper', 'Accountant']} theme={theme} />
-          <MasterPermissionGrid masterName="Asset Categories" roles={['Super Admin', 'Principal', 'School Admin', 'Store Keeper', 'Accountant']} theme={theme} />
-          <MasterPermissionGrid masterName="Vendor List" roles={['Super Admin', 'Principal', 'School Admin', 'Store Keeper', 'Accountant']} theme={theme} />
+      <SectionCard title="Role-Based Permissions" subtitle="Managed centrally in Roles & Permission module" theme={theme}>
+        <div className={`flex items-center gap-3 p-3 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+          <div className="flex-1">
+            <p className={`text-xs ${theme.iconColor}`}>Role & permission settings for Inventory are configured in <span className={`font-bold ${theme.primaryText}`}>Roles & Permission Management</span></p>
+          </div>
+          <ArrowRight size={16} className={theme.iconColor} />
         </div>
       </SectionCard>
 

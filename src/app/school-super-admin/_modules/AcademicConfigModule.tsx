@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Plus, X, Upload, Download, Copy, CheckSquare, Square, BookOpen, ArrowRight, Search, Pencil, Trash2, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
-import { MasterPermissionGrid, BulkImportWizard } from '@/components/shared';
+import { BulkImportWizard } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
 
 const PAGE_SIZE = 5;

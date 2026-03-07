@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { X, Plus, CheckCircle, ChevronUp, ChevronDown, Copy, CheckSquare, Square, Globe, Link, QrCode, Bell, ArrowRight, FileText, Upload, Download, Search, Edit, Save, Check, Settings, Trash2, Users, Phone, Mail, Calendar, ClipboardList, BarChart3, Filter, AlertCircle, Clock, UserCheck, GripVertical, Eye, MessageSquare } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
-import { MasterPermissionGrid, BulkImportWizard } from '@/components/shared';
+import { BulkImportWizard } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
 
 const PAGE_SIZE = 5;
@@ -478,11 +478,12 @@ export default function EnquiryAdmissionConfigModule({ theme, activeTab: externa
           </SectionCard>
 
           {/* RBAC (P0 #6) */}
-          <SectionCard title="Role-Based Access Control" subtitle="Who can view, create, approve enquiries at each pipeline stage" theme={theme}>
-            <div className="space-y-4">
-              <MasterPermissionGrid masterName="Enquiry Pipeline" roles={['Super Admin', 'Principal', 'School Admin', 'Counselor', 'Receptionist']} theme={theme} />
-              <MasterPermissionGrid masterName="Admission Approval" roles={['Super Admin', 'Principal', 'School Admin', 'Accountant']} theme={theme} />
-              <MasterPermissionGrid masterName="Waitlist Management" roles={['Super Admin', 'Principal', 'School Admin']} theme={theme} />
+          <SectionCard title="Role-Based Access Control" subtitle="Managed centrally in Roles & Permission module" theme={theme}>
+            <div className={`flex items-center gap-3 p-3 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+              <div className="flex-1">
+                <p className={`text-xs ${theme.iconColor}`}>Role & permission settings for Enquiry & Admission are configured in <span className={`font-bold ${theme.primaryText}`}>Roles & Permission Management</span></p>
+              </div>
+              <ArrowRight size={16} className={theme.iconColor} />
             </div>
           </SectionCard>
 

@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Plus, Search, Download, Upload, Save, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, Plus, Search, Download, Upload, Save, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField } from '../_helpers/components';
-import { MasterPermissionGrid, BulkImportWizard } from '@/components/shared';
+import { BulkImportWizard } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
 
 // ─── Types ─────────────────────────────────────────
@@ -342,9 +342,12 @@ export default function LeaveConfigModule({ theme, activeTab: externalTab, onTab
       {activeTab === 'settings' && (
       <div className="space-y-4">
       {/* ── 3. Role-Based Permissions ─────────────────── */}
-      <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
-        <div className="space-y-4">
-          <MasterPermissionGrid masterName="Leave Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+      <SectionCard title="Role-Based Permissions" subtitle="Managed centrally in Roles & Permission module" theme={theme}>
+        <div className={`flex items-center gap-3 p-3 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+          <div className="flex-1">
+            <p className={`text-xs ${theme.iconColor}`}>Role & permission settings for Leave are configured in <span className={`font-bold ${theme.primaryText}`}>Roles & Permission Management</span></p>
+          </div>
+          <ArrowRight size={16} className={theme.iconColor} />
         </div>
       </SectionCard>
 

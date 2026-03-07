@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Plus, AlertTriangle, Eye, UserCircle, Info, Download, Search, Upload, ChevronLeft, ChevronRight, Save } from 'lucide-react';
+import { X, Plus, AlertTriangle, Eye, UserCircle, Info, Download, Search, Upload, ChevronLeft, ChevronRight, Save, ArrowRight } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, SelectField, InputField } from '../_helpers/components';
-import { MasterPermissionGrid, BulkImportWizard } from '@/components/shared';
+import { BulkImportWizard } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
 
 const PAGE_SIZE = 5;
@@ -80,7 +80,7 @@ export default function ExamConfigModule({ theme, activeTab: externalTab, onTabC
     { grade: 'D', min: '33', max: '40', gp: '4', enabled: true },
     { grade: 'E (Fail)', min: '0', max: '32', gp: '0', enabled: true },
   ]);
-  const [reportTemplate, setReportTemplate] = useState('cbse-standard');
+  const [reportTemplate, setReportTemplate] = useState<string>('cbse-15');
   const [examSchedule, setExamSchedule] = useState([
     { exam: 'Unit Test 1', startDate: '15 Jun', endDate: '20 Jun', classes: 'All', status: 'Completed', enabled: true },
     { exam: 'Unit Test 2', startDate: '25 Aug', endDate: '30 Aug', classes: 'All', status: 'Completed', enabled: true },
@@ -100,13 +100,11 @@ export default function ExamConfigModule({ theme, activeTab: externalTab, onTabC
     { name: 'Unit Test 4', weight: '10', schedule: 'Term 2', duration: '1 hr', active: true, enabled: true },
     { name: 'Annual / Final', weight: '30', schedule: 'Both', duration: '3 hrs', active: true, enabled: true },
   ]);
-  const [reportFields, setReportFields] = useState<Record<string, boolean>>({
-    'Student Photo': true, 'Attendance %': true, 'Teacher Remarks': true, 'Principal Signature': true,
-    'Co-Scholastic Grades': true, 'Discipline Grade': true, 'Health & Physical Education': true,
-    'House Points': false, 'Class Rank': false, 'Parent Signature Line': false,
+  const [rcToggles, setRcToggles] = useState<Record<string, boolean>>({
+    schoolLogo: true, studentPhoto: true, attendanceSummary: true, teacherRemarks: true,
+    parentSignature: false, principalSignature: true, gradingScale: true,
+    coScholastic: true, qrCode: false, watermark: false,
   });
-  const [reportGradingMode, setReportGradingMode] = useState('Both');
-  const [showReportPreview, setShowReportPreview] = useState(false);
 
   // --- Exam Operations Config ---
   const [scheduleBatchEnabled, setScheduleBatchEnabled] = useState(false);
@@ -116,11 +114,16 @@ export default function ExamConfigModule({ theme, activeTab: externalTab, onTabC
     'Grade 9': true, 'Grade 10': true, 'Grade 11': false, 'Grade 12': false,
   });
   // Admit Card Template
+  const [admitCardTemplate, setAdmitCardTemplate] = useState<'standard' | 'compact' | 'photo-id'>('standard');
   const [admitCardLogo, setAdmitCardLogo] = useState(true);
   const [admitCardPhoto, setAdmitCardPhoto] = useState(true);
   const [admitCardSchedule, setAdmitCardSchedule] = useState(true);
-  const [admitCardInstructions, setAdmitCardInstructions] = useState('1. Reach 30 minutes before exam.\n2. Carry your own stationery.\n3. Electronic devices not allowed.');
+  const [admitCardInstructions, setAdmitCardInstructions] = useState('1. Reach 30 minutes before exam.\n2. Carry your own stationery.\n3. Electronic devices not allowed.\n4. No candidate shall leave the hall before the end of the exam.');
   const [admitCardSignature, setAdmitCardSignature] = useState(true);
+  const [admitCardQR, setAdmitCardQR] = useState(true);
+  const [admitCardAddress, setAdmitCardAddress] = useState(true);
+  const [admitCardEmergency, setAdmitCardEmergency] = useState(false);
+  const [admitCardReportingTime, setAdmitCardReportingTime] = useState(true);
   // Hall/Room Allocation
   const [halls, setHalls] = useState([
     { name: 'Hall A', capacity: '60', floor: 'Ground', equipment: 'Projector', enabled: true },
@@ -473,32 +476,288 @@ export default function ExamConfigModule({ theme, activeTab: externalTab, onTabC
         </div>
       </SectionCard>
 
-      <SectionCard title="Admit Card Template" subtitle="Configure hall ticket layout for exam admit cards" theme={theme}>
+      <SectionCard title="Admit Card Template" subtitle="Configure hall ticket layout with live preview" theme={theme}>
         <div className="flex items-center mb-3">
           <p className={`text-[10px] font-bold ${theme.iconColor}`}>Design the admit card / hall ticket template</p>
-          <InfoIcon tip="Configure hall ticket layout for exam admit cards" />
+          <InfoIcon tip="Select a template style and toggle fields to see live preview on the right" />
         </div>
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 mb-3">
-          {[
-            { label: 'School Logo', val: admitCardLogo, set: setAdmitCardLogo },
-            { label: 'Student Photo', val: admitCardPhoto, set: setAdmitCardPhoto },
-            { label: 'Exam Schedule Table', val: admitCardSchedule, set: setAdmitCardSchedule },
-            { label: 'Signature Field', val: admitCardSignature, set: setAdmitCardSignature },
-          ].map(item => (
-            <div key={item.label} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <span className={`text-xs font-medium ${theme.highlight}`}>{item.label}</span>
-              <SSAToggle on={item.val} onChange={() => item.set(!item.val)} theme={theme} />
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          {/* ── LEFT: Configuration ── */}
+          <div className="space-y-3">
+            {/* Template Selector */}
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1.5`}>Template Style</p>
+              <div className="grid grid-cols-3 gap-2">
+                {([
+                  { key: 'standard' as const, label: 'Standard', desc: 'Portrait, full details' },
+                  { key: 'compact' as const, label: 'Compact', desc: 'Single-page, minimal' },
+                  { key: 'photo-id' as const, label: 'Photo ID Style', desc: 'ID card + schedule' },
+                ] as const).map(t => (
+                  <button key={t.key} onClick={() => setAdmitCardTemplate(t.key)}
+                    className={`p-2 rounded-xl border text-left transition-all ${admitCardTemplate === t.key
+                      ? `${theme.primary} text-white border-transparent ring-2 ring-offset-1 ring-blue-300`
+                      : `${theme.secondaryBg} ${theme.border} ${theme.highlight} hover:opacity-80`}`}>
+                    <p className="text-[11px] font-bold">{t.label}</p>
+                    <p className={`text-[9px] ${admitCardTemplate === t.key ? 'text-white/80' : 'text-gray-400'}`}>{t.desc}</p>
+                  </button>
+                ))}
+              </div>
             </div>
-          ))}
+            {/* Toggleable Fields */}
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1.5`}>Visible Fields</p>
+              <div className="grid grid-cols-2 gap-1.5">
+                {[
+                  { label: 'School Logo', val: admitCardLogo, set: setAdmitCardLogo },
+                  { label: 'Student Photo', val: admitCardPhoto, set: setAdmitCardPhoto },
+                  { label: 'Exam Schedule Table', val: admitCardSchedule, set: setAdmitCardSchedule },
+                  { label: 'Signatures (CT + Principal)', val: admitCardSignature, set: setAdmitCardSignature },
+                  { label: 'QR / Barcode', val: admitCardQR, set: setAdmitCardQR },
+                  { label: 'School Address', val: admitCardAddress, set: setAdmitCardAddress },
+                  { label: 'Emergency Contact', val: admitCardEmergency, set: setAdmitCardEmergency },
+                  { label: 'Reporting Time', val: admitCardReportingTime, set: setAdmitCardReportingTime },
+                ].map(item => (
+                  <div key={item.label} className={`flex items-center justify-between p-2 rounded-lg ${theme.secondaryBg}`}>
+                    <span className={`text-[10px] font-medium ${theme.highlight}`}>{item.label}</span>
+                    <SSAToggle on={item.val} onChange={() => item.set(!item.val)} theme={theme} />
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* Instructions Text */}
+            <div>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Instructions / Rules</p>
+              <textarea value={admitCardInstructions} onChange={e => setAdmitCardInstructions(e.target.value)} rows={4}
+                className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-[10px] ${theme.highlight} outline-none resize-none leading-relaxed`} />
+            </div>
+            <button className={`flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs font-bold ${theme.primary} text-white hover:opacity-90 transition-opacity`}>
+              <Save size={14} /> Save Admit Card Config
+            </button>
+          </div>
+
+          {/* ── RIGHT: Live Preview ── */}
+          <div className={`rounded-2xl border-2 border-dashed ${theme.border} p-3 ${theme.secondaryBg} overflow-hidden`}>
+            <p className={`text-[9px] font-bold ${theme.iconColor} mb-2 uppercase tracking-wider`}>Live Preview</p>
+
+            {/* ── STANDARD TEMPLATE ── */}
+            {admitCardTemplate === 'standard' && (
+              <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4 text-gray-800 max-w-[380px] mx-auto" style={{ fontSize: '9px' }}>
+                {/* Header */}
+                <div className="text-center border-b border-gray-300 pb-2 mb-2">
+                  <div className="flex items-center justify-center gap-2">
+                    {admitCardLogo && <div className="w-8 h-8 rounded-full bg-blue-100 border border-blue-300 flex items-center justify-center text-[7px] font-bold text-blue-600 shrink-0">LOGO</div>}
+                    <div>
+                      <p className="text-[11px] font-bold text-blue-900 tracking-wide">DELHI PUBLIC SCHOOL</p>
+                      {admitCardAddress && <p className="text-[7px] text-gray-500">Sector 24, Dwarka, New Delhi - 110077</p>}
+                      <p className="text-[7px] text-gray-400">Affiliated to CBSE | Affiliation No. 2730088</p>
+                    </div>
+                  </div>
+                  <div className="mt-1.5 inline-block px-3 py-0.5 bg-blue-700 text-white rounded text-[8px] font-bold tracking-widest">ADMIT CARD</div>
+                  <p className="text-[8px] font-semibold text-gray-600 mt-1">Annual Examination 2025-26</p>
+                </div>
+                {/* Student Info */}
+                <div className="flex gap-3 mb-2">
+                  <div className="flex-1 space-y-0.5">
+                    <div className="flex"><span className="text-gray-500 w-16 shrink-0">Name:</span><span className="font-semibold">Aarav Patel</span></div>
+                    <div className="flex"><span className="text-gray-500 w-16 shrink-0">Class:</span><span className="font-semibold">X - A</span></div>
+                    <div className="flex"><span className="text-gray-500 w-16 shrink-0">Roll No:</span><span className="font-semibold">12</span></div>
+                    <div className="flex"><span className="text-gray-500 w-16 shrink-0">DOB:</span><span className="font-semibold">15 Jun 2012</span></div>
+                    {admitCardEmergency && <div className="flex"><span className="text-gray-500 w-16 shrink-0">Emergency:</span><span className="font-semibold">+91 98765 43210</span></div>}
+                    {admitCardReportingTime && <div className="flex"><span className="text-gray-500 w-16 shrink-0">Report at:</span><span className="font-bold text-red-600">8:30 AM</span></div>}
+                  </div>
+                  {admitCardPhoto && (
+                    <div className="w-16 h-20 rounded border border-gray-300 bg-gray-50 flex items-center justify-center shrink-0">
+                      <UserCircle size={28} className="text-gray-300" />
+                    </div>
+                  )}
+                </div>
+                {/* Exam Schedule */}
+                {admitCardSchedule && (
+                  <table className="w-full border-collapse mb-2">
+                    <thead>
+                      <tr className="bg-blue-50">
+                        <th className="border border-gray-300 px-1.5 py-0.5 text-left text-[8px] font-bold text-blue-800">Subject</th>
+                        <th className="border border-gray-300 px-1.5 py-0.5 text-center text-[8px] font-bold text-blue-800">Date</th>
+                        <th className="border border-gray-300 px-1.5 py-0.5 text-center text-[8px] font-bold text-blue-800">Time</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        { sub: 'English', date: '10 Mar 2026', time: '9:00 - 12:00' },
+                        { sub: 'Mathematics', date: '12 Mar 2026', time: '9:00 - 12:00' },
+                        { sub: 'Science', date: '14 Mar 2026', time: '9:00 - 11:30' },
+                        { sub: 'Social Studies', date: '17 Mar 2026', time: '9:00 - 11:30' },
+                        { sub: 'Hindi', date: '19 Mar 2026', time: '9:00 - 12:00' },
+                      ].map(row => (
+                        <tr key={row.sub} className="hover:bg-gray-50">
+                          <td className="border border-gray-200 px-1.5 py-0.5">{row.sub}</td>
+                          <td className="border border-gray-200 px-1.5 py-0.5 text-center">{row.date}</td>
+                          <td className="border border-gray-200 px-1.5 py-0.5 text-center">{row.time}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+                {/* Instructions */}
+                {admitCardInstructions && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded p-1.5 mb-2">
+                    <p className="text-[7px] font-bold text-yellow-800 mb-0.5">Important Instructions:</p>
+                    {admitCardInstructions.split('\n').map((line, i) => (
+                      <p key={i} className="text-[7px] text-yellow-700 leading-tight">{line}</p>
+                    ))}
+                  </div>
+                )}
+                {/* Footer: QR + Signatures */}
+                <div className="flex items-end justify-between mt-2 pt-2 border-t border-gray-200">
+                  {admitCardQR && (
+                    <div className="w-10 h-10 border border-gray-300 rounded bg-gray-50 flex items-center justify-center">
+                      <div className="grid grid-cols-4 gap-px w-7 h-7">{Array.from({ length: 16 }).map((_, i) => <div key={i} className={`${i % 3 === 0 ? 'bg-gray-800' : 'bg-white'}`} />)}</div>
+                    </div>
+                  )}
+                  {admitCardSignature && (
+                    <div className="flex gap-6">
+                      <div className="text-center"><div className="w-14 border-b border-gray-400 mb-0.5" /><p className="text-[7px] text-gray-500">Class Teacher</p></div>
+                      <div className="text-center"><div className="w-14 border-b border-gray-400 mb-0.5" /><p className="text-[7px] text-gray-500">Principal</p></div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* ── COMPACT TEMPLATE ── */}
+            {admitCardTemplate === 'compact' && (
+              <div className="bg-white rounded-xl shadow-md border border-gray-200 p-3 text-gray-800 mx-auto" style={{ fontSize: '8px', maxWidth: '400px' }}>
+                {/* Single compact row header */}
+                <div className="flex items-center gap-2 border-b border-gray-300 pb-1.5 mb-1.5">
+                  {admitCardLogo && <div className="w-6 h-6 rounded-full bg-green-100 border border-green-300 flex items-center justify-center text-[6px] font-bold text-green-700 shrink-0">DPS</div>}
+                  <div className="flex-1">
+                    <p className="text-[10px] font-bold text-green-900">DELHI PUBLIC SCHOOL</p>
+                    {admitCardAddress && <p className="text-[6px] text-gray-400">Sector 24, Dwarka, New Delhi</p>}
+                  </div>
+                  <div className="text-right">
+                    <div className="inline-block px-2 py-0.5 bg-green-700 text-white rounded text-[7px] font-bold">ADMIT CARD</div>
+                    <p className="text-[7px] text-gray-500 mt-0.5">Annual Exam 2025-26</p>
+                  </div>
+                </div>
+                {/* Two-column: info + schedule */}
+                <div className="flex gap-3">
+                  <div className="shrink-0 space-y-0.5">
+                    {admitCardPhoto && (
+                      <div className="w-12 h-14 rounded border border-gray-300 bg-gray-50 flex items-center justify-center mb-1">
+                        <UserCircle size={20} className="text-gray-300" />
+                      </div>
+                    )}
+                    <p><span className="text-gray-400">Name: </span><span className="font-bold">Aarav Patel</span></p>
+                    <p><span className="text-gray-400">Class: </span><span className="font-bold">X-A | Roll: 12</span></p>
+                    <p><span className="text-gray-400">DOB: </span><span className="font-bold">15 Jun 2012</span></p>
+                    {admitCardReportingTime && <p><span className="text-gray-400">Report: </span><span className="font-bold text-red-600">8:30 AM</span></p>}
+                    {admitCardEmergency && <p><span className="text-gray-400">Emergency: </span><span className="font-bold">+91 98765 43210</span></p>}
+                  </div>
+                  {admitCardSchedule && (
+                    <table className="flex-1 border-collapse self-start">
+                      <thead><tr className="bg-green-50">
+                        <th className="border border-gray-200 px-1 py-0.5 text-left text-[7px] font-bold text-green-800">Subject</th>
+                        <th className="border border-gray-200 px-1 py-0.5 text-center text-[7px] font-bold text-green-800">Date</th>
+                        <th className="border border-gray-200 px-1 py-0.5 text-center text-[7px] font-bold text-green-800">Time</th>
+                      </tr></thead>
+                      <tbody>
+                        {[
+                          { sub: 'English', date: '10 Mar', time: '9:00-12:00' },
+                          { sub: 'Mathematics', date: '12 Mar', time: '9:00-12:00' },
+                          { sub: 'Science', date: '14 Mar', time: '9:00-11:30' },
+                          { sub: 'Soc. Studies', date: '17 Mar', time: '9:00-11:30' },
+                          { sub: 'Hindi', date: '19 Mar', time: '9:00-12:00' },
+                        ].map(r => (
+                          <tr key={r.sub}><td className="border border-gray-200 px-1 py-0.5">{r.sub}</td><td className="border border-gray-200 px-1 py-0.5 text-center">{r.date}</td><td className="border border-gray-200 px-1 py-0.5 text-center">{r.time}</td></tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+                {/* Bottom strip */}
+                <div className="flex items-end justify-between mt-1.5 pt-1.5 border-t border-gray-200">
+                  {admitCardQR && <div className="w-7 h-7 border border-gray-300 rounded bg-gray-50 flex items-center justify-center"><div className="grid grid-cols-3 gap-px w-5 h-5">{Array.from({ length: 9 }).map((_, i) => <div key={i} className={`${i % 2 === 0 ? 'bg-gray-800' : 'bg-white'}`} />)}</div></div>}
+                  {admitCardSignature && (
+                    <div className="flex gap-4">
+                      <div className="text-center"><div className="w-10 border-b border-gray-400 mb-0.5" /><p className="text-[6px] text-gray-500">Class Teacher</p></div>
+                      <div className="text-center"><div className="w-10 border-b border-gray-400 mb-0.5" /><p className="text-[6px] text-gray-500">Principal</p></div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* ── PHOTO ID STYLE TEMPLATE ── */}
+            {admitCardTemplate === 'photo-id' && (
+              <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden text-gray-800 max-w-[400px] mx-auto" style={{ fontSize: '8px' }}>
+                <div className="flex">
+                  {/* Left panel — ID card style */}
+                  <div className="w-[130px] bg-gradient-to-b from-purple-700 to-purple-900 text-white p-3 flex flex-col items-center shrink-0">
+                    {admitCardLogo && <div className="w-8 h-8 rounded-full bg-white/20 border border-white/40 flex items-center justify-center text-[7px] font-bold mb-1">DPS</div>}
+                    <p className="text-[8px] font-bold text-center leading-tight mb-2">DELHI PUBLIC SCHOOL</p>
+                    {admitCardPhoto && (
+                      <div className="w-16 h-20 rounded-lg border-2 border-white/50 bg-white/10 flex items-center justify-center mb-2">
+                        <UserCircle size={32} className="text-white/50" />
+                      </div>
+                    )}
+                    <p className="text-[9px] font-bold text-center">Aarav Patel</p>
+                    <p className="text-[7px] text-purple-200">Class X - A</p>
+                    <p className="text-[7px] text-purple-200">Roll No. 12</p>
+                    <p className="text-[7px] text-purple-300 mt-0.5">DOB: 15 Jun 2012</p>
+                    {admitCardEmergency && <p className="text-[6px] text-purple-300 mt-0.5">Emergency: +91 98765 43210</p>}
+                    {admitCardQR && (
+                      <div className="w-9 h-9 bg-white/15 rounded border border-white/30 mt-auto flex items-center justify-center">
+                        <div className="grid grid-cols-4 gap-px w-6 h-6">{Array.from({ length: 16 }).map((_, i) => <div key={i} className={`${i % 3 === 0 ? 'bg-white' : 'bg-transparent'}`} />)}</div>
+                      </div>
+                    )}
+                  </div>
+                  {/* Right panel — exam schedule */}
+                  <div className="flex-1 p-3">
+                    <div className="text-center mb-2">
+                      <div className="inline-block px-3 py-0.5 bg-purple-100 text-purple-800 rounded text-[8px] font-bold tracking-wider">ADMIT CARD — Annual Exam 2025-26</div>
+                      {admitCardReportingTime && <p className="text-[7px] text-red-600 font-bold mt-0.5">Reporting Time: 8:30 AM</p>}
+                      {admitCardAddress && <p className="text-[6px] text-gray-400 mt-0.5">Sector 24, Dwarka, New Delhi - 110077</p>}
+                    </div>
+                    {admitCardSchedule && (
+                      <table className="w-full border-collapse mb-2">
+                        <thead><tr className="bg-purple-50">
+                          <th className="border border-gray-200 px-1.5 py-0.5 text-left text-[7px] font-bold text-purple-800">Subject</th>
+                          <th className="border border-gray-200 px-1.5 py-0.5 text-center text-[7px] font-bold text-purple-800">Date</th>
+                          <th className="border border-gray-200 px-1.5 py-0.5 text-center text-[7px] font-bold text-purple-800">Time</th>
+                        </tr></thead>
+                        <tbody>
+                          {[
+                            { sub: 'English', date: '10 Mar 2026', time: '9:00 - 12:00' },
+                            { sub: 'Mathematics', date: '12 Mar 2026', time: '9:00 - 12:00' },
+                            { sub: 'Science', date: '14 Mar 2026', time: '9:00 - 11:30' },
+                            { sub: 'Social Studies', date: '17 Mar 2026', time: '9:00 - 11:30' },
+                            { sub: 'Hindi', date: '19 Mar 2026', time: '9:00 - 12:00' },
+                          ].map(row => (
+                            <tr key={row.sub}><td className="border border-gray-200 px-1.5 py-0.5">{row.sub}</td><td className="border border-gray-200 px-1.5 py-0.5 text-center">{row.date}</td><td className="border border-gray-200 px-1.5 py-0.5 text-center">{row.time}</td></tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                    {admitCardInstructions && (
+                      <div className="bg-yellow-50 border border-yellow-200 rounded p-1.5 mb-2">
+                        <p className="text-[6px] font-bold text-yellow-800 mb-0.5">Instructions:</p>
+                        {admitCardInstructions.split('\n').map((line, i) => (
+                          <p key={i} className="text-[6px] text-yellow-700 leading-tight">{line}</p>
+                        ))}
+                      </div>
+                    )}
+                    {admitCardSignature && (
+                      <div className="flex justify-between mt-2 pt-1 border-t border-gray-200">
+                        <div className="text-center"><div className="w-12 border-b border-gray-400 mb-0.5" /><p className="text-[6px] text-gray-500">Class Teacher</p></div>
+                        <div className="text-center"><div className="w-12 border-b border-gray-400 mb-0.5" /><p className="text-[6px] text-gray-500">Principal</p></div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-        <div className="mb-3">
-          <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Instructions Area</p>
-          <textarea value={admitCardInstructions} onChange={e => setAdmitCardInstructions(e.target.value)} rows={3}
-            className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none resize-none`} />
-        </div>
-        <button className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold ${theme.primary} text-white`}>
-          <Eye size={14} /> Preview Template
-        </button>
       </SectionCard>
 
       {/* ══════════════ EXAM HALLS — MASTER TABLE ══════════════ */}
@@ -694,86 +953,402 @@ export default function ExamConfigModule({ theme, activeTab: externalTab, onTabC
 
       {/* ══════════════ REPORTS TAB ══════════════ */}
       {activeTab === 'reports' && (<div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <SectionCard title="Report Card Template" subtitle="Select template for printing" theme={theme}>
-          <div className="space-y-2">
-            {['cbse-standard', 'icse-format', 'state-board', 'custom'].map(t => (
-              <button key={t} onClick={() => setReportTemplate(t)}
-                className={`w-full text-left p-2.5 rounded-xl border transition-all ${reportTemplate === t ? `border-2 ${theme.primary} text-white` : `${theme.secondaryBg} ${theme.border}`}`}>
-                <p className={`text-xs font-bold capitalize ${reportTemplate === t ? '' : theme.highlight}`}>{t.replace('-', ' ')}</p>
-              </button>
-            ))}
-          </div>
-        </SectionCard>
+      {/* ── Report Card Template — Config + Live Preview ── */}
+      {(() => {
+        const rcTemplates: { id: string; label: string; desc: string }[] = [
+          { id: 'preschool', label: 'Preschool (Nursery \u2013 Sr. KG)', desc: 'Developmental milestones, emoji/symbol ratings, no marks' },
+          { id: 'cbse-15', label: 'CBSE Standard (Class 1\u20135)', desc: 'Grades A1\u2013E, co-scholastic areas, teacher remarks' },
+          { id: 'cbse-610', label: 'CBSE Secondary (Class 6\u201310)', desc: 'Marks + grade, internal/external split, discipline' },
+          { id: 'cbse-1112', label: 'CBSE Sr. Secondary (Class 11\u201312)', desc: 'Marks + %, practical/theory, CGPA' },
+          { id: 'icse', label: 'ICSE Pattern', desc: 'Internal + external marks, 1\u20139 grade scale, activities' },
+          { id: 'simple', label: 'Simple Marks Pattern', desc: 'Marks / total / percentage only' },
+        ];
+        const toggleLabels: Record<string, string> = {
+          schoolLogo: 'School Logo', studentPhoto: 'Student Photo', attendanceSummary: 'Attendance Summary',
+          teacherRemarks: 'Teacher Remarks', parentSignature: 'Parent Signature', principalSignature: 'Principal Signature',
+          gradingScale: 'Grading Scale Display', coScholastic: 'Co-Scholastic Areas', qrCode: 'QR Code', watermark: 'Watermark',
+        };
+        const rc = rcToggles;
+        const tid = reportTemplate;
+        const coScholasticApplicable = ['cbse-15', 'cbse-610', 'icse'].includes(tid);
 
-        <SectionCard title="Rank Display Options" subtitle="Control what ranking information appears on student report cards" theme={theme}>
-          <div className="space-y-2">
-            {Object.entries(rankDisplay).map(([opt, enabled]) => (
-              <div key={opt} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-                <div className="flex-1 mr-3">
-                  <p className={`text-xs font-bold ${theme.highlight}`}>{opt}</p>
-                  <p className={`text-[10px] ${theme.iconColor}`}>{
-                    ({
-                      'Show class rank': 'Display student\'s rank among all students in their class (e.g., 5th out of 40)',
-                      'Show section rank': 'Display student\'s rank within their specific section (e.g., 3rd in Section A)',
-                      'Show percentile': 'Show the percentile score indicating performance relative to peers',
-                      'Show subject-wise rank': 'Show individual rank for each subject alongside the overall rank',
-                      'Show grade distribution graph': 'Include a visual bar chart showing how grades are distributed across the class',
-                    } as Record<string, string>)[opt]
-                  }</p>
-                </div>
-                <SSAToggle on={enabled} onChange={() => setRankDisplay(p => ({ ...p, [opt]: !p[opt] }))} theme={theme} />
-              </div>
-            ))}
-          </div>
-        </SectionCard>
-      </div>
-
-      <SectionCard title="Report Card Template Fields" subtitle="Toggle which fields appear on the printed report card" theme={theme}>
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 mb-3">
-          {Object.entries(reportFields).map(([field, enabled]) => (
-            <div key={field} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
-              <span className={`text-xs font-medium ${theme.highlight}`}>{field}</span>
-              <SSAToggle on={enabled} onChange={() => setReportFields(p => ({ ...p, [field]: !p[field] }))} theme={theme} />
-            </div>
-          ))}
-        </div>
-        <div className="flex items-center gap-4 mb-3">
-          <div className="flex-1">
-            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Grading Display on Report</p>
-            <SelectField options={['Marks', 'Grades', 'Both']} value={reportGradingMode} onChange={setReportGradingMode} theme={theme} />
-          </div>
-          <button onClick={() => setShowReportPreview(!showReportPreview)}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold ${theme.primary} text-white`}>
-            <Eye size={14} /> {showReportPreview ? 'Hide Preview' : 'Preview Template'}
-          </button>
-        </div>
-        {showReportPreview && (
-          <div className={`p-4 rounded-xl border-2 ${theme.border} ${theme.secondaryBg}`}>
-            <div className="text-center mb-3">
+        /* Shared preview sub-components */
+        const PreviewHeader = ({ subtitle }: { subtitle: string }) => (
+          <>
+            {rc.schoolLogo && <div className={`mx-auto w-10 h-10 rounded-full border-2 ${theme.border} flex items-center justify-center mb-1`}><span className={`text-lg font-bold ${theme.highlight}`}>S</span></div>}
+            <div className="text-center mb-2">
               <p className={`text-sm font-bold ${theme.highlight}`}>Saaras International School</p>
-              <p className={`text-[10px] ${theme.iconColor}`}>Progress Report 2025-26</p>
+              <p className={`text-[9px] ${theme.iconColor}`}>{subtitle}</p>
             </div>
-            <div className="grid grid-cols-3 gap-2 mb-3">
-              {reportFields['Student Photo'] && <div className={`w-12 h-14 rounded-lg ${theme.cardBg} border ${theme.border} flex items-center justify-center`}><UserCircle size={20} className={theme.iconColor} /></div>}
-              <div className="col-span-2 space-y-1">
-                <p className={`text-[10px] ${theme.highlight}`}><strong>Name:</strong> Aarav Sharma</p>
-                <p className={`text-[10px] ${theme.highlight}`}><strong>Class:</strong> 8-A &nbsp; <strong>Roll:</strong> 12</p>
-                {reportFields['Attendance %'] && <p className={`text-[10px] ${theme.highlight}`}><strong>Attendance:</strong> 94%</p>}
-              </div>
-            </div>
-            <div className={`text-[9px] ${theme.iconColor} border-t ${theme.border} pt-2 space-y-1`}>
-              <p>Maths: 85 {reportGradingMode !== 'Marks' && '(A2)'} | Science: 78 {reportGradingMode !== 'Marks' && '(B1)'} | English: 92 {reportGradingMode !== 'Marks' && '(A1)'}</p>
-              {reportFields['Co-Scholastic Grades'] && <p>Co-Scholastic: Art (A) | Music (B) | Sports (A)</p>}
-              {reportFields['Discipline Grade'] && <p>Discipline: A</p>}
-              {reportFields['Teacher Remarks'] && <p className="italic">Remarks: Excellent student with consistent performance.</p>}
-              {reportFields['Class Rank'] && <p>Class Rank: 5/40</p>}
-              {reportFields['Principal Signature'] && <p className="mt-2 text-right">_______________<br/>Principal</p>}
-              {reportFields['Parent Signature Line'] && <p className="mt-1 text-left">_______________<br/>Parent Signature</p>}
+          </>
+        );
+        const StudentInfo = ({ cls }: { cls: string }) => (
+          <div className={`flex items-center gap-3 p-2 rounded-lg ${theme.secondaryBg} mb-2`}>
+            {rc.studentPhoto && <div className={`w-10 h-12 rounded-lg border ${theme.border} ${theme.cardBg} flex items-center justify-center shrink-0`}><UserCircle size={18} className={theme.iconColor} /></div>}
+            <div className="space-y-0.5 text-[10px]">
+              <p className={theme.highlight}><strong>Name:</strong> Aarav Patel</p>
+              <p className={theme.highlight}><strong>Class:</strong> {cls} &nbsp; <strong>Roll No:</strong> 12</p>
             </div>
           </div>
-        )}
-      </SectionCard>
+        );
+        const SignatureRow = () => (
+          <div className="flex justify-between mt-3">
+            {rc.principalSignature && <div className={`text-[8px] ${theme.iconColor} text-center`}><div className={`w-16 border-b ${theme.border} mb-0.5`} /><p>Principal</p></div>}
+            {rc.parentSignature && <div className={`text-[8px] ${theme.iconColor} text-center`}><div className={`w-16 border-b ${theme.border} mb-0.5`} /><p>Parent</p></div>}
+          </div>
+        );
+        const QrBadge = () => rc.qrCode ? <div className={`mt-2 w-10 h-10 border ${theme.border} rounded flex items-center justify-center text-[7px] ${theme.iconColor}`}>QR</div> : null;
+        const WatermarkOverlay = () => rc.watermark ? <div className={`absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.04] text-6xl font-black ${theme.highlight} select-none -rotate-12`}>DRAFT</div> : null;
+
+        /* ── Preview: Preschool ── */
+        const PreschoolPreview = () => (
+          <div className="space-y-2">
+            <PreviewHeader subtitle="Developmental Progress Report 2025-26" />
+            <StudentInfo cls="Sr. KG &mdash; Sunflower" />
+            <table className="w-full text-[9px]">
+              <thead><tr className={theme.secondaryBg}>
+                <th className={`text-left p-1.5 font-bold ${theme.highlight} rounded-tl-lg`}>Developmental Area</th>
+                <th className={`text-center p-1.5 font-bold ${theme.highlight}`}>Term 1</th>
+                <th className={`text-center p-1.5 font-bold ${theme.highlight} rounded-tr-lg`}>Term 2</th>
+              </tr></thead>
+              <tbody>
+                {[['Social Skills','\u2B50','\u2B50'],['Motor Skills','\uD83D\uDC4D','\u2B50'],['Language & Literacy','\u2B50','\u2B50'],['Cognitive Development','\uD83D\uDC4D','\uD83D\uDC4D'],['Creative Expression','\u2B50','\u2B50']].map(([area,t1,t2],i) => (
+                  <tr key={i} className={`border-b ${theme.border}`}>
+                    <td className={`p-1.5 ${theme.highlight}`}>{area}</td>
+                    <td className="text-center p-1.5">{t1}</td>
+                    <td className="text-center p-1.5">{t2}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {rc.gradingScale && (
+              <div className={`p-2 rounded-lg ${theme.secondaryBg} text-[8px] ${theme.iconColor}`}>
+                <p className="font-bold mb-0.5">Rating Scale:</p>
+                <p>{'\u2B50'} Excellent &nbsp;&nbsp; {'\uD83D\uDC4D'} Good &nbsp;&nbsp; {'\uD83D\uDD04'} Needs Improvement</p>
+              </div>
+            )}
+            {rc.attendanceSummary && <p className={`text-[9px] ${theme.iconColor}`}><strong>Attendance:</strong> 168 / 180 days (93%)</p>}
+            {rc.teacherRemarks && <p className={`text-[9px] italic ${theme.iconColor}`}>&ldquo;Aarav is a cheerful and curious learner. Excellent progress in social skills.&rdquo;</p>}
+            <SignatureRow />
+            <QrBadge />
+          </div>
+        );
+
+        /* ── Preview: CBSE 1-5 ── */
+        const Cbse15Preview = () => (
+          <div className="space-y-2">
+            <WatermarkOverlay />
+            <PreviewHeader subtitle="Annual Progress Report 2025-26" />
+            <StudentInfo cls="5-A" />
+            {rc.attendanceSummary && <p className={`text-[9px] ${theme.iconColor}`}><strong>Attendance:</strong> 204 / 220 days (93%)</p>}
+            <table className="w-full text-[9px]">
+              <thead><tr className={theme.secondaryBg}>
+                <th className={`text-left p-1.5 font-bold ${theme.highlight} rounded-tl-lg`}>Subject</th>
+                <th className={`text-center p-1.5 font-bold ${theme.highlight}`}>Grade</th>
+                <th className={`text-center p-1.5 font-bold ${theme.highlight} rounded-tr-lg`}>Remark</th>
+              </tr></thead>
+              <tbody>
+                {[['English','A1','Outstanding'],['Hindi','A2','Very Good'],['Mathematics','A1','Outstanding'],['EVS','B1','Good'],['Computer','A2','Very Good']].map(([sub,g,r],i) => (
+                  <tr key={i} className={`border-b ${theme.border}`}>
+                    <td className={`p-1.5 ${theme.highlight}`}>{sub}</td>
+                    <td className={`text-center p-1.5 font-bold ${theme.highlight}`}>{g}</td>
+                    <td className={`text-center p-1.5 ${theme.iconColor}`}>{r}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {rc.coScholastic && (
+              <div>
+                <p className={`text-[9px] font-bold ${theme.highlight} mb-1`}>Co-Scholastic Areas</p>
+                <div className="grid grid-cols-3 gap-1 text-[8px]">
+                  {[['Art & Craft','A'],['Music','B'],['Sports','A'],['Work Ed.','A'],['GK','B']].map(([a,g],i) => (
+                    <div key={i} className={`p-1 rounded ${theme.secondaryBg} flex justify-between`}>
+                      <span className={theme.iconColor}>{a}</span>
+                      <span className={`font-bold ${theme.highlight}`}>{g}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {rc.gradingScale && (
+              <div className={`p-2 rounded-lg ${theme.secondaryBg} text-[8px] ${theme.iconColor}`}>
+                <p className="font-bold mb-0.5">Grading Scale:</p>
+                <p>A1 (91-100) &bull; A2 (81-90) &bull; B1 (71-80) &bull; B2 (61-70) &bull; C1 (51-60) &bull; C2 (41-50) &bull; D (33-40) &bull; E (&lt;33)</p>
+              </div>
+            )}
+            {rc.teacherRemarks && <p className={`text-[9px] italic ${theme.iconColor}`}>&ldquo;Aarav is a diligent student with excellent analytical skills.&rdquo;</p>}
+            <SignatureRow />
+            <QrBadge />
+          </div>
+        );
+
+        /* ── Preview: CBSE 6-10 ── */
+        const Cbse610Preview = () => (
+          <div className="space-y-2">
+            <WatermarkOverlay />
+            <PreviewHeader subtitle="CBSE Examination Report 2025-26" />
+            <StudentInfo cls="9-B" />
+            {rc.attendanceSummary && <p className={`text-[9px] ${theme.iconColor}`}><strong>Attendance:</strong> 198 / 215 days (92%)</p>}
+            <table className="w-full text-[9px]">
+              <thead><tr className={theme.secondaryBg}>
+                <th className={`text-left p-1.5 font-bold ${theme.highlight} rounded-tl-lg`}>Subject</th>
+                <th className={`text-center p-1.5 font-bold ${theme.highlight}`}>Internal</th>
+                <th className={`text-center p-1.5 font-bold ${theme.highlight}`}>External</th>
+                <th className={`text-center p-1.5 font-bold ${theme.highlight}`}>Total</th>
+                <th className={`text-center p-1.5 font-bold ${theme.highlight} rounded-tr-lg`}>Grade</th>
+              </tr></thead>
+              <tbody>
+                {[['Mathematics',18,67,85,'A2'],['Science',20,72,92,'A1'],['Social Sc.',16,58,74,'B1'],['English',19,70,89,'A2'],['Hindi',17,55,72,'B1']].map(([sub,int_,ext,tot,g],i) => (
+                  <tr key={i} className={`border-b ${theme.border}`}>
+                    <td className={`p-1.5 ${theme.highlight}`}>{sub}</td>
+                    <td className={`text-center p-1.5 ${theme.iconColor}`}>{int_}/20</td>
+                    <td className={`text-center p-1.5 ${theme.iconColor}`}>{ext}/80</td>
+                    <td className={`text-center p-1.5 font-bold ${theme.highlight}`}>{tot}</td>
+                    <td className={`text-center p-1.5 font-bold ${theme.highlight}`}>{g}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {rc.coScholastic && (
+              <div>
+                <p className={`text-[9px] font-bold ${theme.highlight} mb-1`}>Co-Scholastic &amp; Discipline</p>
+                <div className="grid grid-cols-2 gap-1 text-[8px]">
+                  {[['Art Education','A'],['Health & PE','B'],['Work Education','A'],['Discipline','A']].map(([a,g],i) => (
+                    <div key={i} className={`p-1 rounded ${theme.secondaryBg} flex justify-between`}>
+                      <span className={theme.iconColor}>{a}</span>
+                      <span className={`font-bold ${theme.highlight}`}>{g}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {rc.gradingScale && (
+              <div className={`p-2 rounded-lg ${theme.secondaryBg} text-[8px] ${theme.iconColor}`}>
+                <p className="font-bold mb-0.5">Grading Scale:</p>
+                <p>A1 (91-100) &bull; A2 (81-90) &bull; B1 (71-80) &bull; B2 (61-70) &bull; C1 (51-60) &bull; C2 (41-50) &bull; D (33-40) &bull; E (&lt;33)</p>
+              </div>
+            )}
+            {rc.teacherRemarks && <p className={`text-[9px] italic ${theme.iconColor}`}>&ldquo;Consistently strong in analytical subjects. Encourage more participation in sports.&rdquo;</p>}
+            <SignatureRow />
+            <QrBadge />
+          </div>
+        );
+
+        /* ── Preview: CBSE 11-12 ── */
+        const Cbse1112Preview = () => (
+          <div className="space-y-2">
+            <WatermarkOverlay />
+            <PreviewHeader subtitle="CBSE Sr. Secondary Report 2025-26" />
+            <StudentInfo cls="12-A (Science)" />
+            {rc.attendanceSummary && <p className={`text-[9px] ${theme.iconColor}`}><strong>Attendance:</strong> 195 / 210 days (93%)</p>}
+            <table className="w-full text-[9px]">
+              <thead><tr className={theme.secondaryBg}>
+                <th className={`text-left p-1.5 font-bold ${theme.highlight} rounded-tl-lg`}>Subject</th>
+                <th className={`text-center p-1.5 font-bold ${theme.highlight}`}>Theory</th>
+                <th className={`text-center p-1.5 font-bold ${theme.highlight}`}>Practical</th>
+                <th className={`text-center p-1.5 font-bold ${theme.highlight}`}>Total</th>
+                <th className={`text-center p-1.5 font-bold ${theme.highlight} rounded-tr-lg`}>%</th>
+              </tr></thead>
+              <tbody>
+                {[['Physics',52,18,70,'70%'],['Chemistry',58,20,78,'78%'],['Mathematics',82,'\u2013',82,'82%'],['English',75,'\u2013',75,'75%'],['Computer Sc.',48,28,76,'76%']].map(([sub,th_,pr,tot,pct],i) => (
+                  <tr key={i} className={`border-b ${theme.border}`}>
+                    <td className={`p-1.5 ${theme.highlight}`}>{sub}</td>
+                    <td className={`text-center p-1.5 ${theme.iconColor}`}>{th_}{typeof th_ === 'number' ? '/70' : ''}</td>
+                    <td className={`text-center p-1.5 ${theme.iconColor}`}>{pr === '\u2013' ? '\u2013' : `${pr}/30`}</td>
+                    <td className={`text-center p-1.5 font-bold ${theme.highlight}`}>{tot}</td>
+                    <td className={`text-center p-1.5 font-bold ${theme.highlight}`}>{pct}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {rc.gradingScale && (
+              <div className={`p-2 rounded-lg ${theme.secondaryBg} text-[8px] ${theme.iconColor}`}>
+                <p className="font-bold mb-0.5">CGPA (10-point scale):</p>
+                <p>A1=10 (91-100) &bull; A2=9 (81-90) &bull; B1=8 (71-80) &bull; B2=7 (61-70) &bull; C1=6 (51-60) &bull; C2=5 (41-50) &bull; D=4 (33-40) &bull; E=0 (&lt;33)</p>
+                <p className={`font-bold mt-1 ${theme.highlight}`}>CGPA: 7.6 &nbsp; | &nbsp; Aggregate: 76.2%</p>
+              </div>
+            )}
+            {rc.teacherRemarks && <p className={`text-[9px] italic ${theme.iconColor}`}>&ldquo;Strong in Mathematics and Computer Science. Recommended for JEE preparation.&rdquo;</p>}
+            <SignatureRow />
+            <QrBadge />
+          </div>
+        );
+
+        /* ── Preview: ICSE ── */
+        const IcsePreview = () => (
+          <div className="space-y-2">
+            <WatermarkOverlay />
+            <PreviewHeader subtitle="ICSE Examination Report 2025-26" />
+            <StudentInfo cls="10-A" />
+            {rc.attendanceSummary && <p className={`text-[9px] ${theme.iconColor}`}><strong>Attendance:</strong> 200 / 218 days (92%)</p>}
+            <table className="w-full text-[9px]">
+              <thead><tr className={theme.secondaryBg}>
+                <th className={`text-left p-1.5 font-bold ${theme.highlight} rounded-tl-lg`}>Subject</th>
+                <th className={`text-center p-1.5 font-bold ${theme.highlight}`}>Internal</th>
+                <th className={`text-center p-1.5 font-bold ${theme.highlight}`}>Ext. Grade</th>
+                <th className={`text-center p-1.5 font-bold ${theme.highlight} rounded-tr-lg`}>Total</th>
+              </tr></thead>
+              <tbody>
+                {[['English','82/100 (A)','2','164/200'],['Mathematics','78/100 (B)','3','156/200'],['Physics','85/100 (A)','1','170/200'],['Chemistry','72/100 (B)','3','144/200'],['Biology','88/100 (A)','2','176/200']].map(([sub,int_,extGr,tot],i) => (
+                  <tr key={i} className={`border-b ${theme.border}`}>
+                    <td className={`p-1.5 ${theme.highlight}`}>{sub}</td>
+                    <td className={`text-center p-1.5 ${theme.iconColor}`}>{int_}</td>
+                    <td className={`text-center p-1.5 font-bold ${theme.highlight}`}>{extGr}</td>
+                    <td className={`text-center p-1.5 font-bold ${theme.highlight}`}>{tot}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {rc.coScholastic && (
+              <div>
+                <p className={`text-[9px] font-bold ${theme.highlight} mb-1`}>Activities &amp; Co-Curricular</p>
+                <div className="grid grid-cols-3 gap-1 text-[8px]">
+                  {[['Art','A'],['Music','B'],['Sports','A'],['Debate','A'],['SUPW','B']].map(([a,g],i) => (
+                    <div key={i} className={`p-1 rounded ${theme.secondaryBg} flex justify-between`}>
+                      <span className={theme.iconColor}>{a}</span>
+                      <span className={`font-bold ${theme.highlight}`}>{g}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {rc.gradingScale && (
+              <div className={`p-2 rounded-lg ${theme.secondaryBg} text-[8px] ${theme.iconColor}`}>
+                <p className="font-bold mb-0.5">ICSE Grading:</p>
+                <p><strong>External:</strong> 1 (Very Good) &bull; 2 (Good) &bull; 3 (Satisfactory) &bull; 4 (Fair) &bull; 5-8 (Below Avg) &bull; 9 (Fail)</p>
+                <p><strong>Internal:</strong> A (Excellent) &bull; B (Very Good) &bull; C (Good) &bull; D (Satisfactory) &bull; E (Needs Improvement)</p>
+              </div>
+            )}
+            {rc.teacherRemarks && <p className={`text-[9px] italic ${theme.iconColor}`}>&ldquo;Excellent all-round performance. Active in co-curricular activities.&rdquo;</p>}
+            <SignatureRow />
+            <QrBadge />
+          </div>
+        );
+
+        /* ── Preview: Simple Marks ── */
+        const SimplePreview = () => (
+          <div className="space-y-2">
+            <WatermarkOverlay />
+            <PreviewHeader subtitle="Examination Report 2025-26" />
+            <StudentInfo cls="5-A" />
+            {rc.attendanceSummary && <p className={`text-[9px] ${theme.iconColor}`}><strong>Attendance:</strong> 204 / 220 days (93%)</p>}
+            <table className="w-full text-[9px]">
+              <thead><tr className={theme.secondaryBg}>
+                <th className={`text-left p-1.5 font-bold ${theme.highlight} rounded-tl-lg`}>Subject</th>
+                <th className={`text-center p-1.5 font-bold ${theme.highlight}`}>Marks</th>
+                <th className={`text-center p-1.5 font-bold ${theme.highlight}`}>Total</th>
+                <th className={`text-center p-1.5 font-bold ${theme.highlight} rounded-tr-lg`}>%</th>
+              </tr></thead>
+              <tbody>
+                {[['English',82,100,'82%'],['Hindi',75,100,'75%'],['Mathematics',90,100,'90%'],['Science',78,100,'78%'],['Social Studies',85,100,'85%']].map(([sub,marks,total,pct],i) => (
+                  <tr key={i} className={`border-b ${theme.border}`}>
+                    <td className={`p-1.5 ${theme.highlight}`}>{sub}</td>
+                    <td className={`text-center p-1.5 font-bold ${theme.highlight}`}>{marks}</td>
+                    <td className={`text-center p-1.5 ${theme.iconColor}`}>{total}</td>
+                    <td className={`text-center p-1.5 font-bold ${theme.highlight}`}>{pct}</td>
+                  </tr>
+                ))}
+                <tr className={theme.secondaryBg}>
+                  <td className={`p-1.5 font-bold ${theme.highlight}`}>Grand Total</td>
+                  <td className={`text-center p-1.5 font-bold ${theme.highlight}`}>410</td>
+                  <td className={`text-center p-1.5 ${theme.iconColor}`}>500</td>
+                  <td className={`text-center p-1.5 font-bold ${theme.highlight}`}>82%</td>
+                </tr>
+              </tbody>
+            </table>
+            {rc.teacherRemarks && <p className={`text-[9px] italic ${theme.iconColor}`}>&ldquo;Good academic performance. Keep it up!&rdquo;</p>}
+            <SignatureRow />
+            <QrBadge />
+          </div>
+        );
+
+        const previewMap: Record<string, React.FC> = {
+          'preschool': PreschoolPreview, 'cbse-15': Cbse15Preview, 'cbse-610': Cbse610Preview,
+          'cbse-1112': Cbse1112Preview, 'icse': IcsePreview, 'simple': SimplePreview,
+        };
+        const PreviewComponent = previewMap[tid] || Cbse15Preview;
+
+        return (
+          <>
+          <SectionCard title="Report Card Template" subtitle="Select template, configure fields, and preview live" theme={theme}>
+            <div className="flex flex-col xl:flex-row gap-4">
+              {/* ─── LEFT: Config ─── */}
+              <div className="xl:w-[42%] space-y-4 shrink-0">
+                {/* Template selector */}
+                <div>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Select Template</p>
+                  <div className="space-y-1.5">
+                    {rcTemplates.map(tmpl => (
+                      <button key={tmpl.id} onClick={() => setReportTemplate(tmpl.id)}
+                        className={`w-full text-left p-2.5 rounded-xl border transition-all ${tid === tmpl.id ? `border-2 ${theme.primary} text-white` : `${theme.secondaryBg} ${theme.border} hover:border-opacity-60`}`}>
+                        <p className={`text-[11px] font-bold ${tid === tmpl.id ? '' : theme.highlight}`}>{tmpl.label}</p>
+                        <p className={`text-[9px] mt-0.5 ${tid === tmpl.id ? 'opacity-80' : theme.iconColor}`}>{tmpl.desc}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Config toggles */}
+                <div>
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>Report Card Options</p>
+                  <div className="space-y-1">
+                    {Object.entries(toggleLabels).map(([key, label]) => {
+                      const disabled = key === 'coScholastic' && !coScholasticApplicable;
+                      return (
+                        <div key={key} className={`flex items-center justify-between p-2 rounded-xl ${theme.secondaryBg} ${disabled ? 'opacity-40' : ''}`}>
+                          <div className="flex items-center gap-1.5">
+                            <span className={`text-[11px] font-medium ${theme.highlight}`}>{label}</span>
+                            {disabled && <span className={`text-[8px] ${theme.iconColor}`}>(N/A for this template)</span>}
+                          </div>
+                          <SSAToggle on={rcToggles[key]} onChange={() => { if (!disabled) setRcToggles(prev => ({ ...prev, [key]: !prev[key] })); }} theme={theme} />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* ─── RIGHT: Live Preview ─── */}
+              <div className="xl:flex-1 min-w-0">
+                <div className="flex items-center justify-between mb-2">
+                  <p className={`text-[10px] font-bold ${theme.iconColor}`}>Live Preview</p>
+                  <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg ${theme.secondaryBg}`}>
+                    <Eye size={11} className={theme.iconColor} />
+                    <span className={`text-[9px] font-bold ${theme.iconColor}`}>Updates in real-time</span>
+                  </div>
+                </div>
+                <div className={`relative p-5 rounded-2xl border-2 ${theme.border} ${theme.cardBg} shadow-sm overflow-hidden`}>
+                  <PreviewComponent />
+                </div>
+              </div>
+            </div>
+          </SectionCard>
+
+          {/* ── Rank Display Options — unchanged ── */}
+          <SectionCard title="Rank Display Options" subtitle="Control what ranking information appears on student report cards" theme={theme}>
+            <div className="space-y-2">
+              {Object.entries(rankDisplay).map(([opt, enabled]) => (
+                <div key={opt} className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
+                  <div className="flex-1 mr-3">
+                    <p className={`text-xs font-bold ${theme.highlight}`}>{opt}</p>
+                    <p className={`text-[10px] ${theme.iconColor}`}>{
+                      ({
+                        'Show class rank': 'Display student\'s rank among all students in their class (e.g., 5th out of 40)',
+                        'Show section rank': 'Display student\'s rank within their specific section (e.g., 3rd in Section A)',
+                        'Show percentile': 'Show the percentile score indicating performance relative to peers',
+                        'Show subject-wise rank': 'Show individual rank for each subject alongside the overall rank',
+                        'Show grade distribution graph': 'Include a visual bar chart showing how grades are distributed across the class',
+                      } as Record<string, string>)[opt]
+                    }</p>
+                  </div>
+                  <SSAToggle on={enabled} onChange={() => setRankDisplay(p => ({ ...p, [opt]: !p[opt] }))} theme={theme} />
+                </div>
+              ))}
+            </div>
+          </SectionCard>
+          </>
+        );
+      })()}
 
       <SectionCard title="Result Publishing" subtitle="Control how exam results reach parents" theme={theme}>
         <div className="flex items-center mb-3">
@@ -850,10 +1425,12 @@ export default function ExamConfigModule({ theme, activeTab: externalTab, onTabC
 
       {/* ══════════════ SETTINGS TAB ══════════════ */}
       {activeTab === 'settings' && (<div className="space-y-4">
-      <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
-        <div className="space-y-4">
-          <MasterPermissionGrid masterName="Exam Types" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
-          <MasterPermissionGrid masterName="Grade Scales" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+      <SectionCard title="Role-Based Permissions" subtitle="Managed centrally in Roles & Permission module" theme={theme}>
+        <div className={`flex items-center gap-3 p-3 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+          <div className="flex-1">
+            <p className={`text-xs ${theme.iconColor}`}>Role & permission settings for Exams are configured in <span className={`font-bold ${theme.primaryText}`}>Roles & Permission Management</span></p>
+          </div>
+          <ArrowRight size={16} className={theme.iconColor} />
         </div>
       </SectionCard>
 

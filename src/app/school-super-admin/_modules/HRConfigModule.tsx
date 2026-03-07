@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Plus, CheckCircle, Info, Upload, Search, Download, ChevronLeft, ChevronRight, Pencil, Trash2, Save } from 'lucide-react';
+import { X, Plus, CheckCircle, Info, Upload, Search, Download, ChevronLeft, ChevronRight, Pencil, Trash2, Save, ArrowRight } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, SelectField, InputField } from '../_helpers/components';
-import { MasterPermissionGrid, BulkImportWizard } from '@/components/shared';
+import { BulkImportWizard } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
 
 // ─── Constants ──────────────────────────────────────
@@ -23,7 +23,7 @@ function TableToolbar({
   search, onSearch, count, label, onAdd, onExport, onImport, theme,
 }: {
   search: string; onSearch: (v: string) => void; count: number; label: string;
-  onAdd: () => void; onExport: () => void; onImport: () => void; theme: Theme;
+  onAdd?: () => void; onExport: () => void; onImport: () => void; theme: Theme;
 }) {
   return (
     <div className="flex items-center gap-2 mb-3 flex-wrap">
@@ -34,10 +34,12 @@ function TableToolbar({
         {search && <button onClick={() => onSearch('')}><X size={12} className="text-gray-400 hover:text-red-400" /></button>}
       </div>
       <span className={`text-[10px] font-bold px-2 py-1 rounded-lg ${theme.secondaryBg} ${theme.iconColor} shrink-0`}>{count} records</span>
-      <button onClick={onAdd}
-        className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-white ${theme.primary} hover:opacity-90 shrink-0`}>
-        <Plus size={12} /> Add
-      </button>
+      {onAdd && (
+        <button onClick={onAdd}
+          className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-white ${theme.primary} hover:opacity-90 shrink-0`}>
+          <Plus size={12} /> Add
+        </button>
+      )}
       <button onClick={onExport}
         className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shrink-0">
         <Download size={12} /> Export
@@ -200,13 +202,7 @@ export default function HRConfigModule({ theme, activeTab: externalTab, onTabCha
   );
   const pagedLetters = filteredLetters.slice((letterPage - 1) * PAGE_SIZE, letterPage * PAGE_SIZE);
 
-  function addLetterTemplate() {
-    const newId = Date.now();
-    setHrLetters(p => [...p, { id: newId, name: '', letterType: 'Onboarding', enabled: true }]);
-    const newTotal = filteredLetters.length + 1;
-    setLetterPage(Math.ceil(newTotal / PAGE_SIZE));
-    setLetterEdit(newId);
-  }
+  // Letter templates are Saaras-provided — schools can only enable/disable and customize content
 
   // ══════════════════════════════════════════════════
   // 5. APPRAISAL STAGES
@@ -315,7 +311,24 @@ export default function HRConfigModule({ theme, activeTab: externalTab, onTabCha
   const [ptState, setPtState] = useState('Gujarat');
   const [gratuityEnabled, setGratuityEnabled] = useState(false);
   const [overtimeEnabled, setOvertimeEnabled] = useState(false);
-  const [overtimeRate, setOvertimeRate] = useState('1.5x');
+  const [otPreset, setOtPreset] = useState<'indian-labor-2025' | 'state-specific' | 'custom'>('indian-labor-2025');
+  const [otState, setOtState] = useState('Gujarat');
+  const [otNormalHoursDay, setOtNormalHoursDay] = useState('9');
+  const [otNormalHoursWeek, setOtNormalHoursWeek] = useState('48');
+  const [otMaxOtHoursDay, setOtMaxOtHoursDay] = useState('2');
+  const [otMaxOtHoursWeek, setOtMaxOtHoursWeek] = useState('12');
+  const [otMaxOtHoursQuarter, setOtMaxOtHoursQuarter] = useState('50');
+  const [otMaxTotalWeek, setOtMaxTotalWeek] = useState('60');
+  const [otRateMultiplier, setOtRateMultiplier] = useState('2.0');
+  const [otCalcBasis, setOtCalcBasis] = useState<'daily' | 'weekly'>('daily');
+  const [otCompOff, setOtCompOff] = useState(true);
+  const [otDeptOverrides, setOtDeptOverrides] = useState<{ dept: string; normalHoursDay: string; maxOtDay: string; rate: string; enabled: boolean }[]>([
+    { dept: 'Academic Staff', normalHoursDay: '8', maxOtDay: '1', rate: '2.0', enabled: false },
+    { dept: 'Non-Academic Staff', normalHoursDay: '9', maxOtDay: '2', rate: '2.0', enabled: false },
+    { dept: 'Administrative', normalHoursDay: '9', maxOtDay: '3', rate: '1.5', enabled: false },
+  ]);
+  const [otSchoolHolidayRate, setOtSchoolHolidayRate] = useState('2.0');
+  const [otNationalHolidayRate, setOtNationalHolidayRate] = useState('2.5');
   const [festivalBonus, setFestivalBonus] = useState(false);
   const [salaryAdvance, setSalaryAdvance] = useState(false);
   const [arrearsAuto, setArrearsAuto] = useState(false);
@@ -623,18 +636,177 @@ export default function HRConfigModule({ theme, activeTab: externalTab, onTabCha
           <InfoIcon tip="Additional payroll components beyond base salary" />
         </div>
         <div className="space-y-2">
+          {/* ── Overtime Toggle ── */}
           <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
             <p className={`text-xs font-bold ${theme.highlight}`}>Overtime calculation</p>
             <SSAToggle on={overtimeEnabled} onChange={() => setOvertimeEnabled(!overtimeEnabled)} theme={theme} />
           </div>
+
+          {/* ── Overtime Rule Builder (expanded) ── */}
           {overtimeEnabled && (
-            <div className="grid grid-cols-2 gap-3 pl-4">
+            <div className={`border ${theme.border} rounded-xl p-4 space-y-4`}>
+              {/* Preset selector */}
               <div>
-                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Rate</p>
-                <SelectField options={['1.5x', '2x']} value={overtimeRate} onChange={setOvertimeRate} theme={theme} />
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-1.5 uppercase tracking-wide`}>Rule Preset</p>
+                <div className="flex flex-wrap gap-2">
+                  {([
+                    { key: 'indian-labor-2025' as const, label: 'Indian Labor Code 2025' },
+                    { key: 'state-specific' as const, label: 'State-specific' },
+                    { key: 'custom' as const, label: 'Custom Rules' },
+                  ]).map(p => (
+                    <button key={p.key} onClick={() => {
+                      setOtPreset(p.key);
+                      if (p.key === 'indian-labor-2025') {
+                        setOtNormalHoursDay('9'); setOtNormalHoursWeek('48'); setOtMaxOtHoursDay('2');
+                        setOtMaxOtHoursWeek('12'); setOtMaxOtHoursQuarter('50'); setOtMaxTotalWeek('60');
+                        setOtRateMultiplier('2.0'); setOtCalcBasis('daily');
+                      }
+                    }}
+                      className={`px-3 py-1.5 rounded-xl text-[11px] font-bold border transition-all ${
+                        otPreset === p.key
+                          ? `${theme.primary} text-white border-transparent`
+                          : `${theme.border} ${theme.highlight} ${theme.buttonHover}`
+                      }`}>
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* State selector (only for state-specific) */}
+              {otPreset === 'state-specific' && (
+                <div className="max-w-[220px]">
+                  <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>State</p>
+                  <SelectField options={['Gujarat', 'Maharashtra', 'Karnataka', 'Tamil Nadu', 'Delhi', 'Rajasthan', 'Madhya Pradesh', 'Uttar Pradesh', 'West Bengal', 'Kerala']}
+                    value={otState} onChange={setOtState} theme={theme} />
+                </div>
+              )}
+
+              {/* Preset info badge */}
+              {otPreset === 'indian-labor-2025' && (
+                <div className={`flex items-start gap-2 p-2.5 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800`}>
+                  <Info size={13} className="text-blue-500 shrink-0 mt-0.5" />
+                  <p className="text-[10px] text-blue-700 dark:text-blue-300">
+                    Indian Labor Code 2025: Max 9 hrs/day, 48 hrs/week normal work. Overtime at 2x rate. Max 60 hrs/week total. Max 50 OT hours/quarter.
+                  </p>
+                </div>
+              )}
+
+              {/* Core parameters grid */}
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-2 uppercase tracking-wide`}>Working Hours &amp; Limits</p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <div>
+                    <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Normal hrs/day</p>
+                    <InputField placeholder="9" value={otNormalHoursDay} onChange={setOtNormalHoursDay} theme={theme} type="number" disabled={otPreset === 'indian-labor-2025'} />
+                  </div>
+                  <div>
+                    <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Normal hrs/week</p>
+                    <InputField placeholder="48" value={otNormalHoursWeek} onChange={setOtNormalHoursWeek} theme={theme} type="number" disabled={otPreset === 'indian-labor-2025'} />
+                  </div>
+                  <div>
+                    <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Max OT hrs/day</p>
+                    <InputField placeholder="2" value={otMaxOtHoursDay} onChange={setOtMaxOtHoursDay} theme={theme} type="number" disabled={otPreset === 'indian-labor-2025'} />
+                  </div>
+                  <div>
+                    <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Max OT hrs/week</p>
+                    <InputField placeholder="12" value={otMaxOtHoursWeek} onChange={setOtMaxOtHoursWeek} theme={theme} type="number" disabled={otPreset === 'indian-labor-2025'} />
+                  </div>
+                  <div>
+                    <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Max total hrs/week</p>
+                    <InputField placeholder="60" value={otMaxTotalWeek} onChange={setOtMaxTotalWeek} theme={theme} type="number" disabled={otPreset === 'indian-labor-2025'} />
+                  </div>
+                  <div>
+                    <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Max OT hrs/quarter</p>
+                    <InputField placeholder="50" value={otMaxOtHoursQuarter} onChange={setOtMaxOtHoursQuarter} theme={theme} type="number" disabled={otPreset === 'indian-labor-2025'} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Rate & Calculation */}
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-2 uppercase tracking-wide`}>Rate &amp; Calculation</p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <div>
+                    <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>OT rate multiplier</p>
+                    <InputField placeholder="2.0" value={otRateMultiplier} onChange={setOtRateMultiplier} theme={theme} type="number" disabled={otPreset === 'indian-labor-2025'} />
+                  </div>
+                  <div>
+                    <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Calculation basis</p>
+                    <SelectField options={['daily', 'weekly']} value={otCalcBasis} onChange={(v) => setOtCalcBasis(v as 'daily' | 'weekly')} theme={theme} />
+                  </div>
+                  <div className={`flex items-center gap-2 pt-4`}>
+                    <SSAToggle on={otCompOff} onChange={() => setOtCompOff(!otCompOff)} theme={theme} />
+                    <p className={`text-xs font-bold ${theme.highlight}`}>Comp-off option</p>
+                    <InfoIcon tip="Allow staff to opt for compensatory leave instead of overtime pay" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Holiday Work Rates */}
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-2 uppercase tracking-wide`}>Holiday Work Rates</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>School holiday rate</p>
+                    <InputField placeholder="2.0" value={otSchoolHolidayRate} onChange={setOtSchoolHolidayRate} theme={theme} type="number" />
+                  </div>
+                  <div>
+                    <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>National holiday rate</p>
+                    <InputField placeholder="2.5" value={otNationalHolidayRate} onChange={setOtNationalHolidayRate} theme={theme} type="number" />
+                  </div>
+                </div>
+                <div className={`flex items-start gap-2 mt-2 p-2 rounded-xl ${theme.secondaryBg}`}>
+                  <Info size={12} className="text-amber-500 shrink-0 mt-0.5" />
+                  <p className={`text-[10px] ${theme.iconColor}`}>Holiday definitions as per <span className="font-bold">Holiday Management</span> module</p>
+                </div>
+              </div>
+
+              {/* Department-wise Overrides */}
+              <div>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-2 uppercase tracking-wide`}>Department-wise Overrides</p>
+                <p className={`text-[10px] ${theme.iconColor} mb-2`}>Enable to override default rules for specific staff categories</p>
+                <div className="space-y-2">
+                  {otDeptOverrides.map((dept, idx) => (
+                    <div key={dept.dept} className={`border ${theme.border} rounded-xl p-3`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <p className={`text-xs font-bold ${theme.highlight}`}>{dept.dept}</p>
+                        <SSAToggle on={dept.enabled} onChange={() => setOtDeptOverrides(p => p.map((d, i) => i === idx ? { ...d, enabled: !d.enabled } : d))} theme={theme} />
+                      </div>
+                      {dept.enabled && (
+                        <div className="grid grid-cols-3 gap-3">
+                          <div>
+                            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Normal hrs/day</p>
+                            <InputField placeholder="8" value={dept.normalHoursDay}
+                              onChange={(v) => setOtDeptOverrides(p => p.map((d, i) => i === idx ? { ...d, normalHoursDay: v } : d))} theme={theme} type="number" />
+                          </div>
+                          <div>
+                            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Max OT hrs/day</p>
+                            <InputField placeholder="1" value={dept.maxOtDay}
+                              onChange={(v) => setOtDeptOverrides(p => p.map((d, i) => i === idx ? { ...d, maxOtDay: v } : d))} theme={theme} type="number" />
+                          </div>
+                          <div>
+                            <p className={`text-[10px] font-bold ${theme.iconColor} mb-1`}>Rate multiplier</p>
+                            <InputField placeholder="2.0" value={dept.rate}
+                              onChange={(v) => setOtDeptOverrides(p => p.map((d, i) => i === idx ? { ...d, rate: v } : d))} theme={theme} type="number" />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Save button */}
+              <div className="flex justify-end pt-2">
+                <button onClick={() => { setSaved(true); setTimeout(() => setSaved(false), 1500); }}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white ${theme.primary} hover:opacity-90 transition-all`}>
+                  {saved ? <><CheckCircle size={13} /> Saved</> : <><Save size={13} /> Save Overtime Rules</>}
+                </button>
               </div>
             </div>
           )}
+
           <div className={`flex items-center justify-between p-2.5 rounded-xl ${theme.secondaryBg}`}>
             <p className={`text-xs font-bold ${theme.highlight}`}>Festival advance/bonus</p>
             <SSAToggle on={festivalBonus} onChange={() => setFestivalBonus(!festivalBonus)} theme={theme} />
@@ -706,11 +878,16 @@ export default function HRConfigModule({ theme, activeTab: externalTab, onTabCha
         </div>
       </SectionCard>
 
-      <SectionCard title="HR Letter Templates" subtitle="Add, edit, enable/disable, or remove letter templates" theme={theme}>
+      <SectionCard title="HR Letter Templates" subtitle="Saaras-provided templates — enable/disable and customize content" theme={theme}>
+        <div className={`flex items-start gap-2 p-2.5 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 mb-3`}>
+          <Info size={13} className="text-blue-500 shrink-0 mt-0.5" />
+          <p className="text-[10px] text-blue-700 dark:text-blue-300">
+            All letter templates are <span className="font-bold">provided by Saaras</span>. You can enable/disable templates and customize their content, but cannot add or remove templates.
+          </p>
+        </div>
         <TableToolbar
           search={letterSearch} onSearch={v => { setLetterSearch(v); setLetterPage(1); }}
           count={filteredLetters.length} label="templates"
-          onAdd={addLetterTemplate}
           onExport={() => alert('Export letter templates as CSV')}
           onImport={() => alert('Import letter templates from CSV')}
           theme={theme}
@@ -730,25 +907,20 @@ export default function HRConfigModule({ theme, activeTab: externalTab, onTabCha
               ) : pagedLetters.map(l => (
                 <tr key={l.id} className={`border-t ${theme.border} ${!l.enabled ? 'opacity-50' : ''}`}>
                   <td className="px-2 py-1.5">
-                    {letterEdit === l.id ? (
-                      <input autoFocus value={l.name}
-                        onChange={e => setHrLetters(p => p.map(x => x.id === l.id ? { ...x, name: e.target.value } : x))}
-                        className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`}
-                        placeholder="Template name" />
-                    ) : (
-                      <span className={`font-bold ${theme.highlight}`}>{l.name || '(empty)'}</span>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {letterEdit === l.id ? (
+                        <input autoFocus value={l.name}
+                          onChange={e => setHrLetters(p => p.map(x => x.id === l.id ? { ...x, name: e.target.value } : x))}
+                          className={`w-full px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs font-bold ${theme.highlight} outline-none`}
+                          placeholder="Template name" />
+                      ) : (
+                        <span className={`font-bold ${theme.highlight}`}>{l.name || '(empty)'}</span>
+                      )}
+                      <span className="shrink-0 px-1.5 py-0.5 rounded text-[8px] font-bold bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-700 uppercase tracking-wider">Saaras</span>
+                    </div>
                   </td>
                   <td className="px-2 py-1.5">
-                    {letterEdit === l.id ? (
-                      <select value={l.letterType}
-                        onChange={e => setHrLetters(p => p.map(x => x.id === l.id ? { ...x, letterType: e.target.value } : x))}
-                        className={`px-2 py-1 rounded-lg border ${theme.border} ${theme.inputBg} text-xs ${theme.highlight} outline-none`}>
-                        {['Onboarding', 'Employment', 'Exit', 'Payroll', 'Disciplinary'].map(t => <option key={t} value={t}>{t}</option>)}
-                      </select>
-                    ) : (
-                      <span className={`text-[10px] px-2 py-0.5 rounded-lg ${theme.secondaryBg} font-medium ${theme.iconColor}`}>{l.letterType}</span>
-                    )}
+                    <span className={`text-[10px] px-2 py-0.5 rounded-lg ${theme.secondaryBg} font-medium ${theme.iconColor}`}>{l.letterType}</span>
                   </td>
                   <td className="px-3 py-2">
                     <SSAToggle on={l.enabled} onChange={() => setHrLetters(p => p.map(x => x.id === l.id ? { ...x, enabled: !x.enabled } : x))} theme={theme} />
@@ -758,9 +930,8 @@ export default function HRConfigModule({ theme, activeTab: externalTab, onTabCha
                       {letterEdit === l.id ? (
                         <button onClick={() => setLetterEdit(null)} className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${theme.primary} text-white`}>Done</button>
                       ) : (
-                        <button onClick={() => setLetterEdit(l.id)} className={`p-1 rounded-lg ${theme.buttonHover}`}><Pencil size={11} className={theme.iconColor} /></button>
+                        <button onClick={() => setLetterEdit(l.id)} title="Customize content" className={`p-1 rounded-lg ${theme.buttonHover}`}><Pencil size={11} className={theme.iconColor} /></button>
                       )}
-                      <button onClick={() => setHrLetters(p => p.filter(x => x.id !== l.id))} className="text-red-400 hover:text-red-600"><Trash2 size={12} /></button>
                     </div>
                   </td>
                 </tr>
@@ -1111,10 +1282,12 @@ export default function HRConfigModule({ theme, activeTab: externalTab, onTabCha
           TAB: SETTINGS — Role-Based Permissions, Bulk Import
           ═══════════════════════════════════════════════ */}
       {activeTab === 'settings' && (<div className="space-y-4">
-      <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
-        <div className="space-y-4">
-          <MasterPermissionGrid masterName="Departments" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
-          <MasterPermissionGrid masterName="Designations" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+      <SectionCard title="Role-Based Permissions" subtitle="Managed centrally in Roles & Permission module" theme={theme}>
+        <div className={`flex items-center gap-3 p-3 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+          <div className="flex-1">
+            <p className={`text-xs ${theme.iconColor}`}>Role & permission settings for HR are configured in <span className={`font-bold ${theme.primaryText}`}>Roles & Permission Management</span></p>
+          </div>
+          <ArrowRight size={16} className={theme.iconColor} />
         </div>
       </SectionCard>
 

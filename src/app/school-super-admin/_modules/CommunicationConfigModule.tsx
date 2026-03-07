@@ -1,9 +1,8 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { X, Plus, CheckCircle, Edit, Send, Users, Clock, BarChart3, ShieldCheck, Search, Download, Upload, Save, Check } from 'lucide-react';
+import { X, Plus, CheckCircle, Edit, Send, Users, Clock, BarChart3, ShieldCheck, Search, Download, Upload, Save, Check, ArrowRight } from 'lucide-react';
 import { SSAToggle, SectionCard, ModuleHeader, InputField, SelectField } from '../_helpers/components';
-import { MasterPermissionGrid } from '@/components/shared';
 import type { Theme } from '../_helpers/types';
 
 const PAGE_SIZE = 5;
@@ -665,9 +664,12 @@ export default function CommunicationConfigModule({ theme, activeTab: externalTa
       </div>)}
 
       {activeTab === 'settings' && (<div className="space-y-4">
-      <SectionCard title="Role-Based Permissions" subtitle="Control who can view, create, edit, delete, import, and export" theme={theme}>
-        <div className="space-y-4">
-          <MasterPermissionGrid masterName="Communication Templates" roles={['Super Admin', 'Principal', 'School Admin', 'Teacher', 'Accountant']} theme={theme} />
+      <SectionCard title="Role-Based Permissions" subtitle="Managed centrally in Roles & Permission module" theme={theme}>
+        <div className={`flex items-center gap-3 p-3 rounded-xl ${theme.accentBg} border ${theme.border}`}>
+          <div className="flex-1">
+            <p className={`text-xs ${theme.iconColor}`}>Role & permission settings for Communication are configured in <span className={`font-bold ${theme.primaryText}`}>Roles & Permission Management</span></p>
+          </div>
+          <ArrowRight size={16} className={theme.iconColor} />
         </div>
       </SectionCard>
 

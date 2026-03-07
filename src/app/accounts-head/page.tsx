@@ -9,13 +9,15 @@ import { ChatsView } from '@/components/ChatModule';
 import SupportModule from '@/components/SupportModule';
 import { type TeamMember } from '@/lib/auth';
 import { type Theme } from '@/lib/themes';
+import { feeHeads as ssaFeeHeads, paymentModes as ssaPaymentModes } from '@/lib/mock-data';
 import {
   Home, Banknote, CreditCard, Receipt, Users, FileText, BarChart3, Settings,
   Search, Plus, Eye, Download, Filter, Check, X, Calendar,
   DollarSign, TrendingUp, TrendingDown, AlertTriangle, ArrowRight,
   Wallet, Building2, ChevronDown, Percent, Clock, Hash, Printer, User, MessageSquare, Mail, Megaphone,
   PanelLeftClose, PanelLeftOpen, Headphones,
-  Info, RefreshCw, Smartphone, Camera, Star, ShieldCheck, Undo2, BookOpen, Package, Coins
+  Info, RefreshCw, Smartphone, Camera, Star, ShieldCheck, Undo2, BookOpen, Package, Coins,
+  Edit3, Trash2, IndianRupee
 } from 'lucide-react';
 
 // ─── INFO TOOLTIP HELPER ────────────────────────────────
@@ -103,12 +105,16 @@ const processedRefunds = [
 ];
 
 const chequeRegister = [
-  { student: 'Meera Nair', chequeNo: 'CHQ-445521', bank: 'SBI', amount: '\u20B95,800', date: '15 Feb', status: 'Pending' },
-  { student: 'Amit Patel', chequeNo: 'CHQ-112233', bank: 'HDFC', amount: '\u20B97,700', date: '18 Feb', status: 'Pending' },
-  { student: 'Kavita Rao', chequeNo: 'CHQ-998877', bank: 'ICICI', amount: '\u20B96,500', date: '10 Feb', status: 'Cleared' },
-  { student: 'Dev Mehta', chequeNo: 'CHQ-556644', bank: 'BOB', amount: '\u20B96,500', date: '08 Feb', status: 'Cleared' },
-  { student: 'Priya Verma', chequeNo: 'CHQ-334455', bank: 'Axis', amount: '\u20B95,000', date: '05 Feb', status: 'Bounced' },
-  { student: 'Rajan Kumar', chequeNo: 'CHQ-667788', bank: 'PNB', amount: '\u20B97,700', date: '03 Feb', status: 'Bounced' },
+  { student: 'Meera Nair', chequeNo: 'CHQ-445521', bank: 'SBI', amount: '\u20B95,800', date: '15 Feb', depositDate: '16 Feb', status: 'Pending', class: '7-C' },
+  { student: 'Amit Patel', chequeNo: 'CHQ-112233', bank: 'HDFC', amount: '\u20B97,700', date: '18 Feb', depositDate: '19 Feb', status: 'Pending', class: '10-A' },
+  { student: 'Kavita Rao', chequeNo: 'CHQ-998877', bank: 'ICICI', amount: '\u20B96,500', date: '10 Feb', depositDate: '11 Feb', status: 'Cleared', class: '8-B' },
+  { student: 'Dev Mehta', chequeNo: 'CHQ-556644', bank: 'BOB', amount: '\u20B96,500', date: '08 Feb', depositDate: '09 Feb', status: 'Cleared', class: '9-B' },
+  { student: 'Priya Verma', chequeNo: 'CHQ-334455', bank: 'Axis', amount: '\u20B95,000', date: '05 Feb', depositDate: '06 Feb', status: 'Bounced', class: '5-A' },
+  { student: 'Rajan Kumar', chequeNo: 'CHQ-667788', bank: 'PNB', amount: '\u20B97,700', date: '03 Feb', depositDate: '04 Feb', status: 'Bounced', class: '3-B' },
+  { student: 'Neha Sharma', chequeNo: 'CHQ-223344', bank: 'Kotak', amount: '\u20B94,500', date: '20 Feb', depositDate: '21 Feb', status: 'Pending', class: '4-A' },
+  { student: 'Vikram Joshi', chequeNo: 'CHQ-889900', bank: 'SBI', amount: '\u20B98,200', date: '12 Feb', depositDate: '13 Feb', status: 'Cleared', class: '11-A' },
+  { student: 'Sonal Desai', chequeNo: 'CHQ-776655', bank: 'HDFC', amount: '\u20B93,800', date: '22 Feb', depositDate: '-', status: 'Pending', class: '6-B' },
+  { student: 'Manish Gupta', chequeNo: 'CHQ-112299', bank: 'Union', amount: '\u20B96,000', date: '01 Feb', depositDate: '02 Feb', status: 'Bounced', class: '8-A' },
 ];
 
 const feeAdjustments = [
@@ -126,12 +132,14 @@ const advancePayments = [
 ];
 
 const vendorDirectory = [
-  { name: 'Shree Traders', category: 'Stationery', contact: '98765-43210', pan: 'ABCDE1234F', gst: '24ABCDE1234F1Z5', totalPOs: 12, outstanding: '\u20B928,000', rating: 4 },
-  { name: 'Metro Furniture', category: 'Furniture', contact: '99887-65432', pan: 'FGHIJ5678K', gst: '24FGHIJ5678K1Z3', totalPOs: 5, outstanding: '\u20B90', rating: 5 },
-  { name: 'TechVista Solutions', category: 'IT', contact: '87654-32109', pan: 'KLMNO9012P', gst: '24KLMNO9012P1Z1', totalPOs: 8, outstanding: '\u20B945,000', rating: 4 },
-  { name: 'Fresh Bites Catering', category: 'Catering', contact: '76543-21098', pan: 'PQRST3456Q', gst: '24PQRST3456Q1Z9', totalPOs: 24, outstanding: '\u20B912,000', rating: 3 },
-  { name: 'City Plumbers', category: 'Maintenance', contact: '65432-10987', pan: 'UVWXY7890R', gst: '-', totalPOs: 6, outstanding: '\u20B90', rating: 4 },
-  { name: 'Reliable Transport', category: 'Transport', contact: '54321-09876', pan: 'ZABCD1234S', gst: '24ZABCD1234S1Z7', totalPOs: 15, outstanding: '\u20B91,10,000', rating: 5 },
+  { name: 'Shree Traders', category: 'Stationery', type: 'Supplier' as const, contact: '98765-43210', email: 'info@shreetraders.in', pan: 'ABCDE1234F', gst: '24ABCDE1234F1Z5', bankName: 'SBI', bankAccount: '3201XXXX4567', ifsc: 'SBIN0001234', totalPOs: 12, outstanding: '\u20B928,000', rating: 4, status: 'Active' as const },
+  { name: 'Metro Furniture', category: 'Furniture', type: 'Supplier' as const, contact: '99887-65432', email: 'sales@metrofurniture.com', pan: 'FGHIJ5678K', gst: '24FGHIJ5678K1Z3', bankName: 'HDFC', bankAccount: '5012XXXX8901', ifsc: 'HDFC0002345', totalPOs: 5, outstanding: '\u20B90', rating: 5, status: 'Active' as const },
+  { name: 'TechVista Solutions', category: 'IT', type: 'Service' as const, contact: '87654-32109', email: 'support@techvista.in', pan: 'KLMNO9012P', gst: '24KLMNO9012P1Z1', bankName: 'ICICI', bankAccount: '1023XXXX3456', ifsc: 'ICIC0003456', totalPOs: 8, outstanding: '\u20B945,000', rating: 4, status: 'Active' as const },
+  { name: 'Fresh Bites Catering', category: 'Catering', type: 'Service' as const, contact: '76543-21098', email: 'orders@freshbites.co.in', pan: 'PQRST3456Q', gst: '24PQRST3456Q1Z9', bankName: 'Kotak', bankAccount: '7845XXXX2109', ifsc: 'KKBK0004567', totalPOs: 24, outstanding: '\u20B912,000', rating: 3, status: 'Active' as const },
+  { name: 'City Plumbers', category: 'Maintenance', type: 'Contractor' as const, contact: '65432-10987', email: '-', pan: 'UVWXY7890R', gst: '-', bankName: 'PNB', bankAccount: '2098XXXX7654', ifsc: 'PUNB0005678', totalPOs: 6, outstanding: '\u20B90', rating: 4, status: 'Active' as const },
+  { name: 'Reliable Transport', category: 'Transport', type: 'Service' as const, contact: '54321-09876', email: 'dispatch@reliabletrans.in', pan: 'ZABCD1234S', gst: '24ZABCD1234S1Z7', bankName: 'BOB', bankAccount: '9087XXXX1234', ifsc: 'BARB0006789', totalPOs: 15, outstanding: '\u20B91,10,000', rating: 5, status: 'Active' as const },
+  { name: 'Lab India Instruments', category: 'Lab Equipment', type: 'Supplier' as const, contact: '91234-56789', email: 'orders@labindia.com', pan: 'EFGHI2345J', gst: '24EFGHI2345J1Z8', bankName: 'Axis', bankAccount: '6543XXXX9876', ifsc: 'UTIB0007890', totalPOs: 4, outstanding: '\u20B965,000', rating: 4, status: 'Active' as const },
+  { name: 'Greenfield Landscaping', category: 'Maintenance', type: 'Contractor' as const, contact: '82345-67890', email: 'greenfield.land@gmail.com', pan: 'JKLMN6789O', gst: '-', bankName: 'SBI', bankAccount: '4321XXXX5678', ifsc: 'SBIN0008901', totalPOs: 3, outstanding: '\u20B90', rating: 5, status: 'Inactive' as const },
 ];
 
 const vendorPOHistory: Record<string, { po: string; date: string; amount: string; invoiceMatch: string; payStatus: string }[]> = {
@@ -144,6 +152,31 @@ const vendorPOHistory: Record<string, { po: string; date: string; amount: string
     { po: 'PO-2026-045', date: '06 Feb', amount: '\u20B965,000', invoiceMatch: 'Pending', payStatus: 'Approved' },
     { po: 'PO-2026-022', date: '15 Jan', amount: '\u20B932,000', invoiceMatch: 'Matched', payStatus: 'Paid' },
     { po: 'PO-2025-280', date: '01 Dec', amount: '\u20B918,000', invoiceMatch: 'Matched', payStatus: 'Paid' },
+  ],
+};
+
+const dailyCollectionSummary = {
+  date: '08 Mar 2026',
+  byMode: [
+    { mode: 'Cash', count: 12, amount: 68500, icon: Banknote },
+    { mode: 'UPI', count: 22, amount: 185000, icon: Smartphone },
+    { mode: 'Cheque', count: 5, amount: 42000, icon: FileText },
+    { mode: 'Net Banking', count: 8, amount: 112000, icon: Building2 },
+    { mode: 'DD / NEFT', count: 3, amount: 95000, icon: CreditCard },
+    { mode: 'Debit Card', count: 4, amount: 32500, icon: Wallet },
+  ],
+  totalCollected: 535000,
+  pendingDeposit: 68500, // Cash not yet deposited
+  chequesNotCleared: 42000,
+  recentTransactions: [
+    { time: '03:45 PM', student: 'Aarav Patel', class: '10-A', amount: 7700, mode: 'UPI', receipt: 'R-2026-045' },
+    { time: '03:20 PM', student: 'Zara Khan', class: '8-B', amount: 6500, mode: 'Cash', receipt: 'R-2026-044' },
+    { time: '02:55 PM', student: 'Meera Nair', class: '7-C', amount: 5800, mode: 'Cheque', receipt: 'R-2026-043' },
+    { time: '02:10 PM', student: 'Rohan Gupta', class: '3-B', amount: 5000, mode: 'Net Banking', receipt: 'R-2026-042' },
+    { time: '01:30 PM', student: 'Ananya Reddy', class: '6-A', amount: 5800, mode: 'UPI', receipt: 'R-2026-041' },
+    { time: '12:15 PM', student: 'Dev Mehta', class: '9-B', amount: 6500, mode: 'DD / NEFT', receipt: 'R-2026-040' },
+    { time: '11:40 AM', student: 'Riya Sharma', class: '5-A', amount: 5000, mode: 'Cash', receipt: 'R-2026-039' },
+    { time: '10:20 AM', student: 'Arjun Singh', class: '10-A', amount: 7700, mode: 'Debit Card', receipt: 'R-2026-038' },
   ],
 };
 
@@ -178,6 +211,8 @@ const taxDeclarations = [
 const modules = [
   { id: 'dashboard', label: 'Dashboard', icon: Home },
   { id: 'fees', label: 'Fees', icon: Banknote },
+  { id: 'daily-summary', label: 'Daily Collection', icon: IndianRupee },
+  { id: 'cheque-register', label: 'Cheque Register', icon: Hash },
   { id: 'expenses', label: 'Expenses', icon: CreditCard },
   { id: 'salary', label: 'Salary Processing', icon: Users },
   { id: 'epf', label: 'EPF / PF', icon: ShieldCheck },
@@ -307,7 +342,6 @@ function DashboardView({ theme, setActiveModule }: { theme: Theme; setActiveModu
 function CollectionsView({ theme }: { theme: Theme }) {
   const [tab, setTab] = useState('All');
   const [feeType, setFeeType] = useState<'Student' | 'Employee' | 'Guest'>('Student');
-  const [chequeSection, setChequeSection] = useState(false);
   const filtered = tab === 'All' ? feeCollections : feeCollections.filter(f => f.status === tab);
 
   return (
@@ -420,46 +454,8 @@ function CollectionsView({ theme }: { theme: Theme }) {
         </>
       )}
 
-      {/* Feature 3: Cheque Management section */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <button onClick={() => setChequeSection(!chequeSection)} className="w-full flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <h3 className={`text-sm font-bold ${theme.highlight}`}>Post-Dated Cheque Register</h3>
-            <InfoTip text="Track post-dated cheques and auto-handle bounced payments" />
-          </div>
-          <ChevronDown size={16} className={`${theme.iconColor} transition-transform ${chequeSection ? 'rotate-180' : ''}`} />
-        </button>
-
-        {chequeSection && (
-          <div className="mt-3 space-y-3">
-            <div className="flex items-center justify-between">
-              <p className={`text-xs ${theme.iconColor}`}>{chequeRegister.length} cheques tracked</p>
-              <button className={`flex items-center gap-2 px-3 py-1.5 ${theme.primary} text-white rounded-lg text-xs font-bold`}>
-                <Plus size={12} /> Add Cheque
-              </button>
-            </div>
-            <DataTable
-              headers={['Student', 'Cheque #', 'Bank', 'Amount', 'Date', 'Status']}
-              rows={chequeRegister.map(c => [
-                <span key="n" className={`text-xs font-bold ${theme.highlight}`}>{c.student}</span>,
-                <span key="ch" className={`text-xs font-mono ${theme.iconColor}`}>{c.chequeNo}</span>,
-                <span key="b" className={`text-xs ${theme.iconColor}`}>{c.bank}</span>,
-                <span key="a" className={`text-xs font-bold ${theme.highlight}`}>{c.amount}</span>,
-                <span key="d" className={`text-xs ${theme.iconColor}`}>{c.date}</span>,
-                <span key="s" className="flex items-center gap-1">
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${c.status === 'Cleared' ? 'bg-emerald-100 text-emerald-700' : c.status === 'Bounced' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
-                    {c.status}
-                  </span>
-                  {c.status === 'Bounced' && (
-                    <span className="text-[9px] text-red-600 font-medium">Auto-penalty: {'\u20B9'}500 applied &middot; Parent notified &#x2705;</span>
-                  )}
-                </span>,
-              ])}
-              theme={theme}
-            />
-          </div>
-        )}
-      </div>
+      {/* Feature 3: Cheque Management section — uses shared component */}
+      <ChequeRegisterSection theme={theme} />
     </div>
   );
 }
@@ -611,12 +607,19 @@ function FeesView({ theme }: { theme: Theme }) {
   const [showAdvanceToggle, setShowAdvanceToggle] = useState(false);
   const [showRefundCheck, setShowRefundCheck] = useState(false);
   const [historyTab, setHistoryTab] = useState('All');
-  const [chequeSection, setChequeSection] = useState(false);
   const [amountReceived, setAmountReceived] = useState('');
   const [paymentRemark, setPaymentRemark] = useState('');
   const [showRemarkOnReceipt, setShowRemarkOnReceipt] = useState(false);
   const [partialReason, setPartialReason] = useState('');
+  const [selectedPayMode, setSelectedPayMode] = useState('cash');
+  const [chequeNo, setChequeNo] = useState('');
+  const [chequeBank, setChequeBank] = useState('');
+  const [chequeDate, setChequeDate] = useState('');
+  const [upiTxnId, setUpiTxnId] = useState('');
+  const [neftRef, setNeftRef] = useState('');
   const filteredHistory = historyTab === 'All' ? feeCollections : feeCollections.filter(f => f.status === historyTab);
+  const autoReceiptNo = `R-2026-${String(Math.floor(Math.random() * 900 + 100))}`;
+  const enabledPayModes = ssaPaymentModes.filter(m => m.enabled);
 
   const studentResults = [
     { name: 'Riya Sharma', class: '5-A', admNo: 'ADM-2025-042', father: 'Mr. Rajesh Sharma', pending: '\u20B95,000', initials: 'RS', concession: '' },
@@ -626,13 +629,12 @@ function FeesView({ theme }: { theme: Theme }) {
   ];
   const student = studentResults.find(s => s.admNo === selectedStudent) || studentResults[0];
 
-  const feeHeads = [
-    { head: 'Tuition Fee', amount: 3000, status: 'Due' as const },
-    { head: 'Activity Fee', amount: 500, status: 'Due' as const },
-    { head: 'Lab Fee', amount: 300, status: 'Due' as const },
-    { head: 'Transport', amount: 1200, status: 'Due' as const },
-    { head: 'Exam Fee', amount: 0, status: 'Paid' as const },
-  ];
+  // Fee heads from SSA config — amounts for class 6th-8th
+  const feeHeads = ssaFeeHeads.filter(h => h.appliesTo === 'all' || h.appliesTo === '6+').map(h => {
+    const amounts: Record<string, number> = { tuition: 3200, admission: 0, annual: 0, transport: 1200, activity: 500, lab: 500, library: 300, sports: 300, technology: 500, exam: 0, development: 0, caution: 0 };
+    const amt = amounts[h.key] || 0;
+    return { head: h.label, amount: amt, status: (amt > 0 ? 'Due' : 'Paid') as 'Due' | 'Paid' };
+  }).filter(h => h.amount > 0 || h.status === 'Paid');
   const totalDue = feeHeads.filter(h => h.status === 'Due').reduce((s, h) => s + h.amount, 0);
   const concessionAmt = appliedConcession === 'sibling' ? Math.round(totalDue * 0.1) : appliedConcession === 'merit' ? Math.round(totalDue * 0.25) : appliedConcession === 'staff' ? totalDue : 0;
   const netPayable = totalDue - concessionAmt;
@@ -702,7 +704,7 @@ function FeesView({ theme }: { theme: Theme }) {
             </div>
           </div>
 
-          <p className="text-[10px] text-amber-600">Fee template: Component-based &middot; Billing: Monthly &middot; 7 active fee heads &mdash; configured by SSA</p>
+          <p className="text-[10px] text-amber-600">Fee template: Component-based &middot; Billing: Monthly &middot; {ssaFeeHeads.length} active fee heads &mdash; configured by SSA</p>
         </div>
       )}
 
@@ -719,12 +721,28 @@ function FeesView({ theme }: { theme: Theme }) {
             <button onClick={() => { setAcceptStep('search'); setShowConcession(false); setShowAdjustment(false); setShowAdvanceToggle(false); setShowRefundCheck(false); }} className={`text-xs ${theme.primaryText} font-bold`}>Change Student</button>
           </div>
 
+          {/* Student Fee Summary Cards */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className={`p-3 rounded-xl ${theme.secondaryBg} text-center`}>
+              <p className={`text-[10px] ${theme.iconColor}`}>Annual Total</p>
+              <p className={`text-sm font-bold ${theme.highlight}`}>{'\u20B9'}93,600</p>
+            </div>
+            <div className={`p-3 rounded-xl ${theme.secondaryBg} text-center`}>
+              <p className={`text-[10px] ${theme.iconColor}`}>Paid (Apr-Jan)</p>
+              <p className="text-sm font-bold text-emerald-600">{'\u20B9'}78,000</p>
+            </div>
+            <div className={`p-3 rounded-xl ${theme.secondaryBg} text-center`}>
+              <p className={`text-[10px] ${theme.iconColor}`}>Outstanding</p>
+              <p className="text-sm font-bold text-amber-600">{'\u20B9'}{student.pending}</p>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
             {/* LEFT: Fee Structure */}
             <div className="lg:col-span-2 space-y-3">
               {/* Fee Head Breakdown */}
               <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
-                <p className={`text-[10px] font-bold ${theme.iconColor} mb-2 uppercase tracking-wide`}>Fee Structure &mdash; February 2026</p>
+                <p className={`text-[10px] font-bold ${theme.iconColor} mb-2 uppercase tracking-wide`}>Fee Structure &mdash; March 2026 (Monthly heads for {student.class})</p>
                 <div className="space-y-1.5">
                   {feeHeads.map(h => (
                     <div key={h.head} className="flex items-center justify-between">
@@ -890,6 +908,11 @@ function FeesView({ theme }: { theme: Theme }) {
                 </div>
 
                 <div className="mt-4 space-y-2">
+                  {/* Auto Receipt Number */}
+                  <div className={`p-2 rounded-lg ${theme.secondaryBg} flex items-center justify-between`}>
+                    <span className={`text-[10px] ${theme.iconColor}`}>Receipt #</span>
+                    <span className={`text-xs font-mono font-bold ${theme.primaryText}`}>{autoReceiptNo}</span>
+                  </div>
                   <div>
                     <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Amount Received</label>
                     <input type="number" value={amountReceived} onChange={e => setAmountReceived(e.target.value)}
@@ -920,20 +943,65 @@ function FeesView({ theme }: { theme: Theme }) {
                     </div>
                   )}
                   <div>
-                    <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Payment Mode</label>
-                    <select className={`w-full px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight}`}>
-                      <option>Cash</option>
-                      <option>UPI</option>
-                      <option>Online / Card</option>
-                      <option>Cheque</option>
-                      <option>NEFT / RTGS</option>
-                      <option>DD</option>
-                    </select>
+                    <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Payment Mode (per SSA config)</label>
+                    <div className="grid grid-cols-3 gap-1">
+                      {enabledPayModes.map(m => (
+                        <button key={m.key} onClick={() => setSelectedPayMode(m.key)}
+                          className={`px-2 py-2 rounded-lg text-[10px] font-bold transition-all ${selectedPayMode === m.key ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.iconColor} ${theme.buttonHover}`}`}>
+                          {m.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  <div>
-                    <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Reference / Txn ID</label>
-                    <input type="text" placeholder="Optional for cash" className={`w-full px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight}`} />
-                  </div>
+
+                  {/* Cheque-specific fields */}
+                  {selectedPayMode === 'cheque' && (
+                    <div className={`p-3 rounded-xl border ${theme.border} ${theme.secondaryBg} space-y-2`}>
+                      <p className={`text-[10px] font-bold ${theme.primaryText}`}>Cheque Details</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className={`text-[9px] ${theme.iconColor} block mb-0.5`}>Cheque Number *</label>
+                          <input type="text" value={chequeNo} onChange={e => setChequeNo(e.target.value)} placeholder="CHQ-XXXXXX"
+                            className={`w-full px-2 py-1.5 text-xs rounded-lg border ${theme.border} ${theme.cardBg} ${theme.highlight} font-mono`} />
+                        </div>
+                        <div>
+                          <label className={`text-[9px] ${theme.iconColor} block mb-0.5`}>Bank Name *</label>
+                          <input type="text" value={chequeBank} onChange={e => setChequeBank(e.target.value)} placeholder="e.g., SBI, HDFC"
+                            className={`w-full px-2 py-1.5 text-xs rounded-lg border ${theme.border} ${theme.cardBg} ${theme.highlight}`} />
+                        </div>
+                      </div>
+                      <div>
+                        <label className={`text-[9px] ${theme.iconColor} block mb-0.5`}>Cheque Date *</label>
+                        <input type="date" value={chequeDate} onChange={e => setChequeDate(e.target.value)}
+                          className={`w-full px-2 py-1.5 text-xs rounded-lg border ${theme.border} ${theme.cardBg} ${theme.highlight}`} />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* UPI-specific field */}
+                  {selectedPayMode === 'upi' && (
+                    <div className={`p-3 rounded-xl border ${theme.border} ${theme.secondaryBg} space-y-2`}>
+                      <p className={`text-[10px] font-bold ${theme.primaryText}`}>UPI Details</p>
+                      <div>
+                        <label className={`text-[9px] ${theme.iconColor} block mb-0.5`}>UPI Transaction ID *</label>
+                        <input type="text" value={upiTxnId} onChange={e => setUpiTxnId(e.target.value)} placeholder="e.g., 426XXXXXXXXX"
+                          className={`w-full px-2 py-1.5 text-xs rounded-lg border ${theme.border} ${theme.cardBg} ${theme.highlight} font-mono`} />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* DD/NEFT/Net Banking reference */}
+                  {(selectedPayMode === 'dd_neft' || selectedPayMode === 'net_banking') && (
+                    <div className={`p-3 rounded-xl border ${theme.border} ${theme.secondaryBg} space-y-2`}>
+                      <p className={`text-[10px] font-bold ${theme.primaryText}`}>{selectedPayMode === 'dd_neft' ? 'DD / NEFT' : 'Net Banking'} Details</p>
+                      <div>
+                        <label className={`text-[9px] ${theme.iconColor} block mb-0.5`}>Reference / Transaction Number *</label>
+                        <input type="text" value={neftRef} onChange={e => setNeftRef(e.target.value)} placeholder="Reference number..."
+                          className={`w-full px-2 py-1.5 text-xs rounded-lg border ${theme.border} ${theme.cardBg} ${theme.highlight} font-mono`} />
+                      </div>
+                    </div>
+                  )}
+
                   <div>
                     <div className="flex items-center justify-between mb-1">
                       <label className={`text-[10px] font-bold ${theme.iconColor}`}>Remark</label>
@@ -971,8 +1039,13 @@ function FeesView({ theme }: { theme: Theme }) {
               <Check size={28} />
             </div>
             <p className="text-lg font-bold text-emerald-800">Payment Recorded Successfully</p>
-            <p className="text-sm text-emerald-700 mt-1">Receipt #: <span className="font-mono font-bold">R-2026-009</span></p>
+            <p className="text-sm text-emerald-700 mt-1">Receipt #: <span className="font-mono font-bold">{autoReceiptNo}</span></p>
             <p className="text-xs text-emerald-600 mt-1">{student.name} &middot; Class {student.class} &middot; {'\u20B9'}{receivedNum.toLocaleString()}</p>
+            <p className="text-[10px] text-emerald-600 mt-0.5">Mode: {enabledPayModes.find(m => m.key === selectedPayMode)?.label || selectedPayMode}
+              {selectedPayMode === 'cheque' && chequeNo && ` | Cheque: ${chequeNo} (${chequeBank})`}
+              {selectedPayMode === 'upi' && upiTxnId && ` | Txn: ${upiTxnId}`}
+              {(selectedPayMode === 'dd_neft' || selectedPayMode === 'net_banking') && neftRef && ` | Ref: ${neftRef}`}
+            </p>
             {concessionAmt > 0 && <p className="text-[10px] text-emerald-600 mt-0.5">Concession: -{'\u20B9'}{concessionAmt.toLocaleString()}</p>}
             {isPartial && (
               <div className="mt-2 p-2 rounded-lg bg-amber-50 border border-amber-200 inline-block">
@@ -1024,41 +1097,219 @@ function FeesView({ theme }: { theme: Theme }) {
         />
       </div>
 
-      {/* ══════ CHEQUE REGISTER (collapsible) ══════ */}
-      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-        <button onClick={() => setChequeSection(!chequeSection)} className="w-full flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <h3 className={`text-sm font-bold ${theme.highlight}`}>Post-Dated Cheque Register</h3>
-            <InfoTip text="Track post-dated cheques and auto-handle bounced payments" />
-          </div>
-          <ChevronDown size={16} className={`${theme.iconColor} transition-transform ${chequeSection ? 'rotate-180' : ''}`} />
-        </button>
-        {chequeSection && (
-          <div className="mt-3 space-y-3">
-            <div className="flex items-center justify-between">
-              <p className={`text-xs ${theme.iconColor}`}>{chequeRegister.length} cheques tracked</p>
-              <button className={`flex items-center gap-2 px-3 py-1.5 ${theme.primary} text-white rounded-lg text-xs font-bold`}>
-                <Plus size={12} /> Add Cheque
-              </button>
+      {/* ══════ CHEQUE REGISTER (full-featured) ══════ */}
+      <ChequeRegisterSection theme={theme} />
+    </div>
+  );
+}
+
+// ─── CHEQUE REGISTER (standalone, reusable) ────────────────
+function ChequeRegisterSection({ theme }: { theme: Theme }) {
+  const [chequeOpen, setChequeOpen] = useState(true);
+  const [chequeStatusFilter, setChequeStatusFilter] = useState('All');
+  const [chequeDateFrom, setChequeDateFrom] = useState('');
+  const [chequeDateTo, setChequeDateTo] = useState('');
+
+  const filteredCheques = chequeRegister.filter(c => {
+    if (chequeStatusFilter !== 'All' && c.status !== chequeStatusFilter) return false;
+    return true;
+  });
+
+  const chequeSummary = {
+    pending: chequeRegister.filter(c => c.status === 'Pending').length,
+    cleared: chequeRegister.filter(c => c.status === 'Cleared').length,
+    bounced: chequeRegister.filter(c => c.status === 'Bounced').length,
+    totalPending: chequeRegister.filter(c => c.status === 'Pending').reduce((s, c) => s + Number(c.amount.replace(/[^\d]/g, '')), 0),
+  };
+
+  return (
+    <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+      <button onClick={() => setChequeOpen(!chequeOpen)} className="w-full flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <h3 className={`text-sm font-bold ${theme.highlight}`}>Cheque Register</h3>
+          <InfoTip text="Track all cheques received — pending, cleared, and bounced" />
+          <span className={`text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-bold`}>{chequeSummary.pending} pending</span>
+        </div>
+        <ChevronDown size={16} className={`${theme.iconColor} transition-transform ${chequeOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {chequeOpen && (
+        <div className="mt-3 space-y-3">
+          {/* Summary Stats */}
+          <div className="grid grid-cols-4 gap-2">
+            <div className={`p-2 rounded-lg ${theme.secondaryBg} text-center`}>
+              <p className="text-sm font-bold text-amber-600">{chequeSummary.pending}</p>
+              <p className={`text-[9px] ${theme.iconColor}`}>Pending</p>
             </div>
-            <DataTable
-              headers={['Student', 'Cheque #', 'Bank', 'Amount', 'Date', 'Status']}
-              rows={chequeRegister.map(c => [
-                <span key="n" className={`text-xs font-bold ${theme.highlight}`}>{c.student}</span>,
-                <span key="ch" className={`text-xs font-mono ${theme.iconColor}`}>{c.chequeNo}</span>,
-                <span key="b" className={`text-xs ${theme.iconColor}`}>{c.bank}</span>,
-                <span key="a" className={`text-xs font-bold ${theme.highlight}`}>{c.amount}</span>,
-                <span key="d" className={`text-xs ${theme.iconColor}`}>{c.date}</span>,
-                <span key="s" className="flex items-center gap-1">
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${c.status === 'Cleared' ? 'bg-emerald-100 text-emerald-700' : c.status === 'Bounced' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>{c.status}</span>
-                  {c.status === 'Bounced' && <span className="text-[9px] text-red-600 font-medium">Auto-penalty: {'\u20B9'}500 &middot; Parent notified &#x2705;</span>}
-                </span>,
-              ])}
-              theme={theme}
-            />
+            <div className={`p-2 rounded-lg ${theme.secondaryBg} text-center`}>
+              <p className="text-sm font-bold text-emerald-600">{chequeSummary.cleared}</p>
+              <p className={`text-[9px] ${theme.iconColor}`}>Cleared</p>
+            </div>
+            <div className={`p-2 rounded-lg ${theme.secondaryBg} text-center`}>
+              <p className="text-sm font-bold text-red-600">{chequeSummary.bounced}</p>
+              <p className={`text-[9px] ${theme.iconColor}`}>Bounced</p>
+            </div>
+            <div className={`p-2 rounded-lg ${theme.secondaryBg} text-center`}>
+              <p className={`text-sm font-bold ${theme.highlight}`}>{'\u20B9'}{chequeSummary.totalPending.toLocaleString()}</p>
+              <p className={`text-[9px] ${theme.iconColor}`}>Pending Amt</p>
+            </div>
           </div>
-        )}
+
+          {/* Filters */}
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className={`flex gap-1 p-1 ${theme.secondaryBg} rounded-xl`}>
+              {['All', 'Pending', 'Cleared', 'Bounced'].map(s => (
+                <button key={s} onClick={() => setChequeStatusFilter(s)} className={`px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all ${chequeStatusFilter === s ? `${theme.cardBg} ${theme.highlight} shadow-sm` : theme.iconColor}`}>{s}</button>
+              ))}
+            </div>
+            <div className="flex items-center gap-2">
+              <span className={`text-[10px] ${theme.iconColor}`}>From:</span>
+              <input type="date" value={chequeDateFrom} onChange={e => setChequeDateFrom(e.target.value)} className={`px-2 py-1 text-[10px] rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight}`} />
+              <span className={`text-[10px] ${theme.iconColor}`}>To:</span>
+              <input type="date" value={chequeDateTo} onChange={e => setChequeDateTo(e.target.value)} className={`px-2 py-1 text-[10px] rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight}`} />
+            </div>
+            <button className={`flex items-center gap-2 px-3 py-1.5 ${theme.primary} text-white rounded-lg text-xs font-bold ml-auto`}>
+              <Plus size={12} /> Add Cheque
+            </button>
+          </div>
+
+          <DataTable
+            headers={['Student', 'Class', 'Cheque #', 'Bank', 'Amount', 'Cheque Date', 'Deposit Date', 'Status']}
+            rows={filteredCheques.map(c => [
+              <span key="n" className={`text-xs font-bold ${theme.highlight}`}>{c.student}</span>,
+              <span key="cl" className={`text-xs ${theme.iconColor}`}>{c.class}</span>,
+              <span key="ch" className={`text-xs font-mono ${theme.iconColor}`}>{c.chequeNo}</span>,
+              <span key="b" className={`text-xs ${theme.iconColor}`}>{c.bank}</span>,
+              <span key="a" className={`text-xs font-bold ${theme.highlight}`}>{c.amount}</span>,
+              <span key="d" className={`text-xs ${theme.iconColor}`}>{c.date}</span>,
+              <span key="dd" className={`text-xs ${theme.iconColor}`}>{c.depositDate}</span>,
+              <span key="s" className="flex items-center gap-1">
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${c.status === 'Cleared' ? 'bg-emerald-100 text-emerald-700' : c.status === 'Bounced' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>{c.status}</span>
+                {c.status === 'Bounced' && <span className="text-[9px] text-red-600 font-medium">Auto-penalty: {'\u20B9'}500 &middot; Parent notified</span>}
+              </span>,
+            ])}
+            theme={theme}
+          />
+
+          <div className="flex items-center gap-2">
+            <button className={`flex items-center gap-1 px-3 py-1.5 ${theme.secondaryBg} rounded-lg text-xs font-bold ${theme.highlight}`}>
+              <Download size={12} /> Export PDF
+            </button>
+            <button className={`flex items-center gap-1 px-3 py-1.5 ${theme.secondaryBg} rounded-lg text-xs font-bold ${theme.highlight}`}>
+              <Download size={12} /> Export Excel
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── DAILY COLLECTION SUMMARY VIEW ────────────────────
+function DailyCollectionView({ theme }: { theme: Theme }) {
+  const d = dailyCollectionSummary;
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className={`text-lg font-bold ${theme.highlight}`}>Daily Collection Summary</h2>
+          <p className={`text-xs ${theme.iconColor}`}>{d.date}</p>
+        </div>
+        <div className="flex gap-2">
+          <button className={`flex items-center gap-2 px-3 py-2 ${theme.secondaryBg} rounded-xl text-xs font-medium ${theme.highlight}`}>
+            <Calendar size={12} /> Change Date
+          </button>
+          <button className={`flex items-center gap-1 px-3 py-2 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.highlight}`}>
+            <Download size={12} /> Export
+          </button>
+          <button className={`flex items-center gap-1 px-3 py-2 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.highlight}`}>
+            <Printer size={12} /> Print
+          </button>
+        </div>
       </div>
+
+      {/* Top Summary */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <StatCard icon={Banknote} label="Total Collected Today" value={`\u20B9${(d.totalCollected / 100000).toFixed(1)}L`} color="bg-emerald-500" sub={`${d.byMode.reduce((s, m) => s + m.count, 0)} transactions`} theme={theme} />
+        <StatCard icon={Wallet} label="Cash (Pending Deposit)" value={`\u20B9${d.pendingDeposit.toLocaleString()}`} color="bg-amber-500" sub="Not yet deposited to bank" theme={theme} />
+        <StatCard icon={FileText} label="Cheques (Not Cleared)" value={`\u20B9${d.chequesNotCleared.toLocaleString()}`} color="bg-blue-500" theme={theme} />
+        <StatCard icon={TrendingUp} label="Avg per Txn" value={`\u20B9${Math.round(d.totalCollected / d.byMode.reduce((s, m) => s + m.count, 0)).toLocaleString()}`} color="bg-purple-500" theme={theme} />
+      </div>
+
+      {/* Collection by Payment Mode */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Collection by Payment Mode</h3>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {d.byMode.map(m => {
+            const pct = Math.round((m.amount / d.totalCollected) * 100);
+            return (
+              <div key={m.mode} className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <m.icon size={14} className={theme.primaryText} />
+                    <span className={`text-xs font-bold ${theme.highlight}`}>{m.mode}</span>
+                  </div>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full ${theme.secondaryBg} font-bold ${theme.iconColor}`}>{m.count} txns</span>
+                </div>
+                <p className={`text-sm font-bold ${theme.highlight}`}>{'\u20B9'}{m.amount.toLocaleString()}</p>
+                <div className="mt-1.5 h-1.5 rounded-full bg-slate-200 overflow-hidden">
+                  <div className={`h-full rounded-full ${theme.primary}`} style={{ width: `${pct}%` }} />
+                </div>
+                <p className={`text-[9px] ${theme.iconColor} mt-1`}>{pct}% of total</p>
+              </div>
+            );
+          })}
+        </div>
+        <div className={`mt-3 pt-3 border-t ${theme.border} flex items-center justify-between`}>
+          <span className={`text-xs font-bold ${theme.highlight}`}>Grand Total</span>
+          <span className={`text-lg font-bold ${theme.primaryText}`}>{'\u20B9'}{d.totalCollected.toLocaleString()}</span>
+        </div>
+      </div>
+
+      {/* Today's Transactions */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Today&apos;s Transactions</h3>
+        <DataTable
+          headers={['Time', 'Student', 'Class', 'Amount', 'Mode', 'Receipt']}
+          rows={d.recentTransactions.map(t => [
+            <span key="time" className={`text-xs font-mono ${theme.iconColor}`}>{t.time}</span>,
+            <span key="n" className={`text-xs font-bold ${theme.highlight}`}>{t.student}</span>,
+            <span key="c" className={`text-xs ${theme.iconColor}`}>{t.class}</span>,
+            <span key="a" className={`text-xs font-bold ${theme.highlight}`}>{'\u20B9'}{t.amount.toLocaleString()}</span>,
+            <span key="m" className={`text-xs ${theme.iconColor}`}>{t.mode}</span>,
+            <span key="r" className={`text-xs font-mono ${theme.primaryText} font-bold`}>{t.receipt}</span>,
+          ])}
+          theme={theme}
+        />
+      </div>
+
+      {/* Pending Deposits */}
+      <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs font-bold text-amber-800">Pending Cash Deposit to Bank</p>
+            <p className="text-[10px] text-amber-700 mt-0.5">12 cash transactions totaling {'\u20B9'}{d.pendingDeposit.toLocaleString()} need to be deposited</p>
+          </div>
+          <button className="flex items-center gap-1 px-3 py-2 bg-amber-600 text-white rounded-xl text-xs font-bold">
+            <Building2 size={12} /> Mark as Deposited
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── STANDALONE CHEQUE REGISTER VIEW ───────────────────
+function ChequeRegisterView({ theme }: { theme: Theme }) {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className={`text-lg font-bold ${theme.highlight}`}>Cheque Register</h2>
+          <p className={`text-xs ${theme.iconColor}`}>Track all cheques received &mdash; pending, cleared, and bounced</p>
+        </div>
+      </div>
+      <ChequeRegisterSection theme={theme} />
     </div>
   );
 }
@@ -1253,9 +1504,20 @@ function TaxDeclarationsView({ theme }: { theme: Theme }) {
   );
 }
 
-// ─── VENDOR DIRECTORY (Feature 11) ──────────────────────
+// ─── VENDOR DIRECTORY (Feature 11) — Full CRUD ──────────────────────
 function VendorsView({ theme }: { theme: Theme }) {
   const [expandedVendor, setExpandedVendor] = useState<string | null>(null);
+  const [showVendorForm, setShowVendorForm] = useState(false);
+  const [editingVendor, setEditingVendor] = useState<string | null>(null);
+  const [vendorSearch, setVendorSearch] = useState('');
+  const [vendorTypeFilter, setVendorTypeFilter] = useState('All');
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+
+  const filteredVendors = vendorDirectory.filter(v => {
+    const matchSearch = vendorSearch === '' || v.name.toLowerCase().includes(vendorSearch.toLowerCase()) || v.category.toLowerCase().includes(vendorSearch.toLowerCase()) || v.pan.toLowerCase().includes(vendorSearch.toLowerCase());
+    const matchType = vendorTypeFilter === 'All' || v.type === vendorTypeFilter;
+    return matchSearch && matchType;
+  });
 
   return (
     <div className="space-y-4">
@@ -1264,29 +1526,118 @@ function VendorsView({ theme }: { theme: Theme }) {
           <h2 className={`text-lg font-bold ${theme.highlight}`}>Vendor Directory</h2>
           <InfoTip text="Vendor master with purchase order and payment tracking" />
         </div>
-        <button className={`flex items-center gap-2 px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>
+        <button onClick={() => { setShowVendorForm(true); setEditingVendor(null); }} className={`flex items-center gap-2 px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>
           <Plus size={14} /> Add Vendor
         </button>
       </div>
 
-      <SearchBar placeholder="Search vendors by name, category, PAN..." theme={theme} icon={Search} />
-
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <StatCard icon={Package} label="Total Vendors" value="6" color="bg-blue-500" theme={theme} />
-        <StatCard icon={DollarSign} label="Total Outstanding" value={'\u20B91,95,000'} color="bg-amber-500" theme={theme} />
-        <StatCard icon={FileText} label="Active POs" value="70" color="bg-emerald-500" theme={theme} />
+      <div className="flex gap-3 items-center">
+        <div className="flex-1"><SearchBar placeholder="Search vendors by name, category, PAN, GST..." theme={theme} icon={Search} /></div>
+        <div className={`flex gap-1 p-1 ${theme.secondaryBg} rounded-xl`}>
+          {['All', 'Supplier', 'Service', 'Contractor'].map(t => (
+            <button key={t} onClick={() => setVendorTypeFilter(t)} className={`px-3 py-1.5 text-[10px] font-bold rounded-lg whitespace-nowrap transition-all ${vendorTypeFilter === t ? `${theme.cardBg} ${theme.highlight} shadow-sm` : theme.iconColor}`}>{t}</button>
+          ))}
+        </div>
       </div>
 
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <StatCard icon={Package} label="Total Vendors" value={String(vendorDirectory.filter(v => v.status === 'Active').length)} color="bg-blue-500" theme={theme} />
+        <StatCard icon={DollarSign} label="Total Outstanding" value={'\u20B92,60,000'} color="bg-amber-500" theme={theme} />
+        <StatCard icon={FileText} label="Active POs" value="73" color="bg-emerald-500" theme={theme} />
+        <StatCard icon={AlertTriangle} label="Inactive" value={String(vendorDirectory.filter(v => v.status === 'Inactive').length)} color="bg-slate-400" theme={theme} />
+      </div>
+
+      {/* Vendor Add/Edit Form */}
+      {showVendorForm && (
+        <div className={`${theme.cardBg} rounded-2xl border-2 ${theme.border} p-5`}>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>{editingVendor ? `Edit Vendor: ${editingVendor}` : 'Add New Vendor'}</h3>
+            <button onClick={() => { setShowVendorForm(false); setEditingVendor(null); }} className={`p-1.5 rounded-lg ${theme.buttonHover}`}><X size={14} className={theme.iconColor} /></button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+              <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Vendor Name *</label>
+              <input type="text" placeholder="Full business name" defaultValue={editingVendor ? vendorDirectory.find(v => v.name === editingVendor)?.name : ''} className={`w-full px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight}`} />
+            </div>
+            <div>
+              <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Type *</label>
+              <select defaultValue={editingVendor ? vendorDirectory.find(v => v.name === editingVendor)?.type : ''} className={`w-full px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight}`}>
+                <option value="">Select type...</option>
+                <option value="Supplier">Supplier</option>
+                <option value="Service">Service Provider</option>
+                <option value="Contractor">Contractor</option>
+              </select>
+            </div>
+            <div>
+              <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Category *</label>
+              <select defaultValue={editingVendor ? vendorDirectory.find(v => v.name === editingVendor)?.category : ''} className={`w-full px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight}`}>
+                <option value="">Select category...</option>
+                <option>Stationery</option>
+                <option>Furniture</option>
+                <option>IT</option>
+                <option>Catering</option>
+                <option>Maintenance</option>
+                <option>Transport</option>
+                <option>Lab Equipment</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div>
+              <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Contact Number *</label>
+              <input type="text" placeholder="98765-43210" defaultValue={editingVendor ? vendorDirectory.find(v => v.name === editingVendor)?.contact : ''} className={`w-full px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight}`} />
+            </div>
+            <div>
+              <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Email</label>
+              <input type="email" placeholder="vendor@example.com" defaultValue={editingVendor ? vendorDirectory.find(v => v.name === editingVendor)?.email : ''} className={`w-full px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight}`} />
+            </div>
+            <div>
+              <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>PAN Number *</label>
+              <input type="text" placeholder="ABCDE1234F" defaultValue={editingVendor ? vendorDirectory.find(v => v.name === editingVendor)?.pan : ''} className={`w-full px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight} font-mono`} />
+            </div>
+            <div>
+              <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>GST Number</label>
+              <input type="text" placeholder="24ABCDE1234F1Z5" defaultValue={editingVendor ? vendorDirectory.find(v => v.name === editingVendor)?.gst : ''} className={`w-full px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight} font-mono`} />
+            </div>
+          </div>
+          <div className={`mt-4 pt-3 border-t ${theme.border}`}>
+            <p className={`text-[10px] font-bold ${theme.iconColor} mb-2 uppercase tracking-wide`}>Bank Details</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div>
+                <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Bank Name</label>
+                <input type="text" placeholder="e.g., SBI, HDFC" defaultValue={editingVendor ? vendorDirectory.find(v => v.name === editingVendor)?.bankName : ''} className={`w-full px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight}`} />
+              </div>
+              <div>
+                <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>Account Number</label>
+                <input type="text" placeholder="XXXXXXXXXXXX" defaultValue={editingVendor ? vendorDirectory.find(v => v.name === editingVendor)?.bankAccount : ''} className={`w-full px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight} font-mono`} />
+              </div>
+              <div>
+                <label className={`text-[10px] font-bold ${theme.iconColor} block mb-1`}>IFSC Code</label>
+                <input type="text" placeholder="SBIN0001234" defaultValue={editingVendor ? vendorDirectory.find(v => v.name === editingVendor)?.ifsc : ''} className={`w-full px-3 py-2 text-xs rounded-lg border ${theme.border} ${theme.secondaryBg} ${theme.highlight} font-mono`} />
+              </div>
+            </div>
+          </div>
+          <div className="mt-4 flex gap-2 justify-end">
+            <button onClick={() => { setShowVendorForm(false); setEditingVendor(null); }} className={`px-4 py-2 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.iconColor}`}>Cancel</button>
+            <button onClick={() => { setShowVendorForm(false); setEditingVendor(null); }} className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-xs font-bold`}>{editingVendor ? 'Update Vendor' : 'Save Vendor'}</button>
+          </div>
+        </div>
+      )}
+
+      {/* Vendor List */}
       <div className="space-y-2">
-        {vendorDirectory.map(v => (
-          <div key={v.name} className={`${theme.cardBg} rounded-2xl border ${theme.border} overflow-hidden`}>
+        {filteredVendors.map(v => (
+          <div key={v.name} className={`${theme.cardBg} rounded-2xl border ${theme.border} overflow-hidden ${v.status === 'Inactive' ? 'opacity-60' : ''}`}>
             <button onClick={() => setExpandedVendor(expandedVendor === v.name ? null : v.name)} className={`w-full p-4 flex items-center gap-4 ${theme.buttonHover} transition-all`}>
               <div className={`w-10 h-10 rounded-xl ${theme.secondaryBg} flex items-center justify-center`}>
                 <Package size={18} className={theme.primaryText} />
               </div>
               <div className="flex-1 text-left">
-                <p className={`text-xs font-bold ${theme.highlight}`}>{v.name}</p>
-                <p className={`text-[10px] ${theme.iconColor}`}>{v.category} &middot; PAN: {v.pan} &middot; GST: {v.gst}</p>
+                <div className="flex items-center gap-2">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{v.name}</p>
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${v.type === 'Supplier' ? 'bg-blue-100 text-blue-700' : v.type === 'Service' ? 'bg-purple-100 text-purple-700' : 'bg-amber-100 text-amber-700'}`}>{v.type}</span>
+                  {v.status === 'Inactive' && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-200 text-slate-600 font-bold">Inactive</span>}
+                </div>
+                <p className={`text-[10px] ${theme.iconColor}`}>{v.category} &middot; PAN: {v.pan} &middot; GST: {v.gst} &middot; Bank: {v.bankName}</p>
               </div>
               <div className="text-right mr-2">
                 <p className={`text-xs font-bold ${theme.highlight}`}>{v.totalPOs} POs</p>
@@ -1299,34 +1650,83 @@ function VendorsView({ theme }: { theme: Theme }) {
                   <Star key={i} size={12} className={i < v.rating ? 'text-amber-400 fill-amber-400' : 'text-slate-300'} />
                 ))}
               </div>
+              {/* Edit & Delete buttons */}
+              <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
+                <button onClick={() => { setEditingVendor(v.name); setShowVendorForm(true); }} className={`p-1.5 rounded-lg ${theme.secondaryBg} ${theme.buttonHover}`} title="Edit Vendor">
+                  <Edit3 size={12} className={theme.iconColor} />
+                </button>
+                <button onClick={() => setDeleteConfirm(v.name)} className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 transition-all" title="Delete Vendor">
+                  <Trash2 size={12} className="text-red-500" />
+                </button>
+              </div>
               <ChevronDown size={16} className={`${theme.iconColor} transition-transform ${expandedVendor === v.name ? 'rotate-180' : ''}`} />
             </button>
 
-            {expandedVendor === v.name && vendorPOHistory[v.name] && (
+            {expandedVendor === v.name && (
               <div className={`px-4 pb-4 border-t ${theme.border}`}>
-                <p className={`text-[10px] font-bold ${theme.iconColor} mt-3 mb-2`}>PO History</p>
-                <DataTable
-                  headers={['PO #', 'Date', 'Amount', 'Invoice Match', 'Payment']}
-                  rows={vendorPOHistory[v.name].map(po => [
-                    <span key="po" className={`text-xs font-mono ${theme.primaryText} font-bold`}>{po.po}</span>,
-                    <span key="d" className={`text-xs ${theme.iconColor}`}>{po.date}</span>,
-                    <span key="a" className={`text-xs font-bold ${theme.highlight}`}>{po.amount}</span>,
-                    <StatusBadge key="im" status={po.invoiceMatch === 'Matched' ? 'Active' : 'Pending'} theme={theme} />,
-                    <StatusBadge key="ps" status={po.payStatus} theme={theme} />,
-                  ])}
-                  theme={theme}
-                />
-              </div>
-            )}
+                {/* Vendor Details */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3 mb-3">
+                  <div className={`p-2 rounded-lg ${theme.secondaryBg}`}>
+                    <p className={`text-[9px] ${theme.iconColor}`}>Contact</p>
+                    <p className={`text-xs font-bold ${theme.highlight}`}>{v.contact}</p>
+                  </div>
+                  <div className={`p-2 rounded-lg ${theme.secondaryBg}`}>
+                    <p className={`text-[9px] ${theme.iconColor}`}>Email</p>
+                    <p className={`text-xs font-bold ${theme.highlight}`}>{v.email}</p>
+                  </div>
+                  <div className={`p-2 rounded-lg ${theme.secondaryBg}`}>
+                    <p className={`text-[9px] ${theme.iconColor}`}>Bank Account</p>
+                    <p className={`text-xs font-mono ${theme.highlight}`}>{v.bankAccount} ({v.bankName})</p>
+                  </div>
+                  <div className={`p-2 rounded-lg ${theme.secondaryBg}`}>
+                    <p className={`text-[9px] ${theme.iconColor}`}>IFSC</p>
+                    <p className={`text-xs font-mono ${theme.highlight}`}>{v.ifsc}</p>
+                  </div>
+                </div>
 
-            {expandedVendor === v.name && !vendorPOHistory[v.name] && (
-              <div className={`px-4 pb-4 border-t ${theme.border}`}>
-                <p className={`text-[10px] ${theme.iconColor} mt-3`}>No recent PO history available for this vendor.</p>
+                {vendorPOHistory[v.name] ? (
+                  <>
+                    <p className={`text-[10px] font-bold ${theme.iconColor} mb-2`}>PO History</p>
+                    <DataTable
+                      headers={['PO #', 'Date', 'Amount', 'Invoice Match', 'Payment']}
+                      rows={vendorPOHistory[v.name].map(po => [
+                        <span key="po" className={`text-xs font-mono ${theme.primaryText} font-bold`}>{po.po}</span>,
+                        <span key="d" className={`text-xs ${theme.iconColor}`}>{po.date}</span>,
+                        <span key="a" className={`text-xs font-bold ${theme.highlight}`}>{po.amount}</span>,
+                        <StatusBadge key="im" status={po.invoiceMatch === 'Matched' ? 'Active' : 'Pending'} theme={theme} />,
+                        <StatusBadge key="ps" status={po.payStatus} theme={theme} />,
+                      ])}
+                      theme={theme}
+                    />
+                  </>
+                ) : (
+                  <p className={`text-[10px] ${theme.iconColor} mt-3`}>No recent PO history available for this vendor.</p>
+                )}
               </div>
             )}
           </div>
         ))}
+        {filteredVendors.length === 0 && (
+          <div className={`p-8 text-center ${theme.cardBg} rounded-2xl border ${theme.border}`}>
+            <Package size={32} className={`${theme.iconColor} mx-auto mb-2`} />
+            <p className={`text-xs ${theme.iconColor}`}>No vendors found matching your search.</p>
+          </div>
+        )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => setDeleteConfirm(null)}>
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-6 w-full max-w-sm shadow-xl`} onClick={e => e.stopPropagation()}>
+            <h3 className={`text-sm font-bold ${theme.highlight} mb-2`}>Delete Vendor</h3>
+            <p className={`text-xs ${theme.iconColor} mb-4`}>Are you sure you want to delete <span className="font-bold">{deleteConfirm}</span>? This action cannot be undone.</p>
+            <div className="flex gap-2 justify-end">
+              <button onClick={() => setDeleteConfirm(null)} className={`px-4 py-2 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.iconColor}`}>Cancel</button>
+              <button onClick={() => setDeleteConfirm(null)} className="px-4 py-2 bg-red-600 text-white rounded-xl text-xs font-bold">Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1469,6 +1869,10 @@ function BankView({ theme }: { theme: Theme }) {
 // ─── REPORTS VIEW (with 5 new report cards: Features 6-10) ──────
 function ReportsView({ theme }: { theme: Theme }) {
   const [activeReport, setActiveReport] = useState<string | null>(null);
+  const [reportDateFrom, setReportDateFrom] = useState('');
+  const [reportDateTo, setReportDateTo] = useState('');
+  const [reportClass, setReportClass] = useState('All');
+  const [reportPayMode, setReportPayMode] = useState('All');
 
   const existingReports = [
     { name: 'Fee Collection Summary', desc: 'Class-wise collection status', icon: Banknote },
@@ -1479,18 +1883,156 @@ function ReportsView({ theme }: { theme: Theme }) {
     { name: 'Income vs Expense', desc: 'Revenue and cost analysis', icon: BarChart3 },
     { name: 'GST Report', desc: 'Tax collection and filing', icon: FileText },
     { name: 'Bank Statement', desc: 'Transaction-wise bank log', icon: Building2 },
+    { name: 'Cheque Register Report', desc: 'All cheques by status', icon: Hash },
   ];
 
   return (
     <div className="space-y-4">
-      <div>
-        <h2 className={`text-lg font-bold ${theme.highlight}`}>Financial Reports</h2>
-        <p className={`text-xs ${theme.iconColor}`}>Generate and download reports</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className={`text-lg font-bold ${theme.highlight}`}>Financial Reports</h2>
+          <p className={`text-xs ${theme.iconColor}`}>Generate and download reports</p>
+        </div>
+        <div className="flex gap-2">
+          <button className={`flex items-center gap-1 px-3 py-2 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.highlight}`}>
+            <Download size={12} /> Export PDF
+          </button>
+          <button className={`flex items-center gap-1 px-3 py-2 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.highlight}`}>
+            <Download size={12} /> Export Excel
+          </button>
+        </div>
       </div>
 
-      {/* Existing report cards */}
+      {/* Fee Collection Report with Filters */}
+      <div className={`${theme.cardBg} rounded-2xl border-2 ${theme.border} p-4`}>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Banknote size={18} className={theme.primaryText} />
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>Fee Collection Report</h3>
+          </div>
+          <button onClick={() => setActiveReport(activeReport === 'fee-collection' ? null : 'fee-collection')} className={`text-xs ${theme.primaryText} font-bold`}>
+            {activeReport === 'fee-collection' ? 'Collapse' : 'Generate'} &rarr;
+          </button>
+        </div>
+        {activeReport === 'fee-collection' && (
+          <div className="space-y-3">
+            {/* Filters Row */}
+            <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+              <p className={`text-[10px] font-bold ${theme.iconColor} mb-2 uppercase tracking-wide`}>Filters</p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div>
+                  <label className={`text-[9px] ${theme.iconColor} block mb-0.5`}>Date From</label>
+                  <input type="date" value={reportDateFrom} onChange={e => setReportDateFrom(e.target.value)} className={`w-full px-2 py-1.5 text-xs rounded-lg border ${theme.border} ${theme.cardBg} ${theme.highlight}`} />
+                </div>
+                <div>
+                  <label className={`text-[9px] ${theme.iconColor} block mb-0.5`}>Date To</label>
+                  <input type="date" value={reportDateTo} onChange={e => setReportDateTo(e.target.value)} className={`w-full px-2 py-1.5 text-xs rounded-lg border ${theme.border} ${theme.cardBg} ${theme.highlight}`} />
+                </div>
+                <div>
+                  <label className={`text-[9px] ${theme.iconColor} block mb-0.5`}>Class</label>
+                  <select value={reportClass} onChange={e => setReportClass(e.target.value)} className={`w-full px-2 py-1.5 text-xs rounded-lg border ${theme.border} ${theme.cardBg} ${theme.highlight}`}>
+                    <option value="All">All Classes</option>
+                    {['Nursery-KG', '1st-5th', '6th-8th', '9th-10th', '11th-12th'].map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className={`text-[9px] ${theme.iconColor} block mb-0.5`}>Payment Mode</label>
+                  <select value={reportPayMode} onChange={e => setReportPayMode(e.target.value)} className={`w-full px-2 py-1.5 text-xs rounded-lg border ${theme.border} ${theme.cardBg} ${theme.highlight}`}>
+                    <option value="All">All Modes</option>
+                    {ssaPaymentModes.filter(m => m.enabled).map(m => <option key={m.key} value={m.key}>{m.label}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="flex gap-2 mt-2 justify-end">
+                <button className={`px-3 py-1.5 ${theme.primary} text-white rounded-lg text-[10px] font-bold`}>Apply Filters</button>
+                <button onClick={() => { setReportDateFrom(''); setReportDateTo(''); setReportClass('All'); setReportPayMode('All'); }} className={`px-3 py-1.5 ${theme.secondaryBg} rounded-lg text-[10px] font-bold ${theme.iconColor}`}>Reset</button>
+              </div>
+            </div>
+
+            {/* Report Data */}
+            <DataTable
+              headers={['Class', 'Students', 'Total Due', 'Collected', 'Outstanding', '% Collected']}
+              rows={[
+                ['Nursery-KG', '120', '\u20B924,00,000', '\u20B921,60,000', '\u20B92,40,000', <span key="p" className="text-xs font-bold text-emerald-600">90%</span>],
+                ['1st-5th', '250', '\u20B959,00,000', '\u20B949,56,000', '\u20B99,44,000', <span key="p" className="text-xs font-bold text-emerald-600">84%</span>],
+                ['6th-8th', '200', '\u20B962,40,000', '\u20B950,54,000', '\u20B911,86,000', <span key="p" className="text-xs font-bold text-amber-600">81%</span>],
+                ['9th-10th', '180', '\u20B968,40,000', '\u20B953,35,000', '\u20B915,05,000', <span key="p" className="text-xs font-bold text-amber-600">78%</span>],
+                ['11th-12th', '100', '\u20B948,00,000', '\u20B940,32,000', '\u20B97,68,000', <span key="p" className="text-xs font-bold text-emerald-600">84%</span>],
+              ].map(row => row.map((cell, ci) =>
+                typeof cell === 'string' ? <span key={ci} className={`text-xs ${ci === 0 ? `font-bold ${theme.highlight}` : theme.iconColor}`}>{cell}</span> : cell
+              ))}
+              theme={theme}
+            />
+            <div className="flex gap-2 justify-end">
+              <button className={`flex items-center gap-1 px-3 py-1.5 ${theme.secondaryBg} rounded-lg text-xs font-bold ${theme.highlight}`}>
+                <Download size={12} /> Download PDF
+              </button>
+              <button className={`flex items-center gap-1 px-3 py-1.5 ${theme.secondaryBg} rounded-lg text-xs font-bold ${theme.highlight}`}>
+                <Download size={12} /> Download Excel
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Outstanding Report with Filters */}
+      <div className={`${theme.cardBg} rounded-2xl border-2 ${theme.border} p-4`}>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <AlertTriangle size={18} className="text-amber-500" />
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>Outstanding Fee Report</h3>
+          </div>
+          <button onClick={() => setActiveReport(activeReport === 'outstanding' ? null : 'outstanding')} className={`text-xs ${theme.primaryText} font-bold`}>
+            {activeReport === 'outstanding' ? 'Collapse' : 'Generate'} &rarr;
+          </button>
+        </div>
+        {activeReport === 'outstanding' && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-3 gap-3">
+              <div className={`p-3 rounded-xl ${theme.secondaryBg} text-center`}>
+                <p className="text-lg font-bold text-red-600">124</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Students with Dues</p>
+              </div>
+              <div className={`p-3 rounded-xl ${theme.secondaryBg} text-center`}>
+                <p className="text-lg font-bold text-amber-600">{'\u20B9'}46,43,000</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Total Outstanding</p>
+              </div>
+              <div className={`p-3 rounded-xl ${theme.secondaryBg} text-center`}>
+                <p className="text-lg font-bold text-red-700">38</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>Overdue {'>'} 30 days</p>
+              </div>
+            </div>
+            <DataTable
+              headers={['Student', 'Class', 'Total Due', 'Paid', 'Outstanding', 'Days Overdue', 'Last Reminder']}
+              rows={[
+                ['Arjun Singh', '10-A', '\u20B97,700', '\u20B90', '\u20B97,700', <span key="d" className="text-xs font-bold text-red-600">45 days</span>, '05 Mar'],
+                ['Riya Sharma', '5-A', '\u20B95,000', '\u20B90', '\u20B95,000', <span key="d" className="text-xs font-bold text-red-600">32 days</span>, '01 Mar'],
+                ['Ananya Reddy', '6-A', '\u20B95,800', '\u20B92,000', '\u20B93,800', <span key="d" className="text-xs font-bold text-amber-600">18 days</span>, '28 Feb'],
+                ['Karan Mehta', '8-B', '\u20B96,500', '\u20B93,000', '\u20B93,500', <span key="d" className="text-xs font-bold text-amber-600">12 days</span>, '25 Feb'],
+                ['Pooja Patel', '3-A', '\u20B95,000', '\u20B94,000', '\u20B91,000', <span key="d" className={`text-xs ${theme.iconColor}`}>5 days</span>, '-'],
+              ].map(row => row.map((cell, ci) =>
+                typeof cell === 'string' ? <span key={ci} className={`text-xs ${ci === 0 ? `font-bold ${theme.highlight}` : theme.iconColor}`}>{cell}</span> : cell
+              ))}
+              theme={theme}
+            />
+            <div className="flex gap-2 justify-end">
+              <button className="flex items-center gap-1 px-3 py-1.5 bg-amber-500 text-white rounded-lg text-xs font-bold">
+                <Mail size={12} /> Send Reminders (124)
+              </button>
+              <button className={`flex items-center gap-1 px-3 py-1.5 ${theme.secondaryBg} rounded-lg text-xs font-bold ${theme.highlight}`}>
+                <Download size={12} /> Export PDF
+              </button>
+              <button className={`flex items-center gap-1 px-3 py-1.5 ${theme.secondaryBg} rounded-lg text-xs font-bold ${theme.highlight}`}>
+                <Download size={12} /> Export Excel
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Other report cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {existingReports.map(r => (
+        {existingReports.filter(r => r.name !== 'Fee Collection Summary' && r.name !== 'Outstanding Fee Report').map(r => (
           <div key={r.name} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 flex items-center gap-4`}>
             <div className={`w-10 h-10 rounded-xl ${theme.secondaryBg} flex items-center justify-center`}>
               <r.icon size={18} className={theme.primaryText} />
@@ -1499,9 +2041,14 @@ function ReportsView({ theme }: { theme: Theme }) {
               <p className={`text-xs font-bold ${theme.highlight}`}>{r.name}</p>
               <p className={`text-[10px] ${theme.iconColor}`}>{r.desc}</p>
             </div>
-            <button className={`flex items-center gap-1 px-3 py-2 ${theme.secondaryBg} rounded-xl text-xs font-bold ${theme.primaryText}`}>
-              <Download size={12} /> Generate
-            </button>
+            <div className="flex gap-1">
+              <button className={`flex items-center gap-1 px-2 py-1.5 ${theme.secondaryBg} rounded-lg text-[10px] font-bold ${theme.primaryText}`}>
+                <Download size={10} /> PDF
+              </button>
+              <button className={`flex items-center gap-1 px-2 py-1.5 ${theme.secondaryBg} rounded-lg text-[10px] font-bold ${theme.primaryText}`}>
+                <Download size={10} /> Excel
+              </button>
+            </div>
           </div>
         ))}
       </div>
@@ -1932,6 +2479,8 @@ function AccountsHeadDashboard({ theme, themeIdx, onThemeChange, currentUser }: 
     switch (activeModule) {
       case 'dashboard': return <DashboardView theme={theme} setActiveModule={setActiveModule} />;
       case 'fees': return <FeesView theme={theme} />;
+      case 'daily-summary': return <DailyCollectionView theme={theme} />;
+      case 'cheque-register': return <ChequeRegisterView theme={theme} />;
       case 'expenses': return <ExpensesView theme={theme} />;
       case 'salary': return <SalaryView theme={theme} />;
       case 'epf': return <EPFView theme={theme} />;
