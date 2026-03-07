@@ -1,0 +1,1 @@
+import{r as e,R as o}from"./index-Ct0UOXmm.js";let t=e.createContext(()=>{});function u(){return e.useContext(t)}function c({value:r,children:n}){return o.createElement(t.Provider,{value:r},n)}export{c as C,u};

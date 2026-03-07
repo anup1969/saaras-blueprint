@@ -1,1 +1,0 @@
-import{r as c}from"./index-DnCCvGy7.js";import{c as f}from"./render-C57vWSTB.js";function E(r,e,i,t){let n=f(i);c.useEffect(()=>{r=r??window;function o(s){n.current(s)}return r.addEventListener(e,o,t),()=>r.removeEventListener(e,o,t)},[r,e,t])}export{E};

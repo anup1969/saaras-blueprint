@@ -41,7 +41,7 @@ const regularNavItems = [
   { href: '/reseller', label: 'Reseller', icon: Handshake },
   { href: '/chat', label: 'Chat', icon: MessageSquare },
   { href: '/auth', label: 'Auth / Login', icon: Shield },
-  { href: '/matdash', label: 'UI Template Library', icon: LayoutGrid },
+  { href: '/ui-library', label: 'UI Template Library', icon: LayoutGrid },
 ];
 
 // Preschool nav items — dual labels, no Student, add 3 new roles
@@ -67,7 +67,7 @@ const preschoolNavItems = [
   { href: '/reseller', label: 'Reseller', icon: Handshake },
   { href: '/chat', label: 'Chat', icon: MessageSquare },
   { href: '/auth', label: 'Auth / Login', icon: Shield },
-  { href: '/matdash', label: 'UI Template Library', icon: LayoutGrid },
+  { href: '/ui-library', label: 'UI Template Library', icon: LayoutGrid },
 ];
 
 // Color swatch options for the Vivid accent picker
