@@ -46,10 +46,10 @@ const pastCorrections = [
 ];
 
 const subjectDefaulters = [
-  { name: 'Diya Kulkarni', subject: 'Mathematics', pct: 62, status: 'Below Threshold' },
-  { name: 'Nikhil Verma', subject: 'Mathematics', pct: 68, status: 'Below Threshold' },
-  { name: 'Saanvi Pillai', subject: 'Science', pct: 71, status: 'At Risk' },
-  { name: 'Harsh Patel', subject: 'Mathematics', pct: 73, status: 'At Risk' },
+  { name: 'Diya Kulkarni', subject: 'Mathematics', pct: 48, status: 'Critical (<50%)' },
+  { name: 'Nikhil Verma', subject: 'Mathematics', pct: 62, status: 'Serious (<65%)' },
+  { name: 'Saanvi Pillai', subject: 'Science', pct: 71, status: 'Warning (<75%)' },
+  { name: 'Harsh Patel', subject: 'Mathematics', pct: 73, status: 'Warning (<75%)' },
   { name: 'Zoya Khan', subject: 'Science', pct: 76, status: 'OK' },
   { name: 'Aarav Mehta', subject: 'Mathematics', pct: 92, status: 'OK' },
 ];
@@ -535,18 +535,18 @@ export default function AttendanceModule({ theme }: { theme: Theme }) {
               <div className="flex items-center gap-2">
                 <AlertTriangle size={16} className="text-red-500" />
                 <h3 className={`text-sm font-bold ${theme.highlight}`}>Subject-wise Defaulters</h3>
-                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-red-500 text-white font-bold">{subjectDefaulters.filter(d => d.status === 'Below Threshold').length} critical</span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-red-500 text-white font-bold">{subjectDefaulters.filter(d => d.status.startsWith('Critical') || d.status.startsWith('Serious')).length} critical/serious</span>
               </div>
-              <p className={`text-[10px] ${theme.iconColor}`}>Threshold: 75%</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>SSA Thresholds: Warning &lt;75% | Serious &lt;65% | Critical &lt;50%</p>
             </div>
             <DataTable
               headers={['Student', 'Subject', 'Attendance %', 'Status']}
               rows={subjectDefaulters.map(d => [
-                <span key="n" className={`font-bold ${d.pct < 75 ? 'text-red-700' : theme.highlight}`}>{d.name}</span>,
+                <span key="n" className={`font-bold ${d.pct < 50 ? 'text-red-700' : d.pct < 65 ? 'text-orange-700' : d.pct < 75 ? 'text-amber-700' : theme.highlight}`}>{d.name}</span>,
                 <span key="s" className={theme.iconColor}>{d.subject}</span>,
-                <span key="p" className={`font-bold ${d.pct < 75 ? 'text-red-600' : d.pct < 76 ? 'text-amber-600' : 'text-emerald-600'}`}>{d.pct}%</span>,
+                <span key="p" className={`font-bold ${d.pct < 50 ? 'text-red-600' : d.pct < 65 ? 'text-orange-600' : d.pct < 75 ? 'text-amber-600' : 'text-emerald-600'}`}>{d.pct}%</span>,
                 <span key="st" className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
-                  d.status === 'Below Threshold' ? 'bg-red-100 text-red-700' : d.status === 'At Risk' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
+                  d.status.startsWith('Critical') ? 'bg-red-100 text-red-700' : d.status.startsWith('Serious') ? 'bg-orange-100 text-orange-700' : d.status.startsWith('Warning') ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
                 }`}>{d.status}</span>,
               ])}
               theme={theme}

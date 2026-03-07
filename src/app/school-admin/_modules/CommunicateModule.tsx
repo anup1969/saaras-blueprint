@@ -142,10 +142,60 @@ export default function CommunicateModule({ theme }: { theme: Theme }) {
         </div>
       )}
 
-      {(tab === 'WhatsApp' || tab === 'SMS' || tab === 'Email' || tab === 'Templates') && (
+      {(tab === 'WhatsApp' || tab === 'SMS' || tab === 'Email') && (
         <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-8 text-center`}>
           <Megaphone size={32} className={`${theme.iconColor} mx-auto mb-2`} />
-          <p className={`text-sm ${theme.iconColor}`}>{tab} — {tab === 'WhatsApp' ? 'School WAPI integration (school buys own subscription)' : tab === 'SMS' ? 'MSG91 integration' : tab === 'Email' ? 'Amazon SES integration' : 'Readymade circular templates'}</p>
+          <p className={`text-sm ${theme.iconColor}`}>{tab} — {tab === 'WhatsApp' ? 'School WAPI integration (school buys own subscription)' : tab === 'SMS' ? 'MSG91 integration' : 'Amazon SES integration'}</p>
+        </div>
+      )}
+
+      {/* Templates Tab — 8 SSA message templates */}
+      {tab === 'Templates' && (
+        <div className="space-y-3">
+          <p className={`text-xs ${theme.iconColor}`}>8 pre-configured message templates from SSA. Each template supports multiple channels and variable substitution.</p>
+          {[
+            { name: 'Fee Reminder', channels: ['SMS', 'WhatsApp', 'Push'], variables: ['{{student_name}}', '{{amount_due}}', '{{due_date}}'], preview: 'Dear Parent, fee of {{amount_due}} for {{student_name}} is due on {{due_date}}. Please pay on time to avoid late charges.', active: true },
+            { name: 'Fee Overdue', channels: ['SMS', 'WhatsApp', 'Email'], variables: ['{{student_name}}', '{{overdue_amount}}', '{{days_overdue}}'], preview: 'Dear Parent, fee of {{overdue_amount}} for {{student_name}} is overdue by {{days_overdue}} days. Late fee is being applied.', active: true },
+            { name: 'Attendance Alert', channels: ['SMS', 'WhatsApp', 'Push'], variables: ['{{student_name}}', '{{date}}', '{{status}}'], preview: '{{student_name}} was marked {{status}} on {{date}}. Contact school if this is incorrect.', active: true },
+            { name: 'Exam Schedule', channels: ['WhatsApp', 'Email', 'Push'], variables: ['{{student_name}}', '{{exam_name}}', '{{start_date}}'], preview: 'Dear Parent, {{exam_name}} for {{student_name}} starts on {{start_date}}. Please check the app for the full timetable.', active: true },
+            { name: 'Holiday Notice', channels: ['SMS', 'WhatsApp', 'Push'], variables: ['{{holiday_name}}', '{{date}}', '{{reopen_date}}'], preview: 'School will remain closed on {{date}} for {{holiday_name}}. Classes resume on {{reopen_date}}.', active: true },
+            { name: 'PTM Invitation', channels: ['WhatsApp', 'Email', 'Push'], variables: ['{{parent_name}}', '{{date}}', '{{time_slot}}'], preview: 'Dear {{parent_name}}, PTM is scheduled on {{date}} at {{time_slot}}. Please confirm your attendance.', active: true },
+            { name: 'Event Announcement', channels: ['WhatsApp', 'Email', 'Push'], variables: ['{{event_name}}', '{{date}}', '{{venue}}'], preview: 'You are invited to {{event_name}} on {{date}} at {{venue}}. We look forward to your participation!', active: false },
+            { name: 'Emergency Alert', channels: ['SMS', 'WhatsApp', 'Push', 'Email'], variables: ['{{message}}', '{{action_required}}'], preview: 'URGENT: {{message}}. Action required: {{action_required}}. Please respond immediately.', active: true },
+          ].map((t, i) => (
+            <div key={i} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <h4 className={`text-sm font-bold ${theme.highlight}`}>{t.name}</h4>
+                  <div className="flex gap-1">
+                    {t.channels.map(ch => (
+                      <span key={ch} className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${ch === 'SMS' ? 'bg-blue-100 text-blue-700' : ch === 'WhatsApp' ? 'bg-emerald-100 text-emerald-700' : ch === 'Email' ? 'bg-purple-100 text-purple-700' : 'bg-amber-100 text-amber-700'}`}>{ch}</span>
+                    ))}
+                  </div>
+                </div>
+                <button
+                  onClick={() => window.alert(`Template "${t.name}" toggled. (Blueprint demo)`)}
+                  className={`relative w-10 h-5 rounded-full transition-colors ${t.active ? 'bg-emerald-500' : 'bg-gray-300'}`}
+                >
+                  <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${t.active ? 'left-[22px]' : 'left-0.5'}`} />
+                </button>
+              </div>
+              <div className={`p-2.5 rounded-xl ${theme.secondaryBg} mb-2`}>
+                <p className={`text-xs ${theme.iconColor} leading-relaxed`}>{t.preview}</p>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1">
+                  <span className={`text-[10px] ${theme.iconColor}`}>Variables:</span>
+                  {t.variables.map(v => (
+                    <span key={v} className={`text-[9px] px-1.5 py-0.5 rounded font-mono ${theme.secondaryBg} ${theme.iconColor}`}>{v}</span>
+                  ))}
+                </div>
+                <button className={`px-2 py-1 rounded-lg text-[10px] font-bold ${theme.secondaryBg} ${theme.iconColor} ${theme.buttonHover}`}>
+                  <Edit size={10} className="inline mr-1" />Edit
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 

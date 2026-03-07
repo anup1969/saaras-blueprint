@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { StatCard, StatusBadge } from '@/components/shared';
 import { type Theme } from '@/lib/themes';
-import { Bus, Navigation, Wrench, CircleDot, Timer } from 'lucide-react';
+import { Bus, Navigation, Wrench, CircleDot, Timer, ShieldAlert } from 'lucide-react';
 
 // ─── MOCK DATA ──────────────────────────────────────
 const mockGPSVehicles = [
@@ -56,6 +56,43 @@ export default function GPSTrackingModule({ theme }: { theme: Theme }) {
           <div className="absolute top-[35%] left-[70%] w-3 h-3 bg-red-500 rounded-full" title="GJ-01-GH-3456 - Route D - Stopped" />
           <div className="absolute top-[75%] left-[45%] w-3 h-3 bg-emerald-500 rounded-full animate-pulse" title="GJ-01-IJ-7890 - Route E" />
           <div className="absolute top-[15%] left-[65%] w-3 h-3 bg-emerald-500 rounded-full animate-pulse" title="GJ-01-KL-2345 - Route F" />
+        </div>
+      </div>
+
+      {/* SSA Safety Thresholds (from TransportConfigModule) */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <div className="flex items-center gap-2 mb-3">
+          <div className={`w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center`}>
+            <ShieldAlert size={16} className="text-red-600" />
+          </div>
+          <div>
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>SSA Safety Thresholds</h3>
+            <p className={`text-[10px] ${theme.iconColor}`}>Configured in School Super Admin &rarr; Transport Config</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+          {[
+            { label: 'Speed Limit — School Zone', value: '40 km/h', sub: 'Alert if exceeded', color: 'text-red-600', bg: 'bg-red-50' },
+            { label: 'Speed Limit — Highway', value: '60 km/h', sub: 'Alert if exceeded', color: 'text-orange-600', bg: 'bg-orange-50' },
+            { label: 'Geofence Radius', value: '500m', sub: 'Around school campus', color: 'text-blue-600', bg: 'bg-blue-50' },
+            { label: 'Idle Alert', value: '> 5 min', sub: 'Vehicle stationary too long', color: 'text-amber-600', bg: 'bg-amber-50' },
+            { label: 'Route Deviation', value: '> 200m', sub: 'From planned route', color: 'text-purple-600', bg: 'bg-purple-50' },
+          ].map((t, i) => (
+            <div key={i} className={`p-3 rounded-xl ${t.bg} border ${theme.border}`}>
+              <p className={`text-[10px] ${theme.iconColor} mb-1`}>{t.label}</p>
+              <p className={`text-sm font-bold ${t.color}`}>{t.value}</p>
+              <p className={`text-[10px] ${theme.iconColor}`}>{t.sub}</p>
+            </div>
+          ))}
+        </div>
+        <div className={`mt-3 p-3 rounded-xl ${theme.secondaryBg} border ${theme.border} flex items-center gap-3`}>
+          <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
+            <ShieldAlert size={14} className="text-emerald-600" />
+          </div>
+          <div>
+            <p className={`text-xs font-bold ${theme.highlight}`}>SOS / Panic Button: <span className="text-emerald-600">Enabled</span></p>
+            <p className={`text-[10px] ${theme.iconColor}`}>Alerts sent to: Principal + Transport Head + Parent (via Push + SMS)</p>
+          </div>
         </div>
       </div>
 

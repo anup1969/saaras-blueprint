@@ -18,8 +18,9 @@ import {
   ShieldAlert, Siren, Heart, Flame, Building2, Radio, MessageSquare,
   BadgeCheck, Printer, Hash, User, Baby, ArrowRight, FileText, X,
   PanelLeftClose, PanelLeftOpen, Headphones,
-  CalendarCheck, Package, IdCard, Mail, Timer
+  CalendarCheck, Package, IdCard, Mail, Timer, Video
 } from 'lucide-react';
+import { visitorTypes } from '@/lib/mock-data';
 
 // ─── MOCK DATA ──────────────────────────────────────
 const mockVisitorsToday = [
@@ -339,6 +340,72 @@ function DashboardHome({ theme, onProfileClick, onNavigate }: { theme: Theme; on
       </div>
       </DashletSection>
 
+      {/* CCTV Monitoring */}
+      <DashletSection id="cctv-monitoring" label="CCTV Monitoring">
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3 flex items-center gap-2`}><Video size={14} className={theme.primaryText} /> CCTV Monitoring</h3>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className={`p-3 rounded-xl ${theme.accentBg} text-center`}>
+            <p className={`text-lg font-bold ${theme.highlight}`}>24</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>Active Cameras</p>
+          </div>
+          <div className={`p-3 rounded-xl ${theme.accentBg} text-center`}>
+            <p className={`text-lg font-bold ${theme.highlight}`}>30 days</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>Retention Period</p>
+          </div>
+          <div className={`p-3 rounded-xl ${theme.accentBg} text-center`}>
+            <p className={`text-lg font-bold text-emerald-600`}>Active</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>Motion Detection</p>
+          </div>
+          <div className={`p-3 rounded-xl ${theme.accentBg} text-center`}>
+            <p className={`text-lg font-bold text-emerald-600`}>Today</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>Last Health Check</p>
+          </div>
+        </div>
+        <p className={`text-[10px] ${theme.iconColor} mt-2`}>Per SSA BiometricHardwareConfigModule. Camera #7 angle shifted — IT notified.</p>
+      </div>
+      </DashletSection>
+
+      {/* Visitor Type Policies */}
+      <DashletSection id="visitor-type-policies" label="Visitor Type Policies">
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <h3 className={`text-sm font-bold ${theme.highlight} mb-3 flex items-center gap-2`}><Shield size={14} className={theme.primaryText} /> Visitor Type Policies (per SSA)</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className={`${theme.accentBg}`}>
+                <th className={`text-left p-2 font-bold ${theme.iconColor}`}>Visitor Type</th>
+                <th className={`text-left p-2 font-bold ${theme.iconColor}`}>Badge Color</th>
+                <th className={`text-center p-2 font-bold ${theme.iconColor}`}>Escort Required</th>
+                <th className={`text-left p-2 font-bold ${theme.iconColor}`}>Allowed Areas</th>
+                <th className={`text-center p-2 font-bold ${theme.iconColor}`}>Max Duration</th>
+              </tr>
+            </thead>
+            <tbody>
+              {visitorTypes.map(vt => (
+                <tr key={vt.key} className={`border-t ${theme.border}`}>
+                  <td className={`p-2 font-bold ${theme.highlight}`}>{vt.label}</td>
+                  <td className="p-2">
+                    <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold text-white ${
+                      vt.badge === 'Green' ? 'bg-emerald-500' :
+                      vt.badge === 'Yellow' ? 'bg-amber-500' :
+                      vt.badge === 'Red (VIP)' ? 'bg-red-500' :
+                      vt.badge === 'Blue' ? 'bg-blue-500' :
+                      vt.badge === 'Purple' ? 'bg-purple-500' :
+                      'bg-orange-500'
+                    }`}>{vt.badge}</span>
+                  </td>
+                  <td className={`p-2 text-center font-bold ${vt.escort ? 'text-red-600' : 'text-emerald-600'}`}>{vt.escort ? 'Yes' : 'No'}</td>
+                  <td className={`p-2 ${theme.iconColor}`}>{vt.allowedAreas.join(', ')}</td>
+                  <td className={`p-2 text-center font-bold ${theme.highlight}`}>{vt.maxHours}h</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      </DashletSection>
+
       {/* Task Tracker */}
       <DashletSection id="tasks" label="Task Tracker">
       <TaskTrackerPanel theme={theme} role="security" />
@@ -351,6 +418,7 @@ function DashboardHome({ theme, onProfileClick, onNavigate }: { theme: Theme; on
 function VisitorCheckinModule({ theme }: { theme: Theme }) {
   const [tab, setTab] = useState('Check-in Form');
   const [showForm, setShowForm] = useState(true);
+  const [selectedVisitorType, setSelectedVisitorType] = useState('');
 
   return (
     <div className="space-y-4">
@@ -407,7 +475,25 @@ function VisitorCheckinModule({ theme }: { theme: Theme }) {
         </MobileFrame>
       } />
       <TabBar tabs={['Check-in Form', 'Today\'s Visitors', 'Pre-Approved']} active={tab} onChange={setTab} theme={theme} />
-      <p className="text-[10px] text-amber-600 mb-2">📋 Visitor policy per SSA: Photo capture ON · Badge printing ON · ID mandatory · Restricted hours: 11:00-12:00 · Max duration: 60 min</p>
+      <div className={`text-[10px] text-amber-600 mb-2 space-y-1`}>
+        <p>Visitor policy per SSA: Photo capture ON &middot; Badge printing ON &middot; ID mandatory &middot; Restricted hours: 11:00-12:00</p>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-1.5 mt-1">
+          {visitorTypes.map(vt => (
+            <div key={vt.key} className={`${theme.accentBg} rounded-lg p-1.5 border ${theme.border}`}>
+              <span className={`inline-block px-1.5 py-0.5 rounded text-[9px] font-bold text-white mb-0.5 ${
+                vt.badge === 'Green' ? 'bg-emerald-500' :
+                vt.badge === 'Yellow' ? 'bg-amber-500' :
+                vt.badge === 'Red (VIP)' ? 'bg-red-500' :
+                vt.badge === 'Blue' ? 'bg-blue-500' :
+                vt.badge === 'Purple' ? 'bg-purple-500' :
+                'bg-orange-500'
+              }`}>{vt.badge}</span>
+              <p className={`text-[9px] font-bold ${theme.highlight}`}>{vt.label}</p>
+              <p className={`text-[8px] ${theme.iconColor}`}>{vt.escort ? 'Escort req.' : 'No escort'} &middot; Max {vt.maxHours}h</p>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {tab === 'Check-in Form' && (
         <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-6`}>
@@ -441,6 +527,52 @@ function VisitorCheckinModule({ theme }: { theme: Theme }) {
               <label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>Phone Number *</label>
               <input placeholder="+91 98765 43210" className={`w-full px-3 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none focus:ring-2 focus:ring-slate-300`} />
             </div>
+            <div>
+              <label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>Visitor Type *</label>
+              <select
+                value={selectedVisitorType}
+                onChange={(e) => setSelectedVisitorType(e.target.value)}
+                className={`w-full px-3 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none focus:ring-2 focus:ring-slate-300`}
+              >
+                <option value="">Select type...</option>
+                {visitorTypes.map(vt => (
+                  <option key={vt.key} value={vt.key}>{vt.label}</option>
+                ))}
+              </select>
+            </div>
+            {/* Type-specific rules */}
+            {selectedVisitorType && (() => {
+              const vt = visitorTypes.find(v => v.key === selectedVisitorType);
+              if (!vt) return null;
+              return (
+                <div className={`md:col-span-2 p-3 rounded-xl border-2 border-dashed ${
+                  vt.badge === 'Green' ? 'border-emerald-300 bg-emerald-50' :
+                  vt.badge === 'Yellow' ? 'border-amber-300 bg-amber-50' :
+                  vt.badge === 'Red (VIP)' ? 'border-red-300 bg-red-50' :
+                  vt.badge === 'Blue' ? 'border-blue-300 bg-blue-50' :
+                  vt.badge === 'Purple' ? 'border-purple-300 bg-purple-50' :
+                  'border-orange-300 bg-orange-50'
+                }`}>
+                  <p className="text-xs font-bold text-gray-700 mb-1.5">Policy for {vt.label}</p>
+                  <div className="flex flex-wrap gap-3 text-[11px]">
+                    <span className="flex items-center gap-1">
+                      <span className={`inline-block w-3 h-3 rounded-full ${
+                        vt.badge === 'Green' ? 'bg-emerald-500' :
+                        vt.badge === 'Yellow' ? 'bg-amber-500' :
+                        vt.badge === 'Red (VIP)' ? 'bg-red-500' :
+                        vt.badge === 'Blue' ? 'bg-blue-500' :
+                        vt.badge === 'Purple' ? 'bg-purple-500' :
+                        'bg-orange-500'
+                      }`} />
+                      Badge: <strong>{vt.badge}</strong>
+                    </span>
+                    <span>Escort: <strong className={vt.escort ? 'text-red-600' : 'text-emerald-600'}>{vt.escort ? 'Required' : 'Not required'}</strong></span>
+                    <span>Max Duration: <strong>{vt.maxHours} hours</strong></span>
+                    <span>Allowed Areas: <strong>{vt.allowedAreas.join(', ')}</strong></span>
+                  </div>
+                </div>
+              );
+            })()}
             <div>
               <label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>Purpose of Visit *</label>
               <select className={`w-full px-3 py-2.5 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none focus:ring-2 focus:ring-slate-300`}>

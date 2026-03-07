@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { type Theme } from '@/lib/themes';
 import { StatCard, StatusBadge, TabBar, DataTable, MobileFrame, MobilePreviewToggle } from '@/components/shared';
-import { mockEnquiries } from '@/lib/mock-data';
+import { mockEnquiries, enquiryPipelineStages } from '@/lib/mock-data';
 import { UserPlus, Clock, CheckCircle, TrendingUp, Plus, Eye, X, UserCheck, Download, Trash2, Archive, Info, Gift, Calculator, Award, Smartphone } from 'lucide-react';
 import { FormField, InputField, SelectField, TextAreaField } from '../_components/FormHelpers';
 
@@ -44,6 +44,35 @@ export default function EnquiriesModule({ theme }: { theme: Theme }) {
         <StatCard icon={CheckCircle} label="Converted" value="28" color="bg-emerald-500" theme={theme} />
         <StatCard icon={TrendingUp} label="Conversion Rate" value="62%" color="bg-purple-500" theme={theme} />
 
+      </div>
+
+      {/* ─── 8-Stage Enquiry Pipeline (from SSA config) ─── */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <div className="flex items-center gap-2 mb-3">
+          <TrendingUp size={16} className={theme.primaryText} />
+          <h3 className={`text-sm font-bold ${theme.highlight}`}>Enquiry Pipeline</h3>
+          <span className={`text-[10px] ${theme.iconColor}`}>(8 stages from SSA config with SLA)</span>
+        </div>
+        <div className="flex items-start gap-0 overflow-x-auto pb-2">
+          {enquiryPipelineStages.map((stage, i) => {
+            const stageColors = ['bg-blue-100 text-blue-700', 'bg-cyan-100 text-cyan-700', 'bg-teal-100 text-teal-700', 'bg-emerald-100 text-emerald-700', 'bg-amber-100 text-amber-700', 'bg-orange-100 text-orange-700', 'bg-purple-100 text-purple-700', 'bg-slate-100 text-slate-700'];
+            const stageCounts = [8, 6, 5, 4, 3, 3, 4, 12];
+            const color = stageColors[i] || stageColors[0];
+            return (
+              <div key={stage.key} className="flex items-center">
+                <div className={`min-w-[120px] p-3 rounded-xl ${color.split(' ')[0]} text-center`}>
+                  <p className={`text-lg font-bold ${color.split(' ')[1]}`}>{stageCounts[i]}</p>
+                  <p className={`text-[10px] font-bold ${color.split(' ')[1]}`}>{stage.label}</p>
+                  <p className={`text-[9px] mt-1 ${theme.iconColor}`}>SLA: {stage.sla}</p>
+                </div>
+                {i < enquiryPipelineStages.length - 1 && (
+                  <div className={`px-1 ${theme.iconColor}`}>&rarr;</div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <p className={`text-[10px] ${theme.iconColor} mt-2 italic`}>SLA breaches auto-escalate to School Admin. Pipeline stages configured in SSA &rarr; Enquiry Config.</p>
       </div>
 
       {/* ─── MOBILE APP PREVIEW ─── */}

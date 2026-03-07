@@ -7,6 +7,7 @@ import {
   Check, Download, Star, CheckCircle, AlertTriangle, TrendingUp,
   Info, Upload, History, Lock
 } from 'lucide-react';
+import { examTypes, gradingScale } from '@/lib/mock-data';
 
 // ─── MOCK DATA ──────────────────────────────────────
 
@@ -15,16 +16,16 @@ const teacherProfile = {
 };
 
 const gradebookStudents = [
-  { roll: 1, name: 'Aarav Mehta', ut1: 18, ut2: 20, halfYearly: 72, ut3: 19, annual: 0 },
-  { roll: 2, name: 'Ananya Iyer', ut1: 20, ut2: 19, halfYearly: 85, ut3: 20, annual: 0 },
-  { roll: 3, name: 'Arjun Nair', ut1: 15, ut2: 16, halfYearly: 61, ut3: 14, annual: 0 },
-  { roll: 4, name: 'Diya Kulkarni', ut1: 19, ut2: 20, halfYearly: 78, ut3: 18, annual: 0 },
-  { roll: 5, name: 'Harsh Patel', ut1: 12, ut2: 14, halfYearly: 55, ut3: 13, annual: 0 },
-  { roll: 6, name: 'Isha Reddy', ut1: 20, ut2: 20, halfYearly: 92, ut3: 20, annual: 0 },
-  { roll: 7, name: 'Karan Singh', ut1: 16, ut2: 17, halfYearly: 68, ut3: 15, annual: 0 },
-  { roll: 8, name: 'Meera Joshi', ut1: 17, ut2: 18, halfYearly: 74, ut3: 18, annual: 0 },
-  { roll: 9, name: 'Nikhil Verma', ut1: 10, ut2: 11, halfYearly: 42, ut3: 11, annual: 0 },
-  { roll: 10, name: 'Pooja Sharma', ut1: 19, ut2: 19, halfYearly: 80, ut3: 19, annual: 0 },
+  { roll: 1, name: 'Aarav Mehta', ut1: 18, ut2: 20, halfYearly: 72, ut3: 19, ut4: 17, annual: 0 },
+  { roll: 2, name: 'Ananya Iyer', ut1: 20, ut2: 19, halfYearly: 85, ut3: 20, ut4: 19, annual: 0 },
+  { roll: 3, name: 'Arjun Nair', ut1: 15, ut2: 16, halfYearly: 61, ut3: 14, ut4: 13, annual: 0 },
+  { roll: 4, name: 'Diya Kulkarni', ut1: 19, ut2: 20, halfYearly: 78, ut3: 18, ut4: 19, annual: 0 },
+  { roll: 5, name: 'Harsh Patel', ut1: 12, ut2: 14, halfYearly: 55, ut3: 13, ut4: 11, annual: 0 },
+  { roll: 6, name: 'Isha Reddy', ut1: 20, ut2: 20, halfYearly: 92, ut3: 20, ut4: 20, annual: 0 },
+  { roll: 7, name: 'Karan Singh', ut1: 16, ut2: 17, halfYearly: 68, ut3: 15, ut4: 16, annual: 0 },
+  { roll: 8, name: 'Meera Joshi', ut1: 17, ut2: 18, halfYearly: 74, ut3: 18, ut4: 17, annual: 0 },
+  { roll: 9, name: 'Nikhil Verma', ut1: 10, ut2: 11, halfYearly: 42, ut3: 11, ut4: 10, annual: 0 },
+  { roll: 10, name: 'Pooja Sharma', ut1: 19, ut2: 19, halfYearly: 80, ut3: 19, ut4: 18, annual: 0 },
 ];
 
 const skillColumns = ['Critical Thinking', 'Problem Solving', 'Creativity', 'Communication', 'Collaboration'];
@@ -71,8 +72,18 @@ export default function GradebookModule({ theme }: { theme: Theme }) {
   const [showAuditLog, setShowAuditLog] = useState(false);
   const [marksLocked] = useState(true);
 
-  const maxMarks: Record<string, number> = { 'UT-1': 20, 'UT-2': 20, 'Half Yearly': 100, 'UT-3': 20, 'Annual': 100 };
+  const maxMarks: Record<string, number> = { 'UT-1': 20, 'UT-2': 20, 'Half Yearly': 100, 'UT-3': 20, 'UT-4': 20, 'Annual': 100 };
   const currentMax = maxMarks[selectedExam] || 100;
+
+  // Map exam selector labels to examTypes for weight lookup
+  const examWeightMap: Record<string, number> = {
+    'UT-1': examTypes[0].weight,
+    'UT-2': examTypes[1].weight,
+    'Half Yearly': examTypes[2].weight,
+    'UT-3': examTypes[3].weight,
+    'UT-4': examTypes[4].weight,
+    'Annual': examTypes[5].weight,
+  };
 
   const getMarks = (s: typeof gradebookStudents[0]) => {
     switch (selectedExam) {
@@ -80,9 +91,16 @@ export default function GradebookModule({ theme }: { theme: Theme }) {
       case 'UT-2': return s.ut2;
       case 'Half Yearly': return s.halfYearly;
       case 'UT-3': return s.ut3;
+      case 'UT-4': return s.ut4;
       case 'Annual': return s.annual;
       default: return 0;
     }
+  };
+
+  // Map percentage to CBSE 8-grade scale from SSA
+  const getGrade = (pct: number) => {
+    const match = gradingScale.find(g => pct >= g.minMarks && pct <= g.maxMarks);
+    return match || gradingScale[gradingScale.length - 1];
   };
 
   const skillGradeBadge = (grade: string) => {
@@ -139,8 +157,8 @@ export default function GradebookModule({ theme }: { theme: Theme }) {
               <div className="flex-1 bg-white rounded-xl border border-gray-100 px-2 py-1.5">
                 <span className="text-[8px] text-gray-400 block">Exam</span>
                 <select className="text-[10px] font-bold text-gray-800 bg-transparent outline-none w-full">
-                  {['UT-1', 'UT-2', 'Half Yearly', 'UT-3', 'Annual'].map(e => (
-                    <option key={e}>{e}</option>
+                  {['UT-1', 'UT-2', 'Half Yearly', 'UT-3', 'UT-4', 'Annual'].map(e => (
+                    <option key={e}>{e} ({examWeightMap[e]}%)</option>
                   ))}
                 </select>
               </div>
@@ -243,7 +261,7 @@ export default function GradebookModule({ theme }: { theme: Theme }) {
         <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg}`}>
           <span className={`text-xs font-bold ${theme.iconColor}`}>Exam:</span>
           <select value={selectedExam} onChange={e => setSelectedExam(e.target.value)} className={`text-xs font-bold ${theme.highlight} bg-transparent outline-none`}>
-            {['UT-1', 'UT-2', 'Half Yearly', 'UT-3', 'Annual'].map(e => <option key={e} value={e}>{e}</option>)}
+            {['UT-1', 'UT-2', 'Half Yearly', 'UT-3', 'UT-4', 'Annual'].map(e => <option key={e} value={e}>{e} ({examWeightMap[e]}%)</option>)}
           </select>
         </div>
         <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border ${theme.border} ${theme.cardBg}`}>
@@ -388,7 +406,7 @@ export default function GradebookModule({ theme }: { theme: Theme }) {
                 {gradebookStudents.map(s => {
                   const marks = getMarks(s);
                   const pct = currentMax > 0 ? Math.round((marks / currentMax) * 100) : 0;
-                  const grade = pct >= 90 ? 'A+' : pct >= 80 ? 'A' : pct >= 70 ? 'B+' : pct >= 60 ? 'B' : pct >= 50 ? 'C' : pct >= 33 ? 'D' : 'F';
+                  const gradeInfo = getGrade(pct);
                   return (
                     <tr key={s.roll} className={`border-t ${theme.border}`}>
                       <td className={`px-4 py-2 text-xs ${theme.iconColor}`}>{s.roll}</td>
@@ -407,11 +425,11 @@ export default function GradebookModule({ theme }: { theme: Theme }) {
                       }`}>{pct}%</td>
                       <td className="px-4 py-2 text-center">
                         <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${
-                          grade === 'A+' || grade === 'A' ? 'bg-emerald-100 text-emerald-700' :
-                          grade === 'B+' || grade === 'B' ? 'bg-blue-100 text-blue-700' :
-                          grade === 'C' ? 'bg-amber-100 text-amber-700' :
+                          gradeInfo.grade.startsWith('A') ? 'bg-emerald-100 text-emerald-700' :
+                          gradeInfo.grade.startsWith('B') ? 'bg-blue-100 text-blue-700' :
+                          gradeInfo.grade.startsWith('C') ? 'bg-amber-100 text-amber-700' :
                           'bg-red-100 text-red-700'
-                        }`}>{grade}</span>
+                        }`} title={gradeInfo.remark}>{gradeInfo.grade}</span>
                       </td>
                     </tr>
                   );
@@ -545,10 +563,11 @@ export default function GradebookModule({ theme }: { theme: Theme }) {
 
       {tab === 'Overview' && (
         <DataTable
-          headers={['Roll', 'Name', 'UT-1 (20)', 'UT-2 (20)', 'Half Yearly (100)', 'UT-3 (20)', 'Total', '%']}
+          headers={['Roll', 'Name', 'UT-1 (20)', 'UT-2 (20)', 'Half Yearly (100)', 'UT-3 (20)', 'UT-4 (20)', 'Total', '%', 'Grade']}
           rows={gradebookStudents.map(s => {
-            const total = s.ut1 + s.ut2 + s.halfYearly + s.ut3;
-            const pct = Math.round((total / 160) * 100);
+            const total = s.ut1 + s.ut2 + s.halfYearly + s.ut3 + s.ut4;
+            const pct = Math.round((total / 180) * 100);
+            const gradeInfo = getGrade(pct);
             return [
               <span key="r" className={theme.iconColor}>{s.roll}</span>,
               <span key="n" className={`font-bold ${theme.highlight}`}>{s.name}</span>,
@@ -556,8 +575,15 @@ export default function GradebookModule({ theme }: { theme: Theme }) {
               <span key="u2" className={theme.iconColor}>{s.ut2}</span>,
               <span key="hy" className={`font-bold ${theme.highlight}`}>{s.halfYearly}</span>,
               <span key="u3" className={theme.iconColor}>{s.ut3}</span>,
-              <span key="t" className={`font-bold ${theme.highlight}`}>{total}/160</span>,
+              <span key="u4" className={theme.iconColor}>{s.ut4}</span>,
+              <span key="t" className={`font-bold ${theme.highlight}`}>{total}/180</span>,
               <span key="p" className={`font-bold ${pct >= 80 ? 'text-emerald-600' : pct >= 50 ? 'text-amber-600' : 'text-red-600'}`}>{pct}%</span>,
+              <span key="g" className={`text-xs px-2 py-0.5 rounded-full font-bold ${
+                gradeInfo.grade.startsWith('A') ? 'bg-emerald-100 text-emerald-700' :
+                gradeInfo.grade.startsWith('B') ? 'bg-blue-100 text-blue-700' :
+                gradeInfo.grade.startsWith('C') ? 'bg-amber-100 text-amber-700' :
+                'bg-red-100 text-red-700'
+              }`} title={gradeInfo.remark}>{gradeInfo.grade}</span>,
             ];
           })}
           theme={theme}
@@ -573,17 +599,17 @@ export default function GradebookModule({ theme }: { theme: Theme }) {
             <StatCard icon={AlertTriangle} label="Below 40%" value="1" color="bg-red-500" sub="needs attention" theme={theme} />
           </div>
           <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
-            <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Grade Distribution — {selectedExam}</h3>
+            <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Grade Distribution (CBSE 8-Grade) — {selectedExam}</h3>
             <div className="flex items-end gap-2 h-32">
-              {[
-                { grade: 'A+ (90+)', count: 2, color: 'bg-emerald-500' },
-                { grade: 'A (80-89)', count: 2, color: 'bg-emerald-400' },
-                { grade: 'B+ (70-79)', count: 2, color: 'bg-blue-500' },
-                { grade: 'B (60-69)', count: 2, color: 'bg-blue-400' },
-                { grade: 'C (50-59)', count: 1, color: 'bg-amber-500' },
-                { grade: 'D (33-49)', count: 1, color: 'bg-red-400' },
-                { grade: 'F (<33)', count: 0, color: 'bg-red-600' },
-              ].map(g => (
+              {gradingScale.map(gs => {
+                const count = gradebookStudents.filter(s => {
+                  const marks = getMarks(s);
+                  const pct = currentMax > 0 ? Math.round((marks / currentMax) * 100) : 0;
+                  return pct >= gs.minMarks && pct <= gs.maxMarks;
+                }).length;
+                const color = gs.grade.startsWith('A') ? 'bg-emerald-500' : gs.grade.startsWith('B') ? 'bg-blue-500' : gs.grade.startsWith('C') ? 'bg-amber-500' : 'bg-red-500';
+                return { grade: `${gs.grade} (${gs.minMarks}-${gs.maxMarks})`, count, color };
+              }).map(g => (
                 <div key={g.grade} className="flex-1 flex flex-col items-center gap-1">
                   <span className={`text-[10px] font-bold ${theme.highlight}`}>{g.count}</span>
                   <div className={`w-full ${g.color} rounded-t-lg transition-all`} style={{ height: `${Math.max(g.count * 25, 4)}px` }} />

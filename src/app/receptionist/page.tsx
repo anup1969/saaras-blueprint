@@ -17,6 +17,7 @@ import {
   MapPin, Bell, MessageSquare, LogIn, LogOut, BadgeCheck, Hash, FileText, Send, User,
   PanelLeftClose, PanelLeftOpen, Headphones, Banknote, CreditCard, X, IndianRupee
 } from 'lucide-react';
+import { visitorTypes } from '@/lib/mock-data';
 
 // ─── MODULE SIDEBAR ────────────────────────────────
 const modules = [
@@ -265,12 +266,106 @@ function DashboardHome({ theme, onProfileClick, onNavigate }: { theme: Theme; on
 
 function VisitorsModule({ theme }: { theme: Theme }) {
   const [tab, setTab] = useState('All Visitors');
+  const [selectedVisitorType, setSelectedVisitorType] = useState('');
+  const [showCheckinForm, setShowCheckinForm] = useState(false);
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className={`text-2xl font-bold ${theme.highlight}`}>Visitor Management</h1>
-        <button className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}><LogIn size={14} /> Check-in Visitor</button>
+        <button onClick={() => setShowCheckinForm(!showCheckinForm)} className={`px-4 py-2.5 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}><LogIn size={14} /> Check-in Visitor</button>
       </div>
+
+      {/* Quick Check-in Form with Visitor Type */}
+      {showCheckinForm && (
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5`}>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>Quick Visitor Check-in</h3>
+            <button onClick={() => setShowCheckinForm(false)} className={`p-1.5 rounded-lg ${theme.secondaryBg} ${theme.iconColor}`}><X size={14} /></button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+              <label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>Visitor Name *</label>
+              <input placeholder="Enter full name" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none focus:ring-2 focus:ring-slate-300`} />
+            </div>
+            <div>
+              <label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>Phone Number *</label>
+              <input placeholder="+91 98765 43210" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none focus:ring-2 focus:ring-slate-300`} />
+            </div>
+            <div>
+              <label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>Visitor Type *</label>
+              <select
+                value={selectedVisitorType}
+                onChange={(e) => setSelectedVisitorType(e.target.value)}
+                className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none focus:ring-2 focus:ring-slate-300`}
+              >
+                <option value="">Select type...</option>
+                {visitorTypes.map(vt => (
+                  <option key={vt.key} value={vt.key}>{vt.label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>Purpose *</label>
+              <input placeholder="e.g. Parent Meeting, Fee Payment" className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none focus:ring-2 focus:ring-slate-300`} />
+            </div>
+            <div>
+              <label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>Host / Whom to Meet *</label>
+              <input placeholder="Teacher name, Office, etc." className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none focus:ring-2 focus:ring-slate-300`} />
+            </div>
+            <div>
+              <label className={`text-xs font-bold ${theme.iconColor} block mb-1`}>ID Type</label>
+              <select className={`w-full px-3 py-2 rounded-xl border ${theme.border} ${theme.inputBg} text-sm outline-none focus:ring-2 focus:ring-slate-300`}>
+                <option>Aadhaar Card</option>
+                <option>PAN Card</option>
+                <option>Driving License</option>
+                <option>Voter ID</option>
+                <option>Company ID</option>
+                <option>Government ID</option>
+              </select>
+            </div>
+          </div>
+          {/* Type-specific rules */}
+          {selectedVisitorType && (() => {
+            const vt = visitorTypes.find(v => v.key === selectedVisitorType);
+            if (!vt) return null;
+            return (
+              <div className={`mt-3 p-3 rounded-xl border-2 border-dashed ${
+                vt.badge === 'Green' ? 'border-emerald-300 bg-emerald-50' :
+                vt.badge === 'Yellow' ? 'border-amber-300 bg-amber-50' :
+                vt.badge === 'Red (VIP)' ? 'border-red-300 bg-red-50' :
+                vt.badge === 'Blue' ? 'border-blue-300 bg-blue-50' :
+                vt.badge === 'Purple' ? 'border-purple-300 bg-purple-50' :
+                'border-orange-300 bg-orange-50'
+              }`}>
+                <p className="text-xs font-bold text-gray-700 mb-1">Policy for {vt.label}</p>
+                <div className="flex flex-wrap gap-3 text-[11px]">
+                  <span className="flex items-center gap-1">
+                    <span className={`inline-block w-3 h-3 rounded-full ${
+                      vt.badge === 'Green' ? 'bg-emerald-500' :
+                      vt.badge === 'Yellow' ? 'bg-amber-500' :
+                      vt.badge === 'Red (VIP)' ? 'bg-red-500' :
+                      vt.badge === 'Blue' ? 'bg-blue-500' :
+                      vt.badge === 'Purple' ? 'bg-purple-500' :
+                      'bg-orange-500'
+                    }`} />
+                    Badge: <strong>{vt.badge}</strong>
+                  </span>
+                  <span>Escort: <strong className={vt.escort ? 'text-red-600' : 'text-emerald-600'}>{vt.escort ? 'Required' : 'Not required'}</strong></span>
+                  <span>Max Duration: <strong>{vt.maxHours} hours</strong></span>
+                  <span>Allowed Areas: <strong>{vt.allowedAreas.join(', ')}</strong></span>
+                </div>
+              </div>
+            );
+          })()}
+          <div className="flex gap-3 mt-4">
+            <button className={`px-5 py-2 ${theme.primary} text-white rounded-xl text-sm font-bold flex items-center gap-1`}>
+              <CheckCircle size={14} /> Check-in & Print Badge
+            </button>
+            <button onClick={() => setShowCheckinForm(false)} className={`px-4 py-2 rounded-xl border ${theme.border} text-sm font-bold ${theme.iconColor}`}>Cancel</button>
+          </div>
+        </div>
+      )}
+
       <TabBar tabs={['All Visitors', 'In Campus', 'Checked Out', 'Pre-approved']} active={tab} onChange={setTab} theme={theme} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon={Shield} label="Total Today" value={mockVisitors.length} color="bg-orange-500" theme={theme} />

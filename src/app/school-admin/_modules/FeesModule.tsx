@@ -26,7 +26,7 @@ export default function FeesModule({ theme }: { theme: Theme }) {
           <div>
             <div className="flex items-center gap-2 mb-2">
               <h3 className={`text-sm font-bold ${theme.highlight}`}>Fee Heads by Grade Range (₹/month unless noted)</h3>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full ${theme.secondaryBg} ${theme.iconColor}`}>12 Fee Heads</span>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full ${theme.secondaryBg} ${theme.iconColor}`}>7 Active / 12 Total</span>
             </div>
             <div className={`rounded-xl overflow-hidden border ${theme.border}`}>
               <div className="overflow-x-auto">
@@ -78,7 +78,7 @@ export default function FeesModule({ theme }: { theme: Theme }) {
               </div>
             </div>
             <p className={`text-[10px] mt-1.5 flex items-center gap-1 ${theme.iconColor} opacity-70`}>
-              <Info size={10} /> Fee structure: 12 fee heads, 7 payment modes — configured by SSA
+              <Info size={10} /> Fee structure: 7 active fee heads (12 total), 7 payment modes — configured by SSA
             </p>
           </div>
 

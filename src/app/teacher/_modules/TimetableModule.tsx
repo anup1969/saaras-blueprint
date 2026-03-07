@@ -6,22 +6,55 @@ import { type Theme } from '@/lib/themes';
 import {
   BookOpen, Calendar, Clock, Download, Plus, X, Users, Timer
 } from 'lucide-react';
+import { timingSets } from '@/lib/mock-data';
 
-// ─── MOCK DATA ──────────────────────────────────────
+// ─── MOCK DATA (per timing set) ──────────────────────────────────────
 
-const timetableData: Record<string, string[]> = {
-  Mon: ['10-A Math', '10-B Math', 'Free', '9-A Science', '6-A Math', 'Free', 'Staff Meeting', 'Free'],
-  Tue: ['Free', '10-B Math', '9-A Science', 'Free', 'Free', '8-A Math', '9-B Science', 'Free'],
-  Wed: ['10-A Math', 'Free', 'Free', '9-B Science', '6-A Math', 'Free', 'Lab Duty', 'Free'],
-  Thu: ['Free', '10-B Math', '9-A Science', 'Free', 'Free', '8-A Math', 'Free', 'PTM Slot'],
-  Fri: ['10-A Math', 'Free', 'Free', '9-B Science', '6-A Math', 'Free', 'Free', 'Free'],
-  Sat: ['8-A Math', '9-A Science', '6-A Math', 'Free', '', '', '', ''],
+// Generate period timings from a timing set definition
+function generatePeriodTimings(startTime: string, periods: number, duration: number): string[] {
+  const timings: string[] = [];
+  const [startH, startM] = startTime.split(':').map(Number);
+  let mins = startH * 60 + startM;
+  for (let i = 0; i < periods; i++) {
+    const sh = Math.floor(mins / 60);
+    const sm = mins % 60;
+    const eh = Math.floor((mins + duration) / 60);
+    const em = (mins + duration) % 60;
+    timings.push(`${sh}:${String(sm).padStart(2, '0')} - ${eh}:${String(em).padStart(2, '0')}`);
+    mins += duration;
+    // Add break after period 4 (15 min) and period 6 (30 min lunch)
+    if (i === 3) mins += 15;
+    if (i === 5 && periods > 6) mins += 30;
+  }
+  return timings;
+}
+
+const timetableBySet: Record<string, Record<string, string[]>> = {
+  primary: {
+    Mon: ['5-A Math', '4-B Math', 'Free', '3-A Math', '2-A Math', 'Free', 'Staff Meeting'],
+    Tue: ['Free', '5-A Math', '3-B Math', 'Free', '4-A Math', '2-A Math', 'Free'],
+    Wed: ['5-A Math', 'Free', 'Free', '3-A Math', '2-A Math', 'Free', 'Lab Duty'],
+    Thu: ['Free', '4-B Math', '3-B Math', 'Free', 'Free', '5-A Math', 'Free'],
+    Fri: ['5-A Math', 'Free', 'Free', '4-A Math', '2-A Math', 'Free', 'Free'],
+    Sat: ['3-A Math', '4-B Math', '5-A Math', 'Free', '', '', ''],
+  },
+  secondary: {
+    Mon: ['10-A Math', '10-B Math', 'Free', '9-A Science', '6-A Math', 'Free', 'Staff Meeting', 'Free'],
+    Tue: ['Free', '10-B Math', '9-A Science', 'Free', 'Free', '8-A Math', '9-B Science', 'Free'],
+    Wed: ['10-A Math', 'Free', 'Free', '9-B Science', '6-A Math', 'Free', 'Lab Duty', 'Free'],
+    Thu: ['Free', '10-B Math', '9-A Science', 'Free', 'Free', '8-A Math', 'Free', 'PTM Slot'],
+    Fri: ['10-A Math', 'Free', 'Free', '9-B Science', '6-A Math', 'Free', 'Free', 'Free'],
+    Sat: ['8-A Math', '9-A Science', '6-A Math', 'Free', '', '', '', ''],
+  },
+  senior: {
+    Mon: ['12-A Physics', '11-B Math', 'Free', '12-B Chemistry', 'Free', '11-A Math', 'Free', 'Lab Duty'],
+    Tue: ['Free', '12-A Physics', '11-A Math', 'Free', '12-B Chemistry', 'Free', '11-B Math', 'Free'],
+    Wed: ['11-A Math', 'Free', '12-A Physics', 'Free', 'Free', '12-B Chemistry', '11-B Math', 'Free'],
+    Thu: ['Free', '11-A Math', 'Free', '12-A Physics', '12-B Chemistry', 'Free', 'Free', 'PTM Slot'],
+    Fri: ['12-A Physics', '11-B Math', 'Free', 'Free', '11-A Math', 'Free', '12-B Chemistry', 'Free'],
+    Sat: ['11-A Math', '12-A Physics', '11-B Math', 'Free', '', '', '', ''],
+  },
 };
-
-const periodTimings = [
-  '7:50 - 8:30', '8:30 - 9:10', '9:10 - 9:50', '10:05 - 10:45',
-  '10:45 - 11:25', '12:00 - 12:40', '12:40 - 1:20', '1:20 - 2:00',
-];
 
 export default function TimetableModule({ theme }: { theme: Theme }) {
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -29,6 +62,11 @@ export default function TimetableModule({ theme }: { theme: Theme }) {
   const currentPeriod = 3; // 0-indexed, Period 4
   const [showPTMCreator, setShowPTMCreator] = useState(false);
   const [ptmSlotsGenerated, setPtmSlotsGenerated] = useState(false);
+  const [selectedTimingSet, setSelectedTimingSet] = useState('secondary');
+
+  const activeSet = timingSets.find(t => t.key === selectedTimingSet) || timingSets[1];
+  const periodTimings = generatePeriodTimings(activeSet.startTime, activeSet.periods, activeSet.periodDuration);
+  const timetableData = timetableBySet[selectedTimingSet] || timetableBySet.secondary;
 
   return (
     <div className="space-y-4">
@@ -39,7 +77,26 @@ export default function TimetableModule({ theme }: { theme: Theme }) {
         </div>
       </div>
 
-      <p className="text-[10px] text-amber-600 mb-1">📋 Bell schedule per SSA · Saturday: Half-day (4 periods)</p>
+      {/* Timing Set Selector */}
+      <div className={`flex items-center gap-2 flex-wrap`}>
+        {timingSets.map(ts => (
+          <button
+            key={ts.key}
+            onClick={() => setSelectedTimingSet(ts.key)}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              selectedTimingSet === ts.key
+                ? `${theme.primary} text-white shadow-md`
+                : `${theme.cardBg} border ${theme.border} ${theme.iconColor} ${theme.buttonHover}`
+            }`}
+          >
+            {ts.label}
+            <span className={`ml-1.5 text-[10px] font-normal ${selectedTimingSet === ts.key ? 'text-white/80' : theme.iconColor}`}>
+              {ts.periods}P / {ts.periodDuration}min
+            </span>
+          </button>
+        ))}
+      </div>
+      <p className="text-[10px] text-amber-600 mb-1">Bell schedule per SSA · {activeSet.label}: {activeSet.periods} periods x {activeSet.periodDuration} min ({activeSet.startTime} - {activeSet.endTime}) · Saturday: Half-day (4 periods)</p>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon={BookOpen} label="Classes/Week" value="18" color="bg-blue-500" theme={theme} />
         <StatCard icon={Clock} label="Free Periods" value="14" color="bg-emerald-500" theme={theme} />

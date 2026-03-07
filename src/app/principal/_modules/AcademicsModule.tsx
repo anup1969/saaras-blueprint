@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { StatCard, TabBar, StatusBadge, DataTable, MobileFrame, MobilePreviewToggle } from '@/components/shared';
 import { type Theme } from '@/lib/themes';
-import { Award, TrendingUp, Star, BarChart3, FileText, GraduationCap, Info, ClipboardList, BookOpen, UserPlus, Sparkles, Heart, ToggleRight, CheckCircle, AlertTriangle, CalendarCheck, Smartphone, Send } from 'lucide-react';
+import { Award, TrendingUp, Star, BarChart3, FileText, GraduationCap, Info, ClipboardList, BookOpen, UserPlus, Sparkles, Heart, ToggleRight, CheckCircle, AlertTriangle, CalendarCheck, Smartphone, Send, ShieldAlert } from 'lucide-react';
+import { examTypes, defaulterThresholds } from '@/lib/mock-data';
 
 export default function AcademicsModule({ theme }: { theme: Theme }) {
   const [tab, setTab] = useState('Overview');
@@ -27,10 +28,11 @@ export default function AcademicsModule({ theme }: { theme: Theme }) {
 
   const examResults = [
     { exam: 'Unit Test 1', date: '15-Jul-2025', classes: 'I-VI', avgScore: '84.2%', passRate: '96.8%', status: 'Published' },
-    { exam: 'Mid-Term', date: '20-Sep-2025', classes: 'I-VI', avgScore: '81.7%', passRate: '95.1%', status: 'Published' },
-    { exam: 'Unit Test 2', date: '10-Nov-2025', classes: 'I-VI', avgScore: '86.5%', passRate: '97.2%', status: 'Published' },
-    { exam: 'Pre-Final', date: '15-Jan-2026', classes: 'I-VI', avgScore: '87.9%', passRate: '97.8%', status: 'Published' },
-    { exam: 'Final Exam', date: '10-Mar-2026', classes: 'I-VI', avgScore: '—', passRate: '—', status: 'Upcoming' },
+    { exam: 'Unit Test 2', date: '25-Aug-2025', classes: 'I-VI', avgScore: '81.7%', passRate: '95.1%', status: 'Published' },
+    { exam: 'Half Yearly', date: '20-Sep-2025', classes: 'I-VI', avgScore: '82.5%', passRate: '95.8%', status: 'Published' },
+    { exam: 'Unit Test 3', date: '10-Nov-2025', classes: 'I-VI', avgScore: '86.5%', passRate: '97.2%', status: 'Published' },
+    { exam: 'Unit Test 4', date: '15-Jan-2026', classes: 'I-VI', avgScore: '87.9%', passRate: '97.8%', status: 'Published' },
+    { exam: 'Annual', date: '10-Mar-2026', classes: 'I-VI', avgScore: '—', passRate: '—', status: 'Upcoming' },
   ];
 
   return (
@@ -171,8 +173,8 @@ export default function AcademicsModule({ theme }: { theme: Theme }) {
             <div className="space-y-3">
               {[
                 { exam: 'Unit Test 1', pct: 92, submitted: 46, total: 50, color: 'bg-emerald-500', textColor: 'text-emerald-600' },
-                { exam: 'Mid-Term', pct: 67, submitted: 34, total: 50, color: 'bg-amber-500', textColor: 'text-amber-600' },
-                { exam: 'Unit Test 2', pct: 34, submitted: 17, total: 50, color: 'bg-red-500', textColor: 'text-red-600' },
+                { exam: 'Unit Test 2', pct: 67, submitted: 34, total: 50, color: 'bg-amber-500', textColor: 'text-amber-600' },
+                { exam: 'Half Yearly', pct: 34, submitted: 17, total: 50, color: 'bg-red-500', textColor: 'text-red-600' },
               ].map((m, i) => (
                 <div key={i}>
                   <div className="flex items-center justify-between mb-1">
@@ -321,6 +323,28 @@ export default function AcademicsModule({ theme }: { theme: Theme }) {
                   ))}
                 </tbody>
               </table>
+            </div>
+          </div>
+
+          {/* Attendance Alert Thresholds (from SSA AttendanceConfigModule) */}
+          <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+            <div className="flex items-center gap-2 mb-1">
+              <ShieldAlert size={16} className={theme.iconColor} />
+              <h3 className={`text-sm font-bold ${theme.highlight}`}>Attendance Alert Thresholds</h3>
+              <span title="Configured in SSA → Attendance Config"><Info size={14} className={`${theme.iconColor} cursor-help`} /></span>
+            </div>
+            <p className={`text-[10px] ${theme.iconColor} mb-3 ml-6`}>SSA-configured defaulter thresholds — auto-triggers when student attendance drops below these levels</p>
+            <div className="grid grid-cols-3 gap-3">
+              {defaulterThresholds.map((dt, i) => (
+                <div key={i} className={`p-3 rounded-xl border ${theme.border} ${theme.secondaryBg}`}>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <div className={`w-2.5 h-2.5 rounded-full ${dt.color === 'yellow' ? 'bg-yellow-400' : dt.color === 'orange' ? 'bg-orange-500' : 'bg-red-500'}`} />
+                    <span className={`text-xs font-bold ${theme.highlight}`}>{dt.level}</span>
+                  </div>
+                  <p className={`text-lg font-bold ${dt.color === 'yellow' ? 'text-yellow-600' : dt.color === 'orange' ? 'text-orange-600' : 'text-red-600'}`}>Below {dt.threshold}%</p>
+                  <p className={`text-[10px] ${theme.iconColor} mt-1`}>{dt.action}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -481,8 +505,8 @@ export default function AcademicsModule({ theme }: { theme: Theme }) {
             {/* Per-exam progress */}
             <div className="grid grid-cols-3 gap-3 mb-4">
               {[
-                { exam: 'Term 1', pct: 100, icon: '\u2705' },
-                { exam: 'Term 2', pct: 78, icon: '\u23F3' },
+                { exam: 'Half Yearly', pct: 100, icon: '\u2705' },
+                { exam: 'Unit Test 3', pct: 78, icon: '\u23F3' },
                 { exam: 'Annual', pct: 0, icon: '\u25CB' },
               ].map((e, i) => (
                 <div key={i} className={`p-3 rounded-xl ${theme.secondaryBg} text-center`}>

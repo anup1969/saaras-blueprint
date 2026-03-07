@@ -541,6 +541,25 @@ function AttendanceModule({ theme }: { theme: Theme }) {
               </tbody>
             </table>
           </div>
+          {/* Overtime Policy — per SSA HRConfigModule */}
+          <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
+            <h4 className={`text-sm font-semibold mb-3 ${theme.highlight}`}>Overtime Policy <span className="text-[10px] text-amber-600 font-normal ml-1">(per SSA config)</span></h4>
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { label: 'Weekday OT Rate', value: '1.5x after 8 hours' },
+                { label: 'Weekend OT Rate', value: '2x' },
+                { label: 'Holiday OT Rate', value: '2.5x' },
+                { label: 'Max OT / Week', value: '12 hours' },
+                { label: 'Approval Required', value: 'Above 4 hours' },
+                { label: 'Auto-link to Payroll', value: 'Enabled' },
+              ].map((r, i) => (
+                <div key={i} className={`flex items-center justify-between p-2.5 ${theme.secondaryBg} rounded-lg`}>
+                  <span className={`text-xs ${theme.iconColor}`}>{r.label}</span>
+                  <span className={`text-xs font-bold ${theme.highlight}`}>{r.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
           <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
             <h4 className={`text-sm font-semibold mb-2 ${theme.highlight}`}>Monthly OT Summary</h4>
             <div className="grid grid-cols-2 gap-4">
@@ -1129,7 +1148,62 @@ function SettingsModule({ theme }: { theme: Theme }) {
           </>}
           {section === 'employee' && <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}><h3 className={`font-semibold mb-3 ${theme.highlight}`}>Departments &amp; Designations</h3><div className="grid grid-cols-2 gap-6"><div><h4 className={`text-sm font-medium ${theme.iconColor} mb-2`}>Departments</h4>{departments.map((d) => <div key={d.n} onClick={() => setSelectedDept(d.n)} className={`flex items-center justify-between p-2 rounded-lg mb-1 cursor-pointer ${selectedDept === d.n ? `${theme.secondaryBg} border ${theme.border}` : theme.buttonHover}`}><div className="flex items-center gap-2"><GripVertical size={12} className={theme.iconColor} /><span className={`text-sm ${theme.highlight}`}>{d.n}</span><span className={`text-xs ${theme.iconColor}`}>({d.c})</span></div><div><Edit size={12} className={`inline ${theme.iconColor} mr-1`} /><Trash2 size={12} className={`inline ${theme.iconColor}`} /></div></div>)}<button className={`flex items-center gap-1 text-sm ${theme.primaryText} mt-2`}><Plus size={14} />Add Dept</button></div><div><h4 className={`text-sm font-medium ${theme.iconColor} mb-2`}>Designations — {selectedDept}</h4>{(designations[selectedDept] || []).map((d) => <div key={d} className={`flex items-center justify-between p-2 ${theme.secondaryBg} rounded-lg mb-1`}><span className={`text-sm ${theme.highlight}`}>{d}</span><div><Edit size={12} className={`inline ${theme.iconColor} mr-1`} /><Trash2 size={12} className={`inline ${theme.iconColor}`} /></div></div>)}<button className={`flex items-center gap-1 text-sm ${theme.primaryText} mt-2`}><Plus size={14} />Add Designation</button></div></div></div>}
           {section === 'attendance' && <>
-            <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}><h3 className={`font-semibold mb-3 ${theme.highlight}`}>Attendance Methods</h3>{[{ n: 'Biometric Integration', on: false }, { n: 'Manual Check-in (Web)', on: true }, { n: 'Manual Check-in (Mobile)', on: true }, { n: 'Kiosk Mode', on: false }].map((m, i) => <div key={i} className={`flex items-center justify-between p-2 ${theme.secondaryBg} rounded-lg mb-2`}><span className={`text-sm ${theme.highlight}`}>{m.n}</span><Tgl on={m.on} theme={theme} /></div>)}</div>
+            <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}><h3 className={`font-semibold mb-3 ${theme.highlight}`}>Attendance Methods</h3>{[{ n: 'Biometric Integration', on: true }, { n: 'Manual Check-in (Web)', on: true }, { n: 'Manual Check-in (Mobile)', on: true }, { n: 'Kiosk Mode', on: false }].map((m, i) => <div key={i} className={`flex items-center justify-between p-2 ${theme.secondaryBg} rounded-lg mb-2`}><span className={`text-sm ${theme.highlight}`}>{m.n}</span><Tgl on={m.on} theme={theme} /></div>)}</div>
+            {/* Attendance Config — per SSA HRConfigModule */}
+            <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
+              <h3 className={`font-semibold mb-3 ${theme.highlight}`}>Attendance Config <span className="text-[10px] text-amber-600 font-normal ml-1">(per SSA config)</span></h3>
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { label: 'In Time', value: '08:00 AM' },
+                  { label: 'Out Time', value: '04:00 PM' },
+                  { label: 'Grace Period', value: '15 minutes' },
+                  { label: 'Half Day', value: 'After 2 hours late' },
+                  { label: 'LOP Auto-Flag', value: 'Enabled (>3 consecutive absences)' },
+                  { label: 'Comp-Off', value: 'Earned for holiday/weekend work' },
+                ].map((r, i) => (
+                  <div key={i} className={`flex items-center justify-between p-2.5 ${theme.secondaryBg} rounded-lg`}>
+                    <span className={`text-xs ${theme.iconColor}`}>{r.label}</span>
+                    <span className={`text-xs font-bold ${theme.highlight}`}>{r.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* Biometric Devices — per SSA HRConfigModule */}
+            <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className={`font-semibold ${theme.highlight}`}>Biometric Devices <span className="text-[10px] text-amber-600 font-normal ml-1">(per SSA config)</span></h3>
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs ${theme.iconColor}`}>Last Sync: Today 08:00 AM</span>
+                  <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-500/20 text-emerald-400">All DPDP Compliant</span>
+                </div>
+              </div>
+              <div className={`rounded-lg border ${theme.border} overflow-hidden`}>
+                <table className="w-full text-sm">
+                  <thead><tr className={theme.secondaryBg}>
+                    <th className={`p-2 text-left text-xs ${theme.iconColor}`}>Device Type</th>
+                    <th className={`p-2 text-center text-xs ${theme.iconColor}`}>Qty</th>
+                    <th className={`p-2 text-left text-xs ${theme.iconColor}`}>Location</th>
+                    <th className={`p-2 text-center text-xs ${theme.iconColor}`}>Status</th>
+                  </tr></thead>
+                  <tbody>
+                    {[
+                      { type: 'Fingerprint Scanner', qty: 2, loc: 'Main Gate, Staff Room', status: 'Active' },
+                      { type: 'Face Recognition', qty: 2, loc: 'Main Entrance, Back Gate', status: 'Active' },
+                      { type: 'RFID Card Reader', qty: 1, loc: 'Library', status: 'Active' },
+                      { type: 'Iris Scanner', qty: 1, loc: 'Server Room', status: 'Active' },
+                    ].map((d, i) => (
+                      <tr key={i} className={`border-t ${theme.border}`}>
+                        <td className={`p-2 font-medium ${theme.highlight}`}>{d.type}</td>
+                        <td className={`p-2 text-center ${theme.highlight}`}>{d.qty}</td>
+                        <td className={`p-2 ${theme.iconColor}`}>{d.loc}</td>
+                        <td className="p-2 text-center"><span className="px-2 py-0.5 text-xs rounded-full font-bold bg-emerald-500/20 text-emerald-400">{d.status}</span></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className={`text-xs mt-2 ${theme.iconColor}`}>Total: 6 devices registered</p>
+            </div>
             <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-4`}><h3 className={`font-semibold mb-3 ${theme.highlight}`}>Shifts / Schedules</h3><table className="w-full text-sm"><thead><tr className={theme.secondaryBg}><th className={`p-2 text-left text-xs ${theme.iconColor}`}>Shift</th><th className={`p-2 text-center text-xs ${theme.iconColor}`}>Start</th><th className={`p-2 text-center text-xs ${theme.iconColor}`}>End</th><th className={`p-2 text-left text-xs ${theme.iconColor}`}>For</th></tr></thead><tbody>{shifts.map((s, i) => <tr key={i} className={`border-t ${theme.border}`}><td className={`p-2 font-medium ${theme.highlight}`}>{s.n}</td><td className={`p-2 text-center ${theme.highlight}`}>{s.s}</td><td className={`p-2 text-center ${theme.highlight}`}>{s.e}</td><td className={`p-2 ${theme.iconColor}`}>{s.a}</td></tr>)}</tbody></table></div>
           </>}
           {section === 'leave' && <>

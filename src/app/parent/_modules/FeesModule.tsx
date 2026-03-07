@@ -176,7 +176,8 @@ export default function FeesModule({ theme, child }: { theme: Theme; child: Chil
           </MobileFrame>
         </div>
       } />
-      <p className="text-[10px] text-amber-600 mb-2">Fee policy per SSA: Due 10th monthly · Late fee Rs.50/day (7-day grace) · Blocking: Report card if &gt;60 days overdue</p>
+      {/* Late fee values match SSA FeeConfigModule: lateFee=50/day, grace=7days, max=500 */}
+      <p className="text-[10px] text-amber-600 mb-2">Fee policy per SSA: Due 10th monthly · Late fee Rs.50/day (7-day grace, max Rs.500) · Blocking: Report card if &gt;60 days overdue</p>
 
       {activeTab === 'Overview' && (
         <div className="space-y-4">

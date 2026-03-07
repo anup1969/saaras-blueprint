@@ -29,38 +29,43 @@ export const mockStaff = [
   { id: 'EMP006', name: 'Arun Verma', dept: 'Teaching', role: 'HOD Science', status: 'Active', phone: '98765 11006' },
 ];
 
-// 12 fee heads as configured in SSA
+// 12 fee heads as configured in SSA FeeConfigModule
+// Active: Tuition, Admission, Annual, Transport, Activity, Lab, Exam (7 active)
+// Disabled: Library, Development Fund, Smart Class/IT, Uniform/Books, Hostel (5 disabled)
 export const feeHeads = [
-  { key: 'tuition', label: 'Tuition Fee', type: 'monthly', appliesTo: 'all' },
-  { key: 'admission', label: 'Admission Fee', type: 'one-time', appliesTo: 'all', note: 'New admissions only' },
-  { key: 'annual', label: 'Annual Charges', type: 'annual', appliesTo: 'all' },
-  { key: 'transport', label: 'Transport Fee', type: 'monthly', appliesTo: 'all' },
-  { key: 'activity', label: 'Activity Fee', type: 'monthly', appliesTo: 'all' },
-  { key: 'lab', label: 'Lab Fee', type: 'monthly', appliesTo: '6+', note: 'Grades 6+ only' },
-  { key: 'library', label: 'Library Fee', type: 'monthly', appliesTo: 'all' },
-  { key: 'sports', label: 'Sports Fee', type: 'monthly', appliesTo: 'all' },
-  { key: 'technology', label: 'Smart Class / IT Fee', type: 'monthly', appliesTo: 'all' },
-  { key: 'exam', label: 'Exam Fee', type: 'quarterly', appliesTo: 'all' },
-  { key: 'development', label: 'Development Fee', type: 'annual', appliesTo: 'all' },
-  { key: 'caution', label: 'Caution Deposit', type: 'one-time', appliesTo: 'all', note: 'Refundable' },
+  { key: 'tuition', label: 'Tuition Fee', type: 'monthly', appliesTo: 'all', active: true },
+  { key: 'admission', label: 'Admission Fee', type: 'one-time', appliesTo: 'all', note: 'New admissions only', active: true },
+  { key: 'annual', label: 'Annual Charges', type: 'annual', appliesTo: 'all', active: true },
+  { key: 'transport', label: 'Transport Fee', type: 'monthly', appliesTo: 'all', active: true },
+  { key: 'activity', label: 'Activity Fee', type: 'quarterly', appliesTo: 'all', active: true },
+  { key: 'lab', label: 'Lab Fee', type: 'yearly', appliesTo: '6+', note: 'Grades 6+ only', active: true },
+  { key: 'library', label: 'Library Fee', type: 'monthly', appliesTo: 'all', active: false },
+  { key: 'exam', label: 'Exam Fee', type: 'term-wise', appliesTo: 'all', active: true },
+  { key: 'development', label: 'Development Fund', type: 'annual', appliesTo: 'all', active: false },
+  { key: 'smartclass', label: 'Smart Class / IT Fee', type: 'monthly', appliesTo: 'all', active: false },
+  { key: 'uniform', label: 'Uniform / Books', type: 'annual', appliesTo: 'all', active: false },
+  { key: 'hostel', label: 'Hostel Fee', type: 'monthly', appliesTo: 'boarding', note: 'Boarding students only', active: false },
 ];
 
+// Fee structure aligned with SSA grade-wise amounts (simplified grade groups)
 export const feeStructure = [
-  { cls: 'Nursery-KG', tuition: 2000, admission: 5000, annual: 3000, transport: 1000, activity: 300, lab: 0, library: 200, sports: 200, technology: 300, exam: 400, development: 500, caution: 2000, total: 5000 },
-  { cls: '1st-5th', tuition: 2500, admission: 6000, annual: 3500, transport: 1000, activity: 400, lab: 0, library: 200, sports: 300, technology: 400, exam: 500, development: 500, caution: 2500, total: 5900 },
-  { cls: '6th-8th', tuition: 3200, admission: 8000, annual: 4000, transport: 1200, activity: 500, lab: 500, library: 300, sports: 300, technology: 500, exam: 600, development: 600, caution: 3000, total: 7800 },
-  { cls: '9th-10th', tuition: 4000, admission: 10000, annual: 5000, transport: 1200, activity: 600, lab: 600, library: 300, sports: 400, technology: 600, exam: 800, development: 800, caution: 3500, total: 9500 },
-  { cls: '11th-12th', tuition: 5000, admission: 12000, annual: 6000, transport: 1500, activity: 800, lab: 800, library: 400, sports: 500, technology: 800, exam: 1000, development: 1000, caution: 4000, total: 12000 },
+  { cls: 'Nursery-KG', tuition: 2500, admission: 12000, annual: 6000, transport: 1800, activity: 1200, lab: 0, library: 0, exam: 800, development: 0, smartclass: 0, uniform: 0, hostel: 0, total: 5000 },
+  { cls: '1st-5th', tuition: 3400, admission: 16000, annual: 8500, transport: 2000, activity: 1700, lab: 600, library: 0, exam: 1000, development: 0, smartclass: 0, uniform: 0, hostel: 0, total: 7500 },
+  { cls: '6th-8th', tuition: 4200, admission: 18500, annual: 10500, transport: 2200, activity: 2100, lab: 1600, library: 0, exam: 1300, development: 0, smartclass: 0, uniform: 0, hostel: 0, total: 9600 },
+  { cls: '9th-10th', tuition: 5000, admission: 22000, annual: 13000, transport: 2500, activity: 2500, lab: 2500, library: 0, exam: 1700, development: 0, smartclass: 0, uniform: 0, hostel: 0, total: 11800 },
+  { cls: '11th-12th', tuition: 6500, admission: 28000, annual: 16000, transport: 3000, activity: 3200, lab: 4000, library: 0, exam: 2200, development: 0, smartclass: 0, uniform: 0, hostel: 0, total: 14500 },
 ];
 
+// 8 payment modes as configured in SSA FeeConfigModule
 export const paymentModes = [
   { key: 'cash', label: 'Cash', enabled: true },
   { key: 'cheque', label: 'Cheque', enabled: true },
   { key: 'upi', label: 'UPI', enabled: true },
   { key: 'net_banking', label: 'Net Banking', enabled: true },
-  { key: 'credit_card', label: 'Credit Card', enabled: false },
+  { key: 'credit_card', label: 'Credit Card', enabled: true },
   { key: 'debit_card', label: 'Debit Card', enabled: true },
   { key: 'dd_neft', label: 'DD / NEFT', enabled: true },
+  { key: 'paytm_phonepe', label: 'Paytm / PhonePe', enabled: false },
 ];
 
 export const mockRoutes = [
@@ -108,6 +113,91 @@ export const dashboardStats = {
     pendingActions: 5,
   },
 };
+
+// 7 concession types as configured in SSA FeeConfigModule
+export const concessionTypes = [
+  { type: 'Sibling Discount', method: 'percentage', value: 10, maxAmount: null, active: true, appliesTo: 'tuition-only' },
+  { type: 'Merit Scholarship', method: 'percentage', value: 25, maxAmount: 50000, active: true, appliesTo: 'all-components' },
+  { type: 'Staff Child', method: 'percentage', value: 100, maxAmount: null, active: true, appliesTo: 'all-components' },
+  { type: 'Economic Weaker (EWS)', method: 'percentage', value: 50, maxAmount: null, active: true, appliesTo: 'tuition-annual' },
+  { type: 'Sports Quota', method: 'percentage', value: 15, maxAmount: 30000, active: true, appliesTo: 'tuition-only' },
+  { type: 'SC/ST Scholarship', method: 'fixed', value: 25000, maxAmount: null, active: true, appliesTo: 'all-components' },
+  { type: 'Single Parent', method: 'percentage', value: 20, maxAmount: 20000, active: true, appliesTo: 'tuition-annual' },
+];
+
+// Concession approval chain — person-based (not role-based) per SSA
+export const concessionApprovalChain = [
+  { name: 'Mrs. Meera Shah', role: 'Accounts Officer', avatar: 'MS' },
+  { name: 'Dr. Rajesh Kumar', role: 'Principal', avatar: 'RK' },
+  { name: 'Mr. Amit Patel', role: 'Trust Secretary', avatar: 'AP' },
+];
+
+// 6 exam types as configured in SSA ExamConfigModule
+export const examTypes = [
+  { key: 'ut1', label: 'Unit Test 1', weight: 5, term: 'Term 1' },
+  { key: 'ut2', label: 'Unit Test 2', weight: 5, term: 'Term 1' },
+  { key: 'half_yearly', label: 'Half Yearly', weight: 30, term: 'Term 1' },
+  { key: 'ut3', label: 'Unit Test 3', weight: 5, term: 'Term 2' },
+  { key: 'ut4', label: 'Unit Test 4', weight: 5, term: 'Term 2' },
+  { key: 'annual', label: 'Annual', weight: 50, term: 'Term 2' },
+];
+
+// CBSE 8-grade scale as configured in SSA ExamConfigModule
+export const gradingScale = [
+  { grade: 'A1', minMarks: 91, maxMarks: 100, gp: 10, remark: 'Outstanding' },
+  { grade: 'A2', minMarks: 81, maxMarks: 90, gp: 9, remark: 'Excellent' },
+  { grade: 'B1', minMarks: 71, maxMarks: 80, gp: 8, remark: 'Very Good' },
+  { grade: 'B2', minMarks: 61, maxMarks: 70, gp: 7, remark: 'Good' },
+  { grade: 'C1', minMarks: 51, maxMarks: 60, gp: 6, remark: 'Above Average' },
+  { grade: 'C2', minMarks: 41, maxMarks: 50, gp: 5, remark: 'Average' },
+  { grade: 'D', minMarks: 33, maxMarks: 40, gp: 4, remark: 'Below Average' },
+  { grade: 'E', minMarks: 0, maxMarks: 32, gp: 0, remark: 'Needs Improvement' },
+];
+
+// Late fee config from SSA
+export const lateFeeConfig = {
+  enabled: true,
+  amount: 50,
+  gracedays: 7,
+  method: 'per-day',
+  maxAmount: 500,
+};
+
+// 3 timing sets from SSA TimetableConfigModule
+export const timingSets = [
+  { key: 'primary', label: 'Primary (1-5)', startTime: '08:00', endTime: '13:30', periods: 7, periodDuration: 35 },
+  { key: 'secondary', label: 'Secondary (6-10)', startTime: '08:00', endTime: '14:30', periods: 8, periodDuration: 40 },
+  { key: 'senior', label: 'Sr. Secondary (11-12)', startTime: '08:00', endTime: '15:00', periods: 8, periodDuration: 45 },
+];
+
+// 3 attendance defaulter thresholds from SSA AttendanceConfigModule
+export const defaulterThresholds = [
+  { level: 'Warning', threshold: 75, action: 'SMS to parent', color: 'yellow' },
+  { level: 'Serious', threshold: 65, action: 'Parent meeting + letter', color: 'orange' },
+  { level: 'Critical', threshold: 50, action: 'TC warning + counselor referral', color: 'red' },
+];
+
+// 8 enquiry pipeline stages from SSA EnquiryAdmissionConfigModule
+export const enquiryPipelineStages = [
+  { key: 'new', label: 'New Enquiry', sla: '24 hours', order: 1 },
+  { key: 'contacted', label: 'Contacted', sla: '48 hours', order: 2 },
+  { key: 'visit_scheduled', label: 'Visit Scheduled', sla: '3 days', order: 3 },
+  { key: 'visit_done', label: 'Visit Done', sla: '24 hours', order: 4 },
+  { key: 'test_scheduled', label: 'Test Scheduled', sla: '5 days', order: 5 },
+  { key: 'test_done', label: 'Test Done', sla: '48 hours', order: 6 },
+  { key: 'offer_made', label: 'Offer Made', sla: '3 days', order: 7 },
+  { key: 'converted', label: 'Converted / Lost', sla: '-', order: 8 },
+];
+
+// 6 visitor types with per-type rules from SSA VisitorConfigModule
+export const visitorTypes = [
+  { key: 'parent', label: 'Parent/Guardian', escort: false, allowedAreas: ['Reception', 'Meeting Room', 'Principal Office'], maxHours: 2, badge: 'Green' },
+  { key: 'vendor', label: 'Vendor/Supplier', escort: true, allowedAreas: ['Reception', 'Admin Office', 'Store'], maxHours: 1, badge: 'Yellow' },
+  { key: 'official', label: 'Government Official', escort: true, allowedAreas: ['All'], maxHours: 4, badge: 'Red (VIP)' },
+  { key: 'alumni', label: 'Alumni', escort: false, allowedAreas: ['Reception', 'Meeting Room', 'Campus'], maxHours: 3, badge: 'Blue' },
+  { key: 'guest', label: 'Guest Speaker/Event', escort: true, allowedAreas: ['Auditorium', 'Classroom', 'Reception'], maxHours: 6, badge: 'Purple' },
+  { key: 'maintenance', label: 'Maintenance/Service', escort: true, allowedAreas: ['Specific Work Area'], maxHours: 4, badge: 'Orange' },
+];
 
 // Stakeholder dashboard definitions
 export const stakeholders = [

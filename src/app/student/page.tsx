@@ -16,7 +16,7 @@ import {
   FileCheck, Info, Smartphone, Play, ChevronLeft,
   Camera, Share2, QrCode, Fingerprint, Wifi, MapPin,
   Heart, Flame, Brain, Smile, Frown, Meh, ThumbsUp, ThumbsDown,
-  Target, Zap, Lock, Unlock, Sparkles, NotebookPen,
+  Target, Zap, Lock, Unlock, Sparkles, NotebookPen, Bus, Users,
 } from 'lucide-react';
 import StakeholderProfile from '@/components/StakeholderProfile';
 import TaskTrackerPanel from '@/components/TaskTrackerPanel';
@@ -269,6 +269,10 @@ const modules = [
   { id: 'achievements', label: 'Achievements', icon: Trophy },
   { id: 'study-planner', label: 'Study Planner', icon: Calendar },
   { id: 'wellness', label: 'Wellness', icon: Heart },
+  { id: 'syllabus', label: 'Syllabus', icon: BookOpenCheck },
+  { id: 'transport', label: 'Transport', icon: Bus },
+  { id: 'ptm', label: 'PTM', icon: Users },
+  { id: 'remarks', label: 'Teacher Remarks', icon: NotebookPen },
   { id: 'communication', label: 'Communication', icon: MessageSquare },
   { id: 'support', label: 'Support', icon: Headphones },
 ];
@@ -321,6 +325,10 @@ function StudentDashboard({ theme, themeIdx, onThemeChange, currentUser }: { the
         {activeModule === 'achievements' && <AchievementsModule theme={theme} />}
         {activeModule === 'study-planner' && <StudyPlannerModule theme={theme} />}
         {activeModule === 'wellness' && <WellnessModule theme={theme} />}
+        {activeModule === 'syllabus' && <SyllabusModule theme={theme} />}
+        {activeModule === 'transport' && <TransportWidgetModule theme={theme} />}
+        {activeModule === 'ptm' && <PTMModule theme={theme} />}
+        {activeModule === 'remarks' && <TeacherRemarksModule theme={theme} />}
         {activeModule === 'communication' && <CommunicationModule theme={theme} />}
         {activeModule === 'support' && <SupportModule theme={theme} role="student" />}
         {activeModule === 'profile' && <StakeholderProfile role="student" theme={theme} onClose={() => setActiveModule('dashboard')} themeIdx={themeIdx} onThemeChange={onThemeChange} />}
@@ -334,7 +342,7 @@ function DashboardHome({ theme, onProfileClick, onNavigate }: { theme: Theme; on
   const [showCustomize, setShowCustomize] = useState(false);
   const [widgetConfig, setWidgetConfig] = useState<Record<string, boolean>>({
     'Attendance': true, 'Timetable': true, 'Homework': true, 'Fee Status': true,
-    'Results': true, 'Notices': true, 'Events Calendar': false, 'Library Books': false,
+    'Results': true, 'Notices': true, 'Events Calendar': true, 'Library Books': false,
   });
 
   return (
@@ -551,6 +559,63 @@ function DashboardHome({ theme, onProfileClick, onNavigate }: { theme: Theme; on
         </div>
       </div>
 
+      {/* Upcoming Events */}
+      {widgetConfig['Events Calendar'] && (
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+          <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Upcoming Events</h3>
+          <div className="space-y-2">
+            {[
+              { date: '15 Feb', day: 'Sat', title: 'PTM — Parent Teacher Meeting', type: 'Meeting', color: 'bg-blue-500' },
+              { date: '20 Feb', day: 'Thu', title: 'Pre-Board Exam Begins', type: 'Exam', color: 'bg-red-500' },
+              { date: '28 Feb', day: 'Fri', title: 'Annual Day Celebration', type: 'Event', color: 'bg-purple-500' },
+              { date: '05 Mar', day: 'Wed', title: 'Science Exhibition', type: 'Academic', color: 'bg-emerald-500' },
+              { date: '14 Mar', day: 'Sat', title: 'Holi Holiday', type: 'Holiday', color: 'bg-amber-500' },
+            ].map((ev, i) => (
+              <div key={i} className={`flex items-center gap-3 p-2 rounded-xl ${theme.secondaryBg}`}>
+                <div className={`w-10 h-10 rounded-lg ${ev.color} flex flex-col items-center justify-center text-white text-[9px] font-bold`}>
+                  <span>{ev.date.split(' ')[0]}</span>
+                  <span className="text-[7px] opacity-80">{ev.date.split(' ')[1]}</span>
+                </div>
+                <div className="flex-1">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{ev.title}</p>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{ev.day} · {ev.type}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* My Bus / Transport */}
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className={`text-sm font-bold ${theme.highlight}`}>My Transport</h3>
+          <Bus size={16} className={theme.iconColor} />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-[10px] ${theme.iconColor}`}>Bus Route</p>
+            <p className={`text-sm font-bold ${theme.highlight}`}>Route A</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>GJ-01-AB-1234</p>
+          </div>
+          <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-[10px] ${theme.iconColor}`}>Driver</p>
+            <p className={`text-sm font-bold ${theme.highlight}`}>Ramesh Kumar</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>+91 98765 11004</p>
+          </div>
+          <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-[10px] ${theme.iconColor}`}>Pickup</p>
+            <p className={`text-sm font-bold ${theme.highlight}`}>7:15 AM</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>Stop: Satellite Rd</p>
+          </div>
+          <div className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+            <p className={`text-[10px] ${theme.iconColor}`}>Drop</p>
+            <p className={`text-sm font-bold ${theme.highlight}`}>2:30 PM</p>
+            <p className={`text-[10px] ${theme.iconColor}`}>Stop: Satellite Rd</p>
+          </div>
+        </div>
+      </div>
+
       {/* Quick Actions + Task Tracker — Side by Side */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Quick Actions */}
@@ -642,7 +707,10 @@ function TimetableModule({ theme }: { theme: Theme }) {
         </MobileFrame>
       } />
 
-      <p className="text-[10px] text-amber-600 mb-1">📋 Bell schedule per SSA config · Saturday: Half-day</p>
+      <div className="flex items-center justify-between">
+        <p className="text-[10px] text-amber-600 mb-1">📋 Bell schedule per SSA config · Saturday: Half-day</p>
+        <span className={`text-[10px] px-2.5 py-1 rounded-lg ${theme.secondaryBg} ${theme.iconColor} font-bold`}>Secondary Schedule (8 periods × 40 min)</span>
+      </div>
       <div className={`${theme.cardBg} rounded-2xl border ${theme.border} overflow-hidden overflow-x-auto`}>
         <table className="w-full text-sm">
           <thead className={theme.secondaryBg}>
@@ -1132,6 +1200,7 @@ function FeesModule({ theme }: { theme: Theme }) {
       </div>
 
       <TabBar tabs={['Overview', 'Fee Structure', 'Payment History']} active={activeTab} onChange={setActiveTab} theme={theme} />
+      {/* Late fee values match SSA FeeConfigModule: lateFee=50/day, grace=7days, max=500 */}
       <p className="text-[10px] text-amber-600 mb-2">📋 Fee structure configured by SSA · Due date: 10th · Late fee: ₹50/day after 7-day grace · Max: ₹500</p>
 
       {activeTab === 'Overview' && (
@@ -3076,6 +3145,291 @@ function CommunicationModule({ theme }: { theme: Theme }) {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── SYLLABUS MODULE ─────────────────────────────────
+function SyllabusModule({ theme }: { theme: Theme }) {
+  const [selectedSubject, setSelectedSubject] = useState('Mathematics');
+  const subjects = ['Mathematics', 'Science', 'English', 'Hindi', 'Social Science', 'Computer Science'];
+  const syllabusData: Record<string, { chapter: string; topics: string; weightage: string; status: string }[]> = {
+    'Mathematics': [
+      { chapter: 'Ch 1: Real Numbers', topics: 'Euclid Division, HCF/LCM, Irrational Numbers', weightage: '6 marks', status: 'Completed' },
+      { chapter: 'Ch 2: Polynomials', topics: 'Zeroes, Division Algorithm', weightage: '6 marks', status: 'Completed' },
+      { chapter: 'Ch 3: Pair of Linear Equations', topics: 'Graphical, Algebraic Methods', weightage: '6 marks', status: 'Completed' },
+      { chapter: 'Ch 4: Quadratic Equations', topics: 'Factorisation, Formula, Nature of Roots', weightage: '6 marks', status: 'Completed' },
+      { chapter: 'Ch 5: Arithmetic Progressions', topics: 'nth Term, Sum of n Terms', weightage: '6 marks', status: 'In Progress' },
+      { chapter: 'Ch 6: Triangles', topics: 'Similarity, BPT, Pythagoras', weightage: '8 marks', status: 'In Progress' },
+      { chapter: 'Ch 7: Coordinate Geometry', topics: 'Distance, Section Formula, Area', weightage: '6 marks', status: 'Not Started' },
+      { chapter: 'Ch 8: Trigonometry', topics: 'Ratios, Identities, Heights & Distances', weightage: '12 marks', status: 'Not Started' },
+      { chapter: 'Ch 9: Circles', topics: 'Tangent Properties, Theorems', weightage: '4 marks', status: 'Not Started' },
+      { chapter: 'Ch 10: Constructions', topics: 'Division of Line, Tangent to Circle', weightage: '4 marks', status: 'Not Started' },
+      { chapter: 'Ch 11: Areas (Circles)', topics: 'Sector, Segment, Combined Figures', weightage: '4 marks', status: 'Not Started' },
+      { chapter: 'Ch 12: Surface Areas & Volumes', topics: 'Combination of Solids, Conversion', weightage: '6 marks', status: 'Not Started' },
+      { chapter: 'Ch 13: Statistics', topics: 'Mean, Median, Mode (Grouped)', weightage: '8 marks', status: 'Not Started' },
+      { chapter: 'Ch 14: Probability', topics: 'Classical Probability, Events', weightage: '4 marks', status: 'Not Started' },
+    ],
+    'Science': [
+      { chapter: 'Ch 1: Chemical Reactions', topics: 'Types of Reactions, Balancing', weightage: '5 marks', status: 'Completed' },
+      { chapter: 'Ch 2: Acids, Bases & Salts', topics: 'pH Scale, Indicators, Uses', weightage: '5 marks', status: 'Completed' },
+      { chapter: 'Ch 3: Metals & Non-Metals', topics: 'Properties, Reactivity Series', weightage: '5 marks', status: 'Completed' },
+      { chapter: 'Ch 4: Carbon Compounds', topics: 'Covalent Bond, Functional Groups', weightage: '5 marks', status: 'In Progress' },
+      { chapter: 'Ch 5: Periodic Classification', topics: 'Modern Periodic Table, Trends', weightage: '5 marks', status: 'Not Started' },
+      { chapter: 'Ch 6: Life Processes', topics: 'Nutrition, Respiration, Transport, Excretion', weightage: '7 marks', status: 'Not Started' },
+      { chapter: 'Ch 7: Control & Coordination', topics: 'Nervous System, Hormones', weightage: '7 marks', status: 'Not Started' },
+      { chapter: 'Ch 8: Heredity & Evolution', topics: 'Mendel Laws, Speciation', weightage: '5 marks', status: 'Not Started' },
+      { chapter: 'Ch 9: Light', topics: 'Reflection, Refraction, Lens', weightage: '7 marks', status: 'Not Started' },
+      { chapter: 'Ch 10: Human Eye', topics: 'Defects, Atmospheric Refraction', weightage: '4 marks', status: 'Not Started' },
+      { chapter: 'Ch 11: Electricity', topics: 'Ohm Law, Resistance, Power', weightage: '7 marks', status: 'Not Started' },
+      { chapter: 'Ch 12: Magnetic Effects', topics: 'Magnetic Field, Electromagnet, Motor', weightage: '5 marks', status: 'Not Started' },
+      { chapter: 'Ch 13: Our Environment', topics: 'Ecosystem, Ozone, Waste Management', weightage: '3 marks', status: 'Not Started' },
+    ],
+    'English': [
+      { chapter: 'First Flight: A Letter to God', topics: 'Comprehension, Vocabulary', weightage: '8 marks', status: 'Completed' },
+      { chapter: 'First Flight: Nelson Mandela', topics: 'Comprehension, Short Answers', weightage: '8 marks', status: 'Completed' },
+      { chapter: 'First Flight: Two Stories About Flying', topics: 'Comprehension, Values', weightage: '8 marks', status: 'In Progress' },
+      { chapter: 'Footprints: A Triumph of Surgery', topics: 'Supplementary Reader', weightage: '5 marks', status: 'Completed' },
+      { chapter: 'Grammar: Tenses', topics: 'All Tense Forms, Transformation', weightage: '5 marks', status: 'In Progress' },
+      { chapter: 'Grammar: Modals & Determiners', topics: 'Usage, Gap Filling', weightage: '5 marks', status: 'Not Started' },
+      { chapter: 'Writing: Letter & Email', topics: 'Formal/Informal, Format', weightage: '8 marks', status: 'Not Started' },
+      { chapter: 'Writing: Analytical Paragraph', topics: 'Data Interpretation, Argument', weightage: '5 marks', status: 'Not Started' },
+    ],
+    'Hindi': [
+      { chapter: '\u0915\u094d\u0937\u093f\u0924\u093f\u091c: \u0938\u0942\u0930\u0926\u093e\u0938 \u0915\u0947 \u092a\u0926', topics: '\u092d\u0915\u094d\u0924\u093f, \u0935\u093f\u092a\u094d\u0930\u0932\u0902\u092d \u0936\u094d\u0943\u0902\u0917\u093e\u0930', weightage: '8 marks', status: 'Completed' },
+      { chapter: '\u0915\u094d\u0937\u093f\u0924\u093f\u091c: \u0924\u0941\u0932\u0938\u0940\u0926\u093e\u0938 \u2014 \u0930\u093e\u092e-\u0932\u0915\u094d\u0937\u094d\u092e\u0923-\u092a\u0930\u0936\u0941\u0930\u093e\u092e \u0938\u0902\u0935\u093e\u0926', topics: '\u0935\u0940\u0930 \u0930\u0938, \u0938\u0902\u0935\u093e\u0926 \u0936\u0948\u0932\u0940', weightage: '8 marks', status: 'Completed' },
+      { chapter: '\u0935\u094d\u092f\u093e\u0915\u0930\u0923: \u092a\u0926 \u092a\u0930\u093f\u091a\u092f', topics: '\u0938\u0902\u091c\u094d\u091e\u093e, \u0938\u0930\u094d\u0935\u0928\u093e\u092e, \u0915\u094d\u0930\u093f\u092f\u093e, \u0935\u093f\u0936\u0947\u0937\u0923', weightage: '5 marks', status: 'In Progress' },
+      { chapter: '\u0932\u0947\u0916\u0928: \u092a\u0924\u094d\u0930 \u0932\u0947\u0916\u0928', topics: '\u0914\u092a\u091a\u093e\u0930\u093f\u0915/\u0905\u0928\u094c\u092a\u091a\u093e\u0930\u093f\u0915 \u092a\u0924\u094d\u0930', weightage: '5 marks', status: 'Not Started' },
+      { chapter: '\u0932\u0947\u0916\u0928: \u0928\u093f\u092c\u0902\u0927', topics: '\u0938\u093e\u092e\u093e\u091c\u093f\u0915, \u092a\u0930\u094d\u092f\u093e\u0935\u0930\u0923, \u0936\u093f\u0915\u094d\u0937\u093e \u0935\u093f\u0937\u092f', weightage: '5 marks', status: 'Not Started' },
+    ],
+    'Social Science': [
+      { chapter: 'History: Rise of Nationalism in Europe', topics: 'French Revolution Impact, Unification', weightage: '5 marks', status: 'Completed' },
+      { chapter: 'History: Nationalism in India', topics: 'Civil Disobedience, Salt March', weightage: '5 marks', status: 'Completed' },
+      { chapter: 'Geography: Resources & Development', topics: 'Types, Conservation, Land Use', weightage: '5 marks', status: 'Completed' },
+      { chapter: 'Geography: Agriculture', topics: 'Types, Major Crops, MSP', weightage: '5 marks', status: 'In Progress' },
+      { chapter: 'Civics: Power Sharing', topics: 'Belgium, Sri Lanka, Federalism', weightage: '5 marks', status: 'Not Started' },
+      { chapter: 'Economics: Development', topics: 'Income, HDI, Sustainability', weightage: '5 marks', status: 'Not Started' },
+    ],
+    'Computer Science': [
+      { chapter: 'Ch 1: Introduction to Python', topics: 'Variables, Data Types, Operators', weightage: '10 marks', status: 'Completed' },
+      { chapter: 'Ch 2: Flow of Control', topics: 'If-Else, Loops, Nested', weightage: '10 marks', status: 'Completed' },
+      { chapter: 'Ch 3: Strings', topics: 'Slicing, Methods, Traversal', weightage: '10 marks', status: 'In Progress' },
+      { chapter: 'Ch 4: Lists & Tuples', topics: 'CRUD, Sorting, Stack', weightage: '10 marks', status: 'Not Started' },
+      { chapter: 'Ch 5: Dictionary', topics: 'Methods, Traversal, Nesting', weightage: '10 marks', status: 'Not Started' },
+      { chapter: 'Ch 6: SQL Basics', topics: 'DDL, DML, SELECT Queries', weightage: '15 marks', status: 'Not Started' },
+    ],
+  };
+
+  const data = syllabusData[selectedSubject] || [];
+  const completed = data.filter(d => d.status === 'Completed').length;
+  const total = data.length;
+  const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+  return (
+    <div className="space-y-4">
+      <h2 className={`text-lg font-bold ${theme.highlight}`}>Syllabus</h2>
+      <div className="flex gap-2 flex-wrap">
+        {subjects.map(s => (
+          <button key={s} onClick={() => setSelectedSubject(s)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${selectedSubject === s ? `${theme.primary} text-white` : `${theme.secondaryBg} ${theme.iconColor} ${theme.buttonHover}`}`}>{s}</button>
+        ))}
+      </div>
+      <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4`}>
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h3 className={`text-sm font-bold ${theme.highlight}`}>{selectedSubject}</h3>
+            <p className={`text-[10px] ${theme.iconColor}`}>{completed} of {total} chapters completed ({pct}%)</p>
+          </div>
+          <div className="w-32 h-2 rounded-full bg-gray-200 overflow-hidden">
+            <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${pct}%` }} />
+          </div>
+        </div>
+        <table className="w-full text-xs">
+          <thead>
+            <tr className={`${theme.secondaryBg}`}>
+              <th className="text-left p-2 rounded-l-lg font-bold">Chapter</th>
+              <th className="text-left p-2 font-bold">Topics</th>
+              <th className="text-center p-2 font-bold">Weightage</th>
+              <th className="text-center p-2 rounded-r-lg font-bold">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((ch, i) => (
+              <tr key={i} className={`border-b ${theme.border}`}>
+                <td className={`p-2 font-semibold ${theme.highlight}`}>{ch.chapter}</td>
+                <td className={`p-2 ${theme.iconColor}`}>{ch.topics}</td>
+                <td className="p-2 text-center font-bold">{ch.weightage}</td>
+                <td className="p-2 text-center">
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                    ch.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' :
+                    ch.status === 'In Progress' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'
+                  }`}>{ch.status}</span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ─── TRANSPORT WIDGET MODULE ─────────────────────────────────
+function TransportWidgetModule({ theme }: { theme: Theme }) {
+  return (
+    <div className="space-y-4">
+      <h2 className={`text-lg font-bold ${theme.highlight}`}>My Transport</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5`}>
+          <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Bus Details</h3>
+          <div className="space-y-3">
+            {[
+              { label: 'Route', value: 'Route A \u2014 Satellite \u2192 SG Highway \u2192 School', icon: MapPin },
+              { label: 'Vehicle', value: 'GJ-01-AB-1234 (Ashok Leyland)', icon: Bus },
+              { label: 'Driver', value: 'Ramesh Kumar | +91 98765 11004', icon: User },
+              { label: 'Lady Attendant', value: 'Sunita Devi | +91 98765 11010', icon: Shield },
+            ].map((item, i) => (
+              <div key={i} className="flex items-start gap-3">
+                <div className={`w-8 h-8 rounded-lg ${theme.secondaryBg} flex items-center justify-center shrink-0`}>
+                  <item.icon size={14} className={theme.iconColor} />
+                </div>
+                <div>
+                  <p className={`text-[10px] ${theme.iconColor}`}>{item.label}</p>
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{item.value}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className={`${theme.cardBg} rounded-2xl border ${theme.border} p-5`}>
+          <h3 className={`text-sm font-bold ${theme.highlight} mb-3`}>Schedule</h3>
+          <div className="space-y-2">
+            {[
+              { label: 'Morning Pickup', time: '7:15 AM', stop: 'Satellite Road (Stop #3)', eta: '25 min to school' },
+              { label: 'Afternoon Drop', time: '2:30 PM', stop: 'Satellite Road (Stop #3)', eta: '20 min from school' },
+            ].map((s, i) => (
+              <div key={i} className={`p-3 rounded-xl ${theme.secondaryBg}`}>
+                <div className="flex items-center justify-between">
+                  <p className={`text-xs font-bold ${theme.highlight}`}>{s.label}</p>
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${i === 0 ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}`}>{s.time}</span>
+                </div>
+                <p className={`text-[10px] ${theme.iconColor} mt-1`}>{s.stop}</p>
+                <p className={`text-[10px] ${theme.iconColor}`}>{s.eta}</p>
+              </div>
+            ))}
+          </div>
+          <div className={`mt-3 p-3 rounded-xl bg-emerald-50 border border-emerald-200`}>
+            <div className="flex items-center gap-2">
+              <CheckCircle size={14} className="text-emerald-600" />
+              <div>
+                <p className="text-xs font-bold text-emerald-700">GPS Tracking Active</p>
+                <p className="text-[10px] text-emerald-600">Real-time location available on parent app</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── PTM MODULE ─────────────────────────────────
+function PTMModule({ theme }: { theme: Theme }) {
+  const ptmSchedule = [
+    { date: '15 Feb 2026', day: 'Saturday', time: '09:00 AM - 01:00 PM', class: '10-A', teacher: 'Mr. Sharma (Class Teacher)', slot: '10:00 - 10:15 AM', status: 'Upcoming', agenda: 'Pre-Board preparation, Attendance review, Career counselling' },
+    { date: '20 Dec 2025', day: 'Saturday', time: '09:00 AM - 01:00 PM', class: '10-A', teacher: 'Mr. Sharma', slot: '09:45 - 10:00 AM', status: 'Completed', agenda: 'Half Yearly results, Improvement plan, Co-curricular participation' },
+    { date: '15 Sep 2025', day: 'Saturday', time: '09:00 AM - 01:00 PM', class: '10-A', teacher: 'Mr. Sharma', slot: '10:30 - 10:45 AM', status: 'Completed', agenda: 'UT2 results, Homework regularity, Parent suggestions' },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <h2 className={`text-lg font-bold ${theme.highlight}`}>Parent-Teacher Meetings</h2>
+      <div className="space-y-3">
+        {ptmSchedule.map((ptm, i) => (
+          <div key={i} className={`${theme.cardBg} rounded-2xl border ${theme.border} p-4 ${i === 0 ? 'ring-2 ring-blue-400' : ''}`}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Calendar size={14} className={i === 0 ? 'text-blue-500' : theme.iconColor} />
+                <span className={`text-sm font-bold ${theme.highlight}`}>{ptm.date}</span>
+                <span className={`text-[10px] ${theme.iconColor}`}>({ptm.day})</span>
+              </div>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                ptm.status === 'Upcoming' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'
+              }`}>{ptm.status}</span>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2">
+              <div>
+                <p className={`text-[10px] ${theme.iconColor}`}>Time</p>
+                <p className={`text-xs font-bold ${theme.highlight}`}>{ptm.time}</p>
+              </div>
+              <div>
+                <p className={`text-[10px] ${theme.iconColor}`}>Your Slot</p>
+                <p className={`text-xs font-bold ${theme.highlight}`}>{ptm.slot}</p>
+              </div>
+              <div>
+                <p className={`text-[10px] ${theme.iconColor}`}>Teacher</p>
+                <p className={`text-xs font-bold ${theme.highlight}`}>{ptm.teacher}</p>
+              </div>
+              <div>
+                <p className={`text-[10px] ${theme.iconColor}`}>Class</p>
+                <p className={`text-xs font-bold ${theme.highlight}`}>{ptm.class}</p>
+              </div>
+            </div>
+            <div className="mt-2">
+              <p className={`text-[10px] ${theme.iconColor}`}>Agenda</p>
+              <p className={`text-xs ${theme.highlight}`}>{ptm.agenda}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── TEACHER REMARKS MODULE ─────────────────────────────────
+function TeacherRemarksModule({ theme }: { theme: Theme }) {
+  const remarks = [
+    { date: '10 Feb 2026', teacher: 'Mr. Sharma', subject: 'Mathematics', type: 'Academic', remark: 'Excellent performance in Unit Test 3. Scored 45/50. Keep up the consistent practice.', sentiment: 'positive' },
+    { date: '08 Feb 2026', teacher: 'Mrs. Iyer', subject: 'Science', type: 'Academic', remark: 'Lab report submission was delayed by 2 days. Please maintain deadlines for practical work.', sentiment: 'negative' },
+    { date: '05 Feb 2026', teacher: 'Mr. Singh', subject: 'Physical Education', type: 'Behavioral', remark: 'Showed great sportsmanship during inter-house cricket match. Selected for school team.', sentiment: 'positive' },
+    { date: '01 Feb 2026', teacher: "Ms. D'Souza", subject: 'English', type: 'Academic', remark: 'Essay writing skills have improved significantly. Participated actively in debate practice.', sentiment: 'positive' },
+    { date: '28 Jan 2026', teacher: 'Mr. Sharma', subject: 'Mathematics', type: 'Behavioral', remark: 'Was talking during class. Please maintain discipline and focus during problem-solving sessions.', sentiment: 'negative' },
+    { date: '25 Jan 2026', teacher: 'Mr. Reddy', subject: 'Social Science', type: 'Academic', remark: 'Map work has improved. Good effort in the History project on Indian Independence Movement.', sentiment: 'positive' },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <h2 className={`text-lg font-bold ${theme.highlight}`}>Teacher Remarks</h2>
+      <div className="grid grid-cols-3 gap-3 mb-2">
+        <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-3 text-center`}>
+          <p className="text-lg font-bold text-emerald-600">{remarks.filter(r => r.sentiment === 'positive').length}</p>
+          <p className={`text-[10px] ${theme.iconColor}`}>Positive</p>
+        </div>
+        <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-3 text-center`}>
+          <p className="text-lg font-bold text-red-500">{remarks.filter(r => r.sentiment === 'negative').length}</p>
+          <p className={`text-[10px] ${theme.iconColor}`}>Needs Attention</p>
+        </div>
+        <div className={`${theme.cardBg} rounded-xl border ${theme.border} p-3 text-center`}>
+          <p className="text-lg font-bold text-blue-600">{remarks.length}</p>
+          <p className={`text-[10px] ${theme.iconColor}`}>Total Remarks</p>
+        </div>
+      </div>
+      <div className="space-y-2">
+        {remarks.map((r, i) => (
+          <div key={i} className={`${theme.cardBg} rounded-xl border ${theme.border} p-3`}>
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full ${r.sentiment === 'positive' ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                <span className={`text-xs font-bold ${theme.highlight}`}>{r.teacher}</span>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded ${theme.secondaryBg} ${theme.iconColor}`}>{r.subject}</span>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded ${r.type === 'Academic' ? 'bg-blue-50 text-blue-600' : 'bg-amber-50 text-amber-600'}`}>{r.type}</span>
+              </div>
+              <span className={`text-[10px] ${theme.iconColor}`}>{r.date}</span>
+            </div>
+            <p className={`text-xs ${theme.iconColor} mt-1`}>{r.remark}</p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

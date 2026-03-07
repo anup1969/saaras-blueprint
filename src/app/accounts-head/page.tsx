@@ -9,7 +9,7 @@ import { ChatsView } from '@/components/ChatModule';
 import SupportModule from '@/components/SupportModule';
 import { type TeamMember } from '@/lib/auth';
 import { type Theme } from '@/lib/themes';
-import { feeHeads as ssaFeeHeads, paymentModes as ssaPaymentModes } from '@/lib/mock-data';
+import { feeHeads as ssaFeeHeads, paymentModes as ssaPaymentModes, concessionTypes as ssaConcessions, concessionApprovalChain } from '@/lib/mock-data';
 import {
   Home, Banknote, CreditCard, Receipt, Users, FileText, BarChart3, Settings,
   Search, Plus, Eye, Download, Filter, Check, X, Calendar,
@@ -38,11 +38,13 @@ const feeCollections = [
 ];
 
 const concessions = [
-  { student: 'Kavya Desai', class: '4-A', type: 'Sibling Discount', amount: '\u20B91,500', percent: '10%', approved: 'School Admin', status: 'Active' },
-  { student: 'Ravi Kumar', class: '7-B', type: 'EWS / RTE', amount: '\u20B96,500', percent: '100%', approved: 'Trust', status: 'Active' },
-  { student: 'Prachi Shah', class: '9-A', type: 'Merit Scholarship', amount: '\u20B93,750', percent: '25%', approved: 'Principal', status: 'Active' },
-  { student: 'Mohammed Ali', class: '5-B', type: 'Staff Child', amount: '\u20B97,700', percent: '100%', approved: 'HR', status: 'Active' },
-  { student: 'Sneha Patel', class: '2-A', type: 'Single Parent', amount: '\u20B95,000', percent: 'Fixed', approved: 'Trust', status: 'Active' },
+  { student: 'Kavya Desai', class: '4-A', type: 'Sibling Discount', amount: '₹1,500', percent: '10%', approved: 'Mrs. Meera Shah', status: 'Active' },
+  { student: 'Ravi Kumar', class: '7-B', type: 'Economic Weaker (EWS)', amount: '₹3,250', percent: '50%', approved: 'Mr. Amit Patel', status: 'Active' },
+  { student: 'Prachi Shah', class: '9-A', type: 'Merit Scholarship', amount: '₹3,750', percent: '25%', approved: 'Dr. Rajesh Kumar', status: 'Active' },
+  { student: 'Mohammed Ali', class: '5-B', type: 'Staff Child', amount: '₹7,700', percent: '100%', approved: 'Mrs. Meera Shah', status: 'Active' },
+  { student: 'Sneha Patel', class: '2-A', type: 'Single Parent', amount: '₹1,400', percent: '20%', approved: 'Mr. Amit Patel', status: 'Active' },
+  { student: 'Arjun Yadav', class: '8-A', type: 'Sports Quota', amount: '₹975', percent: '15%', approved: 'Dr. Rajesh Kumar', status: 'Active' },
+  { student: 'Pooja Kumari', class: '6-B', type: 'SC/ST Scholarship', amount: '₹25,000', percent: '₹25K Fixed', approved: 'Mr. Amit Patel', status: 'Active' },
 ];
 
 const expenses = [
@@ -118,8 +120,8 @@ const chequeRegister = [
 ];
 
 const feeAdjustments = [
-  { id: 'ADJ-001', student: 'Ishaan Patel', class: '9-A', type: 'Waiver', head: 'Late Fee', amount: '\u20B9500', reason: 'Medical emergency — hospitalised 2 weeks', authorizedBy: 'Principal', date: '08 Feb', status: 'Approved' },
-  { id: 'ADJ-002', student: 'Tanvi Mehta', class: '6-B', type: 'Write-off', head: 'Transport', amount: '\u20B91,200', reason: 'Family relocated mid-term, TC issued', authorizedBy: 'School Admin', date: '05 Feb', status: 'Approved' },
+  { id: 'ADJ-001', student: 'Ishaan Patel', class: '9-A', type: 'Waiver', head: 'Late Fee', amount: '\u20B9500', reason: 'Medical emergency — hospitalised 2 weeks', authorizedBy: 'Dr. Rajesh Kumar (Principal)', date: '08 Feb', status: 'Approved' },
+  { id: 'ADJ-002', student: 'Tanvi Mehta', class: '6-B', type: 'Write-off', head: 'Transport', amount: '\u20B91,200', reason: 'Family relocated mid-term, TC issued', authorizedBy: 'Mrs. Meera Shah (Accounts Officer)', date: '05 Feb', status: 'Approved' },
   { id: 'ADJ-003', student: 'Karan Desai', class: '10-A', type: 'Head Transfer', head: 'Activity Fee \u2192 Lab Fee', amount: '\u20B92,000', reason: 'Student opted out of sports, joined robotics lab', authorizedBy: 'Accounts Head', date: '03 Feb', status: 'Processed' },
   { id: 'ADJ-004', student: 'Nisha Gupta', class: '4-C', type: 'Late Fee Waiver', head: 'Late Fee', amount: '\u20B9300', reason: 'System error — payment was on time via UPI', authorizedBy: 'Accounts Head', date: '01 Feb', status: 'Processed' },
 ];
@@ -393,7 +395,7 @@ function CollectionsView({ theme }: { theme: Theme }) {
             <div className="flex-1"><SearchBar placeholder="Search by student name or receipt..." theme={theme} icon={Search} /></div>
             <TabBar tabs={['All', 'Paid', 'Pending', 'Overdue']} active={tab} onChange={setTab} theme={theme} />
           </div>
-          <p className="text-[10px] text-amber-600 mb-2">Fee template: Component-based &middot; Billing: Monthly &middot; 7 active fee heads &mdash; configured by SSA</p>
+          <p className="text-[10px] text-amber-600 mb-2">Fee template: Component-based &middot; Billing: Monthly &middot; 7 active / 12 total fee heads &mdash; configured by SSA</p>
 
           <DataTable
             headers={['Student', 'Class', 'Amount', 'Mode', 'Date', 'Receipt', 'Status']}
@@ -704,7 +706,7 @@ function FeesView({ theme }: { theme: Theme }) {
             </div>
           </div>
 
-          <p className="text-[10px] text-amber-600">Fee template: Component-based &middot; Billing: Monthly &middot; {ssaFeeHeads.length} active fee heads &mdash; configured by SSA</p>
+          <p className="text-[10px] text-amber-600">Fee template: Component-based &middot; Billing: Monthly &middot; {ssaFeeHeads.filter(f => f.active).length} active / {ssaFeeHeads.length} total fee heads &mdash; configured by SSA</p>
         </div>
       )}
 
